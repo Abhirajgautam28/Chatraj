@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "nodemon": "^3.1.9",
+    "remixicon": "^4.6.0"
+  }
+}
