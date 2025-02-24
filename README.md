@@ -26,7 +26,7 @@ ChatRaj is an AI-powered backend for a software engineering collaboration platfo
    ```
 
 2. **Install Dependencies:**
-   ```bash
+   ```
    npm install
    ```
 
