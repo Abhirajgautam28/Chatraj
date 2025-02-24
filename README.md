@@ -20,7 +20,7 @@ ChatRaj is an AI-powered backend for a software engineering collaboration platfo
 
 ### Installation Steps
 1. **Clone the Repository:**
-   ```bash
+   ```
    git clone https://github.com/yourusername/ChatRaj.git
    cd ChatRaj/Backend
    ```
