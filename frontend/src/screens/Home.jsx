@@ -1,23 +1,20 @@
-import React, { useContext, useState, useEffect } from 'react'
-import { UserContext } from '../context/user.context'
-import axios from "../config/axios"
-import { useNavigate, useLocation } from 'react-router-dom'
+import React, { useContext, useState, useEffect } from 'react';
+import { UserContext } from '../context/user.context';
+import axios from "../config/axios";
+import { useNavigate, useLocation } from 'react-router-dom';
 import 'animate.css';
 
 const Home = () => {
-  const { user } = useContext(UserContext);
+  const { setUser, user } = useContext(UserContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectName, setProjectName] = useState('');
   const [projects, setProjects] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
-
   const selectedCategory = location.state?.selectedCategory || null;
 
   const createProject = (e) => {
     e.preventDefault();
-    console.log({ projectName, selectedCategory });
-
     axios.post('/projects/create', {
       name: projectName,
       category: selectedCategory
@@ -29,7 +26,19 @@ const Home = () => {
       .catch((error) => {
         console.log(error);
       });
-  }
+  };
+
+  const handleLogout = () => {
+    axios.get('/users/logout')
+      .then(() => {
+        localStorage.removeItem('token');
+        setUser(null);
+        navigate('/logout');
+      })
+      .catch(err => {
+        console.error(err);
+      });
+  };
 
   useEffect(() => {
     const url = selectedCategory ? `/projects/all?category=${selectedCategory}` : '/projects/all';
@@ -43,8 +52,15 @@ const Home = () => {
   }, [selectedCategory]);
 
   return (
-    <main className="min-h-screen p-4 bg-gradient-to-r from-blue-800 to-gray-900 animate__animated animate__fadeIn">
-      <div className="container mx-auto">
+    <main className="relative min-h-screen p-4 bg-gradient-to-r from-blue-800 to-gray-900 animate__animated animate__fadeIn">
+      <div className="container relative mx-auto">
+        <button
+          onClick={handleLogout}
+          className="absolute z-50 flex items-center gap-2 px-3 py-2 text-white transition bg-gray-700 rounded-md top-4 right-4 hover:bg-gray-600"
+        >
+          <i className="ri-logout-box-r-line"></i>
+          <span>Logout</span>
+        </button>
         <div className="w-full max-w-4xl p-8 transition duration-500 transform bg-gray-800 rounded-lg shadow-2xl hover:scale-105">
           <h1 className="mb-6 text-2xl font-bold text-center text-white animate__animated animate__fadeInDown">
             {selectedCategory ? `${selectedCategory} Projects` : 'Your Projects'}
@@ -63,7 +79,7 @@ const Home = () => {
                 onClick={() => {
                   navigate(`/project`, {
                     state: { project }
-                  })
+                  });
                 }}
                 className="flex flex-col gap-2 p-6 transition duration-300 transform bg-gray-700 rounded-md shadow-sm cursor-pointer hover:-translate-y-1 hover:scale-105 hover:bg-gray-600 animate__animated animate__fadeIn"
               >

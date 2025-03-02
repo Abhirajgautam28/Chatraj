@@ -6,6 +6,7 @@ import Home from '../screens/Home'
 import Project from '../screens/Project'
 import UserAuth from '../auth/UserAuth'
 import Categories from '../screens/Categories'
+import Logout from '../screens/Logout'
 
 const AppRoutes = () => {
     return (
@@ -17,6 +18,7 @@ const AppRoutes = () => {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/project" element={<UserAuth><Project /></UserAuth>} />
+                <Route path="/logout" element={<Logout />} />
             </Routes>
 
         </BrowserRouter>
