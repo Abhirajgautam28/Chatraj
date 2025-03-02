@@ -1,5 +1,3 @@
-Here's the properly formatted `README.md` for your ChatRaj project:  
-
 ```markdown
 # ChatRaj – AI-Powered Software Engineering Collaboration Platform
 
