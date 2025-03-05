@@ -18,6 +18,39 @@ function SyntaxHighlightedCode(props) {
   return <code {...props} ref={ref} />
 }
 
+// Place these helper functions inside your Project component (or right outside it)
+
+const isSameDay = (d1, d2) => {
+  return d1.getFullYear() === d2.getFullYear() &&
+         d1.getMonth() === d2.getMonth() &&
+         d1.getDate() === d2.getDate();
+};
+
+const getGroupLabel = (date) => {
+  const today = new Date();
+  if (isSameDay(date, today)) return 'Today';
+  
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+  if (isSameDay(date, yesterday)) return 'Yesterday';
+  
+  // Otherwise format the date (you can change formatting as needed)
+  return date.toLocaleDateString(); // e.g. "03/03/2025"
+};
+
+const groupMessagesByDate = (messagesArr) => {
+  const groups = {};
+  messagesArr.forEach(msg => {
+    const d = new Date(msg.createdAt);
+    const label = getGroupLabel(d);
+    if (!groups[label]) {
+      groups[label] = [];
+    }
+    groups[label].push(msg);
+  });
+  return groups;
+};
+
 const Project = () => {
   const location = useLocation()
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false)
@@ -37,6 +70,7 @@ const Project = () => {
   const [runProcess, setRunProcess] = useState(null)
   // To support threaded replies
   const [replyingTo, setReplyingTo] = useState(null)
+  const [searchTerm, setSearchTerm] = useState("");  // new state for searching
 
   const handleUserClick = (id) => {
     setSelectedUserId(prev => {
@@ -134,6 +168,13 @@ const Project = () => {
 
     receiveMessage('project-message', handleIncomingMessage);
   }, [webContainer]);
+
+  // Compute filtered messages (if searchTerm exists, filter by message text)
+  const filteredMessages = searchTerm 
+    ? messages.filter(msg => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
+    : messages;
+
+  const groupedMessages = groupMessagesByDate(filteredMessages);
 
   const renderMessage = (msg, index) => {
     const isCurrentUser =
@@ -241,9 +282,33 @@ const Project = () => {
             <i className="ri-user-community-line"></i>
           </button>
         </header>
+
+        {/* Add search input above your messages */}
+        <div className="p-2">
+          <input
+            type="text"
+            placeholder="Search messages..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full p-2 border rounded"
+          />
+        </div>
+
         <div className="relative flex flex-col flex-grow h-full pb-10 conversation-area pt-14">
           <div ref={messageBox} className="flex flex-col flex-grow max-h-full gap-1 p-1 overflow-auto message-box scrollbar-hide">
-            {messages.map((msg, index) => renderMessage(msg, index))}
+            {Object.keys(groupedMessages)
+              .sort((a, b) => {
+                // Optional: sort the date groups; you could convert group labels back to timestamps
+                return a.localeCompare(b);
+              })
+              .map((groupLabel) => (
+                <div key={groupLabel}>
+                  <div className="py-2 text-sm text-center text-gray-500">
+                    {groupLabel}
+                  </div>
+                  {groupedMessages[groupLabel].map((msg, idx) => renderMessage(msg, idx))}
+                </div>
+            ))}
           </div>
           {/* Reply banner */}
           {replyingTo && (
