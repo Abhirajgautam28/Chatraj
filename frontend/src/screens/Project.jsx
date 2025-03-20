@@ -18,8 +18,6 @@ function SyntaxHighlightedCode(props) {
   return <code {...props} ref={ref} />
 }
 
-// Place these helper functions inside your Project component (or right outside it)
-
 const isSameDay = (d1, d2) => {
   return d1.getFullYear() === d2.getFullYear() &&
          d1.getMonth() === d2.getMonth() &&
@@ -33,9 +31,7 @@ const getGroupLabel = (date) => {
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
   if (isSameDay(date, yesterday)) return 'Yesterday';
-  
-  // Otherwise format the date (you can change formatting as needed)
-  return date.toLocaleDateString(); // e.g. "03/03/2025"
+  return date.toLocaleDateString();
 };
 
 const groupMessagesByDate = (messagesArr) => {
@@ -68,9 +64,8 @@ const Project = () => {
   const [webContainer, setWebContainer] = useState(null)
   const [iframeUrl, setIframeUrl] = useState(null)
   const [runProcess, setRunProcess] = useState(null)
-  // To support threaded replies
   const [replyingTo, setReplyingTo] = useState(null)
-  const [searchTerm, setSearchTerm] = useState("");  // new state for searching
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleUserClick = (id) => {
     setSelectedUserId(prev => {
@@ -168,8 +163,6 @@ const Project = () => {
 
     receiveMessage('project-message', handleIncomingMessage);
   }, [webContainer]);
-
-  // Compute filtered messages (if searchTerm exists, filter by message text)
   const filteredMessages = searchTerm 
     ? messages.filter(msg => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
     : messages;
@@ -238,7 +231,6 @@ const Project = () => {
           <small className="text-[10px] text-gray-600">
             {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </small>
-          {/* Reaction button */}
           <button
             className="text-xs"
             onClick={() => {
@@ -256,7 +248,6 @@ const Project = () => {
             ❤️
           </button>
           {reactionDisplay}
-          {/* Reply button */}
           <button
             className="text-xs"
             onClick={() => {
@@ -282,8 +273,6 @@ const Project = () => {
             <i className="ri-user-community-line"></i>
           </button>
         </header>
-
-        {/* Add search input above your messages */}
         <div className="p-2">
           <input
             type="text"
@@ -298,7 +287,6 @@ const Project = () => {
           <div ref={messageBox} className="flex flex-col flex-grow max-h-full gap-1 p-1 overflow-auto message-box scrollbar-hide">
             {Object.keys(groupedMessages)
               .sort((a, b) => {
-                // Optional: sort the date groups; you could convert group labels back to timestamps
                 return a.localeCompare(b);
               })
               .map((groupLabel) => (
@@ -310,7 +298,6 @@ const Project = () => {
                 </div>
             ))}
           </div>
-          {/* Reply banner */}
           {replyingTo && (
             <div className="flex items-center justify-between px-4 py-2 bg-gray-300">
               <span className="text-sm italic">
