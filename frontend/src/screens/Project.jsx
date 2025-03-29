@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext, useRef } from 'react'
 import { UserContext } from '../context/user.context'
+import { ThemeContext } from '../context/theme.context'
 import { useNavigate, useLocation } from 'react-router-dom'
 import axios from '../config/axios'
 import { initializeSocket, receiveMessage, sendMessage } from '../config/socket'
@@ -57,6 +58,7 @@ const Project = () => {
   const [project, setProject] = useState(location.state.project)
   const [message, setMessage] = useState('')
   const { user } = useContext(UserContext)
+  const { isDarkMode, setIsDarkMode } = useContext(ThemeContext)
   const messageBox = useRef(null)
   const [users, setUsers] = useState([])
   const [messages, setMessages] = useState([])
@@ -272,14 +274,19 @@ const Project = () => {
   }
 
   return (
-    <main className="flex w-screen h-screen overflow-hidden">
-      <section className="relative flex flex-col h-screen left min-w-96 bg-slate-300">
-        <header className="absolute top-0 z-10 flex items-center justify-between w-full p-2 px-4 bg-slate-100">
-          <button className="flex gap-2" onClick={() => setIsModalOpen(true)}>
-            <i className="mr-1 ri-user-add-fill"></i>
-            <p>Add Users</p>
-          </button>
-          <button onClick={() => setIsSidePanelOpen(!isSidePanelOpen)} className="p-2">
+    <main className="flex w-screen h-screen overflow-hidden bg-white dark:bg-gray-900">
+      <section className="relative flex flex-col h-screen left min-w-96 bg-slate-100 dark:bg-gray-800">
+        <header className="absolute top-0 z-10 flex items-center justify-between w-full p-2 px-4 bg-slate-100 dark:bg-gray-800">
+          <div className="flex items-center gap-4">
+            <button className="flex gap-2" onClick={() => setIsModalOpen(true)}>
+              <i className="mr-1 ri-user-add-fill"></i>
+              <p>Add Users</p>
+            </button>
+          </div>
+          <button 
+            onClick={() => setIsSidePanelOpen(!isSidePanelOpen)} 
+            className="p-2"
+          >
             <i className="ri-user-community-line"></i>
           </button>
         </header>
@@ -303,12 +310,12 @@ const Project = () => {
             </div>
           )}
         </div>
-        <div ref={messageBox} className="flex flex-col flex-grow gap-1 p-1 pb-20 overflow-auto message-box scrollbar-hide">
+        <div ref={messageBox} className="flex flex-col flex-grow gap-1 p-1 pb-20 overflow-auto message-box scrollbar-hide bg-slate-50 dark:bg-gray-800">
           {Object.keys(groupedMessages)
             .sort((a, b) => a.localeCompare(b))
             .map((groupLabel) => (
               <div key={groupLabel}>
-                <div className="py-2 text-sm text-center text-gray-500">{groupLabel}</div>
+                <div className="py-2 text-sm text-center text-gray-500 dark:text-gray-400">{groupLabel}</div>
                 {groupedMessages[groupLabel].map((msg, idx) => renderMessage(msg, idx))}
               </div>
             ))}
@@ -327,7 +334,7 @@ const Project = () => {
             </button>
           </div>
         )}
-        <div className="absolute bottom-0 flex w-full inputField">
+        <div className="absolute bottom-0 flex w-full bg-white inputField dark:bg-gray-800">
           <input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -337,21 +344,21 @@ const Project = () => {
                 send()
               }
             }}
-            className="flex-grow p-2 px-4 border-none outline-none"
+            className="flex-grow p-2 px-4 bg-transparent border-none outline-none dark:text-white"
             type="text"
             placeholder="Enter message"
           />
-          <button onClick={send} className="px-5 text-white bg-slate-950">
+          <button onClick={send} className="px-5 text-white bg-slate-950 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-700">
             <i className="ri-send-plane-fill"></i>
           </button>
         </div>
         <div
-          className={`sidePanel w-full h-full flex flex-col gap-2 bg-slate-50 absolute transition-all ${
+          className={`sidePanel w-full h-full flex flex-col gap-2 bg-slate-50 dark:bg-gray-800 absolute transition-all ${
             isSidePanelOpen ? "translate-x-0" : "-translate-x-full"
           } top-0`}
         >
-          <header className="flex items-center justify-between p-2 px-4 bg-slate-200">
-            <h1 className="text-lg font-semibold">Collaborators</h1>
+          <header className="flex items-center justify-between p-2 px-4 bg-slate-200 dark:bg-gray-700">
+            <h1 className="text-lg font-semibold dark:text-white">Collaborators</h1>
             <button onClick={() => setIsSidePanelOpen(!isSidePanelOpen)} className="p-2">
               <i className="ri-close-fill"></i>
             </button>
@@ -359,19 +366,19 @@ const Project = () => {
           <div className="flex flex-col gap-2 users">
             {project.users &&
               project.users.map((u) => (
-                <div key={u._id} className="flex items-center gap-2 p-2 cursor-pointer user hover:bg-slate-200">
-                  <div className="flex items-center justify-center p-5 text-white rounded-full bg-slate-600">
+                <div key={u._id} className="flex items-center gap-2 p-2 cursor-pointer user hover:bg-slate-200 dark:hover:bg-gray-700">
+                  <div className="flex items-center justify-center p-5 text-white rounded-full bg-slate-600 dark:bg-gray-600">
                     <i className="ri-user-fill"></i>
                   </div>
-                  <h1 className="text-lg font-semibold">{u.email}</h1>
+                  <h1 className="text-lg font-semibold dark:text-white">{u.email}</h1>
                 </div>
               ))}
           </div>
         </div>
       </section>
 
-      <section className="flex flex-grow h-full bg-blue-50 right">
-        <div className="h-full explorer max-w-64 min-w-52 bg-slate-200">
+      <section className="flex flex-grow h-full bg-blue-50 dark:bg-gray-900 right">
+        <div className="h-full explorer max-w-64 min-w-52 bg-slate-200 dark:bg-gray-800">
           <div className="w-full file-tree">
             {Object.keys(fileTree).map((file, index) => (
               <button
@@ -380,7 +387,7 @@ const Project = () => {
                   setCurrentFile(file)
                   setOpenFiles([...new Set([...openFiles, file])])
                 }}
-                className="flex items-center w-full gap-2 p-2 px-4 cursor-pointer tree-element bg-slate-300"
+                className="flex items-center w-full gap-2 p-2 px-4 cursor-pointer tree-element bg-slate-300 dark:bg-gray-700 dark:text-white"
               >
                 <p className="text-lg font-semibold">{file}</p>
               </button>
@@ -394,30 +401,109 @@ const Project = () => {
                 <button
                   key={index}
                   onClick={() => setCurrentFile(file)}
-                  className={`open-file cursor-pointer p-2 px-4 flex items-center gap-2 bg-slate-300 ${
-                    currentFile === file ? "bg-slate-400" : ""
+                  className={`open-file cursor-pointer p-2 px-4 flex items-center gap-2 bg-slate-300 dark:bg-gray-700 dark:text-white ${
+                    currentFile === file ? "bg-slate-400 dark:bg-gray-600" : ""
                   }`}
                 >
-                  <p className="text-lg font-semibold">{file}</p>
+                  <p className="text-lg font-semibold dark:text-white">{file}</p>
                 </button>
               ))}
             </div>
             <div className="flex gap-2 actions">
               <button
+                onClick={() => setIsDarkMode(!isDarkMode)} 
+                className="p-2 px-4 text-gray-600 rounded dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+              >
+                <i className={`text-xl ${isDarkMode ? 'ri-sun-line' : 'ri-moon-line'}`}></i>
+              </button>
+              <button
                 onClick={async () => {
-                  await webContainer.mount(fileTree)
-                  const installProcess = await webContainer.spawn("npm", ["install"])
-                  installProcess.output.pipeTo(new WritableStream({ write(chunk) { console.log(chunk) } }))
-                  if (runProcess) runProcess.kill()
-                  let tempRunProcess = await webContainer.spawn("npm", ["start"])
-                  tempRunProcess.output.pipeTo(new WritableStream({ write(chunk) { console.log(chunk) } }))
-                  setRunProcess(tempRunProcess)
-                  webContainer.on("server-ready", (port, url) => {
-                    console.log(port, url)
-                    setIframeUrl(url)
-                  })
+                  try {
+                    // First, ensure proper directory structure
+                    await webContainer.mount({
+                      'package.json': {
+                        file: {
+                          contents: JSON.stringify({
+                            name: 'express-app',
+                            version: '1.0.0',
+                            scripts: {
+                              start: 'node app.js'
+                            },
+                            dependencies: {
+                              express: '^4.18.2'
+                            }
+                          })
+                        }
+                      },
+                      ...fileTree
+                    });
+
+                    // Kill existing process if running
+                    if (runProcess) {
+                      await runProcess.kill();
+                    }
+
+                    // Install dependencies with improved retry logic
+                    let installSuccess = false;
+                    let retries = 3;
+
+                    while (!installSuccess && retries > 0) {
+                      try {
+                        const installProcess = await webContainer.spawn('npm', ['install']);
+                        const installExitCode = await new Promise(resolve => {
+                          installProcess.output.pipeTo(new WritableStream({
+                            write(chunk) {
+                              console.log('Install output:', chunk);
+                            }
+                          }));
+                          installProcess.exit.then(resolve);
+                        });
+
+                        if (installExitCode === 0) {
+                          installSuccess = true;
+                          console.log('Dependencies installed successfully');
+                        }
+                      } catch (err) {
+                        console.log(`Install attempt failed, ${retries - 1} retries left:`, err);
+                        retries--;
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                      }
+                    }
+
+                    if (!installSuccess) {
+                      throw new Error('Failed to install dependencies after multiple attempts');
+                    }
+
+                    // Start the server with better error handling
+                    const tempRunProcess = await webContainer.spawn('npm', ['start']);
+                    
+                    tempRunProcess.output.pipeTo(new WritableStream({
+                      write(chunk) {
+                        console.log('Server output:', chunk);
+                      }
+                    }));
+
+                    tempRunProcess.exit.then(code => {
+                      if (code !== 0) {
+                        console.error(`Process exited with code ${code}`);
+                      }
+                    });
+
+                    setRunProcess(tempRunProcess);
+
+                    // Listen for server ready event
+                    webContainer.on('server-ready', (port, url) => {
+                      console.log('Server ready on:', url);
+                      setIframeUrl(url);
+                    });
+
+                  } catch (error) {
+                    console.error('Error running project:', error);
+                    // Add visual feedback for the error
+                    alert(`Failed to run project: ${error.message}`);
+                  }
                 }}
-                className="p-2 px-4 text-white bg-slate-300"
+                className="p-2 px-4 text-white bg-slate-300 dark:bg-blue-600 hover:bg-slate-400 dark:hover:bg-blue-700"
               >
                 run
               </button>
@@ -425,22 +511,27 @@ const Project = () => {
           </div>
           <div className="flex flex-grow max-w-full overflow-auto bottom shrink">
             {fileTree[currentFile] && (
-              <div className="flex-grow h-full overflow-auto code-editor-area bg-slate-50">
-                <pre className="h-full hljs">
+              <div className="flex-grow h-full overflow-auto code-editor-area bg-slate-50 dark:bg-gray-900">
+                <pre className="h-full hljs dark:bg-gray-900">
                   <code
-                    className="h-full outline-none hljs"
+                    className="h-full outline-none hljs dark:text-white"
                     contentEditable
                     suppressContentEditableWarning
                     onBlur={(e) => {
                       const updatedContent = e.target.innerText
                       const ft = { ...fileTree, [currentFile]: { file: { contents: updatedContent } } }
                       setFileTree(ft)
-                      saveFileTree(ft)
                     }}
                     dangerouslySetInnerHTML={{
                       __html: hljs.highlight("javascript", fileTree[currentFile].file.contents).value
                     }}
-                    style={{ whiteSpace: "pre-wrap", paddingBottom: "25rem" }}
+                    style={{ 
+                      whiteSpace: "pre-wrap", 
+                      paddingBottom: "25rem",
+                      padding: "1rem",
+                      backgroundColor: isDarkMode ? "#111827" : "white",
+                      color: isDarkMode ? "#fff" : "#000"
+                    }}
                   />
                 </pre>
               </div>
@@ -454,10 +545,37 @@ const Project = () => {
                 type="text"
                 onChange={(e) => setIframeUrl(e.target.value)}
                 value={iframeUrl}
-                className="w-full p-2 px-4 bg-slate-200"
+                className="w-full p-2 px-4 bg-slate-200 dark:bg-gray-700 dark:text-white"
               />
             </div>
-            <iframe src={iframeUrl} className="w-full h-full"></iframe>
+            <iframe 
+              src={iframeUrl} 
+              className="w-full h-full bg-white"
+              style={{
+                backgroundColor: "white"
+              }}
+              onLoad={(e) => {
+                try {
+                  const doc = e.target.contentDocument;
+                  if (doc) {
+                    // Set constant light mode styles
+                    const style = doc.createElement('style');
+                    style.textContent = `
+                      body { 
+                        color: #000 !important;
+                        background-color: #fff !important;
+                      }
+                      * {
+                        color: #000 !important;
+                      }
+                    `;
+                    doc.head.appendChild(style);
+                  }
+                } catch (error) {
+                  console.log("Unable to access iframe content");
+                }
+              }}
+            />
           </div>
         )}
       </section>
