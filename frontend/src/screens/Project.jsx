@@ -9,6 +9,8 @@ import hljs from 'highlight.js'
 import { getWebContainer } from '../config/webContainer'
 import { motion } from 'framer-motion'
 import Avatar from '../components/Avatar';
+import EmojiPicker from '../components/EmojiPicker';
+import FileIcon from '../components/FileIcon';
 
 function SyntaxHighlightedCode(props) {
   const ref = useRef(null)
@@ -76,6 +78,50 @@ const Project = () => {
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [messageEmojiPickers, setMessageEmojiPickers] = useState({});
+
+  const toggleEmojiPicker = (messageId) => {
+    setMessageEmojiPickers(prev => ({
+      ...prev,
+      [messageId]: !prev[messageId]
+    }));
+  };
+
+  const handleReaction = (messageId, emoji, userId) => {
+    // Don't allow users to react to their own messages
+    const message = messages.find(m => m._id === messageId);
+    if (message.sender._id === userId) {
+      return;
+    }
+
+    const existingReaction = message.reactions?.find(r => r.userId === userId);
+
+    const newReactions = message.reactions?.filter(r => r.userId !== userId) || [];
+    if (!existingReaction || existingReaction.emoji !== emoji) {
+      newReactions.push({ userId, emoji });
+    }
+
+    sendMessage("message-reaction", {
+      messageId,
+      emoji: !existingReaction || existingReaction.emoji !== emoji ? emoji : null,
+      userId,
+      reactions: newReactions
+    });
+
+    setMessages(prevMessages => 
+      prevMessages.map(msg => 
+        msg._id === messageId 
+          ? { ...msg, reactions: newReactions }
+          : msg
+      )
+    );
+
+    setMessageEmojiPickers(prev => ({
+      ...prev,
+      [messageId]: false
+    }));
+  };
 
   const handleUserClick = (id) => {
     setSelectedUserId((prev) => {
@@ -215,6 +261,18 @@ const Project = () => {
     };
   }, [user._id]);
 
+  useEffect(() => {
+    const handleReactionUpdate = (updatedMessage) => {
+      setMessages(prevMessages => 
+        prevMessages.map(msg => 
+          msg._id === updatedMessage._id ? updatedMessage : msg
+        )
+      );
+    };
+
+    receiveMessage("message-reaction", handleReactionUpdate);
+  }, []);
+
   const filteredMessages = searchTerm
     ? messages.filter((msg) => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
     : messages
@@ -230,22 +288,16 @@ const Project = () => {
 
     const parentMsg = msg.parentMessageId && messages.find((m) => m._id === msg.parentMessageId)
 
-    let reactionDisplay = null
-    if (msg.reactions && msg.reactions.length > 0) {
-      const reactionEmails = msg.reactions.map((r) => {
-        const foundUser = users.find((u) => String(u._id) === String(r.userId))
-        if (foundUser) {
-          return foundUser.email
-        } else if (String(r.userId) === String(user._id)) {
-          return user.email
+    let reactionGroups = {};
+    if (msg.reactions) {
+      msg.reactions.forEach(r => {
+        if (!reactionGroups[r.emoji]) {
+          reactionGroups[r.emoji] = [];
         }
-        return r.userId
-      })
-      reactionDisplay = (
-        <span className="text-xs cursor-default" title={reactionEmails.join(", ")}>
-          {msg.reactions[0].emoji} {msg.reactions.length}
-        </span>
-      )
+        if (!reactionGroups[r.emoji].includes(r.userId)) {
+          reactionGroups[r.emoji].push(r.userId);
+        }
+      });
     }
 
     return (
@@ -300,39 +352,64 @@ const Project = () => {
             />
           )}
         </div>
-        <div className="flex items-center gap-2 mt-1">
-          <small className="text-[10px] text-gray-600">
-            {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-          </small>
-          <button
-            className="text-xs"
-            onClick={() => {
-              if (isCurrentUser) {
-                console.log("You cannot like your own message.")
-                return
-              }
-              if (msg._id) {
-                sendMessage("message-reaction", { messageId: msg._id, emoji: "❤️", userId: user._id })
-              } else {
-                console.log("Message ID missing; cannot add reaction")
-              }
-            }}
-          >
-            ❤️
-          </button>
-          {reactionDisplay}
-          <button
-            className="text-xs text-gray-800 dark:text-white"
-            onClick={() => {
-              setReplyingTo(
-                typeof msg.sender === "string"
-                  ? { ...msg, sender: { email: msg.sender } }
-                  : msg
+        <div className="relative group">
+          <div className="flex items-center gap-2 mt-1">
+            <small className="text-[10px] text-gray-600">
+              {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            </small>
+            <div className="relative">
+              {!isCurrentUser && (
+                <button
+                  className="p-1 text-xs text-gray-600 rounded opacity-0 dark:text-gray-400 group-hover:opacity-100 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  onClick={() => toggleEmojiPicker(msg._id)}
+                >
+                  <i className="text-base ri-emotion-line"></i>
+                </button>
+              )}
+              <EmojiPicker
+                isOpen={messageEmojiPickers[msg._id]}
+                setIsOpen={(isOpen) => {
+                  setMessageEmojiPickers(prev => ({
+                    ...prev,
+                    [msg._id]: isOpen
+                  }));
+                }}
+                isCurrentUser={isCurrentUser}
+                onSelect={(emoji) => {
+                  if (msg._id && !isCurrentUser) {
+                    handleReaction(msg._id, emoji, user._id);
+                  }
+                }}
+              />
+            </div>
+            {Object.entries(reactionGroups).map(([emoji, users]) => {
+              // Don't show reactions with no users
+              if (users.length === 0) return null;
+              
+              return (
+                <button
+                  key={emoji}
+                  className={`text-xs px-2 py-1 rounded-full ${
+                    users.includes(user._id) 
+                      ? 'bg-blue-100 dark:bg-blue-900' 
+                      : 'bg-gray-100 dark:bg-gray-700'
+                  }`}
+                  title={users.map(userId => {
+                    const reactingUser = project.users.find(u => u._id === userId);
+                    return reactingUser ? reactingUser.email : 'Unknown';
+                  }).join(', ')}
+                >
+                  {emoji} {users.length}
+                </button>
               );
-            }}
-          >
-            Reply
-          </button>
+            })}
+            <button
+              onClick={() => setReplyingTo(msg)}
+              className="text-xs text-gray-600 opacity-0 group-hover:opacity-100 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+            >
+              Reply
+            </button>
+          </div>
         </div>
       </motion.div>
     )
@@ -478,11 +555,12 @@ const Project = () => {
               <button
                 key={index}
                 onClick={() => {
-                  setCurrentFile(file)
-                  setOpenFiles([...new Set([...openFiles, file])])
+                  setCurrentFile(file);
+                  setOpenFiles([...new Set([...openFiles, file])]);
                 }}
-                className="flex items-center w-full gap-2 p-2 px-4 cursor-pointer tree-element bg-slate-300 dark:bg-gray-700 dark:text-white"
+                className="flex items-center w-full gap-2 p-2 px-4 cursor-pointer tree-element hover:bg-slate-400 dark:hover:bg-gray-600 bg-slate-300 dark:bg-gray-700 dark:text-white"
               >
+                <FileIcon fileName={file} />
                 <p className="text-lg font-semibold">{file}</p>
               </button>
             ))}
