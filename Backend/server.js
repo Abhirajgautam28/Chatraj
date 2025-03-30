@@ -110,6 +110,20 @@ io.on('connection', socket => {
         }
     });
 
+    socket.on('typing', (data) => {
+        socket.to(socket.roomId).emit('typing', {
+            userId: data.userId,
+            projectId: data.projectId
+        });
+    });
+
+    socket.on('stop-typing', (data) => {
+        socket.to(socket.roomId).emit('stop-typing', {
+            userId: data.userId,
+            projectId: data.projectId
+        });
+    });
+
     socket.on('disconnect', () => {
         console.log('user disconnected');
         socket.leave(socket.roomId)

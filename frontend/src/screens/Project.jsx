@@ -7,6 +7,7 @@ import { initializeSocket, receiveMessage, sendMessage } from '../config/socket'
 import Markdown from 'markdown-to-jsx'
 import hljs from 'highlight.js'
 import { getWebContainer } from '../config/webContainer'
+import { motion } from 'framer-motion'
 
 function SyntaxHighlightedCode(props) {
   const ref = useRef(null)
@@ -71,6 +72,9 @@ const Project = () => {
   const [replyingTo, setReplyingTo] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [showSearch, setShowSearch] = useState(false)
+  const [typingUsers, setTypingUsers] = useState(new Set());
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef(null);
 
   const handleUserClick = (id) => {
     setSelectedUserId((prev) => {
@@ -108,6 +112,22 @@ const Project = () => {
     setMessage("")
     setReplyingTo(null)
   }
+
+  const handleTyping = () => {
+    if (!isTyping) {
+      setIsTyping(true);
+      sendMessage('typing', { userId: user._id, projectId: project._id });
+    }
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false);
+      sendMessage('stop-typing', { userId: user._id, projectId: project._id });
+    }, 1000);
+  };
 
   useEffect(() => {
     if (messages.length && messageBox.current) {
@@ -170,6 +190,30 @@ const Project = () => {
     receiveMessage("project-message", handleIncomingMessage)
   }, [webContainer])
 
+  useEffect(() => {
+    const handleUserTyping = (data) => {
+      if (data.userId !== user._id) {
+        setTypingUsers(prev => new Set([...prev, data.userId]));
+      }
+    };
+
+    const handleStopTyping = (data) => {
+      setTypingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(data.userId);
+        return newSet;
+      });
+    };
+
+    receiveMessage('typing', handleUserTyping);
+    receiveMessage('stop-typing', handleStopTyping);
+
+    return () => {
+      receiveMessage('typing', null);
+      receiveMessage('stop-typing', null);
+    };
+  }, [user._id]);
+
   const filteredMessages = searchTerm
     ? messages.filter((msg) => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
     : messages
@@ -204,7 +248,13 @@ const Project = () => {
     }
 
     return (
-      <div key={index} className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"} mb-2`}>
+      <motion.div
+        key={index}
+        initial={{ opacity: 0, x: isCurrentUser ? 20 : -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3 }}
+        className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"} mb-2`}
+      >
         {msg.parentMessageId && (
           <div className="px-2 py-1 mb-1 text-xs italic bg-gray-200 rounded">
             Replying to:{" "}
@@ -269,7 +319,7 @@ const Project = () => {
             Reply
           </button>
         </div>
-      </div>
+      </motion.div>
     )
   }
 
@@ -334,10 +384,33 @@ const Project = () => {
             </button>
           </div>
         )}
+        {typingUsers.size > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="absolute bottom-14 left-4 text-sm text-gray-500 dark:text-gray-400"
+          >
+            <div className="flex items-center gap-2">
+              <div className="flex gap-1">
+                <span className="animate-bounce">.</span>
+                <span className="animate-bounce delay-100">.</span>
+                <span className="animate-bounce delay-200">.</span>
+              </div>
+              {Array.from(typingUsers).map(userId => {
+                const typingUser = project.users.find(u => u._id === userId);
+                return typingUser?.email;
+              }).join(', ')} {typingUsers.size === 1 ? 'is' : 'are'} typing...
+            </div>
+          </motion.div>
+        )}
         <div className="absolute bottom-0 flex w-full bg-white inputField dark:bg-gray-800">
           <input
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) => {
+              setMessage(e.target.value);
+              handleTyping();
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault()

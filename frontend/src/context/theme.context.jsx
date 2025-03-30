@@ -9,7 +9,6 @@ export function ThemeProvider({ children }) {
   });
 
   useEffect(() => {
-    // Save to localStorage
     localStorage.setItem('isDarkMode', JSON.stringify(isDarkMode));
 
     if (isDarkMode) {
