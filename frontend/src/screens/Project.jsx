@@ -8,6 +8,7 @@ import Markdown from 'markdown-to-jsx'
 import hljs from 'highlight.js'
 import { getWebContainer } from '../config/webContainer'
 import { motion } from 'framer-motion'
+import Avatar from '../components/Avatar';
 
 function SyntaxHighlightedCode(props) {
   const ref = useRef(null)
@@ -265,25 +266,39 @@ const Project = () => {
               : "Unknown"}
           </div>
         )}
-        <div
-          className={`flex flex-col p-2 rounded-md max-w-xs break-words ${
-            isCurrentUser ? "bg-blue-500 text-white" : "bg-white text-gray-800 shadow"
-          }`}
-        >
+        <div className="flex items-start gap-2">
           {!isCurrentUser && (
-            <small className="mb-1 font-bold text-gray-700">
-              {typeof msg.sender === "object" ? msg.sender.email : msg.sender}
-            </small>
+            <Avatar 
+              email={typeof msg.sender === "object" ? msg.sender.email : msg.sender} 
+              className="w-8 h-8 text-sm"
+            />
           )}
-          <div className="text-sm whitespace-pre-wrap">
-            {msg.sender && msg.sender._id === "Chatraj" ? (
-              <div className="p-2 text-white rounded bg-slate-950">
-                <Markdown options={{ overrides: { code: SyntaxHighlightedCode } }}>{msg.message}</Markdown>
-              </div>
-            ) : (
-              <p>{msg.message}</p>
+          <div
+            className={`flex flex-col p-2 rounded-md max-w-xs break-words ${
+              isCurrentUser ? "bg-blue-500 text-white" : "bg-white text-gray-800 shadow"
+            }`}
+          >
+            {!isCurrentUser && (
+              <small className="mb-1 font-bold text-gray-700">
+                {typeof msg.sender === "object" ? msg.sender.email : msg.sender}
+              </small>
             )}
+            <div className="text-sm whitespace-pre-wrap">
+              {msg.sender && msg.sender._id === "Chatraj" ? (
+                <div className="p-2 text-white rounded bg-slate-950">
+                  <Markdown options={{ overrides: { code: SyntaxHighlightedCode } }}>{msg.message}</Markdown>
+                </div>
+              ) : (
+                <p>{msg.message}</p>
+              )}
+            </div>
           </div>
+          {isCurrentUser && (
+            <Avatar 
+              email={user.email} 
+              className="w-8 h-8 text-sm"
+            />
+          )}
         </div>
         <div className="flex items-center gap-2 mt-1">
           <small className="text-[10px] text-gray-600">
@@ -333,34 +348,37 @@ const Project = () => {
               <p>Add Users</p>
             </button>
           </div>
-          <button 
-            onClick={() => setIsSidePanelOpen(!isSidePanelOpen)} 
-            className="p-2 text-gray-800 dark:text-white"
-          >
-            <i className="ri-user-community-line"></i>
-          </button>
-        </header>
-        <div className="flex items-center justify-end p-2 mt-12">
-          {!showSearch ? (
-            <button onClick={() => setShowSearch(true)} className="text-gray-800 dark:text-white">
-              <i className="ri-search-eye-fill"></i>
-            </button>
-          ) : (
-            <div className="relative transition-all duration-300">
-              <input
-                type="text"
-                placeholder="Search messages..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full p-2 transition-all duration-300 border rounded"
-              />
-              <button onClick={() => setShowSearch(false)} className="absolute text-gray-800 dark:text-white right-2 top-2">
-                <i className="ri-close-line"></i>
+          <div className="flex items-center gap-2">
+            {!showSearch ? (
+              <button onClick={() => setShowSearch(true)} className="text-gray-800 dark:text-white">
+                <i className="ri-search-eye-fill"></i>
               </button>
-            </div>
-          )}
-        </div>
-        <div ref={messageBox} className="flex flex-col flex-grow gap-1 p-1 pb-20 overflow-auto message-box scrollbar-hide bg-slate-50 dark:bg-gray-800">
+            ) : (
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search messages..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-48 p-2 text-sm transition-all duration-300 border rounded"
+                />
+                <button onClick={() => setShowSearch(false)} className="absolute text-gray-800 dark:text-white right-2 top-2">
+                  <i className="ri-close-line"></i>
+                </button>
+              </div>
+            )}
+            <button 
+              onClick={() => setIsSidePanelOpen(!isSidePanelOpen)} 
+              className="p-2 text-gray-800 dark:text-white"
+            >
+              <i className="ri-user-community-line"></i>
+            </button>
+          </div>
+        </header>
+        <div 
+          ref={messageBox} 
+          className="flex flex-col flex-grow gap-1 p-1 pb-20 overflow-auto pt-14 message-box scrollbar-hide bg-slate-50 dark:bg-gray-800"
+        >
           {Object.keys(groupedMessages)
             .sort((a, b) => a.localeCompare(b))
             .map((groupLabel) => (
@@ -389,13 +407,13 @@ const Project = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="absolute bottom-14 left-4 text-sm text-gray-500 dark:text-gray-400"
+            className="absolute text-sm text-gray-500 bottom-14 left-4 dark:text-gray-400"
           >
             <div className="flex items-center gap-2">
               <div className="flex gap-1">
                 <span className="animate-bounce">.</span>
-                <span className="animate-bounce delay-100">.</span>
-                <span className="animate-bounce delay-200">.</span>
+                <span className="delay-100 animate-bounce">.</span>
+                <span className="delay-200 animate-bounce">.</span>
               </div>
               {Array.from(typingUsers).map(userId => {
                 const typingUser = project.users.find(u => u._id === userId);
@@ -421,7 +439,9 @@ const Project = () => {
             type="text"
             placeholder="Enter message"
           />
-          <button onClick={send} className="px-5 text-white bg-slate-950 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-700">
+          <button 
+            onClick={send} 
+            className="px-5 text-white bg-blue-600 hover:bg-blue-700">
             <i className="ri-send-plane-fill"></i>
           </button>
         </div>
@@ -440,9 +460,10 @@ const Project = () => {
             {project.users &&
               project.users.map((u) => (
                 <div key={u._id} className="flex items-center gap-2 p-2 cursor-pointer user hover:bg-slate-200 dark:hover:bg-gray-700">
-                  <div className="flex items-center justify-center p-5 text-white rounded-full bg-slate-600 dark:bg-gray-600">
-                    <i className="ri-user-fill"></i>
-                  </div>
+                  <Avatar 
+                    email={u.email} 
+                    className="w-12 h-12 text-base"
+                  />
                   <h1 className="text-lg font-semibold dark:text-white">{u.email}</h1>
                 </div>
               ))}
@@ -572,8 +593,7 @@ const Project = () => {
                     alert(`Failed to run project: ${error.message}`);
                   }
                 }}
-                className="p-2 px-4 text-white bg-slate-300 dark:bg-blue-600 hover:bg-slate-400 dark:hover:bg-blue-700"
-              >
+                className="p-2 px-4 text-white bg-blue-600 hover:bg-blue-700">
                 run
               </button>
             </div>
@@ -665,9 +685,10 @@ const Project = () => {
                   className={`user cursor-pointer hover:bg-slate-200 ${Array.from(selectedUserId).includes(u._id) ? "bg-slate-200" : ""} p-2 flex gap-2 items-center`}
                   onClick={() => handleUserClick(u._id)}
                 >
-                  <div className="flex items-center justify-center p-5 text-white rounded-full bg-slate-600">
-                    <i className="ri-user-fill"></i>
-                  </div>
+                  <Avatar 
+                    email={u.email} 
+                    className="w-12 h-12 text-base"
+                  />
                   <h1 className="text-lg font-semibold">{u.email}</h1>
                 </div>
               ))}
