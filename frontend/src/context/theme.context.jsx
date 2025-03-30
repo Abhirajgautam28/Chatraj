@@ -2,19 +2,20 @@ import React, { createContext, useState, useEffect } from 'react';
 
 export const ThemeContext = createContext();
 
-export const ThemeProvider = ({ children }) => {
+export function ThemeProvider({ children }) {
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem('theme');
-    return savedTheme === 'dark';
+    const savedTheme = localStorage.getItem('isDarkMode');
+    return savedTheme ? JSON.parse(savedTheme) : false;
   });
 
   useEffect(() => {
+    // Save to localStorage
+    localStorage.setItem('isDarkMode', JSON.stringify(isDarkMode));
+
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
     }
   }, [isDarkMode]);
 
@@ -23,4 +24,4 @@ export const ThemeProvider = ({ children }) => {
       {children}
     </ThemeContext.Provider>
   );
-};
+}

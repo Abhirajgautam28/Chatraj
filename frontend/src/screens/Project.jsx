@@ -257,7 +257,7 @@ const Project = () => {
           </button>
           {reactionDisplay}
           <button
-            className="text-xs"
+            className="text-xs text-gray-800 dark:text-white"
             onClick={() => {
               setReplyingTo(
                 typeof msg.sender === "string"
@@ -278,21 +278,21 @@ const Project = () => {
       <section className="relative flex flex-col h-screen left min-w-96 bg-slate-100 dark:bg-gray-800">
         <header className="absolute top-0 z-10 flex items-center justify-between w-full p-2 px-4 bg-slate-100 dark:bg-gray-800">
           <div className="flex items-center gap-4">
-            <button className="flex gap-2" onClick={() => setIsModalOpen(true)}>
+            <button className="flex gap-2 text-gray-800 dark:text-white" onClick={() => setIsModalOpen(true)}>
               <i className="mr-1 ri-user-add-fill"></i>
               <p>Add Users</p>
             </button>
           </div>
           <button 
             onClick={() => setIsSidePanelOpen(!isSidePanelOpen)} 
-            className="p-2"
+            className="p-2 text-gray-800 dark:text-white"
           >
             <i className="ri-user-community-line"></i>
           </button>
         </header>
         <div className="flex items-center justify-end p-2 mt-12">
           {!showSearch ? (
-            <button onClick={() => setShowSearch(true)} className="text-gray-600">
+            <button onClick={() => setShowSearch(true)} className="text-gray-800 dark:text-white">
               <i className="ri-search-eye-fill"></i>
             </button>
           ) : (
@@ -304,7 +304,7 @@ const Project = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full p-2 transition-all duration-300 border rounded"
               />
-              <button onClick={() => setShowSearch(false)} className="absolute text-gray-600 right-2 top-2">
+              <button onClick={() => setShowSearch(false)} className="absolute text-gray-800 dark:text-white right-2 top-2">
                 <i className="ri-close-line"></i>
               </button>
             </div>
@@ -378,7 +378,7 @@ const Project = () => {
       </section>
 
       <section className="flex flex-grow h-full bg-blue-50 dark:bg-gray-900 right">
-        <div className="h-full explorer max-w-64 min-w-52 bg-slate-200 dark:bg-gray-800">
+        <div className="h-full explorer max-w-64 min-w-52 bg-slate-200 dark:bg-gray-500">
           <div className="w-full file-tree">
             {Object.keys(fileTree).map((file, index) => (
               <button
@@ -411,7 +411,9 @@ const Project = () => {
             </div>
             <div className="flex gap-2 actions">
               <button
-                onClick={() => setIsDarkMode(!isDarkMode)} 
+                onClick={() => {
+                  setIsDarkMode(!isDarkMode);
+                }} 
                 className="p-2 px-4 text-gray-600 rounded dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
               >
                 <i className={`text-xl ${isDarkMode ? 'ri-sun-line' : 'ri-moon-line'}`}></i>
@@ -419,7 +421,6 @@ const Project = () => {
               <button
                 onClick={async () => {
                   try {
-                    // First, ensure proper directory structure
                     await webContainer.mount({
                       'package.json': {
                         file: {
@@ -438,12 +439,10 @@ const Project = () => {
                       ...fileTree
                     });
 
-                    // Kill existing process if running
                     if (runProcess) {
                       await runProcess.kill();
                     }
 
-                    // Install dependencies with improved retry logic
                     let installSuccess = false;
                     let retries = 3;
 
@@ -474,7 +473,6 @@ const Project = () => {
                       throw new Error('Failed to install dependencies after multiple attempts');
                     }
 
-                    // Start the server with better error handling
                     const tempRunProcess = await webContainer.spawn('npm', ['start']);
                     
                     tempRunProcess.output.pipeTo(new WritableStream({
@@ -491,7 +489,6 @@ const Project = () => {
 
                     setRunProcess(tempRunProcess);
 
-                    // Listen for server ready event
                     webContainer.on('server-ready', (port, url) => {
                       console.log('Server ready on:', url);
                       setIframeUrl(url);
@@ -499,7 +496,6 @@ const Project = () => {
 
                   } catch (error) {
                     console.error('Error running project:', error);
-                    // Add visual feedback for the error
                     alert(`Failed to run project: ${error.message}`);
                   }
                 }}
