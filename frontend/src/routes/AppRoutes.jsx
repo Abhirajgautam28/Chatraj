@@ -7,6 +7,7 @@ import Project from '../screens/Project'
 import UserAuth from '../auth/UserAuth'
 import Categories from '../screens/Categories'
 import Logout from '../screens/Logout'
+import ChatRaj from '../screens/ChatRaj'
 
 const AppRoutes = () => {
     return (
@@ -19,6 +20,7 @@ const AppRoutes = () => {
                 <Route path="/register" element={<Register />} />
                 <Route path="/project" element={<UserAuth><Project /></UserAuth>} />
                 <Route path="/logout" element={<Logout />} />
+                <Route path="/chatraj" element={<UserAuth><ChatRaj /></UserAuth>} />
             </Routes>
 
         </BrowserRouter>
