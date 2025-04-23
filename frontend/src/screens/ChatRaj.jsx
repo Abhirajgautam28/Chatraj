@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import 'animate.css';
 import { ChatRajThemeContext } from '../context/chatraj-theme.context';
 import { UserContext } from '../context/user.context';
+import { useNavigate } from 'react-router-dom';
 
 const WaveAnimation = ({ isListening }) => {
   return (
@@ -95,6 +96,7 @@ const VoiceIndicator = ({ isListening }) => {
 };
 
 const ChatRaj = () => {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isThinking, setIsThinking] = useState(false);
@@ -260,7 +262,7 @@ const ChatRaj = () => {
             </div>
 
             <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex items-center gap-3 p-2 mb-2 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+              <div className="flex items-center gap-3 p-2 mb-2">
                 <div className="flex items-center justify-center w-8 h-8 text-sm text-white bg-blue-500 rounded-full">
                   {user?.email?.[0]?.toUpperCase() || '?'}
                 </div>
@@ -269,6 +271,13 @@ const ChatRaj = () => {
                 </span>
               </div>
 
+              <button
+                onClick={() => navigate('/categories')}
+                className="flex items-center w-full gap-3 p-2 mb-2 text-gray-600 transition-colors rounded-lg dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <i className="ri-arrow-go-back-fill"></i>
+                <span className="text-sm font-medium">Categories</span>
+              </button>
               <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
                 className="flex items-center w-full gap-3 p-2 text-gray-600 transition-colors rounded-lg dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -281,7 +290,7 @@ const ChatRaj = () => {
         </div>
 
         <div 
-          className="flex flex-col flex-1 pt-16 transition-all duration-300" // Added pt-16 here
+          className="flex flex-col flex-1 pt-16 transition-all duration-300"
           style={{ marginLeft: isSidebarOpen ? '260px' : '0' }}
         >
           <div className="flex-1 overflow-y-auto">
