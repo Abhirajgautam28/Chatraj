@@ -103,6 +103,17 @@ const ChatRaj = () => {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settings, setSettings] = useState(() => {
+    const savedSettings = localStorage.getItem('chatrajSettings');
+    return savedSettings ? JSON.parse(savedSettings) : {
+      fontSize: 'medium',
+      messageSound: true,
+      enterToSend: true,
+      autoScroll: true,
+      language: 'en-US'
+    };
+  });
   const messageEndRef = useRef(null);
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -129,6 +140,16 @@ const ChatRaj = () => {
       recognitionRef.current = recognition;
     }
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('chatrajSettings', JSON.stringify(settings));
+  }, [settings]);
+
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window && recognitionRef.current) {
+      recognitionRef.current.lang = settings.language;
+    }
+  }, [settings.language]);
 
   const startListening = () => {
     if (recognitionRef.current) {
@@ -179,10 +200,12 @@ const ChatRaj = () => {
   };
 
   const handleSubmit = async (e, voiceInput = null) => {
-    e.preventDefault();
+    e?.preventDefault();
+    if (!settings.enterToSend && e?.key === 'Enter') return;
+    
     const messageToSend = voiceInput || inputMessage;
     if (!messageToSend.trim()) return;
-
+    
     const userMessage = {
       type: 'user',
       content: messageToSend,
@@ -192,6 +215,12 @@ const ChatRaj = () => {
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
     setIsThinking(true);
+
+    // Play message sound if enabled
+    if (settings.messageSound) {
+      const audio = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAASAAAgrgBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr///////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAYAAAAAAAAAIK4R+CqWAAAAAAAAAAAAAAAAAAAA//sQZAAP8AAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAETEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sQZB4P8AAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sQZD4P8AAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV');
+      audio.play();
+    }
 
     setTimeout(() => {
       const response = "I understand and I'm here to help you! 🌟";
@@ -219,8 +248,10 @@ const ChatRaj = () => {
   };
 
   useEffect(() => {
-    messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (settings.autoScroll && messageEndRef.current) {
+      messageEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, settings.autoScroll]);
 
   return (
     <div className={isDarkMode ? 'dark' : 'light'}>
@@ -279,11 +310,11 @@ const ChatRaj = () => {
                 <span className="text-sm font-medium">Categories</span>
               </button>
               <button
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                className="flex items-center w-full gap-3 p-2 text-gray-600 transition-colors rounded-lg dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => setIsSettingsOpen(true)}
+                className="flex items-center w-full gap-3 p-2 mb-2 text-gray-600 transition-colors rounded-lg dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-                <i className={`text-xl ${isDarkMode ? 'ri-sun-line' : 'ri-moon-line'}`}></i>
-                <span className="text-sm font-medium">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                <i className="text-xl ri-settings-3-line"></i>
+                <span className="text-sm font-medium">Settings</span>
               </button>
             </div>
           </div>
@@ -316,7 +347,13 @@ const ChatRaj = () => {
                         ? 'bg-blue-600 text-white' 
                         : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200'
                     }`}>
-                      <p className="text-sm">{message.content}</p>
+                      <p className={`${
+                        settings.fontSize === 'small' ? 'text-xs' : 
+                        settings.fontSize === 'large' ? 'text-base' : 
+                        'text-sm'
+                      }`}>
+                        {message.content}
+                      </p>
                     </div>
                   </div>
                 ))
@@ -379,6 +416,151 @@ const ChatRaj = () => {
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {isSettingsOpen && (
+          <>
+            <div 
+              className="fixed inset-0 z-40 bg-black bg-opacity-50"
+              onClick={() => setIsSettingsOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="fixed z-50 bg-white rounded-lg shadow-xl left-4 bottom-20 w-80 dark:bg-gray-800"
+            >
+              <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
+                <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Settings</h2>
+                <button 
+                  onClick={() => setIsSettingsOpen(false)}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  <i className="text-xl ri-close-line"></i>
+                </button>
+              </div>
+              
+              <div className="p-4 space-y-4">
+                {/* Dark Mode Toggle */}
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Dark Mode
+                  </label>
+                  <button
+                    onClick={() => setIsDarkMode(!isDarkMode)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      isDarkMode ? 'bg-blue-600' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        isDarkMode ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Font Size Setting */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Font Size
+                  </label>
+                  <select
+                    value={settings.fontSize}
+                    onChange={(e) => setSettings(prev => ({...prev, fontSize: e.target.value}))}
+                    className="w-full p-2 text-gray-800 bg-gray-100 border-0 rounded-md dark:bg-gray-700 dark:text-white"
+                  >
+                    <option value="small">Small</option>
+                    <option value="medium">Medium</option>
+                    <option value="large">Large</option>
+                  </select>
+                </div>
+
+                {/* Message Sound Toggle */}
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Message Sound
+                  </label>
+                  <button
+                    onClick={() => setSettings(prev => ({...prev, messageSound: !prev.messageSound}))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      settings.messageSound ? 'bg-blue-600' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        settings.messageSound ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Enter to Send Toggle */}
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Enter to Send
+                  </label>
+                  <button
+                    onClick={() => setSettings(prev => ({...prev, enterToSend: !prev.enterToSend}))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      settings.enterToSend ? 'bg-blue-600' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        settings.enterToSend ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Auto Scroll Toggle */}
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Auto Scroll
+                  </label>
+                  <button
+                    onClick={() => setSettings(prev => ({...prev, autoScroll: !prev.autoScroll}))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      settings.autoScroll ? 'bg-blue-600' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        settings.autoScroll ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Language Selection */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Language
+                  </label>
+                  <select
+                    value={settings.language}
+                    onChange={(e) => setSettings(prev => ({...prev, language: e.target.value}))}
+                    className="w-full p-2 text-gray-800 bg-gray-100 border-0 rounded-md dark:bg-gray-700 dark:text-white"
+                  >
+                    <option value="en-US">English (US)</option>
+                    <option value="en-GB">English (UK)</option>
+                    <option value="es-ES">Spanish</option>
+                    <option value="fr-FR">French</option>
+                    <option value="de-DE">German</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-b-lg bg-gray-50 dark:bg-gray-700/50">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Settings are automatically saved and will persist across sessions.
+                </p>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {isListening && (
