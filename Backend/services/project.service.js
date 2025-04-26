@@ -35,7 +35,7 @@ export const getAllProjectByUserId = async ({ userId, category }) => {
   }
 
   const query = {
-    users: userId,
+    users: { $in: [userId] }
   };
 
   if (category) {

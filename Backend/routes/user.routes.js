@@ -1,8 +1,7 @@
 import { Router } from 'express';
 import * as userController from '../controllers/user.controller.js';
 import { body } from 'express-validator';
-// Remove authMiddleware for logout
-// import * as authMiddleware from '../middleware/auth.middleware.js';
+import * as authMiddleware from '../middleware/auth.middleware.js';
 
 const router = Router();
 
@@ -18,11 +17,10 @@ router.post('/login',
   userController.loginController
 );
 
-router.get('/profile', /* authMiddleware.authUser, */ userController.profileController);
+router.get('/profile', authMiddleware.authUser, userController.profileController);
 
-// Remove auth middleware from logout route:
 router.get('/logout', userController.logoutController);
 
-router.get('/all', /* authMiddleware.authUser, */ userController.getAllUsersController);
+router.get('/all', authMiddleware.authUser, userController.getAllUsersController);
 
 export default router;

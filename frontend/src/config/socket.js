@@ -2,6 +2,7 @@ import socket from 'socket.io-client';
 
 
 let socketInstance = null;
+const callbacks = {};
 
 
 export const initializeSocket = (projectId) => {
@@ -15,6 +16,15 @@ export const initializeSocket = (projectId) => {
         }
     });
 
+    // Add these event listeners
+    socketInstance.on('typing', (data) => {
+        callbacks['typing']?.forEach(cb => cb(data));
+    });
+
+    socketInstance.on('stop-typing', (data) => {
+        callbacks['stop-typing']?.forEach(cb => cb(data));
+    });
+
     return socketInstance;
 
 }
@@ -26,3 +36,12 @@ export const receiveMessage = (eventName, cb) => {
 export const sendMessage = (eventName, data) => {
     socketInstance.emit(eventName, data);
 }
+
+// Add these event emitters
+export const emitTyping = (data) => {
+    if (socketInstance) socketInstance.emit('typing', data);
+};
+
+export const emitStopTyping = (data) => {
+    if (socketInstance) socketInstance.emit('stop-typing', data);
+};
