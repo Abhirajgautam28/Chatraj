@@ -113,7 +113,7 @@ const ChatRaj = () => {
       display: {
         darkMode: false,
         theme: {
-          primary: '#3B82F6',
+          primary: '#3B82F6', // Default blue color
           secondary: '#1F2937',
           accent: '#10B981',
           customColors: false
@@ -124,18 +124,9 @@ const ChatRaj = () => {
           aiMessageSize: 'text-sm',
           headerSize: 'text-xl'
         },
-        chatBubbles: {
-          roundness: 'rounded-2xl',
-          userBubble: {
-            padding: 'px-4 py-3',
-            maxWidth: 'max-w-[80%]',
-            customColor: '#3B82F6'
-          },
-          aiBubble: {
-            padding: 'px-4 py-3',
-            maxWidth: 'max-w-[80%]',
-            customColor: '#E5E7EB'
-          }
+        animations: {
+          messageTransition: true,
+          interfaceTransitions: true
         }
       },
       behavior: {
@@ -150,7 +141,6 @@ const ChatRaj = () => {
       accessibility: {
         language: 'en-US',
         fontSize: 'medium',
-        highContrast: false,
         reducedMotion: false,
         screenReader: false
       },
@@ -214,6 +204,13 @@ const ChatRaj = () => {
       recognitionRef.current.lang = settings.accessibility.language;
     }
   }, [settings.accessibility.language]);
+
+  // Add this useEffect to apply theme colors
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty('--primary-color', settings.display.theme.primary);
+    root.style.setProperty('--accent-color', settings.display.theme.accent);
+  }, [settings.display.theme]);
 
   const startListening = () => {
     if (recognitionRef.current) {
@@ -454,9 +451,13 @@ const ChatRaj = () => {
                   >
                     <div className={`max-w-[80%] px-4 py-3 ${settings.display.chatBubbles.roundness} ${
                       message.type === 'user' 
-                        ? 'bg-blue-600 text-white' 
-                        : 'bg-gray-200 text-black dark:bg-gray-700 dark:text-white'
-                    }`}>
+                        ? 'text-white' 
+                        : 'text-black dark:text-white'
+                    }`}
+                    style={{
+                      backgroundColor: message.type === 'user' ? 'var(--primary-color)' : 'var(--secondary-bg-color)',
+                    }}
+                    >
                       <p className={`${settings.display.typography.fontFamily} ${
                         message.type === 'user' 
                           ? settings.display.typography.userMessageSize
@@ -570,16 +571,20 @@ const ChatRaj = () => {
         {isSettingsOpen && (
           <>
             <div 
-              className="fixed inset-0 z-40 bg-black bg-opacity-50"
+              className="fixed inset-0 z-50 bg-black bg-opacity-50"
               onClick={() => setIsSettingsOpen(false)}
             />
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: -300 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="fixed z-50 overflow-hidden bg-white rounded-lg shadow-xl left-4 bottom-20 w-96 dark:bg-gray-800"
-              style={{ maxHeight: 'calc(100vh - 120px)' }}
+              exit={{ opacity: 0, x: -300 }}
+              className="fixed bottom-24 left-4 z-50 w-[320px] bg-white rounded-lg shadow-xl dark:bg-gray-800"
+              style={{ 
+                maxHeight: 'calc(100vh - 180px)',
+                overflow: 'hidden'
+              }}
             >
+              {/* Settings Header */}
               <div className="sticky top-0 z-10 flex items-center justify-between p-4 bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Settings</h2>
                 <button 
@@ -590,188 +595,156 @@ const ChatRaj = () => {
                 </button>
               </div>
 
-              <div className="flex flex-col divide-y divide-gray-200 dark:divide-gray-700">
-                <div className="p-4">
-                  <div className="grid grid-cols-4 gap-1 p-1 bg-gray-100 rounded-lg dark:bg-gray-700">
-                    {['display', 'behavior', 'accessibility', 'sidebar'].map(tab => (
-                      <button
-                        key={tab}
-                        onClick={() => setActiveSettingsTab(tab)}
-                        className={`py-2 text-sm font-medium rounded-md transition-colors ${
-                          activeSettingsTab === tab 
-                            ? 'bg-white text-blue-600 shadow dark:bg-gray-600 dark:text-blue-400'
-                            : 'text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400'
-                        }`}
-                      >
-                        {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                      </button>
-                    ))}
-                  </div>
+              {/* Settings Tabs */}
+              <div className="p-4 border-b dark:border-gray-700">
+                <div className="grid grid-cols-4 gap-1 p-1 bg-gray-100 rounded-lg dark:bg-gray-700">
+                  {['display', 'behavior', 'accessibility', 'sidebar'].map(tab => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveSettingsTab(tab)}
+                      className={`py-2 text-sm font-medium rounded-md transition-colors ${
+                        activeSettingsTab === tab 
+                          ? 'bg-white text-blue-600 shadow dark:bg-gray-600 dark:text-blue-400'
+                          : 'text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400'
+                      }`}
+                    >
+                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    </button>
+                  ))}
                 </div>
+              </div>
 
-                <div className="flex-1 overflow-y-auto">
-                  <div className="p-4 space-y-6">
-                    {activeSettingsTab === 'display' && (
-                      <div className="space-y-6">
-                        <div className="flex items-center justify-between">
+              {/* Settings Content */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="p-4 space-y-6">
+                  {/* Display Settings */}
+                  {activeSettingsTab === 'display' && (
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="text-sm font-medium text-black dark:text-white">Dark Mode</label>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Switch between light and dark theme</p>
+                        </div>
+                        <button
+                          onClick={() => updateSettings('display', 'darkMode', !settings.display.darkMode)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            settings.display.darkMode ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            settings.display.darkMode ? 'translate-x-6' : 'translate-x-1'
+                          }`} />
+                        </button>
+                      </div>
+
+                      <div className="space-y-4">
+                        <label className="text-sm font-medium text-black dark:text-white">Theme Colors</label>
+                        <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="text-sm font-medium text-black dark:text-white">Dark Mode</label>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Switch between light and dark theme</p>
+                            <label className="text-xs text-gray-500 dark:text-gray-400">Primary Color</label>
+                            <input
+                              type="color"
+                              value={settings.display.theme.primary}
+                              onChange={(e) => updateNestedSettings('display', 'theme', 'primary', e.target.value)}
+                              className="w-full h-10 mt-1 rounded cursor-pointer"
+                            />
                           </div>
-                          <button
-                            onClick={() => updateSettings('display', 'darkMode', !settings.display.darkMode)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              settings.display.darkMode ? 'bg-blue-600' : 'bg-gray-300'
-                            }`}
-                          >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              settings.display.darkMode ? 'translate-x-6' : 'translate-x-1'
-                            }`} />
-                          </button>
                         </div>
                       </div>
-                    )}
+                    </div>
+                  )}
 
-                    {activeSettingsTab === 'behavior' && (
-                      <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <label className="text-sm font-medium text-black dark:text-white">Enter to Send</label>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Use Enter key to send messages</p>
-                          </div>
-                          <button
-                            onClick={() => updateSettings('behavior', 'enterToSend', !settings.behavior.enterToSend)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              settings.behavior.enterToSend ? 'bg-blue-600' : 'bg-gray-300'
-                            }`}
-                          >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              settings.behavior.enterToSend ? 'translate-x-6' : 'translate-x-1'
-                            }`} />
-                          </button>
+                  {/* Behavior Settings */}
+                  {activeSettingsTab === 'behavior' && (
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="text-sm font-medium text-black dark:text-white">Enter to Send</label>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Use Enter key to send messages</p>
                         </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <label className="text-sm font-medium text-black dark:text-white">Auto Scroll</label>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Automatically scroll to new messages</p>
-                          </div>
-                          <button
-                            onClick={() => updateSettings('behavior', 'autoScroll', !settings.behavior.autoScroll)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              settings.behavior.autoScroll ? 'bg-blue-600' : 'bg-gray-300'
-                            }`}
-                          >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              settings.behavior.autoScroll ? 'translate-x-6' : 'translate-x-1'
-                            }`} />
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => updateSettings('behavior', 'enterToSend', !settings.behavior.enterToSend)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            settings.behavior.enterToSend ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            settings.behavior.enterToSend ? 'translate-x-6' : 'translate-x-1'
+                          }`} />
+                        </button>
                       </div>
-                    )}
+                    </div>
+                  )}
 
-                    {activeSettingsTab === 'accessibility' && (
-                      <div className="space-y-6">
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-black dark:text-white">Language</label>
-                          <select
-                            value={settings.accessibility.language}
-                            onChange={(e) => updateSettings('accessibility', 'language', e.target.value)}
-                            className="w-full p-2 text-sm bg-gray-100 border-0 rounded-md dark:bg-gray-700 dark:text-white"
-                          >
-                            <option value="en-US">English (US)</option>
-                            <option value="en-GB">English (UK)</option>
-                            <option value="es-ES">Spanish</option>
-                          </select>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <label className="text-sm font-medium text-black dark:text-white">High Contrast</label>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Increase contrast for better visibility</p>
-                          </div>
-                          <button
-                            onClick={() => updateSettings('accessibility', 'highContrast', !settings.accessibility.highContrast)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              settings.accessibility.highContrast ? 'bg-blue-600' : 'bg-gray-300'
-                            }`}
-                          >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              settings.accessibility.highContrast ? 'translate-x-6' : 'translate-x-1'
-                            }`} />
-                          </button>
-                        </div>
+                  {/* Accessibility Settings */}
+                  {activeSettingsTab === 'accessibility' && (
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-black dark:text-white">Language</label>
+                        <select
+                          value={settings.accessibility.language}
+                          onChange={(e) => updateSettings('accessibility', 'language', e.target.value)}
+                          className="w-full p-2 text-sm bg-gray-100 border-0 rounded-md dark:bg-gray-700 dark:text-white"
+                        >
+                          <option value="en-US">English (US)</option>
+                          <option value="en-GB">English (UK)</option>
+                          <option value="es-ES">Spanish</option>
+                        </select>
                       </div>
-                    )}
+                    </div>
+                  )}
 
-                    {activeSettingsTab === 'sidebar' && (
-                      <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <label className="text-sm font-medium text-black dark:text-white">Show User Info</label>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Display user information in sidebar</p>
-                          </div>
-                          <button
-                            onClick={() => updateSettings('sidebar', 'showUserInfo', !settings.sidebar.showUserInfo)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              settings.sidebar.showUserInfo ? 'bg-blue-600' : 'bg-gray-300'
-                            }`}
-                          >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              settings.sidebar.showUserInfo ? 'translate-x-6' : 'translate-x-1'
-                            }`} />
-                          </button>
-                        </div>
-
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-black dark:text-white">Sidebar Width</label>
-                          <select
-                            value={settings.sidebar.width}
-                            onChange={(e) => updateSettings('sidebar', 'width', e.target.value)}
-                            className="w-full p-2 text-sm bg-gray-100 border-0 rounded-md dark:bg-gray-700 dark:text-white"
-                          >
-                            <option value="220px">Narrow</option>
-                            <option value="260px">Default</option>
-                            <option value="300px">Wide</option>
-                          </select>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <label className="text-sm font-medium text-black dark:text-white">Auto Expand on Hover</label>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Automatically expand sidebar when hovering</p>
-                          </div>
-                          <button
-                            onClick={() => updateSettings('sidebar', 'autoExpand', !settings.sidebar.autoExpand)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              settings.sidebar.autoExpand ? 'bg-blue-600' : 'bg-gray-300'
-                            }`}
-                          >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              settings.sidebar.autoExpand ? 'translate-x-6' : 'translate-x-1'
-                            }`} />
-                          </button>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <label className="text-sm font-medium text-black dark:text-white">Show Timestamps</label>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Display message timestamps</p>
-                          </div>
-                          <button
-                            onClick={() => updateSettings('sidebar', 'showTimestamps', !settings.sidebar.showTimestamps)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              settings.sidebar.showTimestamps ? 'bg-blue-600' : 'bg-gray-300'
-                            }`}
-                          >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              settings.sidebar.showTimestamps ? 'translate-x-6' : 'translate-x-1'
-                            }`} />
-                          </button>
-                        </div>
+                  {/* Sidebar Settings */}
+                  {activeSettingsTab === 'sidebar' && (
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-black dark:text-white">Sidebar Width</label>
+                        <select
+                          value={settings.sidebar.width}
+                          onChange={(e) => updateSettings('sidebar', 'width', e.target.value)}
+                          className="w-full p-2 text-sm bg-gray-100 border-0 rounded-md dark:bg-gray-700 dark:text-white"
+                        >
+                          <option value="220px">Narrow</option>
+                          <option value="260px">Default</option>
+                          <option value="300px">Wide</option>
+                        </select>
                       </div>
-                    )}
-                  </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="text-sm font-medium text-black dark:text-white">Auto Expand on Hover</label>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Automatically expand sidebar when hovering</p>
+                        </div>
+                        <button
+                          onClick={() => updateSettings('sidebar', 'autoExpand', !settings.sidebar.autoExpand)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            settings.sidebar.autoExpand ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            settings.sidebar.autoExpand ? 'translate-x-6' : 'translate-x-1'
+                          }`} />
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="text-sm font-medium text-black dark:text-white">Show Timestamps</label>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Display message timestamps</p>
+                        </div>
+                        <button
+                          onClick={() => updateSettings('sidebar', 'showTimestamps', !settings.sidebar.showTimestamps)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            settings.sidebar.showTimestamps ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            settings.sidebar.showTimestamps ? 'translate-x-6' : 'translate-x-1'
+                          }`} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
