@@ -104,6 +104,8 @@ const ChatRaj = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [settings, setSettings] = useState(() => {
     const savedSettings = localStorage.getItem('chatrajSettings');
     return savedSettings ? JSON.parse(savedSettings) : {
@@ -256,7 +258,7 @@ const ChatRaj = () => {
   return (
     <div className={isDarkMode ? 'dark' : 'light'}>
       <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="fixed top-0 left-0 right-0 z-20 flex items-center h-16 px-4 bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+        <div className="fixed top-0 left-0 right-0 z-20 flex items-center justify-between h-16 px-4 bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -325,7 +327,7 @@ const ChatRaj = () => {
           style={{ marginLeft: isSidebarOpen ? '260px' : '0' }}
         >
           <div className="flex-1 overflow-y-auto">
-            <div className="max-w-3xl px-4 py-6 mx-auto space-y-6">
+            <div className="relative max-w-3xl px-4 py-6 mx-auto space-y-6">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full space-y-4 text-center">
                   <i className="text-6xl text-blue-500 ri-robot-2-line"></i>
@@ -337,7 +339,12 @@ const ChatRaj = () => {
                   </p>
                 </div>
               ) : (
-                messages.map((message, index) => (
+                (searchTerm 
+                  ? messages.filter(message => 
+                      message.content.toLowerCase().includes(searchTerm.toLowerCase())
+                    )
+                  : messages
+                ).map((message, index) => (
                   <div
                     key={index}
                     className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -378,7 +385,7 @@ const ChatRaj = () => {
           </div>
 
           <div className="p-4 bg-white border-t border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-            <div className="max-w-3xl mx-auto">
+            <div className="relative max-w-3xl mx-auto">
               <form onSubmit={handleSubmit} className="relative">
                 <input
                   ref={inputRef}
@@ -400,6 +407,13 @@ const ChatRaj = () => {
                   >
                     <i className={`text-xl ${isListening ? 'ri-mic-fill' : 'ri-mic-line'}`}></i>
                   </button>
+                  <button 
+                    type="button"
+                    onClick={() => setShowSearch(!showSearch)} 
+                    className="p-2 text-gray-500 transition-colors rounded-lg hover:text-blue-600 hover:bg-gray-200 dark:hover:bg-gray-600"
+                  >
+                    <i className="text-xl ri-search-eye-fill"></i>
+                  </button>
                   <button
                     type="submit"
                     disabled={!inputMessage.trim() || isThinking}
@@ -408,7 +422,33 @@ const ChatRaj = () => {
                     <i className="text-xl ri-send-plane-line"></i>
                   </button>
                 </div>
-              </form>              
+              </form>
+
+              {showSearch && (
+                <div className="absolute right-0 z-50 w-64 mb-2 bottom-full">
+                  <div className="mb-2 bg-white border rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700">
+                    <div className="relative p-2">
+                      <input
+                        type="text"
+                        placeholder="Search messages..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        autoFocus
+                        className="w-full p-2 text-sm text-gray-800 bg-gray-100 border-0 rounded-md dark:bg-gray-700 dark:text-white"
+                      />
+                      <button 
+                        onClick={() => {
+                          setShowSearch(false);
+                          setSearchTerm('');
+                        }} 
+                        className="absolute text-gray-500 -translate-y-1/2 right-2 top-1/2 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      >
+                        <i className="text-xl ri-close-line"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
               <p className="mt-2 text-xs text-center text-gray-500 dark:text-gray-400">
                 ChatRaj can make mistakes. Please recheck important information manually.
               </p>
@@ -441,7 +481,6 @@ const ChatRaj = () => {
               </div>
               
               <div className="p-4 space-y-4">
-                {/* Dark Mode Toggle */}
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Dark Mode
@@ -460,7 +499,6 @@ const ChatRaj = () => {
                   </button>
                 </div>
 
-                {/* Font Size Setting */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Font Size
@@ -476,7 +514,6 @@ const ChatRaj = () => {
                   </select>
                 </div>
 
-                {/* Message Sound Toggle */}
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Message Sound
@@ -495,7 +532,6 @@ const ChatRaj = () => {
                   </button>
                 </div>
 
-                {/* Enter to Send Toggle */}
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Enter to Send
@@ -514,7 +550,6 @@ const ChatRaj = () => {
                   </button>
                 </div>
 
-                {/* Auto Scroll Toggle */}
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Auto Scroll
@@ -533,7 +568,6 @@ const ChatRaj = () => {
                   </button>
                 </div>
 
-                {/* Language Selection */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Language
