@@ -420,15 +420,21 @@ const Project = () => {
       <section className="relative flex flex-col h-screen left min-w-96 bg-slate-100 dark:bg-gray-800">
         <header className="absolute top-0 z-10 flex items-center justify-between w-full p-2 px-4 bg-slate-100 dark:bg-gray-800">
           <div className="flex items-center gap-4">
-            <button className="flex gap-2 text-gray-800 dark:text-white" onClick={() => setIsModalOpen(true)}>
-              <i className="mr-1 ri-user-add-fill"></i>
-              <p>Add Users</p>
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 text-gray-800 dark:text-white transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 px-3 py-1.5 rounded-lg"
+            >
+              <i className="text-gray-800 ri-user-add-fill dark:text-white"></i>
+              <span className="text-gray-800 dark:text-white">Add Users</span>
             </button>
           </div>
           <div className="flex items-center gap-2">
             {!showSearch ? (
-              <button onClick={() => setShowSearch(true)} className="text-gray-800 dark:text-white">
-                <i className="ri-search-eye-fill"></i>
+              <button 
+                onClick={() => setShowSearch(true)} 
+                className="p-2 text-gray-800 transition-colors rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
+              >
+                <i className="text-gray-800 ri-search-eye-fill dark:text-white"></i>
               </button>
             ) : (
               <div className="relative">
@@ -437,18 +443,21 @@ const Project = () => {
                   placeholder="Search messages..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-48 p-2 text-sm transition-all duration-300 border rounded"
+                  className="w-48 p-2 text-sm text-gray-800 transition-all duration-300 bg-white border rounded dark:text-white dark:bg-gray-700"
                 />
-                <button onClick={() => setShowSearch(false)} className="absolute text-gray-800 dark:text-white right-2 top-2">
+                <button 
+                  onClick={() => setShowSearch(false)} 
+                  className="absolute text-gray-800 right-2 top-2 dark:text-white"
+                >
                   <i className="ri-close-line"></i>
                 </button>
               </div>
             )}
             <button 
               onClick={() => setIsSidePanelOpen(!isSidePanelOpen)} 
-              className="p-2 text-gray-800 dark:text-white"
+              className="p-2 text-gray-800 transition-colors rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
             >
-              <i className="ri-user-community-line"></i>
+              <i className="text-gray-800 ri-user-community-line dark:text-white"></i>
             </button>
           </div>
         </header>
