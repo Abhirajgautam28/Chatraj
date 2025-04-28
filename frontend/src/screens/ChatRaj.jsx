@@ -5,6 +5,17 @@ import { ChatRajThemeContext } from '../context/chatraj-theme.context';
 import { UserContext } from '../context/user.context';
 import { useNavigate } from 'react-router-dom';
 
+const formatMessageTime = (timestamp) => {
+  const date = new Date(timestamp);
+  const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const dateString = date.toLocaleDateString([], { 
+    day: '2-digit', 
+    month: '2-digit', 
+    year: 'numeric' 
+  });
+  return `${dateString} ${timeString}`;
+};
+
 const WaveAnimation = ({ isListening }) => {
   return (
     <motion.div 
@@ -116,33 +127,52 @@ const ChatRaj = () => {
           primary: '#3B82F6',
           secondary: '#1F2937',
           accent: '#10B981',
-          customColors: false
+          customColors: false,
+          messageColors: {
+            user: '#3B82F6',
+            ai: '#F3F4F6'
+          }
         },
         typography: {
           fontFamily: 'font-sans',
           userMessageSize: 'text-sm',
           aiMessageSize: 'text-sm',
-          headerSize: 'text-xl'
+          headerSize: 'text-xl',
+          fontWeight: 'normal'
+        },
+        chatBubbles: {
+          roundness: 'rounded-lg',
+          padding: 'normal',
+          shadow: true
         },
         animations: {
           messageTransition: true,
-          interfaceTransitions: true
+          interfaceTransitions: true,
+          intensity: 'medium'
         }
       },
       behavior: {
         enterToSend: true,
         autoScroll: true,
+        autoSave: true,
+        notifications: true,
         animations: {
           messageTransition: true,
           interfaceTransitions: true,
           loadingAnimations: true
-        }
+        },
+        autoComplete: true,
+        spellCheck: true
       },
       accessibility: {
         language: 'en-US',
         fontSize: 'medium',
         reducedMotion: false,
-        screenReader: false
+        screenReader: false,
+        contrastMode: 'normal',
+        keyboardShortcuts: true,
+        textToSpeech: true,
+        speechToText: true
       },
       sidebar: {
         defaultOpen: true,
@@ -154,7 +184,17 @@ const ChatRaj = () => {
         showNotifications: true,
         compactView: false,
         sortOrder: 'newest',
-        groupByDate: true
+        groupByDate: true,
+        showCategories: true
+      },
+      privacy: {
+        saveHistory: true,
+        clearOnExit: false,
+        shareAnalytics: false,
+        autoDelete: {
+          enabled: false,
+          days: 30
+        }
       }
     };
 
@@ -165,6 +205,106 @@ const ChatRaj = () => {
   const recognitionRef = useRef(null);
   const { isDarkMode, setIsDarkMode } = useContext(ChatRajThemeContext);
   const { user } = useContext(UserContext);
+
+  const [autoCompleteOptions, setAutoCompleteOptions] = useState([]);
+
+  const languages = {
+    'en-US': {
+      name: 'English (US)',
+      translations: {
+        settings: 'Settings',
+        darkMode: 'Dark Mode',
+        themeColors: 'Theme Colors',
+        chatBubbles: 'Chat Bubbles',
+        newChat: 'New Chat',
+        sendMessage: 'Send Message',
+        thinking: 'Thinking...',
+        welcomeMessage: 'How can I help you today?',
+        welcomeSubtext: 'Ask me anything about programming, development, or tech in general.',
+        disclaimer: 'ChatRaj can make mistakes. Please recheck important information manually.'
+      }
+    },
+    'hi-IN': {
+      name: 'हिंदी (Hindi)',
+      translations: {
+        settings: 'सेटिंग्स',
+        darkMode: 'डार्क मोड',
+        themeColors: 'थीम रंग',
+        chatBubbles: 'चैट बबल्स',
+        newChat: 'नई चैट',
+        sendMessage: 'संदेश भेजें',
+        thinking: 'सोच रहा हूं...',
+        welcomeMessage: 'मैं आपकी कैसे मदद कर सकता हूं?',
+        welcomeSubtext: 'प्रोग्रामिंग, डेवलपमेंट या टेक से जुड़ा कोई भी सवाल पूछें।',
+        disclaimer: 'ChatRaj से गलतियां हो सकती हैं। कृपया महत्वपूर्ण जानकारी की पुनः जांच करें।'
+      }
+    },
+    'es-ES': {
+      name: 'Español (Spanish)',
+      translations: {
+        settings: 'Ajustes',
+        darkMode: 'Modo Oscuro',
+        themeColors: 'Colores del Tema',
+        chatBubbles: 'Burbujas de Chat',
+        newChat: 'Nuevo Chat',
+        sendMessage: 'Enviar Mensaje',
+        thinking: 'Pensando...',
+        welcomeMessage: '¿Cómo puedo ayudarte hoy?',
+        welcomeSubtext: 'Pregúntame cualquier cosa sobre programación, desarrollo o tecnología.',
+        disclaimer: 'ChatRaj puede cometer errores. Por favor, verifica la información importante.'
+      }
+    },
+    'fr-FR': {
+      name: 'Français (French)',
+      translations: {
+        settings: 'Paramètres',
+        darkMode: 'Mode Sombre',
+        themeColors: 'Couleurs du Thème',
+        chatBubbles: 'Bulles de Chat',
+        newChat: 'Nouvelle Discussion',
+        sendMessage: 'Envoyer',
+        thinking: 'Réflexion...',
+        welcomeMessage: 'Comment puis-je vous aider aujourd\'hui?',
+        welcomeSubtext: 'Posez-moi vos questions sur la programmation, le développement ou la technologie.',
+        disclaimer: 'ChatRaj peut faire des erreurs. Veuillez revérifier les informations importantes.'
+      }
+    },
+    'de-DE': {
+      name: 'Deutsch (German)',
+      translations: {
+        settings: 'Einstellungen',
+        darkMode: 'Dunkelmodus',
+        themeColors: 'Designfarben',
+        chatBubbles: 'Chatblasen',
+        newChat: 'Neuer Chat',
+        sendMessage: 'Nachricht senden',
+        thinking: 'Denke nach...',
+        welcomeMessage: 'Wie kann ich Ihnen heute helfen?',
+        welcomeSubtext: 'Fragen Sie mich alles über Programmierung, Entwicklung oder Technologie.',
+        disclaimer: 'ChatRaj kann Fehler machen. Bitte überprüfen Sie wichtige Informationen.'
+      }
+    },
+    'ja-JP': {
+      name: '日本語 (Japanese)',
+      translations: {
+        settings: '設定',
+        darkMode: 'ダークモード',
+        themeColors: 'テーマカラー',
+        chatBubbles: 'チャットバブル',
+        newChat: '新規チャット',
+        sendMessage: '送信',
+        thinking: '考え中...',
+        welcomeMessage: '本日はどのようにお手伝いできますか？',
+        welcomeSubtext: 'プログラミング、開発、技術に関する質問をお気軽にどうぞ。',
+        disclaimer: 'ChatRajは間違える可能性があります。重要な情報は必ず確認してください。'
+      }
+    }
+  };
+
+  const t = (key) => {
+    const lang = settings.accessibility.language;
+    return languages[lang]?.translations[key] || languages['en-US'].translations[key];
+  };
 
   useEffect(() => {
     if ('webkitSpeechRecognition' in window) {
@@ -211,6 +351,66 @@ const ChatRaj = () => {
     root.style.setProperty('--button-bg-color', settings.display.theme.primary);
     root.style.setProperty('--robot-icon-color', settings.display.theme.primary);
   }, [settings.display.theme]);
+
+  useEffect(() => {
+    try {
+      if (settings.privacy.saveHistory) {
+        if (messages.length > 0) {
+          localStorage.setItem('chatHistory', JSON.stringify(messages));
+        }
+      } else {
+        localStorage.removeItem('chatHistory');
+      }
+    } catch (error) {
+      console.error('Error handling chat history:', error);
+    }
+  }, [messages, settings.privacy.saveHistory]);
+
+  useEffect(() => {
+    if (settings.privacy.saveHistory) {
+      try {
+        const savedMessages = localStorage.getItem('chatHistory');
+        if (savedMessages) {
+          const parsed = JSON.parse(savedMessages);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setMessages(parsed);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading chat history:', error);
+      }
+    }
+  }, [settings.privacy.saveHistory]);
+
+  // Update the auto-delete effect
+  useEffect(() => {
+    if (settings.privacy.autoDelete.enabled) {
+      const deleteOldMessages = () => {
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - settings.privacy.autoDelete.days);
+        
+        setMessages(prev => {
+          const filteredMessages = prev.filter(msg => {
+            const messageDate = new Date(msg.timestamp);
+            return messageDate > cutoffDate;
+          });
+          
+          if (filteredMessages.length !== prev.length && settings.privacy.saveHistory) {
+            console.log(`Deleted ${prev.length - filteredMessages.length} old messages`);
+            localStorage.setItem('chatHistory', JSON.stringify(filteredMessages));
+          }
+          
+          return filteredMessages;
+        });
+      };
+
+      deleteOldMessages();
+
+      const interval = setInterval(deleteOldMessages, 60 * 60 * 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [settings.privacy.autoDelete.enabled, settings.privacy.autoDelete.days, settings.privacy.saveHistory]);
 
   const startListening = () => {
     if (recognitionRef.current) {
@@ -269,7 +469,7 @@ const ChatRaj = () => {
     const userMessage = {
       type: 'user',
       content: messageToSend,
-      timestamp: new Date()
+      timestamp: new Date().toISOString()
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -277,17 +477,17 @@ const ChatRaj = () => {
     setIsThinking(true);
 
     setTimeout(() => {
-      const response = "I understand and I'm here to help you! 🌟";
       const aiMessage = {
         type: 'ai',
-        content: response,
-        timestamp: new Date()
+        content: "I understand and I'm here to help you! 🌟",
+        timestamp: new Date().toISOString()
       };
+      
       setMessages(prev => [...prev, aiMessage]);
       setIsThinking(false);
 
       if (voiceInput) {
-        speakResponse(response);
+        speakResponse(aiMessage.content);
       }
     }, 1500);
   };
@@ -338,6 +538,47 @@ const ChatRaj = () => {
       }
     }));
   };
+  const handleAutoComplete = (text) => {
+    if (!settings.behavior.autoComplete) return;
+    
+    const commonPhrases = [
+      "Can you help me with",
+      "How do I",
+      "What is",
+      "Please explain",
+      "Show me an example of",
+    ];
+
+    const matches = commonPhrases.filter(phrase => 
+      phrase.toLowerCase().startsWith(text.toLowerCase())
+    );
+    
+    setAutoCompleteOptions(matches);
+  };
+
+  const clearChatHistory = () => {
+    setMessages([]);
+    localStorage.removeItem('chatHistory');
+  };
+
+  const handlePrivacyToggle = () => {
+    const newValue = !settings.privacy.saveHistory;
+
+    setSettings(prev => ({
+      ...prev,
+      privacy: {
+        ...prev.privacy,
+        saveHistory: newValue
+      }
+    }));
+
+    if (!newValue) {
+      localStorage.removeItem('chatHistory');
+      setMessages([]);
+    } else if (newValue && messages.length > 0) {
+      localStorage.setItem('chatHistory', JSON.stringify(messages));
+    }
+  };
 
   return (
     <div className={settings.display.darkMode ? 'dark' : 'light'}>
@@ -377,7 +618,7 @@ const ChatRaj = () => {
                 style={{ backgroundColor: 'var(--button-bg-color)' }}
               >
                 <i className="text-lg ri-add-line"></i>
-                New Chat
+                {t('newChat')}
               </button>
             </div>
 
@@ -408,7 +649,7 @@ const ChatRaj = () => {
                 className="flex items-center w-full gap-3 p-2 mb-2 text-black transition-colors rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 <i className="text-xl ri-settings-3-line"></i>
-                <span className="text-sm font-medium">Settings</span>
+                <span className="text-sm font-medium">{t('settings')}</span>
               </button>
             </div>
           </div>
@@ -427,10 +668,10 @@ const ChatRaj = () => {
                 <div className="flex flex-col items-center justify-center h-full space-y-4 text-center">
                   <i className="text-6xl ri-robot-2-line" style={{ color: 'var(--robot-icon-color)' }}></i>
                   <h1 className="text-2xl font-semibold text-black dark:text-white">
-                    How can I help you today?
+                    {t('welcomeMessage')}
                   </h1>
                   <p className="text-sm text-black dark:text-white">
-                    Ask me anything about programming, development, or tech in general.
+                    {t('welcomeSubtext')}
                   </p>
                 </div>
               ) : (
@@ -468,7 +709,7 @@ const ChatRaj = () => {
                       </p>
                       {settings.sidebar.showTimestamps && (
                         <p className="mt-1 text-xs opacity-75">
-                          {new Date(message.timestamp).toLocaleTimeString()}
+                          {formatMessageTime(message.timestamp)}
                         </p>
                       )}
                     </div>
@@ -487,7 +728,7 @@ const ChatRaj = () => {
                       />
                     ))}
                   </div>
-                  <span>Thinking...</span>
+                  <span>{t('thinking')}</span>
                 </div>
               )}
               <div ref={messageEndRef} />
@@ -501,7 +742,10 @@ const ChatRaj = () => {
                   ref={inputRef}
                   type="text"
                   value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
+                  onChange={(e) => {
+                    setInputMessage(e.target.value);
+                    handleAutoComplete(e.target.value);
+                  }}
                   onKeyPress={handleKeyPress}
                   placeholder="Message ChatRaj..."
                   className="w-full px-4 py-3 pl-4 pr-24 text-black placeholder-gray-500 bg-gray-100 border-0 dark:text-white dark:bg-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
@@ -535,6 +779,20 @@ const ChatRaj = () => {
                 </div>
               </form>
 
+              {settings.behavior.autoComplete && autoCompleteOptions.length > 0 && (
+                <div className="absolute left-0 w-full mb-1 bg-white rounded-lg shadow-lg bottom-full dark:bg-gray-800">
+                  {autoCompleteOptions.map((option, index) => (
+                    <button
+                      key={index}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+                      onClick={() => setInputMessage(option)}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {showSearch && (
                 <div className="absolute right-0 z-50 w-64 mb-2 bottom-full">
                   <div className="mb-2 bg-white border rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700">
@@ -561,7 +819,7 @@ const ChatRaj = () => {
                 </div>
               )}
               <p className="mt-2 text-xs text-center text-black dark:text-white">
-                ChatRaj can make mistakes. Please recheck important information manually.
+                {t('disclaimer')}
               </p>
             </div>
           </div>
@@ -586,7 +844,7 @@ const ChatRaj = () => {
               }}
             >
               <div className="sticky top-0 z-10 flex items-center justify-between p-4 bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Settings</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('settings')}</h2>
                 <button 
                   onClick={() => setIsSettingsOpen(false)}
                   className="p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
@@ -597,7 +855,7 @@ const ChatRaj = () => {
 
               <div className="p-4 border-b dark:border-gray-700">
                 <div className="grid grid-cols-4 gap-1 p-1 bg-gray-100 rounded-lg dark:bg-gray-700">
-                  {['display', 'behavior', 'accessibility', 'sidebar'].map(tab => (
+                  {['display', 'behavior', 'accessibility', 'sidebar', 'privacy'].map(tab => (
                     <button
                       key={tab}
                       onClick={() => setActiveSettingsTab(tab)}
@@ -619,7 +877,7 @@ const ChatRaj = () => {
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <label className="text-sm font-medium text-black dark:text-white">Dark Mode</label>
+                          <label className="text-sm font-medium text-black dark:text-white">{t('darkMode')}</label>
                           <p className="text-xs text-gray-500 dark:text-gray-400">Switch between light and dark theme</p>
                         </div>
                         <button
@@ -635,7 +893,7 @@ const ChatRaj = () => {
                       </div>
 
                       <div className="space-y-4">
-                        <label className="text-sm font-medium text-black dark:text-white">Theme Colors</label>
+                        <label className="text-sm font-medium text-black dark:text-white">{t('themeColors')}</label>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className="text-xs text-gray-500 dark:text-gray-400">Primary Color</label>
@@ -653,6 +911,55 @@ const ChatRaj = () => {
                             />
                           </div>
                         </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <label className="text-sm font-medium text-black dark:text-white">{t('chatBubbles')}</label>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="text-xs text-gray-500 dark:text-gray-400">Roundness</label>
+                            <select
+                              value={settings.display.chatBubbles.roundness}
+                              onChange={(e) => updateNestedSettings('display', 'chatBubbles', 'roundness', e.target.value)}
+                              className="w-full p-2 text-sm bg-gray-100 border-0 rounded-md dark:bg-gray-700 dark:text-white"
+                            >
+                              <option value="rounded-sm">Minimal</option>
+                              <option value="rounded-lg">Normal</option>
+                              <option value="rounded-xl">Large</option>
+                              <option value="rounded-3xl">Extra Large</option>
+                            </select>
+                          </div>
+                          
+                          <div>
+                            <label className="text-xs text-gray-500 dark:text-gray-400">Message Font Size</label>
+                            <select
+                              value={settings.display.typography.userMessageSize}
+                              onChange={(e) => updateNestedSettings('display', 'typography', 'userMessageSize', e.target.value)}
+                              className="w-full p-2 text-sm bg-gray-100 border-0 rounded-md dark:bg-gray-700 dark:text-white"
+                            >
+                              <option value="text-xs">Small</option>
+                              <option value="text-sm">Medium</option>
+                              <option value="text-base">Large</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="text-sm font-medium text-black dark:text-white">Message Shadows</label>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Add shadows to message bubbles</p>
+                        </div>
+                        <button
+                          onClick={() => updateNestedSettings('display', 'chatBubbles', 'shadow', !settings.display.chatBubbles.shadow)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            settings.display.chatBubbles.shadow ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            settings.display.chatBubbles.shadow ? 'translate-x-6' : 'translate-x-1'
+                          }`} />
+                        </button>
                       </div>
                     </div>
                   )}
@@ -675,6 +982,23 @@ const ChatRaj = () => {
                           }`} />
                         </button>
                       </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="text-sm font-medium text-black dark:text-white">Auto Complete</label>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Enable message auto-completion</p>
+                        </div>
+                        <button
+                          onClick={() => updateSettings('behavior', 'autoComplete', !settings.behavior.autoComplete)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            settings.behavior.autoComplete ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            settings.behavior.autoComplete ? 'translate-x-6' : 'translate-x-1'
+                          }`} />
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -687,9 +1011,9 @@ const ChatRaj = () => {
                           onChange={(e) => updateSettings('accessibility', 'language', e.target.value)}
                           className="w-full p-2 text-sm bg-gray-100 border-0 rounded-md dark:bg-gray-700 dark:text-white"
                         >
-                          <option value="en-US">English (US)</option>
-                          <option value="en-GB">English (UK)</option>
-                          <option value="es-ES">Spanish</option>
+                          {Object.entries(languages).map(([code, lang]) => (
+                            <option key={code} value={code}>{lang.name}</option>
+                          ))}
                         </select>
                       </div>
                     </div>
@@ -741,6 +1065,74 @@ const ChatRaj = () => {
                           <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
                             settings.sidebar.showTimestamps ? 'translate-x-6' : 'translate-x-1'
                           }`} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeSettingsTab === 'privacy' && (
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="text-sm font-medium text-black dark:text-white">Save Chat History</label>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Store conversations locally</p>
+                        </div>
+                        <button
+                          onClick={handlePrivacyToggle}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            settings.privacy.saveHistory ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span 
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              settings.privacy.saveHistory ? 'translate-x-6' : 'translate-x-1'
+                            }`} 
+                          />
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="text-sm font-medium text-black dark:text-white">Auto Delete Messages</label>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Automatically delete old messages</p>
+                        </div>
+                        <button
+                          onClick={() => updateNestedSettings('privacy', 'autoDelete', 'enabled', !settings.privacy.autoDelete.enabled)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            settings.privacy.autoDelete.enabled ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            settings.privacy.autoDelete.enabled ? 'translate-x-6' : 'translate-x-1'
+                          }`} />
+                        </button>
+                      </div>
+
+                      {settings.privacy.autoDelete.enabled && (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-black dark:text-white">Auto Delete After</label>
+                          <select
+                            value={settings.privacy.autoDelete.days}
+                            onChange={(e) => updateNestedSettings('privacy', 'autoDelete', 'days', Number(e.target.value))}
+                            className="w-full p-2 text-sm bg-gray-100 border-0 rounded-md dark:bg-gray-700 dark:text-white"
+                          >
+                            <option value={7}>7 days</option>
+                            <option value={30}>30 days</option>
+                            <option value={90}>90 days</option>
+                          </select>
+                        </div>
+                      )}
+
+                      <div className="pt-4 border-t dark:border-gray-700">
+                        <button
+                          onClick={() => {
+                            if (window.confirm('Are you sure you want to clear all chat history? This cannot be undone.')) {
+                              clearChatHistory();
+                            }
+                          }}
+                          className="w-full px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600"
+                        >
+                          Clear All Chat History
                         </button>
                       </div>
                     </div>
