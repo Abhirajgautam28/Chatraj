@@ -113,7 +113,7 @@ const ChatRaj = () => {
       display: {
         darkMode: false,
         theme: {
-          primary: '#3B82F6', // Default blue color
+          primary: '#3B82F6',
           secondary: '#1F2937',
           accent: '#10B981',
           customColors: false
@@ -205,11 +205,11 @@ const ChatRaj = () => {
     }
   }, [settings.accessibility.language]);
 
-  // Add this useEffect to apply theme colors
   useEffect(() => {
     const root = document.documentElement;
     root.style.setProperty('--primary-color', settings.display.theme.primary);
-    root.style.setProperty('--accent-color', settings.display.theme.accent);
+    root.style.setProperty('--button-bg-color', settings.display.theme.primary);
+    root.style.setProperty('--robot-icon-color', settings.display.theme.primary);
   }, [settings.display.theme]);
 
   const startListening = () => {
@@ -352,7 +352,7 @@ const ChatRaj = () => {
             </button>
             <div className="flex items-center gap-3">
               <div className="relative">
-                <i className="text-2xl text-blue-500 ri-robot-2-line"></i>
+                <i className="text-2xl ri-robot-2-line" style={{ color: 'var(--robot-icon-color)' }}></i>
                 <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-400 rounded-full"></span>
               </div>
               <h1 className="text-xl font-semibold text-black dark:text-white whitespace-nowrap">
@@ -373,7 +373,8 @@ const ChatRaj = () => {
             <div className="p-4">
               <button 
                 onClick={handleNewChat}
-                className="flex items-center justify-center w-full gap-2 px-4 py-2.5 text-sm font-medium text-white transition-colors rounded-lg bg-blue-600 hover:bg-blue-700"
+                className="flex items-center justify-center w-full gap-2 px-4 py-2.5 text-sm font-medium text-white transition-colors rounded-lg hover:opacity-90"
+                style={{ backgroundColor: 'var(--button-bg-color)' }}
               >
                 <i className="text-lg ri-add-line"></i>
                 New Chat
@@ -424,7 +425,7 @@ const ChatRaj = () => {
             <div className="relative max-w-3xl px-4 py-6 mx-auto space-y-6">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full space-y-4 text-center">
-                  <i className="text-6xl text-blue-500 ri-robot-2-line"></i>
+                  <i className="text-6xl ri-robot-2-line" style={{ color: 'var(--robot-icon-color)' }}></i>
                   <h1 className="text-2xl font-semibold text-black dark:text-white">
                     How can I help you today?
                   </h1>
@@ -584,7 +585,6 @@ const ChatRaj = () => {
                 overflow: 'hidden'
               }}
             >
-              {/* Settings Header */}
               <div className="sticky top-0 z-10 flex items-center justify-between p-4 bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Settings</h2>
                 <button 
@@ -595,7 +595,6 @@ const ChatRaj = () => {
                 </button>
               </div>
 
-              {/* Settings Tabs */}
               <div className="p-4 border-b dark:border-gray-700">
                 <div className="grid grid-cols-4 gap-1 p-1 bg-gray-100 rounded-lg dark:bg-gray-700">
                   {['display', 'behavior', 'accessibility', 'sidebar'].map(tab => (
@@ -614,10 +613,8 @@ const ChatRaj = () => {
                 </div>
               </div>
 
-              {/* Settings Content */}
               <div className="flex-1 overflow-y-auto">
                 <div className="p-4 space-y-6">
-                  {/* Display Settings */}
                   {activeSettingsTab === 'display' && (
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
@@ -645,7 +642,13 @@ const ChatRaj = () => {
                             <input
                               type="color"
                               value={settings.display.theme.primary}
-                              onChange={(e) => updateNestedSettings('display', 'theme', 'primary', e.target.value)}
+                              onChange={(e) => {
+                                updateNestedSettings('display', 'theme', 'primary', e.target.value);
+                                const root = document.documentElement;
+                                root.style.setProperty('--primary-color', e.target.value);
+                                root.style.setProperty('--button-bg-color', e.target.value);
+                                root.style.setProperty('--robot-icon-color', e.target.value);
+                              }}
                               className="w-full h-10 mt-1 rounded cursor-pointer"
                             />
                           </div>
@@ -654,7 +657,6 @@ const ChatRaj = () => {
                     </div>
                   )}
 
-                  {/* Behavior Settings */}
                   {activeSettingsTab === 'behavior' && (
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
@@ -676,7 +678,6 @@ const ChatRaj = () => {
                     </div>
                   )}
 
-                  {/* Accessibility Settings */}
                   {activeSettingsTab === 'accessibility' && (
                     <div className="space-y-6">
                       <div className="space-y-2">
@@ -694,7 +695,6 @@ const ChatRaj = () => {
                     </div>
                   )}
 
-                  {/* Sidebar Settings */}
                   {activeSettingsTab === 'sidebar' && (
                     <div className="space-y-6">
                       <div className="space-y-2">
