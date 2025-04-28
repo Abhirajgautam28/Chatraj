@@ -16,9 +16,12 @@ ChatRaj is an AI-powered platform designed to streamline software engineering ta
 - React with Vite
 - Tailwind CSS & Animate.css for styling and animations
 - Remix Icon for icons
+- Motion.js for smooth animations
 
 ### **AI Integration**
 - Google Generative AI (`@google/generative-ai`)
+- Speech Recognition API
+- Text-to-Speech capabilities
 
 ## Getting Started
 
@@ -41,6 +44,7 @@ ChatRaj is an AI-powered platform designed to streamline software engineering ta
 - **File Tree Visualization** with syntax highlighting
 - **Code Execution Environment** using WebContainers
 - **User Presence Indicators** showing active collaborators
+- **Voice Input Support** with real-time speech recognition
 
 ### User Experience
 - **Dark/Light Mode Toggle** for comfortable coding
@@ -50,6 +54,58 @@ ChatRaj is an AI-powered platform designed to streamline software engineering ta
 - **Emoji Reactions** to messages
 - **File Icons** based on file types
 - **Avatar Generation** for users
+- **Multilingual Support** with 6+ languages:
+  - English (US)
+  - Hindi (हिंदी)
+  - Spanish (Español)
+  - French (Français)
+  - German (Deutsch)
+  - Japanese (日本語)
+- **Customizable Chat Interface**:
+  - Adjustable message bubble roundness
+  - Customizable theme colors
+  - Message shadows toggle
+  - Font size options
+- **Auto-complete Suggestions** for common phrases
+- **Adjustable Sidebar** with auto-expand functionality
+- **Timestamp Display** with date and time format (DD/MM/YYYY HH:MM)
+
+### Privacy Features
+- **Local Chat History Management**
+  - Toggle to save/clear chat history
+  - Automatic message cleanup
+  - Manual history clearing option
+- **Auto-delete System**
+  - Configurable deletion intervals (7/30/90 days)
+  - Automatic cleanup of old messages
+  - Timestamp tracking with date and time
+- **Data Control Options**
+  - Local storage management
+  - Privacy-focused settings
+  - User data protection
+
+### Settings Management
+- **Display Settings**
+  - Theme customization
+  - Chat bubble appearance
+  - Font size control
+  - Dark/Light mode toggle
+- **Behavior Settings**
+  - Auto-complete configuration
+  - Message sending preferences
+  - Scroll behavior options
+- **Accessibility Options**
+  - Language selection
+  - Speech recognition
+  - Text-to-speech support
+- **Sidebar Preferences**
+  - Width adjustment (220px/260px/300px)
+  - Auto-expand options
+  - User info display
+- **Privacy Controls**
+  - History management
+  - Auto-delete configuration
+  - Data retention settings
 
 ### Project Management
 - **Category-based Organization** with 15+ predefined categories
@@ -252,9 +308,12 @@ Contributions are welcome! Please follow these steps:
 ---
 
 ## **Future Enhancements**
-- **AI Model Training:** Train the model for specific tasks as defined in the categories module.
-- **Feature Enhancements:** Improve collaboration, debugging, and AI-assisted coding.
-- **Bug Fixes and Improvements:** Continuous refinements based on user feedback.
+- **AI Model Training:** Train the model for specific tasks as defined in the categories module
+- **Feature Enhancements:** Improve collaboration, debugging, and AI-assisted coding
+- **Bug Fixes and Improvements:** Continuous refinements based on user feedback
+- **Additional Language Support:** Expand multilingual capabilities
+- **Enhanced Privacy Features:** Advanced data protection options
+- **Improved Auto-complete:** Context-aware suggestions
 
 ---
 
@@ -264,4 +323,4 @@ This project is licensed under the **MIT License**.
 ---
 
 Feel free to raise issues or suggest improvements.
-Happy Coding!!
+Happy Coding! 🚀
