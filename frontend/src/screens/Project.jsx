@@ -338,7 +338,16 @@ const Project = () => {
             <div className="text-sm whitespace-pre-wrap">
               {msg.sender && msg.sender._id === "Chatraj" ? (
                 <div className="p-2 text-white rounded bg-slate-950">
-                  <Markdown options={{ overrides: { code: SyntaxHighlightedCode } }}>{msg.message}</Markdown>
+                  <Markdown options={{ overrides: { code: SyntaxHighlightedCode } }}>
+                    {(() => {
+                      try {
+                        const parsedMessage = JSON.parse(msg.message);
+                        return parsedMessage.text || msg.message;
+                      } catch (error) {
+                        return msg.message;
+                      }
+                    })()}
+                  </Markdown>
                 </div>
               ) : (
                 <p>{msg.message}</p>
