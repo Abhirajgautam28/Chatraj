@@ -760,8 +760,8 @@ const Project = () => {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="relative max-w-full p-4 bg-white rounded-md w-96">
             <header className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">Select User</h2>
-              <button onClick={() => setIsModalOpen(false)} className="p-2">
+              <h2 className="text-xl font-semibold text-gray-900">Select User</h2>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 text-gray-900">
                 <i className="ri-close-fill"></i>
               </button>
             </header>
@@ -769,18 +769,23 @@ const Project = () => {
               {users.map((u) => (
                 <div
                   key={u._id}
-                  className={`user cursor-pointer hover:bg-slate-200 ${Array.from(selectedUserId).includes(u._id) ? "bg-slate-200" : ""} p-2 flex gap-2 items-center`}
+                  className={`user cursor-pointer hover:bg-slate-200 ${
+                    Array.from(selectedUserId).includes(u._id) ? "bg-slate-200" : ""
+                  } p-2 flex gap-2 items-center`}
                   onClick={() => handleUserClick(u._id)}
                 >
                   <Avatar 
                     email={u.email} 
                     className="w-12 h-12 text-base"
                   />
-                  <h1 className="text-lg font-semibold">{u.email}</h1>
+                  <h1 className="text-lg font-semibold text-gray-900">{u.email}</h1>
                 </div>
               ))}
             </div>
-            <button onClick={addCollaborators} className="absolute px-4 py-2 text-white transform -translate-x-1/2 bg-blue-600 rounded-md bottom-4 left-1/2">
+            <button 
+              onClick={addCollaborators} 
+              className="absolute px-4 py-2 text-white transform -translate-x-1/2 bg-blue-600 rounded-md hover:bg-blue-700 bottom-4 left-1/2"
+            >
               Add Collaborators
             </button>
           </div>
