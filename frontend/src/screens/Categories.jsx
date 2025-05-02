@@ -25,7 +25,7 @@ const Categories = () => {
 
   const handleCategoryClick = (categoryTitle) => {
     console.log("Category clicked:", categoryTitle);
-    navigate("/", { state: { selectedCategory: categoryTitle } });
+    navigate("/dashboard", { state: { selectedCategory: categoryTitle } });
   };
 
   return (

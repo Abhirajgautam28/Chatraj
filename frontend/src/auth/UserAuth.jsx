@@ -9,28 +9,26 @@ const UserAuth = ({ children }) => {
     const token = localStorage.getItem('token')
     const navigate = useNavigate()
 
-
-
-
     useEffect(() => {
-        if (user) {
-            setLoading(false)
-        }
+        const checkAuth = async () => {
+            try {
+                if (!token || !user) {
+                    navigate('/login', { replace: true });
+                    return;
+                }
+                setLoading(false);
+            } catch (error) {
+                console.error('Auth error:', error);
+                navigate('/', { replace: true });
+            }
+        };
 
-        if (!token) {
-            navigate('/login')
-        }
-
-        if (!user) {
-            navigate('/login')
-        }
-
-    }, [])
+        checkAuth();
+    }, [user, navigate, token]);
 
     if (loading) {
         return <div>Loading...</div>
     }
-
 
     return (
         <>

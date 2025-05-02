@@ -18,6 +18,7 @@ body {
   --primary-color: #3B82F6;
   --button-bg-color: var(--primary-color);
   --robot-icon-color: var(--primary-color);
+  --primary-color-transparent: rgba(59, 130, 246, 0.5);
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -49,6 +50,15 @@ body {
   }
 }
 
+@keyframes background-pan {
+  from {
+    background-position: 0% 0%;
+  }
+  to {
+    background-position: -400% 0%;
+  }
+}
+
 .message-box {
   scroll-behavior: smooth;
 }
@@ -68,6 +78,7 @@ body {
 
 .voice-animation {
   animation: pulse 1.5s ease infinite;
+  transform-origin: center;
 }
 
 @keyframes pulse {
@@ -76,7 +87,7 @@ body {
     opacity: 1;
   }
   50% {
-    transform: scale(1.1);
+    transform: scale(1.2);
     opacity: 0.8;
   }
   100% {
@@ -86,16 +97,32 @@ body {
 }
 
 .speaking-indicator {
+  position: relative;
+}
+
+.speaking-indicator::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--primary-color-transparent), transparent 70%);
   animation: speaking 1.5s ease infinite;
 }
 
 @keyframes speaking {
   0%, 100% {
     transform: scale(1);
+    opacity: 0.5;
   }
   50% {
-    transform: scale(1.1);
+    transform: scale(1.4);
+    opacity: 0.8;
   }
+}
+
+.mic-active {
+  color: var(--primary-color) !important;
+  animation: pulse 1.5s ease infinite;
 }
 
 .dark {
@@ -141,4 +168,21 @@ body {
 .ri-robot-2-line,
 button {
   transition: all 0.3s ease;
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+@keyframes gridMove {
+  0% {
+    transform: rotateX(60deg) translateY(0);
+  }
+  100% {
+    transform: rotateX(60deg) translateY(40px);
+  }
 }

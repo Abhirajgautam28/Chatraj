@@ -350,6 +350,7 @@ const ChatRaj = () => {
     root.style.setProperty('--primary-color', settings.display.theme.primary);
     root.style.setProperty('--button-bg-color', settings.display.theme.primary);
     root.style.setProperty('--robot-icon-color', settings.display.theme.primary);
+    root.style.setProperty('--primary-color-transparent', `${settings.display.theme.primary}80`);
   }, [settings.display.theme]);
 
   useEffect(() => {
@@ -382,7 +383,6 @@ const ChatRaj = () => {
     }
   }, [settings.privacy.saveHistory]);
 
-  // Update the auto-delete effect
   useEffect(() => {
     if (settings.privacy.autoDelete.enabled) {
       const deleteOldMessages = () => {
@@ -756,9 +756,12 @@ const ChatRaj = () => {
                     onClick={startListening}
                     className={`p-2 transition-colors rounded-lg ${
                       isListening 
-                        ? 'text-red-500' 
+                        ? 'voice-animation speaking-indicator mic-active'
                         : 'text-gray-500 hover:text-blue-600 hover:bg-gray-200 dark:hover:bg-gray-600'
                     }`}
+                    style={isListening ? {
+                      '--primary-color-transparent': `${settings.display.theme.primary}80`
+                    } : {}}
                   >
                     <i className={`text-xl ${isListening ? 'ri-mic-fill' : 'ri-mic-line'}`}></i>
                   </button>
