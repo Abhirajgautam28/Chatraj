@@ -12,6 +12,6 @@ export const requiredKeys = {
     GOOGLE_AI_KEY: {
         name: "Google AI API Key",
         description: "API key from Google Cloud Console",
-        example: "AIzaSyD59nJa7Y6JsLnsHhDWm7kx0A2Ed2MhfJo"
+        example: ""
     }
 };
