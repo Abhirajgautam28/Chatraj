@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "build": "npm install"
   },
   "keywords": [],
   "author": "",
@@ -13,7 +14,7 @@
   "description": "",
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
-    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -29,6 +30,6 @@
     "nodemon": "^3.1.10"
   },
   "engines": {
-    "node": "16.x"
+    "node": "18.x"
   }
 }

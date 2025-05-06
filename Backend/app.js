@@ -18,6 +18,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Add health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok' });
+});
+
 app.use('/setup', setupRoutes);
 app.use('/users', userRoutes);
 app.use('/projects', projectRoutes);
@@ -27,11 +32,6 @@ app.use("/ai", aiRoutes)
 
 app.get('/', (req, res) => {
     res.send('Hello World!');
-});
-
-// Add health check endpoint
-app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok' });
 });
 
 export default app;
