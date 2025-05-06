@@ -1,4 +1,8 @@
 .codegpt
 .fake
 .env
-node_modules
+.env.local
+.DS_Store
+node_modules/
+dist/
+build/

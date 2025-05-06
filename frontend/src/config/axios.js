@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+const API_URL = import.meta.env.VITE_API_URL || 'https://your-render-backend-url.onrender.com';
+
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL
+  baseURL: API_URL
 });
 
 axiosInstance.interceptors.request.use(
