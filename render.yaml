@@ -8,13 +8,7 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 8080
-      - key: MONGODB_URI
-        sync: false
-      - key: JWT_SECRET
-        sync: false
-      - key: GOOGLE_AI_KEY
-        sync: false
+      - key: NODE_VERSION
+        value: 16.20.2
     healthCheckPath: /health
     nodeVersion: 18.x
