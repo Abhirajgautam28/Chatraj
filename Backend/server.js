@@ -8,7 +8,7 @@ import projectModel from './models/project.model.js';
 import { generateResult } from './services/ai.service.js';
 import Message from './models/message.model.js';
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8080;
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -138,6 +138,19 @@ io.on('connection', socket => {
     });
 });
 
+// Add error handling for server
+server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+        console.error(`Port ${port} is already in use. Please try these solutions:`);
+        console.log('1. Stop any running server instances');
+        console.log('2. Choose a different port in .env file');
+        console.log('3. Run: taskkill /F /IM node.exe to force stop all Node processes');
+    } else {
+        console.error('Server error:', error);
+    }
+    process.exit(1);
+});
+
 server.listen(port, () => {
     console.log(`Server is running on port ${port}`);
-})
+});
