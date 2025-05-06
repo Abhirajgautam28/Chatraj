@@ -7,6 +7,7 @@ import mongoose from 'mongoose';
 import projectModel from './models/project.model.js';
 import { generateResult } from './services/ai.service.js';
 import Message from './models/message.model.js';
+import pingService from './services/ping.service.js';
 
 const port = process.env.PORT || 8080;
 
@@ -153,4 +154,7 @@ server.on('error', (error) => {
 
 server.listen(port, () => {
     console.log(`Server is running on port ${port}`);
+    if (process.env.NODE_ENV === 'production') {
+        pingService(`https://your-render-backend-url.onrender.com/health`);
+    }
 });

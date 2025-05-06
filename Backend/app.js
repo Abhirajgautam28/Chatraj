@@ -29,4 +29,9 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
+// Add health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok' });
+});
+
 export default app;
