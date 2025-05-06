@@ -2,6 +2,7 @@ services:
   - type: web
     name: chatraj-backend
     env: node
+    rootDir: Backend
     buildCommand: npm install
     startCommand: npm start
     envVars:
@@ -9,3 +10,9 @@ services:
         value: production
       - key: PORT
         value: 8080
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: GOOGLE_AI_KEY
+        sync: false
