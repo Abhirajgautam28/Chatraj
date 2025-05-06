@@ -2,9 +2,13 @@ import mongoose from "mongoose";
 
 async function connect() {
     try {
+        if (!process.env.MONGODB_URI) {
+            throw new Error('MONGODB_URI is not defined in environment variables');
+        }
+
+        mongoose.set('strictQuery', false);
+        
         const conn = await mongoose.connect(process.env.MONGODB_URI, {
-            retryWrites: true,
-            w: "majority",
             maxPoolSize: 10,
             serverSelectionTimeoutMS: 10000,
             socketTimeoutMS: 45000,
@@ -18,7 +22,6 @@ async function connect() {
 
         mongoose.connection.on('disconnected', () => {
             console.log('MongoDB disconnected');
-            // Attempt to reconnect
             setTimeout(connect, 5000);
         });
 
@@ -29,7 +32,6 @@ async function connect() {
 
     } catch (error) {
         console.error('Error connecting to MongoDB:', error.message);
-        // Don't exit on initial connection failure, try to reconnect
         setTimeout(connect, 5000);
     }
 }

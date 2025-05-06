@@ -7,8 +7,9 @@ import aiRoutes from './routes/ai.routes.js';
 import setupRoutes from './routes/setup.routes.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-connect();
 
+// Connect to MongoDB
+connect().catch(console.error);
 
 const app = express();
 
@@ -18,20 +19,26 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Add health check endpoint
+// Health check endpoint
 app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok' });
+    res.status(200).json({ 
+        status: 'ok',
+        timestamp: new Date().toISOString()
+    });
 });
 
 app.use('/setup', setupRoutes);
 app.use('/users', userRoutes);
 app.use('/projects', projectRoutes);
-app.use("/ai", aiRoutes)
+app.use("/ai", aiRoutes);
 
-
-
-app.get('/', (req, res) => {
-    res.send('Hello World!');
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ 
+        error: 'Something broke!',
+        message: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
+    });
 });
 
 export default app;

@@ -8,12 +8,4 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: NODE_VERSION
-        value: 18.x
-      - key: MONGODB_URI
-        sync: false
-      - key: JWT_SECRET
-        sync: false
-      - key: GOOGLE_AI_KEY
-        sync: false
     healthCheckPath: /health
