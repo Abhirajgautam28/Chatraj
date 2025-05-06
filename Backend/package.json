@@ -4,7 +4,6 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
@@ -22,7 +21,7 @@
     "express-validator": "^7.2.0",
     "ioredis": "^5.4.2",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.9.2",
+    "mongoose": "^8.2.0",
     "morgan": "^1.10.0",
     "socket.io": "^4.8.1"
   },
@@ -30,6 +29,6 @@
     "nodemon": "^3.1.10"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": "18.x"
   }
 }

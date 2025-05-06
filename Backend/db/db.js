@@ -4,7 +4,9 @@ async function connect() {
     try {
         const conn = await mongoose.connect(process.env.MONGODB_URI, {
             retryWrites: true,
-            w: "majority"
+            w: "majority",
+            serverSelectionTimeoutMS: 5000,
+            socketTimeoutMS: 45000,
         });
         
         console.log(`MongoDB Connected: ${conn.connection.host}`);
@@ -15,6 +17,11 @@ async function connect() {
 
         mongoose.connection.on('disconnected', () => {
             console.log('MongoDB disconnected');
+        });
+
+        process.on('SIGINT', async () => {
+            await mongoose.connection.close();
+            process.exit(0);
         });
 
     } catch (error) {

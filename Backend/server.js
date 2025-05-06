@@ -155,6 +155,7 @@ server.on('error', (error) => {
 server.listen(port, () => {
     console.log(`Server is running on port ${port}`);
     if (process.env.NODE_ENV === 'production') {
-        pingService(`https://your-render-backend-url.onrender.com/health`);
+        const backendUrl = process.env.BACKEND_URL || `https://${process.env.RENDER_EXTERNAL_HOSTNAME}`;
+        pingService(`${backendUrl}/health`);
     }
 });

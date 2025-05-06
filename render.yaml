@@ -16,3 +16,5 @@ services:
         sync: false
       - key: GOOGLE_AI_KEY
         sync: false
+    healthCheckPath: /health
+    nodeVersion: 18.x
