@@ -247,34 +247,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Getting Started */}
-      <section className="px-8 py-20 bg-gray-800/50">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="mb-12 text-3xl font-bold text-center text-white">Getting Started</h2>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            {steps.map((step, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.2 }}
-                className="relative p-6 rounded-lg bg-gray-800/30"
-              >
-                <div className="absolute top-0 left-0 w-16 h-16 -mt-8 -ml-8">
-                  <div className="flex items-center justify-center w-16 h-16 text-2xl font-bold text-blue-500 bg-gray-900 rounded-full">
-                    {index + 1}
-                  </div>
-                </div>
-                <div className="mt-8">
-                  <h3 className="mb-4 text-xl font-semibold text-white">{step.title}</h3>
-                  <p className="text-gray-400">{step.description}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Security & Community */}
       <section className="px-8 py-20 bg-gradient-to-b from-gray-900 to-blue-900/50">
         <div className="max-w-4xl mx-auto text-center">
@@ -408,21 +380,6 @@ const faqs = [
   {
     q: "Does ChatRaj support multiple programming languages?",
     a: "Yes, you can code and collaborate in multiple languages with AI-powered assistance."
-  }
-];
-
-const steps = [
-  {
-    title: 'Create Account',
-    description: 'Sign up for free and set up your personal development environment in seconds.'
-  },
-  {
-    title: 'Start Coding',
-    description: 'Begin writing code with real-time AI assistance and smart suggestions.'
-  },
-  {
-    title: 'Collaborate & Grow',
-    description: 'Share your work, get feedback, and improve your development skills.'
   }
 ];
 
