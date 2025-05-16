@@ -8,12 +8,21 @@ import setupRoutes from './routes/setup.routes.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 
+const allowedOrigins = [
+  'https://chatraj-frontend.vercel.app',
+  'https://chatraj.vercel.app', // if you use a custom domain
+  'http://localhost:5173' // for local dev
+];
+
 // Connect to MongoDB
 connect().catch(console.error);
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
