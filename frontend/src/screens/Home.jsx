@@ -42,6 +42,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-900 via-gray-900 to-blue-900">
+      {/* Navbar */}
       <motion.nav 
         initial={{ opacity: 1, y: 0 }}
         animate={{ 
@@ -80,6 +81,7 @@ const Home = () => {
         </div>
       </motion.nav>
 
+      {/* Hero */}
       <section className="flex flex-col items-center justify-center min-h-screen text-center">
         <motion.h1 
           initial={{ opacity: 0, y: 20 }}
@@ -99,6 +101,7 @@ const Home = () => {
         </motion.p>
       </section>
 
+      {/* Features */}
       <section className="px-8 py-20 bg-gray-900">
         <div className="max-w-6xl mx-auto">
           <h2 className="mb-12 text-3xl font-bold text-center text-white">Key Features</h2>
@@ -120,6 +123,29 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Use Cases */}
+      <section className="px-8 py-20 bg-gray-900/80">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="mb-12 text-3xl font-bold text-center text-white">Popular Use Cases</h2>
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            {useCases.map((useCase, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="p-6 rounded-lg bg-gray-800/40"
+              >
+                <i className={`text-3xl text-blue-400 ${useCase.icon}`}></i>
+                <h3 className="mt-4 mb-2 text-lg font-semibold text-white">{useCase.title}</h3>
+                <p className="text-gray-400">{useCase.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose */}
       <section className="px-8 py-20 bg-gray-900/50">
         <div className="max-w-6xl mx-auto">
           <h2 className="mb-12 text-3xl font-bold text-center text-white">Why Choose ChatRaj</h2>
@@ -145,6 +171,7 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Tech Stack */}
       <section className="px-8 py-20 bg-gray-800">
         <div className="max-w-6xl mx-auto">
           <h2 className="mb-12 text-3xl font-bold text-center text-white">Powered By</h2>
@@ -165,6 +192,62 @@ const Home = () => {
         </div>
       </section>
 
+      {/* How It Works (with 3D-like SVG) */}
+      <section className="px-8 py-20 bg-gray-900/70">
+        <div className="flex flex-col items-center max-w-6xl gap-12 mx-auto md:flex-row">
+          <div className="flex-1">
+            <h2 className="mb-8 text-3xl font-bold text-white">How ChatRaj Works</h2>
+            <ol className="space-y-6 text-lg text-gray-200">
+              <li>
+                <span className="font-bold text-blue-400">1.</span> Register or log in to your account.
+              </li>
+              <li>
+                <span className="font-bold text-blue-400">2.</span> Create or join a project and invite your team.
+              </li>
+              <li>
+                <span className="font-bold text-blue-400">3.</span> Start coding with AI-powered suggestions and real-time chat.
+              </li>
+              <li>
+                <span className="font-bold text-blue-400">4.</span> Run, test, and review code collaboratively.
+              </li>
+              <li>
+                <span className="font-bold text-blue-400">5.</span> Export, share, and manage your projects securely.
+              </li>
+            </ol>
+          </div>
+          <div className="flex items-center justify-center flex-1">
+            {/* 3D-like SVG illustration */}
+            <svg width="320" height="220" viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="160" cy="200" rx="120" ry="18" fill="#1e293b" opacity="0.5"/>
+              <rect x="60" y="40" width="200" height="120" rx="20" fill="#334155" stroke="#60a5fa" strokeWidth="3"/>
+              <rect x="90" y="70" width="140" height="60" rx="12" fill="#1e293b" stroke="#818cf8" strokeWidth="2"/>
+              <rect x="120" y="90" width="80" height="20" rx="6" fill="#38bdf8" opacity="0.7"/>
+              <circle cx="100" cy="60" r="8" fill="#38bdf8"/>
+              <circle cx="220" cy="60" r="8" fill="#818cf8"/>
+              <circle cx="160" cy="170" r="12" fill="#f472b6"/>
+              <rect x="140" y="120" width="40" height="10" rx="3" fill="#fbbf24" opacity="0.7"/>
+              <rect x="110" y="110" width="100" height="6" rx="2" fill="#64748b" opacity="0.5"/>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="px-8 py-20 bg-gray-800/80">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="mb-12 text-3xl font-bold text-center text-white">Frequently Asked Questions</h2>
+          <div className="space-y-6">
+            {faqs.map((faq, i) => (
+              <div key={i} className="p-6 rounded-lg bg-gray-900/70">
+                <h3 className="mb-2 text-lg font-semibold text-blue-400">{faq.q}</h3>
+                <p className="text-gray-300">{faq.a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Getting Started */}
       <section className="px-8 py-20 bg-gray-800/50">
         <div className="max-w-6xl mx-auto">
           <h2 className="mb-12 text-3xl font-bold text-center text-white">Getting Started</h2>
@@ -192,11 +275,15 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Security & Community */}
       <section className="px-8 py-20 bg-gradient-to-b from-gray-900 to-blue-900/50">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="mb-8 text-3xl font-bold text-white">Ready to Get Started?</h2>
+          <h2 className="mb-8 text-3xl font-bold text-white">Security & Community</h2>
+          <p className="mb-6 text-xl text-gray-300">
+            Your privacy and security are our top priorities. ChatRaj uses secure authentication, encrypted data storage, and gives you full control over your data retention.
+          </p>
           <p className="mb-12 text-xl text-gray-300">
-            Join thousands of developers who are already using ChatRaj to improve their coding workflow
+            Join our growing developer community, contribute, and get support on <a href="https://github.com/Abhirajgautam28/Chatraj" className="text-blue-400 underline">GitHub</a>.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <motion.button
@@ -257,6 +344,24 @@ const features = [
   }
 ];
 
+const useCases = [
+  {
+    icon: 'ri-lightbulb-flash-line',
+    title: 'Learning & Experimentation',
+    description: 'Practice coding, learn new languages, and experiment with AI-powered suggestions.'
+  },
+  {
+    icon: 'ri-group-line',
+    title: 'Team Projects',
+    description: 'Collaborate with your team in real-time, share code, and manage projects efficiently.'
+  },
+  {
+    icon: 'ri-global-line',
+    title: 'Remote Collaboration',
+    description: 'Work with developers worldwide, regardless of location or language.'
+  }
+];
+
 const techStack = [
   { icon: 'ri-reactjs-line', name: 'React' },
   { icon: 'ri-nodejs-line', name: 'Node.js' },
@@ -288,6 +393,21 @@ const benefits = [
     icon: 'ri-brain-line',
     title: 'Continuous Learning',
     description: 'Improve your coding skills with personalized recommendations and learning resources.'
+  }
+];
+
+const faqs = [
+  {
+    q: "Is my code and data secure?",
+    a: "Yes! ChatRaj uses secure authentication, encrypted storage, and gives you full control over your data retention."
+  },
+  {
+    q: "Can I use ChatRaj for free?",
+    a: "Absolutely! You can get started for free and upgrade as your needs grow."
+  },
+  {
+    q: "Does ChatRaj support multiple programming languages?",
+    a: "Yes, you can code and collaborate in multiple languages with AI-powered assistance."
   }
 ];
 
