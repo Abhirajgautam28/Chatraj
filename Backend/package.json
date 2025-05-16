@@ -9,20 +9,20 @@
     "build": "npm install"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.21.0",
-    "bcryptjs": "^2.4.3",
-    "cookie-parser": "^1.4.7",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "express-validator": "^7.2.0",
-    "ioredis": "^5.4.2",
-    "jsonwebtoken": "^9.0.2",
-    "mongodb": "^6.16.0",
-    "mongoose": "^8.14.3",
-    "morgan": "^1.10.0",
-    "nodemon": "^3.1.10",
-    "socket.io": "^4.8.1"
+    "@google/generative-ai": "0.21.0",
+    "bcryptjs": "2.4.3",
+    "cookie-parser": "1.4.7",
+    "cors": "2.8.5",
+    "dotenv": "16.4.7",
+    "express": "4.21.2",
+    "express-validator": "7.2.0",
+    "ioredis": "5.4.2",
+    "jsonwebtoken": "9.0.2",
+    "mongodb": "6.16.0",
+    "mongoose": "8.14.3",
+    "morgan": "1.10.0",
+    "nodemon": "3.1.10",
+    "socket.io": "4.8.1"
   },
   "devDependencies": {
     "rimraf": "^6.0.1"
