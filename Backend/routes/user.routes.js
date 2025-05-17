@@ -17,6 +17,9 @@ router.post('/login',
   userController.loginController
 );
 
+router.post('/reset-password', userController.resetPasswordController);
+router.post('/update-password', userController.updatePasswordController);
+
 router.get('/profile', authMiddleware.authUser, userController.profileController);
 
 router.get('/logout', userController.logoutController);

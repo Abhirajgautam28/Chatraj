@@ -2,7 +2,8 @@ import userModel from '../models/user.model.js';
 import * as userService from '../services/user.service.js';
 import { validationResult } from 'express-validator';
 import redisClient from '../services/redis.service.js';
-
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
 export const createUserController = async (req, res) => {
 
@@ -114,3 +115,41 @@ export const getAllUsersController = async (req, res) => {
 
     }
 }
+
+export const resetPasswordController = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const user = await userModel.findOne({ email });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        // Generate a reset token (valid for 15 min)
+        const resetToken = jwt.sign(
+            { email: user.email },
+            process.env.JWT_SECRET,
+            { expiresIn: '15m' }
+        );
+
+        // TODO: Send resetToken via email to user.email
+        // For now, just return it (for dev/testing)
+        res.json({ message: 'Reset link sent to email', resetToken });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+export const updatePasswordController = async (req, res) => {
+    try {
+        const { email, newPassword } = req.body;
+        if (!email || !newPassword) return res.status(400).json({ message: 'Email and new password required' });
+
+        const user = await userModel.findOne({ email });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        user.password = await userModel.hashPassword(newPassword);
+        await user.save();
+
+        res.json({ message: 'Password updated successfully' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
