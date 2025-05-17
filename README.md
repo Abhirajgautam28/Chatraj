@@ -22,17 +22,6 @@ ChatRaj is an AI-powered platform designed to streamline software engineering ta
 - Google Generative AI (`@google/generative-ai`)
 - Speech Recognition API
 - Text-to-Speech capabilities
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js (v16 or later)
-- npm (or yarn)
-- A running MongoDB instance (local or cloud)
-- Access to a Redis server (local or cloud)
-- A valid Google AI Key
-
 ---
 
 ## Enhanced Features
@@ -152,6 +141,8 @@ ChatRaj is an AI-powered platform designed to streamline software engineering ta
   - Smooth state transitions
   - Reduced render cycles
 
+---
+
 ## Comprehensive Setup Guide
 
 ### Prerequisites Installation
@@ -226,6 +217,8 @@ ChatRaj is an AI-powered platform designed to streamline software engineering ta
    sudo systemctl start redis-server
    ```
 
+---
+
 ### Project Setup
 
 #### 1. Clone and Configure
@@ -267,6 +260,8 @@ cd ../frontend
 npm install
 ```
 
+---
+
 ### Running the Application
 
 #### Development Mode
@@ -285,6 +280,100 @@ npm install
 3. **Access the Application**
    - Open browser: [http://localhost:5173](http://localhost:5173)
    - Register a new account or login
+
+---
+
+### Socket.io & Real-time Backend Setup
+
+> **New:** The backend now uses a dedicated `server.js` file for real-time features with Socket.io.
+
+#### 1. `server.js` Setup (Backend)
+- Ensure you have a `Backend/server.js` file with the following structure:
+
+```js
+import express from "express";
+import http from "http";
+import { Server } from "socket.io";
+import cors from "cors";
+import dotenv from "dotenv";
+import userRoutes from "./routes/user.routes.js";
+import projectRoutes from "./routes/project.routes.js";
+import aiRoutes from "./routes/ai.routes.js";
+import setupRoutes from "./routes/setup.routes.js";
+import connectDB from "./db/db.js";
+
+// Load environment variables
+dotenv.config();
+
+const app = express();
+const server = http.createServer(app);
+
+// Socket.io setup
+const io = new Server(server, {
+  cors: {
+    origin: "*", // You can restrict this to your frontend URL
+    methods: ["GET", "POST"]
+  }
+});
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Connect to MongoDB
+connectDB();
+
+// API routes
+app.use("/users", userRoutes);
+app.use("/projects", projectRoutes);
+app.use("/ai", aiRoutes);
+app.use("/setup", setupRoutes);
+
+// Socket.io events
+io.on("connection", (socket) => {
+  console.log("A user connected: " + socket.id);
+
+  // Example: join a project room
+  socket.on("joinProject", (projectId) => {
+    socket.join(projectId);
+    console.log(`User ${socket.id} joined project ${projectId}`);
+  });
+
+  // Example: handle chat message
+  socket.on("chatMessage", ({ projectId, message }) => {
+    io.to(projectId).emit("chatMessage", message);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected: " + socket.id);
+  });
+});
+
+const PORT = process.env.PORT || 8080;
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+```
+
+- **Do not put this code in `app.js`.**  
+  `app.js` should only define and export the Express app.
+
+#### 2. Start the Backend Server
+- In the `Backend` directory, run:
+  ```bash
+  node server.js
+  ```
+  or (if using nodemon):
+  ```bash
+  nodemon server.js
+  ```
+
+- Make sure you see `Server is running on port 8080` in your terminal.
+
+#### 3. Frontend Socket Configuration
+- Ensure your frontend socket connection URL matches your backend (e.g., `http://localhost:8080`).
+
+---
 
 ### Common Issues & Troubleshooting
 
@@ -327,6 +416,8 @@ See our detailed [Troubleshooting Guide](./troubleshooting.md) for solutions to 
      # Linux
      sudo systemctl status redis-server
      ```
+
+---
 
 ## **Contributing**
 
