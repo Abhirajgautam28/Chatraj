@@ -55,7 +55,6 @@ io.use(async (socket, next) => {
 
 io.on('connection', socket => {
     socket.roomId = socket.project._id.toString()
-    // console.log('a user connected');
     socket.join(socket.roomId);
 
     socket.on('project-message', async data => {
@@ -141,7 +140,6 @@ io.on('connection', socket => {
     });
 });
 
-// Add error handling for server
 server.on('error', (error) => {
     if (error.code === 'EADDRINUSE') {
         console.error(`Port ${port} is already in use. Please try these solutions:`);

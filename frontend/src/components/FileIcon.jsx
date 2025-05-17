@@ -21,14 +21,14 @@ const FileIcon = ({ fileName }) => {
       java: 'ri-code-box-line',
       class: 'ri-code-box-line',
       jar: 'ri-code-box-line',
-      rs: 'ri-terminal-box-line', // Rust
+      rs: 'ri-terminal-box-line',
       go: 'ri-code-line',
-      rb: 'ri-gem-line', // Ruby
+      rb: 'ri-gem-line',
       rake: 'ri-gem-line',
-      pl: 'ri-code-line', // Perl
+      pl: 'ri-code-line',
       scala: 'ri-code-line',
-      cs: 'ri-code-s-slash-line', // C#
-      fs: 'ri-code-s-slash-line', // F#
+      cs: 'ri-code-s-slash-line',
+      fs: 'ri-code-s-slash-line',
       cpp: 'ri-code-s-line',
       cc: 'ri-code-s-line',
       c: 'ri-code-s-line',
@@ -60,7 +60,7 @@ const FileIcon = ({ fileName }) => {
       redis: 'ri-database-line',
       
       // Package Managers
-      json5: 'ri-npmjs-line', // package.json
+      json5: 'ri-npmjs-line',
       lock: 'ri-lock-line',
       yarn: 'ri-yarn-line',
       
@@ -69,11 +69,11 @@ const FileIcon = ({ fileName }) => {
       bash: 'ri-terminal-line',
       zsh: 'ri-terminal-line',
       bat: 'ri-terminal-window-line',
-      ps1: 'ri-terminal-window-line', // PowerShell
+      ps1: 'ri-terminal-window-line',
       
       // Mobile Development
       swift: 'ri-apple-line',
-      kt: 'ri-android-line', // Kotlin
+      kt: 'ri-android-line',
       gradle: 'ri-android-line',
       xcodeproj: 'ri-apple-line',
       
@@ -112,8 +112,8 @@ const FileIcon = ({ fileName }) => {
       obj: 'ri-shapes-line',
       
       // Cloud & Infrastructure
-      tf: 'ri-cloud-line', // Terraform
-      cfn: 'ri-cloud-line', // CloudFormation
+      tf: 'ri-cloud-line',
+      cfn: 'ri-cloud-line',
       
       // State Management
       redux: 'ri-database-line',

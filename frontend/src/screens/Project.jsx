@@ -89,7 +89,6 @@ const Project = () => {
   };
 
   const handleReaction = (messageId, emoji, userId) => {
-    // Don't allow users to react to their own messages
     const message = messages.find(m => m._id === messageId);
     if (message.sender._id === userId) {
       return;
@@ -392,7 +391,6 @@ const Project = () => {
               />
             </div>
             {Object.entries(reactionGroups).map(([emoji, users]) => {
-              // Don't show reactions with no users
               if (users.length === 0) return null;
               
               return (
@@ -743,7 +741,6 @@ const Project = () => {
                 try {
                   const doc = e.target.contentDocument;
                   if (doc) {
-                    // Set constant light mode styles
                     const style = doc.createElement('style');
                     style.textContent = `
                       body { 

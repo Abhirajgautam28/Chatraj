@@ -9,7 +9,7 @@ const pingService = (url) => {
         }).on('error', (err) => {
             console.log('Ping error:', err.message);
         });
-    }, 840000); // Ping every 14 minutes
+    }, 840000);
 };
 
 export default pingService;

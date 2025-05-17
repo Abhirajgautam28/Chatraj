@@ -11,7 +11,6 @@ const Login = () => {
     const { setUser } = useContext(UserContext);
     const navigate = useNavigate();
 
-    // Popup state
     const [showReset, setShowReset] = useState(false);
     const [resetEmail, setResetEmail] = useState('');
     const [resetNewPassword, setResetNewPassword] = useState('');
@@ -38,7 +37,6 @@ const Login = () => {
             });
     }
 
-    // Handle reset password submit
     const handleResetPassword = async (e) => {
         e.preventDefault();
         try {
@@ -118,8 +116,6 @@ const Login = () => {
                             required
                         />
                     </div>
-
-                    {/* Forgot password link just above the button */}
                     <div className="mb-6 text-right">
                         <button
                             type="button"
@@ -144,8 +140,6 @@ const Login = () => {
                         Create one
                     </Link>
                 </p>
-
-                {/* Reset Password Popup */}
                 <AnimatePresence>
                     {showReset && (
                         <motion.div

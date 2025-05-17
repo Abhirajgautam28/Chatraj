@@ -15,7 +15,6 @@ export const initializeSocket = (projectId) => {
         }
     });
 
-    // Add these event listeners
     socketInstance.on('typing', (data) => {
         callbacks['typing']?.forEach(cb => cb(data));
     });

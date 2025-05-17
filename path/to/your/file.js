@@ -34,7 +34,6 @@ import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
 import userRoutes from `,
-        // The content seems to be incomplete, so you would need to complete it based on your requirements.
       },
     },
   },

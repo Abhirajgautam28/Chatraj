@@ -122,7 +122,6 @@ export const resetPasswordController = async (req, res) => {
         const user = await userModel.findOne({ email });
         if (!user) return res.status(404).json({ message: 'User not found' });
 
-        // Generate a reset token (valid for 15 min)
         const resetToken = jwt.sign(
             { email: user.email },
             process.env.JWT_SECRET,
@@ -130,7 +129,6 @@ export const resetPasswordController = async (req, res) => {
         );
 
         // TODO: Send resetToken via email to user.email
-        // For now, just return it (for dev/testing)
         res.json({ message: 'Reset link sent to email', resetToken });
     } catch (err) {
         res.status(500).json({ message: err.message });

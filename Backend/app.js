@@ -10,11 +10,10 @@ import cors from 'cors';
 
 const allowedOrigins = [
   'https://chatraj-frontend.vercel.app',
-  'https://chatraj.vercel.app', // if you use a custom domain
-  'http://localhost:5173' // for local dev
+  'https://chatraj.vercel.app',
+  'http://localhost:5173'
 ];
 
-// Connect to MongoDB
 connect().catch(console.error);
 
 const app = express();
@@ -28,7 +27,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Health check endpoint
 app.get('/health', (req, res) => {
     res.status(200).json({ 
         status: 'ok',
@@ -41,7 +39,6 @@ app.use('/users', userRoutes);
 app.use('/projects', projectRoutes);
 app.use("/ai", aiRoutes);
 
-// Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ 

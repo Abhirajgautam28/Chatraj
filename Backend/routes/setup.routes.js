@@ -5,7 +5,6 @@ const router = Router();
 
 router.get('/config-info', (req, res) => {
     try {
-        // Remove sensitive examples for production
         const safeKeys = Object.entries(requiredKeys).reduce((acc, [key, value]) => {
             acc[key] = {
                 name: value.name,
