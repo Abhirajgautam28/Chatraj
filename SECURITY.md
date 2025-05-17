@@ -15,7 +15,7 @@ Only the versions marked with :white_check_mark: are actively receiving security
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability, please report it by emailing [your-email@example.com] or by opening a private issue on GitHub.
+If you discover a security vulnerability, please report it by emailing [abhirajgautam28@gmail.com] or by opening a private issue on GitHub.
 
 - Provide as much detail as possible to help us identify and address the issue quickly.
 - We aim to respond to all security reports within 72 hours.
