@@ -1,4 +1,4 @@
-# ChatRaj – Interview Reference & Deep Dive
+# ChatRaj – Deep Dive
 
 This document is a reference guide for explaining every aspect of ChatRaj, including all details and architectural reasoning.
 
