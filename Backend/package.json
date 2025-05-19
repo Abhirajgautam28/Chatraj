@@ -9,7 +9,7 @@
     "build": "npm install"
   },
   "dependencies": {
-    "@google/generative-ai": "0.21.0",
+    "@google/generative-ai": "0.24.1",
     "bcryptjs": "2.4.3",
     "cookie-parser": "1.4.7",
     "cors": "2.8.5",
