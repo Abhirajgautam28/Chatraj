@@ -1,457 +1,312 @@
 # ChatRaj – AI-Powered Software Engineering Collaboration Platform
 
-ChatRaj is an AI-powered platform designed to streamline software engineering tasks by combining intelligent code assistance, real-time collaboration, and project management in one cohesive environment. Built on the MERN stack with real-time capabilities, ChatRaj aims to assist development teams by automating and enhancing various software engineering tasks. Future improvements include training models on specific tasks defined in a categories module.
+ChatRaj is a comprehensive, AI-powered platform designed to streamline software engineering collaboration. It combines intelligent code assistance, real-time chat, project management, and advanced privacy controls in a single, modern environment. Built on the MERN stack, ChatRaj empowers development teams to work smarter and faster.
+
+---
+
+## Table of Contents
+
+- [ChatRaj – AI-Powered Software Engineering Collaboration Platform](#chatraj--ai-powered-software-engineering-collaboration-platform)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+    - [Real-time Collaboration](#real-time-collaboration)
+    - [AI-Powered Assistance](#ai-powered-assistance)
+    - [User Experience](#user-experience)
+    - [Privacy \& Security](#privacy--security)
+    - [Project Management](#project-management)
+  - [Tech Stack](#tech-stack)
+  - [Architecture Overview](#architecture-overview)
+  - [Screenshots](#screenshots)
+    - [Homepage](#homepage)
+    - [Login](#login)
+    - [Categories](#categories)
+    - [Dashboard](#dashboard)
+    - [Project Workspace](#project-workspace)
+    - [Welcome Screen](#welcome-screen)
+    - [ChatRaj AI Assistant](#chatraj-ai-assistant)
+    - [Logout](#logout)
+  - [Getting Started](#getting-started)
+    - [Prerequisites](#prerequisites)
+    - [Installation](#installation)
+    - [Configuration](#configuration)
+    - [Running the Application](#running-the-application)
+  - [Project Structure](#project-structure)
+  - [Usage Guide](#usage-guide)
+    - [User Registration \& Login](#user-registration--login)
+    - [Creating \& Managing Projects](#creating--managing-projects)
+    - [Real-time Collaboration](#real-time-collaboration-1)
+    - [AI Assistance](#ai-assistance)
+    - [Privacy \& Settings](#privacy--settings)
+  - [Contributing](#contributing)
+  - [Roadmap](#roadmap)
+  - [License](#license)
+  - [Contact](#contact)
+
+---
+
+## Features
+
+### Real-time Collaboration
+- **Live Chat:** Instant messaging with typing indicators and emoji reactions.
+- **Multi-user Code Editing:** Edit code together with real-time updates.
+- **Project Categories:** Organize projects for better workflow.
+- **File Tree Visualization:** View and manage project files with syntax highlighting.
+- **Code Execution Environment:** Run code in isolated sandboxes (WebContainers).
+- **User Presence Indicators:** See who is online and collaborating.
+- **Voice Input:** Real-time speech recognition for hands-free collaboration.
+
+### AI-Powered Assistance
+- **AI Code Assistant:** Get code suggestions, explanations, and automation via Google Generative AI.
+- **@ChatRaj Mentions:** Directly interact with the AI assistant in chat.
+- **Auto-complete Suggestions:** Speed up communication with smart phrase suggestions.
+
+### User Experience
+- **Dark/Light Mode:** Switch themes for comfortable coding.
+- **Responsive Design:** Works seamlessly on all devices.
+- **Animated Transitions:** Smooth UI animations for a modern feel.
+- **Customizable Interface:** Adjust chat bubbles, theme colors, font sizes, and more.
+- **Multilingual Support:** Use the platform in English, Hindi, Spanish, French, German, or Japanese.
+
+### Privacy & Security
+- **Local Chat History:** Manage, clear, or auto-delete chat history.
+- **Data Retention Controls:** Set auto-delete intervals and manage local storage.
+- **Role-based Access Control:** Secure project collaboration with roles and permissions.
+- **JWT Authentication:** Secure user sessions.
+
+### Project Management
+- **Category-based Organization:** 15+ predefined categories for efficient project sorting.
+- **Invite System:** Collaborate by inviting team members.
+- **File System Management:** Real-time updates and file operations.
+
+---
 
 ## Tech Stack
 
-### **Backend**
-- Node.js, Express
-- MongoDB & Mongoose
-- Redis (for caching and token management)
-- JWT for authentication
-- Socket.io for real-time communication
-- dotenv for environment variables
+**Backend:**
+- Node.js, Express.js
+- MongoDB (Atlas) & Mongoose
+- Redis (caching, token management)
+- JWT (authentication)
+- Socket.io (real-time communication)
+- dotenv (environment variables)
 
-### **Frontend**
-- React with Vite
-- Tailwind CSS & Animate.css for styling and animations
-- Remix Icon for icons
-- Motion.js for smooth animations
+**Frontend:**
+- React (Vite)
+- Tailwind CSS, Animate.css
+- Remix Icon, Motion.js
 
-### **AI Integration**
+**AI Integration:**
 - Google Generative AI (`@google/generative-ai`)
 - Speech Recognition API
-- Text-to-Speech capabilities
----
-
-## Enhanced Features
-
-### Real-time Collaboration
-- **Live Chat System** with typing indicators and message reactions
-- **Multi-user Code Editing** with real-time updates
-- **Project Categories** for better organization
-- **File Tree Visualization** with syntax highlighting
-- **Code Execution Environment** using WebContainers
-- **User Presence Indicators** showing active collaborators
-- **Voice Input Support** with real-time speech recognition
-
-### User Experience
-- **Dark/Light Mode Toggle** for comfortable coding
-- **Animated Transitions** using Animate.css
-- **Responsive Design** for all screen sizes
-- **Message Threading** with reply functionality
-- **Emoji Reactions** to messages
-- **File Icons** based on file types
-- **Avatar Generation** for users
-- **Multilingual Support** with 6+ languages:
-  - English (US)
-  - Hindi (हिंदी)
-  - Spanish (Español)
-  - French (Français)
-  - German (Deutsch)
-  - Japanese (日本語)
-- **Customizable Chat Interface**:
-  - Adjustable message bubble roundness
-  - Customizable theme colors
-  - Message shadows toggle
-  - Font size options
-- **Auto-complete Suggestions** for common phrases
-- **Adjustable Sidebar** with auto-expand functionality
-- **Timestamp Display** with date and time format (DD/MM/YYYY HH:MM)
-- **Enhanced Navigation System**:
-  - Smart navbar hiding on scroll
-  - Smooth transition animations
-  - Responsive header adaptations
-- **Improved Loading Screens**:
-  - Sequential loading indicators
-  - Progressive status updates
-  - Smooth transitions between states
-- **Advanced Animation System**:
-  - Coordinated dot animations
-  - Color-synchronized interface elements
-  - Theme-aware visual feedback
-- **Voice Input Enhancements**:
-  - Real-time voice status indicators
-  - Theme-matched animation colors
-  - Improved feedback system
-
-### Privacy Features
-- **Local Chat History Management**
-  - Toggle to save/clear chat history
-  - Automatic message cleanup
-  - Manual history clearing option
-- **Auto-delete System**
-  - Configurable deletion intervals (7/30/90 days)
-  - Automatic cleanup of old messages
-  - Timestamp tracking with date and time
-- **Data Control Options**
-  - Local storage management
-  - Privacy-focused settings
-  - User data protection
-
-### Settings Management
-- **Display Settings**
-  - Theme customization
-  - Chat bubble appearance
-  - Font size control
-  - Dark/Light mode toggle
-- **Behavior Settings**
-  - Auto-complete configuration
-  - Message sending preferences
-  - Scroll behavior options
-- **Accessibility Options**
-  - Language selection
-  - Speech recognition
-  - Text-to-speech support
-- **Sidebar Preferences**
-  - Width adjustment (220px/260px/300px)
-  - Auto-expand options
-  - User info display
-- **Privacy Controls**
-  - History management
-  - Auto-delete configuration
-  - Data retention settings
-- **Theme Integration**:
-  - Dynamic color system
-  - Real-time color previews
-  - Synchronized component colors
-- **Animation Controls**:
-  - Custom timing configurations
-  - Sequential animation patterns
-  - Performance optimizations
-
-### Project Management
-- **Category-based Organization** with 15+ predefined categories
-- **Project Collaboration** with invite system
-- **File System Management** with real-time updates
-- **Role-based Access Control**
-
-### Development Features
-- **AI Code Assistant** (@Chatraj mentions)
-- **Code Execution** in isolated environments
-- **Syntax Highlighting** for multiple languages
-- **Project Templates** for quick start
-- **Real-time Error Detection**
-- **Enhanced UI Components**:
-  - Coordinated animation systems
-  - Theme-aware visual elements
-  - Progressive loading patterns
-- **Performance Optimizations**:
-  - Efficient animation handling
-  - Smooth state transitions
-  - Reduced render cycles
+- Text-to-Speech
 
 ---
 
-## Comprehensive Setup Guide
+## Architecture Overview
 
-### Prerequisites Installation
-
-#### Windows
-1. **Node.js & npm**
-   - Download from [Node.js Official Website](https://nodejs.org/)
-   - Run the installer and follow the wizard
-   - Verify installation:
-     ```bash
-     node --version
-     npm --version
-     ```
-
-2. **MongoDB**
-   - Download [MongoDB Community Server](https://www.mongodb.com/try/download/community)
-   - Install MongoDB Compass (GUI) during setup
-   - Add MongoDB to system PATH
-   - Start MongoDB service:
-     ```bash
-     net start MongoDB
-     ```
-
-3. **Redis**
-   - Install [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install)
-   - Open WSL terminal:
-     ```bash
-     wsl
-     sudo apt-get update
-     sudo apt-get install redis-server
-     sudo service redis-server start
-     ```
-
-#### macOS
-1. **Install Homebrew**
-   ```bash
-   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-   ```
-
-2. **Install Required Software**
-   ```bash
-   brew install node
-   brew install mongodb-community
-   brew install redis
-   ```
-
-3. **Start Services**
-   ```bash
-   brew services start mongodb-community
-   brew services start redis
-   ```
-
-#### Linux (Ubuntu/Debian)
-1. **Node.js & npm**
-   ```bash
-   curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-   sudo apt-get install -y nodejs
-   ```
-
-2. **MongoDB**
-   ```bash
-   wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add -
-   echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/5.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-5.0.list
-   sudo apt-get update
-   sudo apt-get install -y mongodb-org
-   sudo systemctl start mongod
-   ```
-
-3. **Redis**
-   ```bash
-   sudo apt-get install redis-server
-   sudo systemctl start redis-server
-   ```
-
----
-
-### Project Setup
-
-#### 1. Clone and Configure
-```bash
-# Clone repository
-git clone https://github.com/yourusername/ChatRaj.git
-cd ChatRaj
-
-# Create necessary .env files
-touch Backend/.env frontend/.env
 ```
-
-#### 2. Backend Configuration
-Edit `Backend/.env`:
-```env
-PORT=8080
-MONGODB_URI=mongodb://localhost:27017/ChatRaj
-JWT_SECRET=your_secure_secret_key
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_PASSWORD=
-GOOGLE_AI_KEY=your_google_ai_key  # Get from https://makersuite.google.com/app/apikey
-```
-
-#### 3. Frontend Configuration
-Edit `frontend/.env`:
-```env
-VITE_API_URL=http://localhost:8080
-```
-
-#### 4. Install Dependencies
-```bash
-# Backend setup
-cd Backend
-npm install
-
-# Frontend setup
-cd ../frontend
-npm install
++-------------------+         +---------------------+         +-------------------+
+|    Frontend       | <-----> |      Backend        | <-----> |   MongoDB Atlas   |
+|  (React, Vite)    |  REST   | (Node, Express,     |  ODM    |   (Database)      |
+|  + Socket.io      |  & WS   |  Socket.io, Redis)  |         |                   |
++-------------------+         +---------------------+         +-------------------+
+         |                             ^
+         |                             |
+         v                             |
++-------------------+                  |
+|  Google Gen AI    | <----------------+
+|  Speech APIs      |
++-------------------+
 ```
 
 ---
+
+## Screenshots
+
+> Below are screenshots demonstrating key features and pages of ChatRaj. All images are located in the `Screenshots` folder.
+
+### Homepage
+![Homepage](Screenshots/Homepage.png)
+
+### Login
+![Login](Screenshots/Login.png)
+
+### Categories
+![Categories](Screenshots/Categories.png)
+
+### Dashboard
+![Dashboard](Screenshots/Dashboard.png)
+
+### Project Workspace
+![Project](Screenshots/Project.png)
+
+### Welcome Screen
+![Welcome Chatraj](Screenshots/Welcome%20Chatraj.png)
+
+### ChatRaj AI Assistant
+![Chatraj](Screenshots/Chatraj.png)
+
+### Logout
+![Logout](Screenshots/Logout.png)
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- **Node.js & npm:** [Download](https://nodejs.org/)
+- **MongoDB Atlas Account:** [Sign Up](https://www.mongodb.com/cloud/atlas)
+- **Redis Instance:** [Redis Cloud](https://redis.com/try-free/) or local install
+- **Google AI API Key:** [Get API Key](https://makersuite.google.com/app/apikey)
+- **Git:** [Download](https://git-scm.com/)
+
+### Installation
+
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/Abhirajgautam28/Chatraj.git
+   cd ChatRaj
+   ```
+
+2. **Install Dependencies**
+   ```bash
+   # Backend
+   cd Backend
+   npm install
+
+   # Frontend
+   cd ../frontend
+   npm install
+   ```
+
+### Configuration
+
+1. **Backend Environment Variables**
+
+   Create `Backend/.env`:
+   ```env
+   PORT=8080
+   MONGODB_URI=your_mongodb_atlas_connection_string
+   JWT_SECRET=your_jwt_secret
+   REDIS_HOST=your_redis_host
+   REDIS_PORT=your_redis_port
+   REDIS_PASSWORD=your_redis_password
+   GOOGLE_AI_KEY=your_google_ai_key
+   ```
+
+2. **Frontend Environment Variables**
+
+   Create `frontend/.env`:
+   ```env
+   VITE_API_URL=http://localhost:8080
+   ```
+
 
 ### Running the Application
 
-#### Development Mode
 1. **Start Backend**
    ```bash
-   # In Backend directory
+   cd Backend
    npm run dev
    ```
 
 2. **Start Frontend**
    ```bash
-   # In frontend directory
+   cd ../frontend
    npm run dev
    ```
 
-3. **Access the Application**
-   - Open browser: [http://localhost:5173](http://localhost:5173)
-   - Register a new account or login
+3. **Access the App**
+   - Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-### Socket.io & Real-time Backend Setup
+## Project Structure
 
-> **New:** The backend now uses a dedicated `server.js` file for real-time features with Socket.io.
-
-#### 1. `server.js` Setup (Backend)
-- Ensure you have a `Backend/server.js` file with the following structure:
-
-```js
-import express from "express";
-import http from "http";
-import { Server } from "socket.io";
-import cors from "cors";
-import dotenv from "dotenv";
-import userRoutes from "./routes/user.routes.js";
-import projectRoutes from "./routes/project.routes.js";
-import aiRoutes from "./routes/ai.routes.js";
-import setupRoutes from "./routes/setup.routes.js";
-import connectDB from "./db/db.js";
-
-// Load environment variables
-dotenv.config();
-
-const app = express();
-const server = http.createServer(app);
-
-// Socket.io setup
-const io = new Server(server, {
-  cors: {
-    origin: "*", // You can restrict this to your frontend URL
-    methods: ["GET", "POST"]
-  }
-});
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Connect to MongoDB
-connectDB();
-
-// API routes
-app.use("/users", userRoutes);
-app.use("/projects", projectRoutes);
-app.use("/ai", aiRoutes);
-app.use("/setup", setupRoutes);
-
-// Socket.io events
-io.on("connection", (socket) => {
-  console.log("A user connected: " + socket.id);
-
-  // Example: join a project room
-  socket.on("joinProject", (projectId) => {
-    socket.join(projectId);
-    console.log(`User ${socket.id} joined project ${projectId}`);
-  });
-
-  // Example: handle chat message
-  socket.on("chatMessage", ({ projectId, message }) => {
-    io.to(projectId).emit("chatMessage", message);
-  });
-
-  socket.on("disconnect", () => {
-    console.log("User disconnected: " + socket.id);
-  });
-});
-
-const PORT = process.env.PORT || 8080;
-server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+```
+ChatRaj/
+├── Backend/         # Express API, Socket.io, MongoDB, Redis
+│   ├── routes/
+│   ├── models/
+│   ├── controllers/
+│   ├── db/
+│   ├── server.js
+│   └── .env
+├── frontend/        # React client
+│   ├── src/
+│   ├── public/
+│   └── .env
+└── README.md
 ```
 
-- **Do not put this code in `app.js`.**  
-  `app.js` should only define and export the Express app.
+---
 
-#### 2. Start the Backend Server
-- In the `Backend` directory, run:
-  ```bash
-  node server.js
-  ```
-  or (if using nodemon):
-  ```bash
-  nodemon server.js
-  ```
+## Usage Guide
 
-- Make sure you see `Server is running on port 8080` in your terminal.
+### User Registration & Login
+- Register a new account or log in with existing credentials.
+- JWT-based authentication secures your session.
 
-#### 3. Frontend Socket Configuration
-- Ensure your frontend socket connection URL matches your backend (e.g., `http://localhost:8080`).
+### Creating & Managing Projects
+- Create new projects and organize them by category.
+- Invite collaborators and assign roles.
+- Manage files and folders with real-time updates.
+
+### Real-time Collaboration
+- Use the chat system for instant communication.
+- Edit code together in real time.
+- See who is online and active in your project.
+
+### AI Assistance
+- Mention `@ChatRaj` in chat for code help, explanations, or suggestions.
+- Use voice input for hands-free commands and messaging.
+
+### Privacy & Settings
+- Manage your chat history and set auto-delete preferences.
+- Customize the interface: themes, font sizes, sidebar width, and more.
+- Choose your preferred language.
 
 ---
 
-### Common Issues & Troubleshooting
+## Contributing
 
-See our detailed [Troubleshooting Guide](./troubleshooting.md) for solutions to common issues.
+We welcome contributions! To get started:
 
-#### Quick Fixes
-1. **Port Already in Use**
-   ```bash
-   # Windows
-   netstat -ano | findstr :8080
-   taskkill /PID <PID> /F
+1. **Fork the repository** and create a new branch.
+2. **Implement your changes** with clear, concise commits.
+3. **Test thoroughly** before submitting.
+4. **Open a Pull Request** with a detailed description.
 
-   # Mac/Linux
-   lsof -i :8080
-   kill -9 <PID>
-   ```
-
-2. **MongoDB Connection Issues**
-   - Check if MongoDB is running:
-     ```bash
-     # Windows
-     net start MongoDB
-
-     # Mac
-     brew services list
-
-     # Linux
-     sudo systemctl status mongod
-     ```
-
-3. **Redis Connection Issues**
-   - Verify Redis server status:
-     ```bash
-     # Windows (WSL)
-     sudo service redis-server status
-
-     # Mac
-     brew services list
-
-     # Linux
-     sudo systemctl status redis-server
-     ```
+Please follow our [Code of Conduct](CODE_OF_CONDUCT.md) and ensure your code adheres to project standards.
 
 ---
 
-## **Contributing**
+## Roadmap
 
-Contributions are welcome! Please follow these steps:
-
-1. **Fork the Repository:** Create a new branch from `main`.
-2. **Implement Changes:** Fix bugs or add features while ensuring code consistency.
-3. **Test Your Changes:** Ensure both frontend and backend work as expected.
-4. **Create a Pull Request:** Provide a detailed description of your changes.
-
----
-
-## **Future Enhancements**
-- **AI Model Training:** Train the model for specific tasks as defined in the categories module
-- **Feature Enhancements:** Improve collaboration, debugging, and AI-assisted coding
-- **Bug Fixes and Improvements:** Continuous refinements based on user feedback
-- **Additional Language Support:** Expand multilingual capabilities
-- **Enhanced Privacy Features:** Advanced data protection options
-- **Improved Auto-complete:** Context-aware suggestions
-- **Animation System Improvements:**
-  - Advanced sequential animations
-  - Custom timing patterns
-  - Performance-focused implementations
-- **Theme System Enhancements:**
-  - Dynamic color propagation
-  - Real-time theme switching
-  - Component-level theming
+- [ ] **AI Model Training:** Task-specific AI enhancements.
+- [ ] **Advanced Debugging:** Real-time error detection and suggestions.
+- [ ] **Expanded Language Support:** More languages for global teams.
+- [ ] **Enhanced Privacy:** Advanced data protection and compliance.
+- [ ] **Mobile App:** Native mobile experience.
+- [ ] **Plugin System:** Extend ChatRaj with custom plugins.
 
 ---
 
-## **License**
-This project is licensed under the **MIT License**.
+## License
+
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-Feel free to raise issues or suggest improvements.
-Happy Coding! 🚀
+## Contact
+
+For questions, support, or feedback:
+
+- **GitHub Issues:** [Open an Issue](https://github.com/Abhirajgautam28/Chatraj/issues)
+- **Email:** abhirajgautam28@gmail.com
+
+---
+
+_Thank you for using ChatRaj! If you like this project, please star the repository and share your feedback._
+
