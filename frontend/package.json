@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@react-three/drei": "^9.122.0",
+    "@react-three/drei": "^10.0.8",
     "@react-three/fiber": "^8.18.0",
     "@webcontainer/api": "^1.5.1-internal.9",
     "animate.css": "^4.1.1",
