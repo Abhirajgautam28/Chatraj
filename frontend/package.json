@@ -23,7 +23,7 @@
     "react-syntax-highlighter": "^15.6.1",
     "remixicon": "^4.6.0",
     "socket.io-client": "^4.8.1",
-    "three": "^0.176.0"
+    "three": "^0.177.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
