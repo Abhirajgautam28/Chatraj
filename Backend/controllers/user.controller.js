@@ -35,27 +35,22 @@ export const loginController = async (req, res) => {
     try {
 
         const { email, password } = req.body;
-
-        const user = await userModel.findOne({ email }).select('+password');
-
+        const user = await userModel.findOne({ email }).select('+password +googleApiKey');
         if (!user) {
             return res.status(401).json({
                 errors: 'Invalid credentials'
             })
         }
-
         const isMatch = await user.isValidPassword(password);
-
         if (!isMatch) {
             return res.status(401).json({
                 errors: 'Invalid credentials'
             })
         }
-
+        // Optionally, you could check googleApiKey here if you want to require it on login
         const token = await user.generateJWT();
-
         delete user._doc.password;
-
+        delete user._doc.googleApiKey;
         res.status(200).json({ user, token });
 
 
@@ -102,9 +97,13 @@ export const getAllUsersController = async (req, res) => {
         })
 
         const allUsers = await userService.getAllUsers({ userId: loggedInUser._id });
-
+        // Remove email from user objects, only send firstName
+        const usersWithFirstName = allUsers.map(u => ({
+            _id: u._id,
+            firstName: u.firstName
+        }));
         return res.status(200).json({
-            users: allUsers
+            users: usersWithFirstName
         })
 
     } catch (err) {

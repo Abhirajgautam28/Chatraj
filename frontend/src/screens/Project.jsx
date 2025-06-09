@@ -185,6 +185,9 @@ const Project = () => {
   }, [messages, user])
 
   useEffect(() => {
+    // Prevent multiple WebContainer instances
+    if (window.__webcontainerBooted) return;
+    window.__webcontainerBooted = true;
     initializeSocket(project._id)
     if (!webContainer) {
       getWebContainer().then((container) => {
@@ -203,7 +206,7 @@ const Project = () => {
         setUsers(res.data.users)
       })
       .catch((err) => console.log(err))
-  }, [webContainer])
+  }, [webContainer, project._id, location.state.project._id])
 
   useEffect(() => {
     if (messageBox.current)
@@ -212,25 +215,33 @@ const Project = () => {
 
   useEffect(() => {
     const handleIncomingMessage = (data) => {
-      if (data.sender._id === "Chatraj") {
+      // If the sender is Chatraj and the message is a JSON with fileTree, update the file tree
+      if (data.sender && data.sender._id === "Chatraj") {
         try {
-          const msgObj = JSON.parse(data.message)
-          console.log(msgObj)
-          webContainer?.mount(msgObj.fileTree)
-          if (msgObj.fileTree) setFileTree(msgObj.fileTree)
-        } catch (error) {
-          console.error("Error parsing AI message:", error)
+          const aiResponse = JSON.parse(data.message);
+          if (aiResponse.fileTree) {
+            setFileTree(aiResponse.fileTree);
+            // Optionally, update the backend as well:
+            axios.put('/projects/update-file-tree', {
+              projectId: project._id,
+              fileTree: aiResponse.fileTree
+            });
+          }
+          // Show the AI's text in chat
+          setMessages((prev) => [
+            ...prev,
+            {
+              ...data,
+              message: aiResponse.text || data.message
+            }
+          ]);
+          return;
+        } catch {
+          // If not JSON, just show as normal message
         }
       }
-      setMessages((prev) => {
-        const existingIndex = prev.findIndex((msg) => msg._id === data._id)
-        if (existingIndex !== -1) {
-          const updatedMessages = [...prev]
-          updatedMessages[existingIndex] = data
-          return updatedMessages
-        }
-        return [...prev, data]
-      })
+      // Default: just add the message
+      setMessages((prev) => [...prev, data]);
     }
 
     receiveMessage("project-message", handleIncomingMessage)
@@ -320,6 +331,7 @@ const Project = () => {
         <div className="flex items-start gap-2">
           {!isCurrentUser && (
             <Avatar 
+              firstName={typeof msg.sender === "object" ? msg.sender.firstName : undefined}
               email={typeof msg.sender === "object" ? msg.sender.email : msg.sender} 
               className="w-8 h-8 text-sm"
             />
@@ -355,6 +367,7 @@ const Project = () => {
           </div>
           {isCurrentUser && (
             <Avatar 
+              firstName={user.firstName}
               email={user.email} 
               className="w-8 h-8 text-sm"
             />
@@ -477,7 +490,7 @@ const Project = () => {
             .map((groupLabel) => (
               <div key={groupLabel}>
                 <div className="py-2 text-sm text-center text-gray-500 dark:text-gray-400">{groupLabel}</div>
-                {groupedMessages[groupLabel].map((msg, idx) => renderMessage(msg, idx))}
+                {groupedMessages[groupLabel].map((msg, idx) => renderMessage(msg, msg._id || idx))}
               </div>
             ))}
         </div>
@@ -554,10 +567,11 @@ const Project = () => {
               project.users.map((u) => (
                 <div key={u._id} className="flex items-center gap-2 p-2 cursor-pointer user hover:bg-slate-200 dark:hover:bg-gray-700">
                   <Avatar 
+                    firstName={u.firstName}
                     email={u.email} 
                     className="w-12 h-12 text-base"
                   />
-                  <h1 className="text-lg font-semibold dark:text-white">{u.email}</h1>
+                  <h1 className="text-lg font-semibold dark:text-white">{u.firstName}</h1>
                 </div>
               ))}
           </div>
@@ -753,7 +767,7 @@ const Project = () => {
                     `;
                     doc.head.appendChild(style);
                   }
-                } catch (error) {
+                } catch {
                   console.log("Unable to access iframe content");
                 }
               }}
