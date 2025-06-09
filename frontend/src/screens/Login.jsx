@@ -85,7 +85,7 @@ const Login = () => {
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.5 }}
-                className="relative z-10 w-full max-w-md p-8 bg-gray-800 rounded-lg shadow-2xl"
+                className="relative z-10 w-full max-w-md p-8 bg-gray-800 rounded-lg shadow-2xl transition-all duration-300 hover:shadow-blue-400/40 hover:shadow-2xl hover:scale-[1.025]"
             >
                 <h2 className="mb-6 text-2xl font-bold text-center text-white">Login</h2>
                 <form onSubmit={submitHandler} className="relative z-20">

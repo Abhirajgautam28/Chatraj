@@ -3,6 +3,20 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const userSchema = new mongoose.Schema({
+    firstName: {
+        type: String,
+        required: true,
+        trim: true,
+        minLength: [2, 'First name must be at least 2 characters'],
+        maxLength: [30, 'First name must not be longer than 30 characters']
+    },
+    lastName: {
+        type: String,
+        required: true,
+        trim: true,
+        minLength: [2, 'Last name must be at least 2 characters'],
+        maxLength: [30, 'Last name must not be longer than 30 characters']
+    },
     email: {
         type: String,
         required: true,
@@ -15,6 +29,11 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         select: false,
+    },
+    googleApiKey: {
+        type: String,
+        select: false,
+        required: true
     }
 });
 
@@ -29,7 +48,7 @@ userSchema.methods.isValidPassword = async function (password) {
 
 userSchema.methods.generateJWT = function () {
     return jwt.sign(
-        { email: this.email },
+        { email: this.email, firstName: this.firstName, lastName: this.lastName },
         process.env.JWT_SECRET,
         { expiresIn: '24h' }
     );

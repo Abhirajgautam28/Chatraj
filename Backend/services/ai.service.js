@@ -101,9 +101,21 @@ const model = genAI.getGenerativeModel({
     `
 });
 
+// If GOOGLE_AI_KEY is not set, return a fallback response
 export const generateResult = async (prompt) => {
-
-    const result = await model.generateContent(prompt);
-
-    return result.response.text()
+    if (!process.env.GOOGLE_AI_KEY || process.env.GOOGLE_AI_KEY === 'YOUR_API_KEY_HERE') {
+        return JSON.stringify({
+            text: 'AI is not available. Please set a valid GOOGLE_AI_KEY in your backend .env file.',
+            fileTree: null
+        });
+    }
+    try {
+        const result = await model.generateContent(prompt);
+        return result.response.text();
+    } catch (err) {
+        return JSON.stringify({
+            text: 'AI error: ' + (err.message || 'Unknown error'),
+            fileTree: null
+        });
+    }
 }

@@ -3,22 +3,21 @@ import userModel from '../models/user.model.js';
 
 
 export const createUser = async ({
-    email, password
+    firstName, lastName, email, password, googleApiKey
 }) => {
-
-    if (!email || !password) {
-        throw new Error('Email and password are required');
+    if (!firstName || !lastName || !email || !password || !googleApiKey) {
+        throw new Error('All fields are required');
     }
-
     const hashedPassword = await userModel.hashPassword(password);
-
+    const hashedApiKey = await userModel.hashPassword(googleApiKey);
     const user = await userModel.create({
+        firstName,
+        lastName,
         email,
-        password: hashedPassword
+        password: hashedPassword,
+        googleApiKey: hashedApiKey
     });
-
     return user;
-
 }
 
 export const getAllUsers = async ({ userId }) => {

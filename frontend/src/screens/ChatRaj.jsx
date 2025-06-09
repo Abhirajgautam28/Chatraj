@@ -629,10 +629,10 @@ const ChatRaj = () => {
               {settings.sidebar.showUserInfo && (
                 <div className="flex items-center gap-3 p-2 mb-2">
                   <div className="flex items-center justify-center w-8 h-8 text-sm text-white bg-blue-500 rounded-full">
-                    {user?.email?.[0]?.toUpperCase() || '?'}
+                    {user?.firstName?.[0]?.toUpperCase() || '?'}
                   </div>
                   <span className="text-sm font-medium text-gray-700 truncate dark:text-gray-200">
-                    {user?.email}
+                    {user?.firstName}
                   </span>
                 </div>
               )}
