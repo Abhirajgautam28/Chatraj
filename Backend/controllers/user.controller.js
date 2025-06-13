@@ -91,27 +91,23 @@ export const logoutController = async (req, res) => {
 
 export const getAllUsersController = async (req, res) => {
     try {
-
         const loggedInUser = await userModel.findOne({
             email: req.user.email
         })
 
         const allUsers = await userService.getAllUsers({ userId: loggedInUser._id });
-        // Remove email from user objects, only send firstName
-        const usersWithFirstName = allUsers.map(u => ({
+        // Send _id, firstName, lastName for each user
+        const usersWithNames = allUsers.map(u => ({
             _id: u._id,
-            firstName: u.firstName
+            firstName: u.firstName,
+            lastName: u.lastName
         }));
         return res.status(200).json({
-            users: usersWithFirstName
+            users: usersWithNames
         })
-
     } catch (err) {
-
         console.log(err)
-
         res.status(400).json({ error: err.message })
-
     }
 }
 

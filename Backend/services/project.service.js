@@ -111,9 +111,10 @@ export const getProjectById = async ({ projectId }) => {
         throw new Error("Invalid projectId")
     }
 
+    // Populate only _id, firstName, lastName for users
     const project = await projectModel.findOne({
         _id: projectId
-    }).populate('users')
+    }).populate('users', '_id firstName lastName')
 
     return project;
 }
