@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { UserContext } from '../context/user.context';
 import 'animate.css';
 
@@ -10,6 +10,9 @@ const Home = () => {
 
   const [isNavVisible, setIsNavVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+
+  // Floating action button state
+  const [showFabMenu, setShowFabMenu] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -340,6 +343,64 @@ function greet(name) {
           </div>
         </div>
       </section>
+
+      {/* Floating Action Button (Rocket) */}
+      <div className="fixed z-50 bottom-8 right-8">
+        <div className="relative">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowFabMenu((v) => !v)}
+            className="flex items-center justify-center w-12 h-12 text-2xl text-white bg-blue-600 rounded-full shadow-lg hover:bg-blue-700 focus:outline-none"
+            aria-label="Quick Actions"
+          >
+            <i className="ri-rocket-2-line"></i>
+          </motion.button>
+          <AnimatePresence>
+            {showFabMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                className="absolute right-0 flex flex-col w-48 gap-2 p-4 bg-white rounded-lg shadow-xl bottom-14"
+              >
+                <button
+                  onClick={() => {
+                    setShowFabMenu(false);
+                    handleTryChatRaj();
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 text-blue-600 transition rounded hover:bg-blue-50"
+                >
+                  <i className="ri-chat-3-line"></i> Try ChatRaj
+                </button>
+                <Link
+                  to="/register"
+                  className="flex items-center gap-2 px-4 py-2 text-blue-600 transition rounded hover:bg-blue-50"
+                  onClick={() => setShowFabMenu(false)}
+                >
+                  <i className="ri-user-add-line"></i> Create Account
+                </Link>
+                <Link
+                  to="/login"
+                  className="flex items-center gap-2 px-4 py-2 text-blue-600 transition rounded hover:bg-blue-50"
+                  onClick={() => setShowFabMenu(false)}
+                >
+                  <i className="ri-login-box-line"></i> Login
+                </Link>
+                <a
+                  href="https://github.com/Abhirajgautam28/Chatraj"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 text-blue-600 transition rounded hover:bg-blue-50"
+                  onClick={() => setShowFabMenu(false)}
+                >
+                  <i className="ri-github-fill"></i> GitHub
+                </a>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
 
       <footer className="px-8 py-12 text-center bg-gray-900">
         <p className="text-gray-400">© 2025 ChatRaj All rights reserved.</p>
