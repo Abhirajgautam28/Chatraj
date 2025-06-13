@@ -320,19 +320,13 @@ const Project = () => {
       >
         {msg.parentMessageId && (
           <div className="px-2 py-1 mb-1 text-xs italic bg-gray-200 rounded">
-            Replying to:{" "}
-            {parentMsg
-              ? typeof parentMsg.sender === "object"
-                ? parentMsg.sender.email
-                : parentMsg.sender
-              : "Unknown"}
+            Replying to: {parentMsg ? (typeof parentMsg.sender === "object" ? parentMsg.sender.firstName : parentMsg.sender) : "Unknown"}
           </div>
         )}
         <div className="flex items-start gap-2">
           {!isCurrentUser && (
             <Avatar 
               firstName={typeof msg.sender === "object" ? msg.sender.firstName : undefined}
-              email={typeof msg.sender === "object" ? msg.sender.email : msg.sender} 
               className="w-8 h-8 text-sm"
             />
           )}
@@ -343,7 +337,7 @@ const Project = () => {
           >
             {!isCurrentUser && (
               <small className="mb-1 font-bold text-gray-700">
-                {typeof msg.sender === "object" ? msg.sender.email : msg.sender}
+                {typeof msg.sender === "object" ? msg.sender.firstName : msg.sender}
               </small>
             )}
             <div className="text-sm whitespace-pre-wrap">
@@ -368,7 +362,6 @@ const Project = () => {
           {isCurrentUser && (
             <Avatar 
               firstName={user.firstName}
-              email={user.email} 
               className="w-8 h-8 text-sm"
             />
           )}
@@ -416,7 +409,7 @@ const Project = () => {
                   }`}
                   title={users.map(userId => {
                     const reactingUser = project.users.find(u => u._id === userId);
-                    return reactingUser ? reactingUser.email : 'Unknown';
+                    return reactingUser ? reactingUser.firstName : 'Unknown';
                   }).join(', ')}
                 >
                   {emoji} {users.length}
@@ -498,7 +491,7 @@ const Project = () => {
           <div className="absolute z-20 flex items-center px-3 py-1 rounded-full shadow-md bottom-14 left-2 max-w-max bg-gradient-to-r from-blue-500 to-purple-500">
             <i className="mr-1 text-xs text-white ri-reply-line" />
             <span className="text-xs text-white">
-              Replying to {replyingTo.sender?.email || 'Unknown'}
+              Replying to {replyingTo.sender?.firstName || 'Unknown'}
             </span>
             <button
               className="ml-2 focus:outline-none"
@@ -523,7 +516,7 @@ const Project = () => {
               </div>
               {Array.from(typingUsers).map(userId => {
                 const typingUser = project.users.find(u => u._id === userId);
-                return typingUser?.email;
+                return typingUser?.firstName || 'Unknown';
               }).join(', ')} {typingUsers.size === 1 ? 'is' : 'are'} typing...
             </div>
           </motion.div>
@@ -568,7 +561,6 @@ const Project = () => {
                 <div key={u._id} className="flex items-center gap-2 p-2 cursor-pointer user hover:bg-slate-200 dark:hover:bg-gray-700">
                   <Avatar 
                     firstName={u.firstName}
-                    email={u.email} 
                     className="w-12 h-12 text-base"
                   />
                   <h1 className="text-lg font-semibold dark:text-white">{u.firstName}</h1>
@@ -795,10 +787,10 @@ const Project = () => {
                   onClick={() => handleUserClick(u._id)}
                 >
                   <Avatar 
-                    email={u.email} 
+                    firstName={u.firstName}
                     className="w-12 h-12 text-base"
                   />
-                  <h1 className="text-lg font-semibold text-gray-900">{u.email}</h1>
+                  <h1 className="text-lg font-semibold text-gray-900">{u.firstName}</h1>
                 </div>
               ))}
             </div>
