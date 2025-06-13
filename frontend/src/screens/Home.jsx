@@ -40,8 +40,37 @@ const Home = () => {
     }
   };
 
+  // For animated background shapes
+  const AnimatedBg = () => (
+    <div className="absolute inset-0 z-0 pointer-events-none">
+      <motion.div
+        className="absolute bg-blue-700 rounded-full w-96 h-96 opacity-20 blur-3xl"
+        initial={{ scale: 0, x: -200, y: -100 }}
+        animate={{ scale: 1, x: 0, y: 0 }}
+        transition={{ duration: 1.2, delay: 0.2 }}
+        style={{ top: '-6rem', left: '-8rem' }}
+      />
+      <motion.div
+        className="absolute bg-purple-600 rounded-full w-80 h-80 opacity-20 blur-3xl"
+        initial={{ scale: 0, x: 200, y: 100 }}
+        animate={{ scale: 1, x: 0, y: 0 }}
+        transition={{ duration: 1.2, delay: 0.4 }}
+        style={{ bottom: '-6rem', right: '-8rem' }}
+      />
+      <motion.div
+        className="absolute bg-pink-500 rounded-full w-72 h-72 opacity-10 blur-2xl"
+        initial={{ scale: 0, x: 0, y: 200 }}
+        animate={{ scale: 1, x: 0, y: 0 }}
+        transition={{ duration: 1.2, delay: 0.6 }}
+        style={{ bottom: '-8rem', left: '30%' }}
+      />
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-900 via-gray-900 to-blue-900">
+    <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-r from-blue-900 via-gray-900 to-blue-900">
+      <AnimatedBg />
+
       {/* Navbar */}
       <motion.nav 
         initial={{ opacity: 1, y: 0 }}
@@ -82,7 +111,7 @@ const Home = () => {
       </motion.nav>
 
       {/* Hero */}
-      <section className="flex flex-col items-center justify-center min-h-screen text-center">
+      <section className="relative flex flex-col items-center justify-center min-h-screen text-center">
         <motion.h1 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -99,6 +128,42 @@ const Home = () => {
         >
           Streamline your development workflow with AI-powered code assistance, real-time collaboration, and intelligent project management.
         </motion.p>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.7, delay: 0.4 }}
+          className="flex flex-wrap items-center justify-center gap-6"
+        >
+          <button
+            onClick={handleTryChatRaj}
+            className="px-8 py-3 text-lg font-medium text-white transition-all bg-blue-600 rounded-full shadow-lg hover:bg-blue-700"
+          >
+            Try ChatRaj Free
+          </button>
+          <Link 
+            to="/register"
+            className="px-8 py-3 text-lg font-medium text-white transition-all rounded-full hover:bg-white/10"
+          >
+            Create Account
+          </Link>
+        </motion.div>
+        {/* Animated code snippet */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.7 }}
+          className="max-w-2xl p-6 mx-auto mt-16 border shadow-xl rounded-xl bg-gray-900/80 border-blue-900/30"
+        >
+          <pre className="font-mono text-base leading-relaxed text-left text-blue-200">
+{`// AI-powered code suggestion
+function greet(name) {
+  return \`Hello, \${name} 👋\`;
+}
+
+// Real-time collaboration enabled!
+`}
+          </pre>
+        </motion.div>
       </section>
 
       {/* Features */}
@@ -112,7 +177,7 @@ const Home = () => {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="p-6 rounded-lg bg-gray-800/50"
+                className="p-6 border rounded-lg shadow-lg bg-gray-800/50 border-blue-900/10"
               >
                 <i className={`text-4xl text-blue-500 ${feature.icon}`}></i>
                 <h3 className="mt-4 mb-2 text-xl font-semibold text-white">{feature.title}</h3>
@@ -134,7 +199,7 @@ const Home = () => {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="p-6 rounded-lg bg-gray-800/40"
+                className="p-6 rounded-lg shadow bg-gray-800/40"
               >
                 <i className={`text-3xl text-blue-400 ${useCase.icon}`}></i>
                 <h3 className="mt-4 mb-2 text-lg font-semibold text-white">{useCase.title}</h3>
@@ -156,7 +221,7 @@ const Home = () => {
                 initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="flex gap-4 p-6 rounded-lg bg-gray-800/30"
+                className="flex gap-4 p-6 rounded-lg shadow bg-gray-800/30"
               >
                 <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-blue-500/10">
                   <i className={`text-2xl text-blue-400 ${benefit.icon}`}></i>
@@ -182,7 +247,7 @@ const Home = () => {
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="flex flex-col items-center p-6 text-center rounded-lg bg-gray-700/50"
+                className="flex flex-col items-center p-6 text-center rounded-lg shadow bg-gray-700/50"
               >
                 <i className={`text-4xl text-blue-400 ${tech.icon}`}></i>
                 <span className="mt-2 text-white">{tech.name}</span>
@@ -238,7 +303,7 @@ const Home = () => {
           <h2 className="mb-12 text-3xl font-bold text-center text-white">Frequently Asked Questions</h2>
           <div className="space-y-6">
             {faqs.map((faq, i) => (
-              <div key={i} className="p-6 rounded-lg bg-gray-900/70">
+              <div key={i} className="p-6 rounded-lg shadow bg-gray-900/70">
                 <h3 className="mb-2 text-lg font-semibold text-blue-400">{faq.q}</h3>
                 <p className="text-gray-300">{faq.a}</p>
               </div>
@@ -295,6 +360,11 @@ const features = [
     description: 'Work together seamlessly with live chat and collaborative coding.'
   },
   {
+    icon: 'ri-lightbulb-flash-line',
+    title: 'Smart Suggestions',
+    description: 'Receive context-aware tips, bug fixes, and code improvements instantly.'
+  },
+  {
     icon: 'ri-translate-2',
     title: 'Multi-language Support',
     description: 'Communicate in your preferred language with support for 6+ languages.'
@@ -325,47 +395,47 @@ const useCases = [
   {
     icon: 'ri-group-line',
     title: 'Team Projects',
-    description: 'Collaborate with your team in real-time, share code, and manage projects efficiently.'
+    description: 'Collaborate with your team on real-world projects in real time.'
   },
   {
-    icon: 'ri-global-line',
-    title: 'Remote Collaboration',
-    description: 'Work with developers worldwide, regardless of location or language.'
+    icon: 'ri-terminal-window-line',
+    title: 'Interview Preparation',
+    description: 'Sharpen your coding skills and prepare for interviews with instant feedback.'
+  }
+];
+
+const benefits = [
+  {
+    icon: 'ri-flashlight-line',
+    title: 'Lightning Fast',
+    description: 'Experience instant code suggestions and real-time collaboration.'
+  },
+  {
+    icon: 'ri-lock-2-line',
+    title: 'Secure & Private',
+    description: 'Your code and data are encrypted and never shared without your consent.'
+  },
+  {
+    icon: 'ri-settings-3-line',
+    title: 'Highly Customizable',
+    description: 'Adjust themes, layouts, and features to fit your workflow.'
+  },
+  {
+    icon: 'ri-customer-service-2-line',
+    title: '24/7 Support',
+    description: 'Get help anytime from our community and support team.'
   }
 ];
 
 const techStack = [
   { icon: 'ri-reactjs-line', name: 'React' },
   { icon: 'ri-nodejs-line', name: 'Node.js' },
+  { icon: 'ri-javascript-line', name: 'JavaScript' },
   { icon: 'ri-database-2-line', name: 'MongoDB' },
-  { icon: 'ri-terminal-box-line', name: 'Express' },
-  { icon: 'ri-cloud-line', name: 'Socket.io' },
-  { icon: 'ri-robot-2-line', name: 'AI Integration' },
-  { icon: 'ri-code-s-slash-line', name: 'TypeScript' },
-  { icon: 'ri-layout-line', name: 'Tailwind CSS' }
-];
-
-const benefits = [
-  {
-    icon: 'ri-rocket-line',
-    title: 'Boost Productivity',
-    description: 'Save hours of development time with AI-powered code suggestions and automated solutions.'
-  },
-  {
-    icon: 'ri-code-box-line',
-    title: 'Smart Code Analysis',
-    description: 'Get instant feedback on your code with advanced static analysis and best practice suggestions.'
-  },
-  {
-    icon: 'ri-group-line',
-    title: 'Team Collaboration',
-    description: 'Share code snippets and solutions seamlessly with your team members.'
-  },
-  {
-    icon: 'ri-brain-line',
-    title: 'Continuous Learning',
-    description: 'Improve your coding skills with personalized recommendations and learning resources.'
-  }
+  { icon: 'ri-git-merge-line', name: 'Socket.io' },
+  { icon: 'ri-brain-line', name: 'OpenAI' },
+  { icon: 'ri-css3-line', name: 'Tailwind CSS' },
+  { icon: 'ri-github-fill', name: 'GitHub' }
 ];
 
 const faqs = [
