@@ -4,14 +4,128 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { UserContext } from '../context/user.context';
 import 'animate.css';
 
+// 9 Key Features for a balanced grid
+const features = [
+  {
+    icon: 'ri-robot-2-line',
+    title: 'AI Code Assistant',
+    description: 'Get intelligent code suggestions and solutions powered by advanced AI.'
+  },
+  {
+    icon: 'ri-team-line',
+    title: 'Real-time Collaboration',
+    description: 'Work together seamlessly with live chat and collaborative coding.'
+  },
+  {
+    icon: 'ri-lightbulb-flash-line',
+    title: 'Smart Suggestions',
+    description: 'Receive context-aware tips, bug fixes, and code improvements instantly.'
+  },
+  {
+    icon: 'ri-translate-2',
+    title: 'Multi-language Support',
+    description: 'Communicate in your preferred language with support for 6+ languages.'
+  },
+  {
+    icon: 'ri-code-box-line',
+    title: 'Code Execution',
+    description: 'Run and test your code directly in the browser.'
+  },
+  {
+    icon: 'ri-shield-check-line',
+    title: 'Privacy Focused',
+    description: 'Your data is secure with local storage and customizable retention.'
+  },
+  {
+    icon: 'ri-palette-line',
+    title: 'Customizable UI',
+    description: 'Personalize your experience with themes and display options.'
+  },
+  {
+    icon: 'ri-settings-3-line',
+    title: 'Highly Customizable',
+    description: 'Adjust themes, layouts, and features to fit your workflow.'
+  },
+  {
+    icon: 'ri-customer-service-2-line',
+    title: '24/7 Support',
+    description: 'Get help anytime from our community and support team.'
+  }
+];
+
+const useCases = [
+  {
+    icon: 'ri-lightbulb-flash-line',
+    title: 'Learning & Experimentation',
+    description: 'Practice coding, learn new languages, and experiment with AI-powered suggestions.'
+  },
+  {
+    icon: 'ri-group-line',
+    title: 'Team Projects',
+    description: 'Collaborate with your team on real-world projects in real time.'
+  },
+  {
+    icon: 'ri-terminal-window-line',
+    title: 'Interview Preparation',
+    description: 'Sharpen your coding skills and prepare for interviews with instant feedback.'
+  }
+];
+
+const benefits = [
+  {
+    icon: 'ri-flashlight-line',
+    title: 'Lightning Fast',
+    description: 'Experience instant code suggestions and real-time collaboration.'
+  },
+  {
+    icon: 'ri-lock-2-line',
+    title: 'Secure & Private',
+    description: 'Your code and data are encrypted and never shared without your consent.'
+  },
+  {
+    icon: 'ri-settings-3-line',
+    title: 'Highly Customizable',
+    description: 'Adjust themes, layouts, and features to fit your workflow.'
+  },
+  {
+    icon: 'ri-customer-service-2-line',
+    title: '24/7 Support',
+    description: 'Get help anytime from our community and support team.'
+  }
+];
+
+const techStack = [
+  { icon: 'ri-reactjs-line', name: 'React' },
+  { icon: 'ri-nodejs-line', name: 'Node.js' },
+  { icon: 'ri-javascript-line', name: 'JavaScript' },
+  { icon: 'ri-database-2-line', name: 'MongoDB' },
+  { icon: 'ri-git-merge-line', name: 'Socket.io' },
+  { icon: 'ri-brain-line', name: 'Google GenAI' },
+  { icon: 'ri-css3-line', name: 'Tailwind CSS' },
+  { icon: 'ri-github-fill', name: 'GitHub' }
+];
+
+const faqs = [
+  {
+    q: "Is my code and data secure?",
+    a: "Yes! ChatRaj uses secure authentication, encrypted storage, and gives you full control over your data retention."
+  },
+  {
+    q: "Can I use ChatRaj for free?",
+    a: "Absolutely! You can get started for free and upgrade as your needs grow."
+  },
+  {
+    q: "Does ChatRaj support multiple programming languages?",
+    a: "Yes, you can code and collaborate in multiple languages with AI-powered assistance."
+  }
+];
+
 const Home = () => {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
 
   const [isNavVisible, setIsNavVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-
-  // Floating action button state
   const [showFabMenu, setShowFabMenu] = useState(false);
 
   useEffect(() => {
@@ -29,7 +143,6 @@ const Home = () => {
       setIsNavVisible(window.scrollY < lastScrollY);
       setLastScrollY(window.scrollY);
     };
-
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
@@ -45,7 +158,7 @@ const Home = () => {
 
   // For animated background shapes
   const AnimatedBg = () => (
-    <div className="absolute inset-0 z-0 pointer-events-none">
+    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
       <motion.div
         className="absolute bg-blue-700 rounded-full w-96 h-96 opacity-20 blur-3xl"
         initial={{ scale: 0, x: -200, y: -100 }}
@@ -71,7 +184,7 @@ const Home = () => {
   );
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-r from-blue-900 via-gray-900 to-blue-900">
+    <div className="flex flex-col min-h-screen overflow-x-hidden bg-gradient-to-r from-blue-900 via-gray-900 to-blue-900">
       <AnimatedBg />
 
       {/* Navbar */}
@@ -150,12 +263,12 @@ const Home = () => {
             Create Account
           </Link>
         </motion.div>
-        {/* Animated code snippet */}
+        {/* Animated code snippet card with hover effect */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.7 }}
-          className="max-w-2xl p-6 mx-auto mt-16 border shadow-xl rounded-xl bg-gray-900/80 border-blue-900/30"
+          className="max-w-2xl p-6 mx-auto mt-16 transition-all duration-300 border shadow-xl rounded-xl bg-gray-900/80 border-blue-900/30 group hover:scale-105 hover:shadow-2xl hover:border-blue-400 hover:bg-gray-800"
         >
           <pre className="font-mono text-base leading-relaxed text-left text-blue-200">
 {`// AI-powered code suggestion
@@ -170,7 +283,7 @@ function greet(name) {
       </section>
 
       {/* Features */}
-      <section className="px-8 py-20 bg-gray-900">
+      <section className="px-4 py-20 bg-gray-900">
         <div className="max-w-6xl mx-auto">
           <h2 className="mb-12 text-3xl font-bold text-center text-white">Key Features</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
@@ -180,7 +293,7 @@ function greet(name) {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="p-6 border rounded-lg shadow-lg bg-gray-800/50 border-blue-900/10"
+                className="p-6 transition-all duration-300 border rounded-lg shadow-lg bg-gray-800/50 border-blue-900/10 hover:scale-105 hover:shadow-2xl hover:border-blue-400"
               >
                 <i className={`text-4xl text-blue-500 ${feature.icon}`}></i>
                 <h3 className="mt-4 mb-2 text-xl font-semibold text-white">{feature.title}</h3>
@@ -191,8 +304,8 @@ function greet(name) {
         </div>
       </section>
 
-      {/* Use Cases */}
-      <section className="px-8 py-20 bg-gray-900/80">
+      {/* Popular Use Cases */}
+      <section className="px-4 py-20 bg-gray-900/80">
         <div className="max-w-6xl mx-auto">
           <h2 className="mb-12 text-3xl font-bold text-center text-white">Popular Use Cases</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
@@ -202,7 +315,7 @@ function greet(name) {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="p-6 rounded-lg shadow bg-gray-800/40"
+                className="p-6 transition-all duration-300 rounded-lg shadow bg-gray-800/40 hover:scale-105 hover:shadow-2xl"
               >
                 <i className={`text-3xl text-blue-400 ${useCase.icon}`}></i>
                 <h3 className="mt-4 mb-2 text-lg font-semibold text-white">{useCase.title}</h3>
@@ -214,7 +327,7 @@ function greet(name) {
       </section>
 
       {/* Why Choose */}
-      <section className="px-8 py-20 bg-gray-900/50">
+      <section className="px-4 py-20 bg-gray-900/50">
         <div className="max-w-6xl mx-auto">
           <h2 className="mb-12 text-3xl font-bold text-center text-white">Why Choose ChatRaj</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
@@ -224,7 +337,7 @@ function greet(name) {
                 initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="flex gap-4 p-6 rounded-lg shadow bg-gray-800/30"
+                className="flex gap-4 p-6 transition-all duration-300 rounded-lg shadow bg-gray-800/30 hover:scale-105 hover:shadow-2xl"
               >
                 <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-blue-500/10">
                   <i className={`text-2xl text-blue-400 ${benefit.icon}`}></i>
@@ -240,7 +353,7 @@ function greet(name) {
       </section>
 
       {/* Tech Stack */}
-      <section className="px-8 py-20 bg-gray-800">
+      <section className="px-4 py-20 bg-gray-800">
         <div className="max-w-6xl mx-auto">
           <h2 className="mb-12 text-3xl font-bold text-center text-white">Powered By</h2>
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
@@ -261,9 +374,9 @@ function greet(name) {
       </section>
 
       {/* How It Works (with 3D-like SVG) */}
-      <section className="px-8 py-20 bg-gray-900/70">
-        <div className="flex flex-col items-center max-w-6xl gap-12 mx-auto md:flex-row">
-          <div className="flex-1">
+      <section className="px-4 py-20 overflow-x-auto bg-gray-900/70">
+        <div className="flex flex-col items-center w-full max-w-6xl gap-12 mx-auto md:flex-row">
+          <div className="flex-1 min-w-0">
             <h2 className="mb-8 text-3xl font-bold text-white">How ChatRaj Works</h2>
             <ol className="space-y-6 text-lg text-gray-200">
               <li>
@@ -283,9 +396,9 @@ function greet(name) {
               </li>
             </ol>
           </div>
-          <div className="flex items-center justify-center flex-1">
+          <div className="flex items-center justify-center flex-1 min-w-0">
             {/* 3D-like SVG illustration */}
-            <svg width="320" height="220" viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg className="w-full h-auto max-w-xs" viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg">
               <ellipse cx="160" cy="200" rx="120" ry="18" fill="#1e293b" opacity="0.5"/>
               <rect x="60" y="40" width="200" height="120" rx="20" fill="#334155" stroke="#60a5fa" strokeWidth="3"/>
               <rect x="90" y="70" width="140" height="60" rx="12" fill="#1e293b" stroke="#818cf8" strokeWidth="2"/>
@@ -301,7 +414,7 @@ function greet(name) {
       </section>
 
       {/* FAQ */}
-      <section className="px-8 py-20 bg-gray-800/80">
+      <section className="px-4 py-20 bg-gray-800/80">
         <div className="max-w-4xl mx-auto">
           <h2 className="mb-12 text-3xl font-bold text-center text-white">Frequently Asked Questions</h2>
           <div className="space-y-6">
@@ -316,23 +429,23 @@ function greet(name) {
       </section>
 
       {/* Security & Community */}
-      <section className="px-8 py-20 bg-gradient-to-b from-gray-900 to-blue-900/50">
+      <section className="px-4 pt-20 pb-0 bg-gradient-to-b from-gray-900 to-blue-900/50">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="mb-8 text-3xl font-bold text-white">Security & Community</h2>
           <p className="mb-6 text-xl text-gray-300">
             Your privacy and security are our top priorities. ChatRaj uses secure authentication, encrypted data storage, and gives you full control over your data retention.
           </p>
           <p className="mb-12 text-xl text-gray-300">
-            Join our growing developer community, contribute, and get support on <a href="https://github.com/Abhirajgautam28/Chatraj" className="text-blue-400 underline">GitHub</a>.
+            Join our growing developer community, contribute, and get support on GitHub.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-4 mb-12">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleTryChatRaj}
               className="px-8 py-3 text-lg font-medium text-white transition-all bg-blue-600 rounded-full hover:bg-blue-700"
             >
-              Try ChatRaj Free
+              Try ChatRaj Now
             </motion.button>
             <Link 
               to="/register"
@@ -340,6 +453,14 @@ function greet(name) {
             >
               Create Account
             </Link>
+            <a
+              href="https://github.com/Abhirajgautam28/Chatraj"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-8 py-3 text-lg font-medium text-white transition-all rounded-full hover:bg-white/10"
+            >
+              <i className="mr-2 ri-github-fill"></i> GitHub
+            </a>
           </div>
         </div>
       </section>
@@ -402,116 +523,12 @@ function greet(name) {
         </div>
       </div>
 
-      <footer className="px-8 py-12 text-center bg-gray-900">
+      {/* Footer */}
+      <footer className="px-8 py-6 mt-0 text-center bg-gray-900">
         <p className="text-gray-400">© 2025 ChatRaj All rights reserved.</p>
       </footer>
     </div>
   );
 };
-
-const features = [
-  {
-    icon: 'ri-robot-2-line',
-    title: 'AI Code Assistant',
-    description: 'Get intelligent code suggestions and solutions powered by advanced AI.'
-  },
-  {
-    icon: 'ri-team-line',
-    title: 'Real-time Collaboration',
-    description: 'Work together seamlessly with live chat and collaborative coding.'
-  },
-  {
-    icon: 'ri-lightbulb-flash-line',
-    title: 'Smart Suggestions',
-    description: 'Receive context-aware tips, bug fixes, and code improvements instantly.'
-  },
-  {
-    icon: 'ri-translate-2',
-    title: 'Multi-language Support',
-    description: 'Communicate in your preferred language with support for 6+ languages.'
-  },
-  {
-    icon: 'ri-code-box-line',
-    title: 'Code Execution',
-    description: 'Run and test your code directly in the browser.'
-  },
-  {
-    icon: 'ri-shield-check-line',
-    title: 'Privacy Focused',
-    description: 'Your data is secure with local storage and customizable retention.'
-  },
-  {
-    icon: 'ri-palette-line',
-    title: 'Customizable UI',
-    description: 'Personalize your experience with themes and display options.'
-  }
-];
-
-const useCases = [
-  {
-    icon: 'ri-lightbulb-flash-line',
-    title: 'Learning & Experimentation',
-    description: 'Practice coding, learn new languages, and experiment with AI-powered suggestions.'
-  },
-  {
-    icon: 'ri-group-line',
-    title: 'Team Projects',
-    description: 'Collaborate with your team on real-world projects in real time.'
-  },
-  {
-    icon: 'ri-terminal-window-line',
-    title: 'Interview Preparation',
-    description: 'Sharpen your coding skills and prepare for interviews with instant feedback.'
-  }
-];
-
-const benefits = [
-  {
-    icon: 'ri-flashlight-line',
-    title: 'Lightning Fast',
-    description: 'Experience instant code suggestions and real-time collaboration.'
-  },
-  {
-    icon: 'ri-lock-2-line',
-    title: 'Secure & Private',
-    description: 'Your code and data are encrypted and never shared without your consent.'
-  },
-  {
-    icon: 'ri-settings-3-line',
-    title: 'Highly Customizable',
-    description: 'Adjust themes, layouts, and features to fit your workflow.'
-  },
-  {
-    icon: 'ri-customer-service-2-line',
-    title: '24/7 Support',
-    description: 'Get help anytime from our community and support team.'
-  }
-];
-
-const techStack = [
-  { icon: 'ri-reactjs-line', name: 'React' },
-  { icon: 'ri-nodejs-line', name: 'Node.js' },
-  { icon: 'ri-javascript-line', name: 'JavaScript' },
-  { icon: 'ri-database-2-line', name: 'MongoDB' },
-  { icon: 'ri-git-merge-line', name: 'Socket.io' },
-  { icon: 'ri-brain-line', name: 'OpenAI' },
-  { icon: 'ri-css3-line', name: 'Tailwind CSS' },
-  { icon: 'ri-github-fill', name: 'GitHub' }
-];
-
-const faqs = [
-  {
-    q: "Is my code and data secure?",
-    a: "Yes! ChatRaj uses secure authentication, encrypted storage, and gives you full control over your data retention."
-  },
-  {
-    q: "Can I use ChatRaj for free?",
-    a: "Absolutely! You can get started for free and upgrade as your needs grow."
-  },
-  {
-    q: "Does ChatRaj support multiple programming languages?",
-    a: "Yes, you can code and collaborate in multiple languages with AI-powered assistance."
-  }
-];
 
 export default Home;
