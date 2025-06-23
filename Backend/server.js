@@ -75,7 +75,8 @@ io.on('connection', socket => {
 
         if (aiIsPresent) {
             const prompt = messageText.replace('@Chatraj', '');
-            const result = await generateResult(prompt);
+            // Pass googleApiKey from data to generateResult
+            const result = await generateResult(prompt, data.googleApiKey);
             let savedAIMessage;
             try {
                 savedAIMessage = await Message.create({

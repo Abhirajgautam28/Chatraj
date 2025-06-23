@@ -9,13 +9,13 @@ export const createUser = async ({
         throw new Error('All fields are required');
     }
     const hashedPassword = await userModel.hashPassword(password);
-    const hashedApiKey = await userModel.hashPassword(googleApiKey);
+    // Store googleApiKey in plaintext for Gemini API
     const user = await userModel.create({
         firstName,
         lastName,
         email,
         password: hashedPassword,
-        googleApiKey: hashedApiKey
+        googleApiKey
     });
     return user;
 }
