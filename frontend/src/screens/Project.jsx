@@ -148,15 +148,16 @@ const Project = () => {
   }
 
   const send = () => {
-    if (!message.trim()) return
+    if (!message.trim()) return;
     const payload = {
       message,
       sender: user,
-      parentMessageId: replyingTo ? replyingTo._id : null
-    }
-    sendMessage("project-message", payload)
-    setMessage("")
-    setReplyingTo(null)
+      parentMessageId: replyingTo ? replyingTo._id : null,
+      googleApiKey: user.googleApiKey // send user's Gemini key
+    };
+    sendMessage("project-message", payload);
+    setMessage("");
+    setReplyingTo(null);
   }
 
   const handleTyping = () => {

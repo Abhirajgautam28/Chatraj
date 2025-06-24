@@ -33,7 +33,6 @@ export const loginController = async (req, res) => {
     }
 
     try {
-
         const { email, password } = req.body;
         const user = await userModel.findOne({ email }).select('+password +googleApiKey');
         if (!user) {
@@ -47,17 +46,12 @@ export const loginController = async (req, res) => {
                 errors: 'Invalid credentials'
             })
         }
-        // Optionally, you could check googleApiKey here if you want to require it on login
+        // Do NOT delete googleApiKey here, it is needed by frontend
         const token = await user.generateJWT();
         delete user._doc.password;
-        delete user._doc.googleApiKey;
         res.status(200).json({ user, token });
-
-
     } catch (err) {
-
         console.log(err);
-
         res.status(400).send(err.message);
     }
 }
