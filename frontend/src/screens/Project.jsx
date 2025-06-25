@@ -228,21 +228,32 @@ const Project = () => {
               fileTree: aiResponse.fileTree
             });
           }
-          // Show the AI's text in chat
-          setMessages((prev) => [
-            ...prev,
-            {
-              ...data,
-              message: aiResponse.text || data.message
+          // Only show the AI's text in chat if it is not a duplicate
+          setMessages((prev) => {
+            // Prevent duplicate messages with the same _id and sender
+            if (prev.some(m => m._id === data._id && m.sender?._id === data.sender?._id)) {
+              return prev;
             }
-          ]);
+            return [
+              ...prev,
+              {
+                ...data,
+                message: aiResponse.text || data.message
+              }
+            ];
+          });
           return;
         } catch {
           // If not JSON, just show as normal message
         }
       }
-      // Default: just add the message
-      setMessages((prev) => [...prev, data]);
+      // Default: just add the message if not a duplicate
+      setMessages((prev) => {
+        if (prev.some(m => m._id === data._id && m.sender?._id === data.sender?._id)) {
+          return prev;
+        }
+        return [...prev, data];
+      });
     }
 
     receiveMessage("project-message", handleIncomingMessage)
