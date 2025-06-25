@@ -12,6 +12,17 @@ import Avatar from '../components/Avatar';
 import EmojiPicker from '../components/EmojiPicker';
 import FileIcon from '../components/FileIcon';
 
+// Fix: Ensure only one message is added per send, and deduplicate messages by _id
+function deduplicateMessages(messages) {
+  const seen = new Set();
+  return messages.filter(msg => {
+    if (!msg._id) return true;
+    if (seen.has(msg._id)) return false;
+    seen.add(msg._id);
+    return true;
+  });
+}
+
 function SyntaxHighlightedCode(props) {
   const ref = useRef(null)
   React.useEffect(() => {
@@ -20,7 +31,7 @@ function SyntaxHighlightedCode(props) {
       ref.current.removeAttribute('data-highlighted')
     }
   }, [props.className, props.children])
-  return <code {...props} ref={ref} />
+  return <code {...props} ref={ref} style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word', display: 'block' }} />
 }
 
 const isSameDay = (d1, d2) => {
@@ -294,6 +305,11 @@ const Project = () => {
 
     receiveMessage("message-reaction", handleReactionUpdate);
   }, []);
+
+  // Fix: Deduplicate messages on every update
+  useEffect(() => {
+    setMessages(prev => deduplicateMessages(prev));
+  }, [messages.length]);
 
   const filteredMessages = searchTerm
     ? messages.filter((msg) => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
