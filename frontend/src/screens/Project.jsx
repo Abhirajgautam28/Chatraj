@@ -290,7 +290,7 @@ const Project = () => {
 
   const groupedMessages = groupMessagesByDate(filteredMessages)
 
-  const renderMessage = (msg, index) => {
+  const renderMessage = (msg) => {
     const isCurrentUser =
       msg.sender &&
       typeof msg.sender === "object" &&
@@ -313,7 +313,7 @@ const Project = () => {
 
     return (
       <motion.div
-        key={index}
+        key={msg._id}
         initial={{ opacity: 0, x: isCurrentUser ? 20 : -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.3 }}
@@ -484,7 +484,11 @@ const Project = () => {
             .map((groupLabel) => (
               <div key={groupLabel}>
                 <div className="py-2 text-sm text-center text-gray-500 dark:text-gray-400">{groupLabel}</div>
-                {groupedMessages[groupLabel].map((msg, idx) => renderMessage(msg, msg._id || idx))}
+                {groupedMessages[groupLabel].map((msg) => (
+                  <div key={msg._id}>
+                    {renderMessage(msg)}
+                  </div>
+                ))}
               </div>
             ))}
         </div>
