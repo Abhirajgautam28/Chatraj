@@ -729,9 +729,17 @@ const Project = () => {
             </div>
           </div>
           <div className="flex flex-grow max-w-full overflow-auto bottom shrink">
-            {fileTree[currentFile] && (
-              <div className="flex-grow h-full overflow-auto code-editor-area bg-slate-50 dark:bg-gray-900">
-                <pre className="h-full hljs dark:bg-gray-900">
+            <div className="flex-grow h-full overflow-auto code-editor-area bg-slate-50 dark:bg-gray-900 min-h-[200px] border border-blue-200 relative">
+              {/* Debug info for production troubleshooting (remove after fix) */}
+              {typeof window !== 'undefined' && window.location && window.location.hostname !== 'localhost' && (
+                <div style={{position:'absolute',top:0,right:0,zIndex:10,background:'#fff8',color:'#333',fontSize:'10px',padding:'2px 4px',borderRadius:'0 0 0 4px'}}>
+                  <div>currentFile: {String(currentFile)}</div>
+                  <div>fileTree keys: {Object.keys(fileTree).join(', ')}</div>
+                  <div>fileTree[currentFile]?.file?.contents length: {fileTree[currentFile]?.file?.contents?.length ?? 'N/A'}</div>
+                </div>
+              )}
+              {fileTree && currentFile && fileTree[currentFile] && fileTree[currentFile].file && typeof fileTree[currentFile].file.contents === 'string' && fileTree[currentFile].file.contents.length > 0 ? (
+                <pre className="h-full hljs dark:bg-gray-900 min-h-[200px]" style={{margin:0}}>
                   <code
                     className="h-full outline-none hljs dark:text-white"
                     contentEditable
@@ -749,12 +757,19 @@ const Project = () => {
                       paddingBottom: "25rem",
                       padding: "1rem",
                       backgroundColor: isDarkMode ? "#111827" : "white",
-                      color: isDarkMode ? "#fff" : "#000"
+                      color: isDarkMode ? "#fff" : "#000",
+                      minHeight: '200px',
+                      maxWidth: '100%',
+                      overflow: 'auto',
                     }}
                   />
                 </pre>
-              </div>
-            )}
+              ) : (
+                <div className="flex items-center justify-center h-full min-h-[200px] text-gray-400 italic select-none" style={{padding:'2rem'}}>
+                  {(!currentFile || !fileTree[currentFile]) ? 'No file selected.' : 'No code to display.'}
+                </div>
+              )}
+            </div>
           </div>
         </div>
         {iframeUrl && webContainer && (
