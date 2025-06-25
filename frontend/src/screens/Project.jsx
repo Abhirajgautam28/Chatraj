@@ -739,9 +739,9 @@ const Project = () => {
                 </div>
               )}
               {fileTree && currentFile && fileTree[currentFile] && fileTree[currentFile].file && typeof fileTree[currentFile].file.contents === 'string' && fileTree[currentFile].file.contents.length > 0 ? (
-                <pre className="h-full hljs dark:bg-gray-900 min-h-[200px]" style={{margin:0}}>
+                <pre className="h-full hljs dark:bg-gray-900 min-h-[200px] w-full overflow-auto" style={{margin:0, background: isDarkMode ? '#111827' : 'white', color: isDarkMode ? '#fff' : '#000', borderRadius: '6px', boxShadow: '0 1px 4px #0001'}}>
                   <code
-                    className="h-full outline-none hljs dark:text-white"
+                    className="block w-full h-full font-mono text-base outline-none hljs dark:text-white"
                     contentEditable
                     suppressContentEditableWarning
                     onBlur={(e) => {
@@ -754,13 +754,18 @@ const Project = () => {
                     }}
                     style={{ 
                       whiteSpace: "pre-wrap", 
-                      paddingBottom: "25rem",
+                      paddingBottom: "2rem",
                       padding: "1rem",
                       backgroundColor: isDarkMode ? "#111827" : "white",
                       color: isDarkMode ? "#fff" : "#000",
                       minHeight: '200px',
                       maxWidth: '100%',
+                      width: '100%',
                       overflow: 'auto',
+                      fontFamily: 'Fira Mono, Menlo, Monaco, Consolas, monospace',
+                      fontSize: '1rem',
+                      wordBreak: 'break-all',
+                      lineHeight: '1.5',
                     }}
                   />
                 </pre>
