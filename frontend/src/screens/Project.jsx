@@ -485,9 +485,7 @@ const Project = () => {
               <div key={groupLabel}>
                 <div className="py-2 text-sm text-center text-gray-500 dark:text-gray-400">{groupLabel}</div>
                 {groupedMessages[groupLabel].map((msg) => (
-                  <div key={msg._id}>
-                    {renderMessage(msg)}
-                  </div>
+                  renderMessage(msg)
                 ))}
               </div>
             ))}
@@ -578,9 +576,9 @@ const Project = () => {
       <section className="flex flex-grow h-full bg-blue-50 dark:bg-gray-900 right">
         <div className="h-full explorer max-w-64 min-w-52 bg-slate-200 dark:bg-gray-500">
           <div className="w-full file-tree">
-            {Object.keys(fileTree).map((file, index) => (
+            {Object.keys(fileTree).map((file) => (
               <button
-                key={index}
+                key={file}
                 onClick={() => {
                   setCurrentFile(file);
                   setOpenFiles([...new Set([...openFiles, file])]);
@@ -596,9 +594,9 @@ const Project = () => {
         <div className="flex flex-col flex-grow h-full code-editor shrink">
           <div className="flex justify-between w-full top">
             <div className="flex files">
-              {openFiles.map((file, index) => (
+              {openFiles.map((file) => (
                 <button
-                  key={index}
+                  key={file}
                   onClick={() => setCurrentFile(file)}
                   className={`open-file cursor-pointer p-2 px-4 flex items-center gap-2 bg-slate-300 dark:bg-gray-700 dark:text-white ${
                     currentFile === file ? "bg-slate-400 dark:bg-gray-600" : ""
@@ -717,7 +715,7 @@ const Project = () => {
                       setFileTree(ft)
                     }}
                     dangerouslySetInnerHTML={{
-                      __html: hljs.highlight("javascript", fileTree[currentFile].file.contents).value
+                      __html: hljs.highlight("javascript", fileTree[currentFile].file.contents || "").value
                     }}
                     style={{ 
                       whiteSpace: "pre-wrap", 
