@@ -729,7 +729,7 @@ const Project = () => {
             </div>
           </div>
           <div className="flex flex-grow max-w-full overflow-auto bottom shrink">
-            <div className="flex-grow h-full overflow-auto code-editor-area bg-slate-50 dark:bg-gray-900 min-h-[200px] border border-blue-200 relative">
+            <div className="flex-grow h-full overflow-auto code-editor-area bg-slate-50 dark:bg-gray-900 min-h-[200px] border border-blue-200 relative" style={{minWidth:'0',maxWidth:'100vw',overflowX:'auto',overflowY:'auto',display:'flex',flexDirection:'column'}}>
               {/* Debug info for production troubleshooting (remove after fix) */}
               {typeof window !== 'undefined' && window.location && window.location.hostname !== 'localhost' && (
                 <div style={{position:'absolute',top:0,right:0,zIndex:10,background:'#fff8',color:'#333',fontSize:'10px',padding:'2px 4px',borderRadius:'0 0 0 4px'}}>
@@ -739,7 +739,7 @@ const Project = () => {
                 </div>
               )}
               {fileTree && currentFile && fileTree[currentFile] && fileTree[currentFile].file && typeof fileTree[currentFile].file.contents === 'string' && fileTree[currentFile].file.contents.length > 0 ? (
-                <pre className="h-full hljs dark:bg-gray-900 min-h-[200px] w-full overflow-auto" style={{margin:0, background: isDarkMode ? '#111827' : 'white', color: isDarkMode ? '#fff' : '#000', borderRadius: '6px', boxShadow: '0 1px 4px #0001'}}>
+                <pre className="h-full hljs dark:bg-gray-900 min-h-[200px] w-full overflow-auto" style={{margin:0, background: isDarkMode ? '#111827' : 'white', color: isDarkMode ? '#fff' : '#000', borderRadius: '6px', boxShadow: '0 1px 4px #0001', minWidth:'0',maxWidth:'100vw',overflowX:'auto',overflowY:'auto',display:'block'}}>
                   <code
                     className="block w-full h-full font-mono text-base outline-none hljs dark:text-white"
                     contentEditable
@@ -753,7 +753,7 @@ const Project = () => {
                       __html: hljs.highlight("javascript", fileTree[currentFile].file.contents || "").value
                     }}
                     style={{ 
-                      whiteSpace: "pre-wrap", 
+                      whiteSpace: "pre",
                       paddingBottom: "2rem",
                       padding: "1rem",
                       backgroundColor: isDarkMode ? "#111827" : "white",
@@ -766,6 +766,8 @@ const Project = () => {
                       fontSize: '1rem',
                       wordBreak: 'break-all',
                       lineHeight: '1.5',
+                      tabSize: 2,
+                      MozTabSize: 2,
                     }}
                   />
                 </pre>
