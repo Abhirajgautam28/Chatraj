@@ -11,6 +11,8 @@ import { motion } from 'framer-motion'
 import Avatar from '../components/Avatar';
 import EmojiPicker from '../components/EmojiPicker';
 import FileIcon from '../components/FileIcon';
+import 'highlight.js/styles/github.css';
+import 'highlight.js/styles/github-dark.css';
 
 // Fix: Ensure only one message is added per send, and deduplicate messages by _id
 function deduplicateMessages(messages) {
@@ -739,9 +741,9 @@ const Project = () => {
                 </div>
               )}
               {fileTree && currentFile && fileTree[currentFile] && fileTree[currentFile].file && typeof fileTree[currentFile].file.contents === 'string' && fileTree[currentFile].file.contents.length > 0 ? (
-                <pre className="h-full hljs dark:bg-gray-900 min-h-[200px] w-full overflow-auto" style={{margin:0, background: isDarkMode ? '#111827' : 'white', color: isDarkMode ? '#fff' : '#000', borderRadius: '6px', boxShadow: '0 1px 4px #0001', minWidth:'0',maxWidth:'100vw',overflowX:'auto',overflowY:'auto',display:'block'}}>
+                <pre className={`h-full min-h-[200px] w-full overflow-auto rounded-lg box-border ${isDarkMode ? 'hljs github-dark' : 'hljs github'}`} style={{margin:0, background: isDarkMode ? '#111827' : 'white', color: isDarkMode ? undefined : undefined, borderRadius: '6px', boxShadow: '0 1px 4px #0001', minWidth:'0',maxWidth:'100vw',overflowX:'auto',overflowY:'auto',display:'block'}}>
                   <code
-                    className="block w-full h-full font-mono text-base outline-none hljs dark:text-white"
+                    className={`block w-full h-full font-mono text-base outline-none hljs ${isDarkMode ? 'github-dark' : 'github'}`}
                     contentEditable
                     suppressContentEditableWarning
                     onBlur={(e) => {
@@ -750,14 +752,13 @@ const Project = () => {
                       setFileTree(ft)
                     }}
                     dangerouslySetInnerHTML={{
-                      __html: hljs.highlight("javascript", fileTree[currentFile].file.contents || "").value
+                      __html: hljs.highlight(fileTree[currentFile].file.contents || "", { language: "javascript" }).value
                     }}
                     style={{ 
                       whiteSpace: "pre",
                       paddingBottom: "2rem",
                       padding: "1rem",
                       backgroundColor: isDarkMode ? "#111827" : "white",
-                      color: isDarkMode ? "#fff" : "#000",
                       minHeight: '200px',
                       maxWidth: '100%',
                       width: '100%',
