@@ -8,12 +8,14 @@ ChatRaj is a comprehensive, AI-powered platform designed to streamline software 
 
 - [ChatRaj – AI-Powered Software Engineering Collaboration Platform](#chatraj--ai-powered-software-engineering-collaboration-platform)
   - [Table of Contents](#table-of-contents)
+  - [Latest Updates (2025-07-02)](#latest-updates-2025-07-02)
   - [Features](#features)
     - [Real-time Collaboration](#real-time-collaboration)
     - [AI-Powered Assistance](#ai-powered-assistance)
     - [User Experience](#user-experience)
     - [Privacy \& Security](#privacy--security)
     - [Project Management](#project-management)
+    - [Code Editor \& Execution](#code-editor--execution)
   - [Tech Stack](#tech-stack)
   - [Architecture Overview](#architecture-overview)
   - [Screenshots](#screenshots)
@@ -44,9 +46,19 @@ ChatRaj is a comprehensive, AI-powered platform designed to streamline software 
 
 ---
 
+## Latest Updates (2025-07-02)
+
+- The code editor now always displays code, is scrollable, and features colorful syntax highlighting (VS Code-like) in both light and dark mode.
+- Syntax highlighting uses highlight.js with github/github-dark themes for a modern look.
+- The "run" button shows a live backwards timer until the WebContainer is ready, then becomes enabled for code execution.
+- Fixed React key warnings and improved highlight.js integration for reliability.
+
+---
+
 ## Features
 
 ### Real-time Collaboration
+
 - **Live Chat:** Instant messaging with typing indicators and emoji reactions.
 - **Multi-user Code Editing:** Edit code together with real-time updates.
 - **Project Categories:** Organize projects for better workflow.
@@ -56,11 +68,13 @@ ChatRaj is a comprehensive, AI-powered platform designed to streamline software 
 - **Voice Input:** Real-time speech recognition for hands-free collaboration.
 
 ### AI-Powered Assistance
+
 - **AI Code Assistant:** Get code suggestions, explanations, and automation via Google Generative AI.
 - **@ChatRaj Mentions:** Directly interact with the AI assistant in chat.
 - **Auto-complete Suggestions:** Speed up communication with smart phrase suggestions.
 
 ### User Experience
+
 - **Dark/Light Mode:** Switch themes for comfortable coding.
 - **Responsive Design:** Works seamlessly on all devices.
 - **Animated Transitions:** Smooth UI animations for a modern feel.
@@ -68,15 +82,22 @@ ChatRaj is a comprehensive, AI-powered platform designed to streamline software 
 - **Multilingual Support:** Use the platform in English, Hindi, Spanish, French, German, or Japanese.
 
 ### Privacy & Security
+
 - **Local Chat History:** Manage, clear, or auto-delete chat history.
 - **Data Retention Controls:** Set auto-delete intervals and manage local storage.
 - **Role-based Access Control:** Secure project collaboration with roles and permissions.
 - **JWT Authentication:** Secure user sessions.
 
 ### Project Management
+
 - **Category-based Organization:** 15+ predefined categories for efficient project sorting.
 - **Invite System:** Collaborate by inviting team members.
 - **File System Management:** Real-time updates and file operations.
+
+### Code Editor & Execution
+
+- **Colorful Syntax Highlighting:** The code editor now uses highlight.js themes for vibrant, VS Code-like syntax coloring in both light and dark mode.
+- **Run Button Timer:** When running code in the browser, the run button displays a live countdown timer until the WebContainer is ready, so users know exactly when they can execute their code.
 
 ---
 
