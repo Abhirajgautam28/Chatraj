@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useContext, useRef } from 'react'
 import { UserContext } from '../context/user.context'
 import { ThemeContext } from '../context/theme.context'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import axios from '../config/axios'
 import { initializeSocket, receiveMessage, sendMessage } from '../config/socket'
 import Markdown from 'markdown-to-jsx'
-import hljs from 'highlight.js'
 import { getWebContainer } from '../config/webContainer'
 import { motion, AnimatePresence } from 'framer-motion'
 import Avatar from '../components/Avatar';
@@ -14,6 +13,9 @@ import FileIcon from '../components/FileIcon';
 import 'highlight.js/styles/github.css';
 import 'highlight.js/styles/github-dark.css';
 import PropTypes from 'prop-types';
+import CodeMirror from '@uiw/react-codemirror';
+import { javascript } from '@codemirror/lang-javascript';
+import { vim } from '@replit/codemirror-vim';
 
 // Fix: Ensure only one message is added per send, and deduplicate messages by _id
 function deduplicateMessages(messages) {
@@ -110,6 +112,7 @@ const Project = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [activeSettingsTab, setActiveSettingsTab] = useState('display');
   const [messageEmojiPickers, setMessageEmojiPickers] = useState({});
+  const [vimMode, setVimMode] = useState(() => settings.display?.vimMode || false);
 
   const toggleEmojiPicker = (messageId) => {
     setMessageEmojiPickers(prev => ({
@@ -287,7 +290,7 @@ const Project = () => {
     }
 
     receiveMessage("project-message", handleIncomingMessage)
-  }, [webContainer])
+  }, [webContainer, project._id])
 
   useEffect(() => {
     const handleUserTyping = (data) => {
@@ -334,6 +337,14 @@ const Project = () => {
     ? messages.filter((msg) => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
     : messages
 
+  // Map bubble roundness setting to Tailwind classes
+  const bubbleRoundnessClass = {
+    small: 'rounded',
+    medium: 'rounded-lg',
+    large: 'rounded-xl',
+    'extra-large': 'rounded-3xl',
+  }[settings.display.bubbleRoundness || 'large'];
+
   const groupedMessages = groupMessagesByDate(filteredMessages)
 
   const renderMessage = (msg) => {
@@ -378,9 +389,7 @@ const Project = () => {
             />
           )}
           <div
-            className={`flex flex-col p-2 rounded-md max-w-xs break-words ${
-              isCurrentUser ? "bg-blue-500 text-white" : "bg-white text-gray-800 shadow"
-            }`}
+            className={`flex flex-col p-2 max-w-xs break-words ${bubbleRoundnessClass} ${isCurrentUser ? "bg-blue-500 text-white" : "bg-white text-gray-800 shadow"}`}
           >
             {!isCurrentUser && (
               <small className="mb-1 font-bold text-gray-700">
@@ -395,7 +404,7 @@ const Project = () => {
                       try {
                         const parsedMessage = JSON.parse(msg.message);
                         return parsedMessage.text || msg.message;
-                      } catch (error) {
+                      } catch {
                         return msg.message;
                       }
                     })()}
@@ -518,6 +527,17 @@ const Project = () => {
     }));
   };
 
+  // Update settings when vimMode changes
+  useEffect(() => {
+    setSettings(prev => ({
+      ...prev,
+      display: {
+        ...prev.display,
+        vimMode,
+      },
+    }));
+  }, [vimMode]);
+
   return (
     <main className="flex w-screen h-screen overflow-hidden bg-white dark:bg-gray-900">
       <section className="relative flex flex-col h-screen left min-w-96 bg-slate-100 dark:bg-gray-800">
@@ -639,7 +659,9 @@ const Project = () => {
           />
           <button 
             onClick={send} 
-            className="px-5 text-white bg-blue-600 hover:bg-blue-700">
+            style={{ backgroundColor: settings.display.themeColor || '#3B82F6' }}
+            className="px-5 text-white hover:brightness-90"
+          >
             <i className="ri-send-plane-fill"></i>
           </button>
         </div>
@@ -784,7 +806,9 @@ const Project = () => {
                     alert(`Failed to run project: ${error.message}`);
                   }
                 }}
-                className="p-2 px-4 text-white bg-blue-600 hover:bg-blue-700">
+                style={{ backgroundColor: settings.display.themeColor || '#3B82F6', color: '#fff' }}
+                className="p-2 px-4 rounded hover:brightness-90"
+              >
                 run
               </button>
             </div>
@@ -800,37 +824,31 @@ const Project = () => {
                 </div>
               )}
               {fileTree && currentFile && fileTree[currentFile] && fileTree[currentFile].file && typeof fileTree[currentFile].file.contents === 'string' && fileTree[currentFile].file.contents.length > 0 ? (
-                <pre className={`h-full min-h-[200px] w-full overflow-auto rounded-lg box-border ${isDarkMode ? 'hljs github-dark' : 'hljs github'}`} style={{margin:0, background: isDarkMode ? '#111827' : 'white', color: isDarkMode ? undefined : undefined, borderRadius: '6px', boxShadow: '0 1px 4px #0001', minWidth:'0',maxWidth:'100vw',overflowX:'auto',overflowY:'auto',display:'block'}}>
-                  <code
-                    className={`block w-full h-full font-mono text-base outline-none hljs ${isDarkMode ? 'github-dark' : 'github'}`}
-                    contentEditable
-                    suppressContentEditableWarning
-                    onBlur={(e) => {
-                      const updatedContent = e.target.innerText
-                      const ft = { ...fileTree, [currentFile]: { file: { contents: updatedContent } } }
+                <div style={{ height: '100%', minHeight: 200, width: '100%' }}>
+                  <CodeMirror
+                    value={fileTree[currentFile].file.contents}
+                    height="400px"
+                    theme={isDarkMode ? 'dark' : 'light'}
+                    extensions={[
+                      javascript(),
+                      vimMode ? vim() : [],
+                    ]}
+                    onChange={(value) => {
+                      const ft = { ...fileTree, [currentFile]: { file: { contents: value } } }
                       setFileTree(ft)
                     }}
-                    dangerouslySetInnerHTML={{
-                      __html: hljs.highlight(fileTree[currentFile].file.contents || "", { language: "javascript" }).value
+                    basicSetup={{
+                      lineNumbers: true,
+                      highlightActiveLine: true,
+                      highlightActiveLineGutter: true,
                     }}
-                    style={{ 
-                      whiteSpace: "pre",
-                      paddingBottom: "2rem",
-                      padding: "1rem",
-                      backgroundColor: isDarkMode ? "#111827" : "white",
-                      minHeight: '200px',
-                      maxWidth: '100%',
-                      width: '100%',
-                      overflow: 'auto',
-                      fontFamily: 'Fira Mono, Menlo, Monaco, Consolas, monospace',
-                      fontSize: '1rem',
-                      wordBreak: 'break-all',
-                      lineHeight: '1.5',
-                      tabSize: 2,
-                      MozTabSize: 2,
+                    style={{
+                      fontFamily: settings.display.editorFont || 'monospace',
+                      fontSize: settings.display.messageFontSize === 'large' ? '1.2rem' : settings.display.messageFontSize === 'small' ? '0.9rem' : '1rem',
+                      background: isDarkMode ? '#111827' : 'white',
                     }}
                   />
-                </pre>
+                </div>
               ) : (
                 <div className="flex items-center justify-center h-full min-h-[200px] text-gray-400 italic select-none" style={{padding:'2rem'}}>
                   {(!currentFile || !fileTree[currentFile]) ? 'No file selected.' : 'No code to display.'}
@@ -940,7 +958,7 @@ const Project = () => {
                   <i className="text-xl ri-close-line"></i>
                 </button>
               </div>
-              <div className="flex space-x-2 px-6 pt-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex px-6 pt-4 pb-2 space-x-2 border-b border-gray-200 dark:border-gray-700">
                 <button onClick={() => setActiveSettingsTab('display')} className={`px-3 py-1 rounded ${activeSettingsTab === 'display' ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200'}`}>Display</button>
                 <button onClick={() => setActiveSettingsTab('behavior')} className={`px-3 py-1 rounded ${activeSettingsTab === 'behavior' ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200'}`}>Behavior</button>
                 <button onClick={() => setActiveSettingsTab('accessibility')} className={`px-3 py-1 rounded ${activeSettingsTab === 'accessibility' ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200'}`}>Accessibility</button>
@@ -967,7 +985,7 @@ const Project = () => {
                         type="color"
                         value={settings.display.themeColor || '#3B82F6'}
                         onChange={e => updateSettings('display', 'themeColor', e.target.value)}
-                        className="w-12 h-8 p-0 border-0 bg-transparent"
+                        className="w-12 h-8 p-0 bg-transparent border-0"
                       />
                     </div>
                     {/* Chat Bubble Roundness */}
@@ -1068,6 +1086,16 @@ const Project = () => {
                         <option value="sans-serif">Sans Serif</option>
                         <option value="serif">Serif</option>
                       </select>
+                    </div>
+                    {/* Vim Mode (newly added) */}
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium text-black dark:text-white">Vim Mode (Editor)</label>
+                      <button
+                        onClick={() => setVimMode(v => !v)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${vimMode ? 'bg-blue-600' : 'bg-gray-300'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${vimMode ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
                     </div>
                   </div>
                 )}
