@@ -443,8 +443,18 @@ const Project = () => {
             )}
             <div className={`whitespace-pre-wrap ${messageFontSizeClass}`}>
               {msg.sender && msg.sender._id === "Chatraj" ? (
-                <div className={`p-2 text-white rounded bg-slate-950 ${messageFontSizeClass}`}>
-                  <Markdown options={{ overrides: { code: SyntaxHighlightedCode } }}>
+                <div className={`p-2 rounded ${settings.display.syntaxHighlighting === false 
+  ? (isDarkMode ? "bg-gray-900 text-white" : "bg-slate-200 text-black") 
+  : "text-white bg-slate-950"} ${messageFontSizeClass}`}>
+                  <Markdown options={{
+                    overrides: {
+                      code: settings.display.syntaxHighlighting === false
+                        ? {
+                            component: (props) => <code style={{whiteSpace:'pre-wrap',wordBreak:'break-word',overflowWrap:'break-word',display:'block',background:'none',color:'inherit'}}>{props.children}</code>
+                          }
+                        : SyntaxHighlightedCode
+                    }
+                  }}>
                     {(() => {
                       try {
                         const parsedMessage = JSON.parse(msg.message);
@@ -876,13 +886,18 @@ const Project = () => {
               {fileTree && currentFile && fileTree[currentFile] && fileTree[currentFile].file && typeof fileTree[currentFile].file.contents === 'string' && fileTree[currentFile].file.contents.length > 0 ? (
                 <div style={{ height: '100%', minHeight: 200, width: '100%' }}>
                   <CodeMirror
+                    className={settings.display.syntaxHighlighting === false && isDarkMode ? "syntax-off-dark" : ""}
                     value={fileTree[currentFile].file.contents}
                     height="400px"
-                    theme={isDarkMode ? 'dark' : 'light'}
-                    extensions={[
-                      javascript(),
-                      vimMode ? vim() : [],
-                    ]}
+                    theme={settings.display.syntaxHighlighting === false ? undefined : (isDarkMode ? 'dark' : 'light')}
+                    extensions={
+                      settings.display.syntaxHighlighting === false
+                        ? []
+                        : [
+                            javascript(),
+                            vimMode ? vim() : [],
+                          ]
+                    }
                     onChange={(value) => {
                       const ft = { ...fileTree, [currentFile]: { file: { contents: value } } }
                       setFileTree(ft)
@@ -895,7 +910,8 @@ const Project = () => {
                     style={{
                       fontFamily: settings.display.editorFont || 'monospace',
                       fontSize: settings.display.messageFontSize === 'large' ? '1.2rem' : settings.display.messageFontSize === 'small' ? '0.9rem' : '1rem',
-                      background: isDarkMode ? '#111827' : 'white',
+                      background: settings.display.syntaxHighlighting === false && isDarkMode ? '#181e29' : (isDarkMode ? '#111827' : 'white'),
+                      color: settings.display.syntaxHighlighting === false && isDarkMode ? '#fff' : undefined,
                     }}
                   />
                 </div>
