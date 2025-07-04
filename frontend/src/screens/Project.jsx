@@ -909,7 +909,7 @@ const Project = () => {
               </div>
               <div className="p-4 border-b dark:border-gray-700">
                 <div className="grid grid-cols-2 gap-1 p-1 bg-gray-100 rounded-lg dark:bg-gray-700">
-                  {['display'].map(tab => (
+                  {['display', 'behavior', 'accessibility', 'privacy'].map(tab => (
                     <button
                       key={tab}
                       onClick={() => setActiveSettingsTab(tab)}
@@ -941,6 +941,93 @@ const Project = () => {
                         >
                           <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
                             settings.display.darkMode ? 'translate-x-6' : 'translate-x-1'
+                          }`} />
+                        </button>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-black dark:text-white">Theme Colors</label>
+                        <input
+                          type="color"
+                          value={settings.display.primaryColor || '#2563eb'}
+                          onChange={e => updateSettings('display', 'primaryColor', e.target.value)}
+                          className="w-10 h-10 p-0 border-2 border-gray-300 rounded cursor-pointer dark:border-gray-600"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-black dark:text-white">Chat Bubbles</label>
+                        <select
+                          value={settings.display.bubbleRoundness || 'Large'}
+                          onChange={e => updateSettings('display', 'bubbleRoundness', e.target.value)}
+                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                        >
+                          <option value="Small">Small</option>
+                          <option value="Medium">Medium</option>
+                          <option value="Large">Large</option>
+                          <option value="Extra Large">Extra Large</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-black dark:text-white">Message Font Size</label>
+                        <select
+                          value={settings.display.fontSize || 'Medium'}
+                          onChange={e => updateSettings('display', 'fontSize', e.target.value)}
+                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                        >
+                          <option value="Small">Small</option>
+                          <option value="Medium">Medium</option>
+                          <option value="Large">Large</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                  {activeSettingsTab === 'behavior' && (
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-black dark:text-white">Auto Scroll</label>
+                        <button
+                          onClick={() => updateSettings('behavior', 'autoScroll', !settings.behavior?.autoScroll)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            settings.behavior?.autoScroll ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            settings.behavior?.autoScroll ? 'translate-x-6' : 'translate-x-1'
+                          }`} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {activeSettingsTab === 'accessibility' && (
+                    <div className="space-y-6">
+                      <div>
+                        <label className="text-sm font-medium text-black dark:text-white">Language</label>
+                        <select
+                          value={settings.accessibility?.language || 'en-US'}
+                          onChange={e => updateSettings('accessibility', 'language', e.target.value)}
+                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                        >
+                          <option value="en-US">English (US)</option>
+                          <option value="hi-IN">हिंदी (Hindi)</option>
+                          <option value="es-ES">Español (Spanish)</option>
+                          <option value="fr-FR">Français (French)</option>
+                          <option value="de-DE">Deutsch (German)</option>
+                          <option value="ja-JP">日本語 (Japanese)</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                  {activeSettingsTab === 'privacy' && (
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-black dark:text-white">Save Chat History</label>
+                        <button
+                          onClick={() => updateSettings('privacy', 'saveHistory', !settings.privacy?.saveHistory)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            settings.privacy?.saveHistory ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            settings.privacy?.saveHistory ? 'translate-x-6' : 'translate-x-1'
                           }`} />
                         </button>
                       </div>
