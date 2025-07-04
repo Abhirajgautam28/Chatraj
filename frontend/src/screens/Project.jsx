@@ -928,6 +928,7 @@ const Project = () => {
                 <div className="p-4 space-y-6">
                   {activeSettingsTab === 'display' && (
                     <div className="space-y-6">
+                      {/* Dark Mode */}
                       <div className="flex items-center justify-between">
                         <div>
                           <label className="text-sm font-medium text-black dark:text-white">Dark Mode</label>
@@ -935,15 +936,12 @@ const Project = () => {
                         </div>
                         <button
                           onClick={() => updateSettings('display', 'darkMode', !settings.display.darkMode)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settings.display.darkMode ? 'bg-blue-600' : 'bg-gray-300'
-                          }`}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.darkMode ? 'bg-blue-600' : 'bg-gray-300'}`}
                         >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                            settings.display.darkMode ? 'translate-x-6' : 'translate-x-1'
-                          }`} />
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.darkMode ? 'translate-x-6' : 'translate-x-1'}`} />
                         </button>
                       </div>
+                      {/* Theme Colors */}
                       <div>
                         <label className="text-sm font-medium text-black dark:text-white">Theme Colors</label>
                         <input
@@ -953,6 +951,7 @@ const Project = () => {
                           className="w-10 h-10 p-0 border-2 border-gray-300 rounded cursor-pointer dark:border-gray-600"
                         />
                       </div>
+                      {/* Chat Bubbles */}
                       <div>
                         <label className="text-sm font-medium text-black dark:text-white">Chat Bubbles</label>
                         <select
@@ -966,6 +965,7 @@ const Project = () => {
                           <option value="Extra Large">Extra Large</option>
                         </select>
                       </div>
+                      {/* Message Font Size */}
                       <div>
                         <label className="text-sm font-medium text-black dark:text-white">Message Font Size</label>
                         <select
@@ -978,22 +978,81 @@ const Project = () => {
                           <option value="Large">Large</option>
                         </select>
                       </div>
+                      {/* Syntax Highlighting */}
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-black dark:text-white">Enable Syntax Highlighting</label>
+                        <button
+                          onClick={() => updateSettings('display', 'syntaxHighlighting', !settings.display.syntaxHighlighting)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.syntaxHighlighting ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.syntaxHighlighting ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-black dark:text-white">Syntax Highlighting Theme</label>
+                        <select
+                          value={settings.display.syntaxTheme || 'github'}
+                          onChange={e => updateSettings('display', 'syntaxTheme', e.target.value)}
+                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                        >
+                          <option value="github">GitHub Light</option>
+                          <option value="github-dark">GitHub Dark</option>
+                          <option value="monokai">Monokai</option>
+                          <option value="dracula">Dracula</option>
+                        </select>
+                      </div>
                     </div>
                   )}
                   {activeSettingsTab === 'behavior' && (
                     <div className="space-y-6">
+                      {/* Auto Scroll */}
                       <div className="flex items-center justify-between">
                         <label className="text-sm font-medium text-black dark:text-white">Auto Scroll</label>
                         <button
                           onClick={() => updateSettings('behavior', 'autoScroll', !settings.behavior?.autoScroll)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settings.behavior?.autoScroll ? 'bg-blue-600' : 'bg-gray-300'
-                          }`}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior?.autoScroll ? 'bg-blue-600' : 'bg-gray-300'}`}
                         >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                            settings.behavior?.autoScroll ? 'translate-x-6' : 'translate-x-1'
-                          }`} />
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior?.autoScroll ? 'translate-x-6' : 'translate-x-1'}`} />
                         </button>
+                      </div>
+                      {/* Auto Save */}
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-black dark:text-white">Enable Auto-Save</label>
+                        <button
+                          onClick={() => updateSettings('behavior', 'autoSave', !settings.behavior?.autoSave)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior?.autoSave ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior?.autoSave ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-black dark:text-white">Auto-Save Interval (seconds)</label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={settings.behavior?.autoSaveInterval || 30}
+                          onChange={e => updateSettings('behavior', 'autoSaveInterval', Number(e.target.value))}
+                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                        />
+                      </div>
+                      {/* Auto Formatting */}
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-black dark:text-white">Enable Auto-Formatting</label>
+                        <button
+                          onClick={() => updateSettings('behavior', 'autoFormatting', !settings.behavior?.autoFormatting)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior?.autoFormatting ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior?.autoFormatting ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-black dark:text-white">Auto-Formatting Rules</label>
+                        <input
+                          type="text"
+                          value={settings.behavior?.autoFormattingRules || ''}
+                          onChange={e => updateSettings('behavior', 'autoFormattingRules', e.target.value)}
+                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                        />
                       </div>
                     </div>
                   )}
@@ -1022,14 +1081,244 @@ const Project = () => {
                         <label className="text-sm font-medium text-black dark:text-white">Save Chat History</label>
                         <button
                           onClick={() => updateSettings('privacy', 'saveHistory', !settings.privacy?.saveHistory)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settings.privacy?.saveHistory ? 'bg-blue-600' : 'bg-gray-300'
-                          }`}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.privacy?.saveHistory ? 'bg-blue-600' : 'bg-gray-300'}`}
                         >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                            settings.privacy?.saveHistory ? 'translate-x-6' : 'translate-x-1'
-                          }`} />
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.privacy?.saveHistory ? 'translate-x-6' : 'translate-x-1'}`} />
                         </button>
+                      </div>
+                    </div>
+                  )}
+                  {/* --- Advanced Code Options --- */}
+                  {activeSettingsTab === 'display' && (
+                    <div className="mt-8 space-y-6">
+                      <h3 className="text-base font-semibold text-black dark:text-white">Advanced Code Options</h3>
+                      {/* Code Linting */}
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-black dark:text-white">Enable Code Linting</label>
+                        <button
+                          onClick={() => updateSettings('display', 'codeLinting', !settings.display.codeLinting)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.codeLinting ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.codeLinting ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-black dark:text-white">Code Linting Rules</label>
+                        <input
+                          type="text"
+                          value={settings.display.codeLintingRules || ''}
+                          onChange={e => updateSettings('display', 'codeLintingRules', e.target.value)}
+                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                        />
+                      </div>
+                      {/* Code Completion */}
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-black dark:text-white">Enable Code Completion</label>
+                        <button
+                          onClick={() => updateSettings('display', 'codeCompletion', !settings.display.codeCompletion)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.codeCompletion ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.codeCompletion ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-black dark:text-white">Code Completion Rules</label>
+                        <input
+                          type="text"
+                          value={settings.display.codeCompletionRules || ''}
+                          onChange={e => updateSettings('display', 'codeCompletionRules', e.target.value)}
+                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                        />
+                      </div>
+                      {/* Code Suggestions */}
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-black dark:text-white">Enable Code Suggestions</label>
+                        <button
+                          onClick={() => updateSettings('display', 'codeSuggestions', !settings.display.codeSuggestions)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.codeSuggestions ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.codeSuggestions ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-black dark:text-white">Code Suggestions Rules</label>
+                        <input
+                          type="text"
+                          value={settings.display.codeSuggestionsRules || ''}
+                          onChange={e => updateSettings('display', 'codeSuggestionsRules', e.target.value)}
+                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                        />
+                      </div>
+                      {/* Code Refactoring */}
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-black dark:text-white">Enable Code Refactoring</label>
+                        <button
+                          onClick={() => updateSettings('display', 'codeRefactoring', !settings.display.codeRefactoring)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.codeRefactoring ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.codeRefactoring ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-black dark:text-white">Code Refactoring Rules</label>
+                        <input
+                          type="text"
+                          value={settings.display.codeRefactoringRules || ''}
+                          onChange={e => updateSettings('display', 'codeRefactoringRules', e.target.value)}
+                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                        />
+                      </div>
+                      {/* Code Navigation */}
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-black dark:text-white">Enable Code Navigation</label>
+                        <button
+                          onClick={() => updateSettings('display', 'codeNavigation', !settings.display.codeNavigation)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.codeNavigation ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.codeNavigation ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-black dark:text-white">Code Navigation Rules</label>
+                        <input
+                          type="text"
+                          value={settings.display.codeNavigationRules || ''}
+                          onChange={e => updateSettings('display', 'codeNavigationRules', e.target.value)}
+                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                        />
+                      </div>
+                      {/* Code Search */}
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-black dark:text-white">Enable Code Search</label>
+                        <button
+                          onClick={() => updateSettings('display', 'codeSearch', !settings.display.codeSearch)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.codeSearch ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.codeSearch ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-black dark:text-white">Code Search Rules</label>
+                        <input
+                          type="text"
+                          value={settings.display.codeSearchRules || ''}
+                          onChange={e => updateSettings('display', 'codeSearchRules', e.target.value)}
+                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                        />
+                      </div>
+                      {/* Code Debugging */}
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-black dark:text-white">Enable Code Debugging</label>
+                        <button
+                          onClick={() => updateSettings('display', 'codeDebugging', !settings.display.codeDebugging)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.codeDebugging ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.codeDebugging ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-black dark:text-white">Code Debugging Rules</label>
+                        <input
+                          type="text"
+                          value={settings.display.codeDebuggingRules || ''}
+                          onChange={e => updateSettings('display', 'codeDebuggingRules', e.target.value)}
+                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                        />
+                      </div>
+                      {/* Code Profiling */}
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-black dark:text-white">Enable Code Profiling</label>
+                        <button
+                          onClick={() => updateSettings('display', 'codeProfiling', !settings.display.codeProfiling)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.codeProfiling ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.codeProfiling ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-black dark:text-white">Code Profiling Rules</label>
+                        <input
+                          type="text"
+                          value={settings.display.codeProfilingRules || ''}
+                          onChange={e => updateSettings('display', 'codeProfilingRules', e.target.value)}
+                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                        />
+                      </div>
+                      {/* Code Testing */}
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-black dark:text-white">Enable Code Testing</label>
+                        <button
+                          onClick={() => updateSettings('display', 'codeTesting', !settings.display.codeTesting)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.codeTesting ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.codeTesting ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-black dark:text-white">Code Testing Rules</label>
+                        <input
+                          type="text"
+                          value={settings.display.codeTestingRules || ''}
+                          onChange={e => updateSettings('display', 'codeTestingRules', e.target.value)}
+                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                        />
+                      </div>
+                      {/* Code Deployment */}
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-black dark:text-white">Enable Code Deployment</label>
+                        <button
+                          onClick={() => updateSettings('display', 'codeDeployment', !settings.display.codeDeployment)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.codeDeployment ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.codeDeployment ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-black dark:text-white">Code Deployment Rules</label>
+                        <input
+                          type="text"
+                          value={settings.display.codeDeploymentRules || ''}
+                          onChange={e => updateSettings('display', 'codeDeploymentRules', e.target.value)}
+                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                        />
+                      </div>
+                      {/* Code Versioning */}
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-black dark:text-white">Enable Code Versioning</label>
+                        <button
+                          onClick={() => updateSettings('display', 'codeVersioning', !settings.display.codeVersioning)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.codeVersioning ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.codeVersioning ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-black dark:text-white">Code Versioning Rules</label>
+                        <input
+                          type="text"
+                          value={settings.display.codeVersioningRules || ''}
+                          onChange={e => updateSettings('display', 'codeVersioningRules', e.target.value)}
+                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                        />
+                      </div>
+                      {/* Code Collaboration */}
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-black dark:text-white">Enable Code Collaboration</label>
+                        <button
+                          onClick={() => updateSettings('display', 'codeCollaboration', !settings.display.codeCollaboration)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.codeCollaboration ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.codeCollaboration ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-black dark:text-white">Code Collaboration Rules</label>
+                        <input
+                          type="text"
+                          value={settings.display.codeCollaborationRules || ''}
+                          onChange={e => updateSettings('display', 'codeCollaborationRules', e.target.value)}
+                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                        />
                       </div>
                     </div>
                   )}
