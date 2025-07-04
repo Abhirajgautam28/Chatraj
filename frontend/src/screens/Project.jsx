@@ -17,7 +17,6 @@ import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { vim } from '@replit/codemirror-vim';
 
-// Fix: Ensure only one message is added per send, and deduplicate messages by _id
 function deduplicateMessages(messages) {
   const seen = new Set();
   return messages.filter(msg => {
@@ -108,7 +107,6 @@ const Project = () => {
     };
     return savedSettings ? { ...defaultSettings, ...JSON.parse(savedSettings) } : defaultSettings;
   });
-  // Add missing state for settings modal
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [activeSettingsTab, setActiveSettingsTab] = useState('display');
   const [messageEmojiPickers, setMessageEmojiPickers] = useState({});
@@ -219,7 +217,6 @@ const Project = () => {
   }, [messages, user])
 
   useEffect(() => {
-    // Prevent multiple WebContainer instances
     if (window.__webcontainerBooted) return;
     window.__webcontainerBooted = true;
     initializeSocket(project._id)
@@ -347,6 +344,12 @@ const Project = () => {
     large: 'rounded-xl',
     'extra-large': 'rounded-3xl',
   }[settings.display?.bubbleRoundness || 'large'];
+  // Map message font size to Tailwind classes
+  const messageFontSizeClass = {
+    small: 'text-sm',
+    medium: 'text-base',
+    large: 'text-lg',
+  }[settings.display?.messageFontSize || 'medium'];
 
   const renderMessage = (msg) => {
     const isCurrentUser =
@@ -390,16 +393,16 @@ const Project = () => {
             />
           )}
           <div
-            className={`flex flex-col p-2 max-w-xs break-words ${bubbleRoundnessClass} ${isCurrentUser ? "bg-blue-500 text-white" : "bg-white text-gray-800 shadow"}`}
+            className={`flex flex-col p-2 max-w-xs break-words ${bubbleRoundnessClass} ${messageFontSizeClass} ${isCurrentUser ? "bg-blue-500 text-white" : "bg-white text-gray-800 shadow"}`}
           >
             {!isCurrentUser && (
-              <small className="mb-1 font-bold text-gray-700">
+              <small className={`mb-1 font-bold text-gray-700 ${messageFontSizeClass}`}>
                 {typeof msg.sender === "object" ? msg.sender.firstName : msg.sender}
               </small>
             )}
-            <div className="text-sm whitespace-pre-wrap">
+            <div className={`whitespace-pre-wrap ${messageFontSizeClass}`}>
               {msg.sender && msg.sender._id === "Chatraj" ? (
-                <div className="p-2 text-white rounded bg-slate-950">
+                <div className={`p-2 text-white rounded bg-slate-950 ${messageFontSizeClass}`}>
                   <Markdown options={{ overrides: { code: SyntaxHighlightedCode } }}>
                     {(() => {
                       try {
@@ -412,7 +415,7 @@ const Project = () => {
                   </Markdown>
                 </div>
               ) : (
-                <p>{msg.message}</p>
+                <p className={messageFontSizeClass}>{msg.message}</p>
               )}
             </div>
           </div>
