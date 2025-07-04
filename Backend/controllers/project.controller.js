@@ -123,3 +123,30 @@ export const updateFileTree = async (req, res) => {
     }
 
 }
+
+export const getProjectSettings = async (req, res) => {
+    try {
+        const { projectId } = req.params;
+        const project = await projectModel.findById(projectId);
+        if (!project) return res.status(404).json({ error: 'Project not found' });
+        res.status(200).json({ settings: project.settings || {} });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const updateProjectSettings = async (req, res) => {
+    try {
+        const { projectId } = req.params;
+        const { settings } = req.body;
+        const project = await projectModel.findByIdAndUpdate(
+            projectId,
+            { settings },
+            { new: true }
+        );
+        if (!project) return res.status(404).json({ error: 'Project not found' });
+        res.status(200).json({ settings: project.settings });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};

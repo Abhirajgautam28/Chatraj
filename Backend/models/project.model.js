@@ -22,6 +22,10 @@ const projectSchema = new mongoose.Schema({
     category: {
         type: String,
         required: true
+    },
+    settings: {
+        type: Object,
+        default: {}
     }
 })
 
