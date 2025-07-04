@@ -186,3 +186,15 @@ button {
     transform: rotateX(60deg) translateY(40px);
   }
 }
+
+/* Fix for CodeMirror in dark mode with syntax highlighting OFF */
+.syntax-off-dark .cm-editor,
+.syntax-off-dark .cm-content {
+  background: #181e29 !important;
+  color: #fff !important;
+  caret-color: #fff !important;
+}
+.syntax-off-dark .cm-gutters {
+  background: #181e29 !important;
+  color: #bbb !important;
+}
