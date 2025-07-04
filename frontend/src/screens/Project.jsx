@@ -335,7 +335,10 @@ const Project = () => {
 
   const filteredMessages = searchTerm
     ? messages.filter((msg) => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
-    : messages
+    : messages;
+
+  // Fix: define groupedMessages before return
+  const groupedMessages = groupMessagesByDate(filteredMessages);
 
   // Map bubble roundness setting to Tailwind classes
   const bubbleRoundnessClass = {
@@ -343,9 +346,7 @@ const Project = () => {
     medium: 'rounded-lg',
     large: 'rounded-xl',
     'extra-large': 'rounded-3xl',
-  }[settings.display.bubbleRoundness || 'large'];
-
-  const groupedMessages = groupMessagesByDate(filteredMessages)
+  }[settings.display?.bubbleRoundness || 'large'];
 
   const renderMessage = (msg) => {
     const isCurrentUser =
@@ -601,7 +602,7 @@ const Project = () => {
               <div key={groupLabel}>
                 <div className="py-2 text-sm text-center text-gray-500 dark:text-gray-400">{groupLabel}</div>
                 {groupedMessages[groupLabel].map((msg) => (
-                  renderMessage(msg)
+                  <React.Fragment key={msg._id}>{renderMessage(msg)}</React.Fragment>
                 ))}
               </div>
             ))}
