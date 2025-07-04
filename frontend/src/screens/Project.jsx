@@ -74,6 +74,23 @@ const groupMessagesByDate = (messagesArr) => {
   return groups
 }
 
+// Utility to normalize fileTree structure
+function normalizeFileTree(tree) {
+  if (!tree || typeof tree !== 'object') return {};
+  const normalized = {};
+  for (const [key, value] of Object.entries(tree)) {
+    if (value && typeof value === 'object' && 'file' in value && typeof value.file.contents === 'string') {
+      normalized[key] = value;
+    } else if (typeof value === 'string') {
+      // If value is just a string, wrap it
+      normalized[key] = { file: { contents: value } };
+    } else {
+      // Fallback: skip or handle as needed
+    }
+  }
+  return normalized;
+}
+
 const Project = () => {
   const location = useLocation()
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false)
@@ -251,11 +268,12 @@ const Project = () => {
         try {
           const aiResponse = JSON.parse(data.message);
           if (aiResponse.fileTree) {
-            setFileTree(aiResponse.fileTree);
+            const normalizedTree = normalizeFileTree(aiResponse.fileTree);
+            setFileTree(normalizedTree);
             // Optionally, update the backend as well:
             axios.put('/projects/update-file-tree', {
               projectId: project._id,
-              fileTree: aiResponse.fileTree
+              fileTree: normalizedTree
             });
           }
           // Only show the AI's text in chat if it is not a duplicate
@@ -351,6 +369,28 @@ const Project = () => {
     large: 'text-lg',
   }[settings.display?.messageFontSize || 'medium'];
 
+  // Utility to determine text color based on background and theme
+  const getUserBubbleStyle = () => {
+    const bg = settings.display.themeColor || '#3B82F6';
+    let textColor = '#fff';
+    // If user selected white, force black text
+    if (bg.toLowerCase() === '#fff' || bg.toLowerCase() === '#ffffff' || bg.toLowerCase() === 'white') {
+      textColor = '#000';
+    }
+    // If in light mode, always use black text
+    if (!isDarkMode) {
+      textColor = '#000';
+    }
+    // If in dark mode, always use white text
+    if (isDarkMode) {
+      textColor = '#fff';
+    }
+    return {
+      backgroundColor: bg,
+      color: textColor
+    };
+  };
+
   const renderMessage = (msg) => {
     const isCurrentUser =
       msg.sender &&
@@ -393,7 +433,8 @@ const Project = () => {
             />
           )}
           <div
-            className={`flex flex-col p-2 max-w-xs break-words ${bubbleRoundnessClass} ${messageFontSizeClass} ${isCurrentUser ? "bg-blue-500 text-white" : "bg-white text-gray-800 shadow"}`}
+            className={`flex flex-col p-2 max-w-xs break-words ${bubbleRoundnessClass} ${messageFontSizeClass} ${isCurrentUser ? "" : "bg-white text-gray-800 shadow"}`}
+            style={isCurrentUser ? getUserBubbleStyle() : {}}
           >
             {!isCurrentUser && (
               <small className={`mb-1 font-bold text-gray-700 ${messageFontSizeClass}`}>
@@ -423,6 +464,7 @@ const Project = () => {
             <Avatar 
               firstName={user.firstName}
               className="w-8 h-8 text-sm"
+              style={getUserBubbleStyle()}
             />
           )}
         </div>
@@ -731,6 +773,10 @@ const Project = () => {
             <div className="flex gap-2 actions">
               <button
                 onClick={async () => {
+                  if (!webContainer) {
+                    alert("WebContainer is not ready yet.");
+                    return;
+                  }
                   try {
                     await webContainer.mount({
                       'package.json': {
