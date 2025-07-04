@@ -37,5 +37,15 @@ router.put('/update-file-tree',
     projectController.updateFileTree
 )
 
+router.get('/settings/:projectId',
+    authMiddleWare.authUser,
+    projectController.getProjectSettings
+)
+
+router.put('/settings/:projectId',
+    authMiddleWare.authUser,
+    projectController.updateProjectSettings
+)
+
 
 export default router;
