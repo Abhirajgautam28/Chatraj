@@ -7,7 +7,7 @@ import { initializeSocket, receiveMessage, sendMessage } from '../config/socket'
 import Markdown from 'markdown-to-jsx'
 import hljs from 'highlight.js'
 import { getWebContainer } from '../config/webContainer'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import Avatar from '../components/Avatar';
 import EmojiPicker from '../components/EmojiPicker';
 import FileIcon from '../components/FileIcon';
@@ -93,6 +93,17 @@ const Project = () => {
   const typingTimeoutRef = useRef(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [messageEmojiPickers, setMessageEmojiPickers] = useState({});
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [activeSettingsTab, setActiveSettingsTab] = useState('display');
+  const [settings, setSettings] = useState(() => {
+    const savedSettings = localStorage.getItem('projectSettings');
+    const defaultSettings = {
+      display: {
+        darkMode: isDarkMode,
+      },
+    };
+    return savedSettings ? { ...defaultSettings, ...JSON.parse(savedSettings) } : defaultSettings;
+  });
 
   const toggleEmojiPicker = (messageId) => {
     setMessageEmojiPickers(prev => ({
@@ -458,6 +469,22 @@ const Project = () => {
     )
   }
 
+  useEffect(() => {
+    localStorage.setItem('projectSettings', JSON.stringify(settings));
+    setIsDarkMode(settings.display.darkMode);
+    document.documentElement.classList.toggle('dark', settings.display.darkMode);
+  }, [settings, setIsDarkMode]);
+
+  const updateSettings = (category, key, value) => {
+    setSettings(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [key]: value
+      }
+    }));
+  };
+
   return (
     <main className="flex w-screen h-screen overflow-hidden bg-white dark:bg-gray-900">
       <section className="relative flex flex-col h-screen left min-w-96 bg-slate-100 dark:bg-gray-800">
@@ -472,6 +499,13 @@ const Project = () => {
             </button>
           </div>
           <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-2 text-gray-800 transition-colors rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
+              title="Settings"
+            >
+              <i className="text-xl ri-settings-3-line"></i>
+            </button>
             {!showSearch ? (
               <button 
                 onClick={() => setShowSearch(true)} 
@@ -636,14 +670,6 @@ const Project = () => {
               ))}
             </div>
             <div className="flex gap-2 actions">
-              <button
-                onClick={() => {
-                  setIsDarkMode(!isDarkMode);
-                }} 
-                className="p-2 px-4 text-gray-600 rounded dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-              >
-                <i className={`text-xl ${isDarkMode ? 'ri-sun-line' : 'ri-moon-line'}`}></i>
-              </button>
               <button
                 onClick={async () => {
                   try {
@@ -856,6 +882,76 @@ const Project = () => {
           </div>
         </div>
       )}
+
+      {/* Settings Modal (copied and adapted from ChatRaj) */}
+      <AnimatePresence>
+        {isSettingsOpen && (
+          <>
+            <div 
+              className="fixed inset-0 z-50 bg-black bg-opacity-50"
+              onClick={() => setIsSettingsOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, x: -300 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -300 }}
+              className="fixed top-24 left-4 z-50 w-[320px] bg-white rounded-lg shadow-xl dark:bg-gray-800"
+              style={{ maxHeight: 'calc(100vh - 180px)', overflow: 'hidden' }}
+            >
+              <div className="sticky top-0 z-10 flex items-center justify-between p-4 bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Settings</h2>
+                <button 
+                  onClick={() => setIsSettingsOpen(false)}
+                  className="p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+                >
+                  <i className="text-xl ri-close-line"></i>
+                </button>
+              </div>
+              <div className="p-4 border-b dark:border-gray-700">
+                <div className="grid grid-cols-2 gap-1 p-1 bg-gray-100 rounded-lg dark:bg-gray-700">
+                  {['display'].map(tab => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveSettingsTab(tab)}
+                      className={`py-2 text-sm font-medium rounded-md transition-colors ${
+                        activeSettingsTab === tab 
+                          ? 'bg-white text-blue-600 shadow dark:bg-gray-600 dark:text-blue-400'
+                          : 'text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400'
+                      }`}
+                    >
+                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                <div className="p-4 space-y-6">
+                  {activeSettingsTab === 'display' && (
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="text-sm font-medium text-black dark:text-white">Dark Mode</label>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Switch between light and dark theme</p>
+                        </div>
+                        <button
+                          onClick={() => updateSettings('display', 'darkMode', !settings.display.darkMode)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            settings.display.darkMode ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            settings.display.darkMode ? 'translate-x-6' : 'translate-x-1'
+                          }`} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </main>
   )
 }
