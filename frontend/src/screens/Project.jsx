@@ -873,8 +873,8 @@ const Project = () => {
               </button>
             </div>
           </div>
-          <div className="flex flex-grow max-w-full overflow-auto bottom shrink">
-            <div className="flex-grow h-full overflow-auto code-editor-area bg-slate-50 dark:bg-gray-900 min-h-[200px] border border-blue-200 relative" style={{minWidth:'0',maxWidth:'100vw',overflowX:'auto',overflowY:'auto',display:'flex',flexDirection:'column'}}>
+          <div className="flex flex-grow max-w-full bottom shrink" style={{overflow:'hidden', minHeight:0}}>
+            <div className="flex-grow h-full code-editor-area bg-slate-50 dark:bg-gray-900 min-h-[200px] border border-blue-200 relative flex flex-col" style={{minWidth:'0',maxWidth:'100vw',overflow:'hidden',display:'flex',flexDirection:'column', minHeight:0, flex:1}}>
               {/* Debug info for production troubleshooting (remove after fix) */}
               {typeof window !== 'undefined' && window.location && window.location.hostname !== 'localhost' && (
                 <div style={{position:'absolute',top:0,right:0,zIndex:10,background:'#fff8',color:'#333',fontSize:'10px',padding:'2px 4px',borderRadius:'0 0 0 4px'}}>
@@ -884,11 +884,10 @@ const Project = () => {
                 </div>
               )}
               {fileTree && currentFile && fileTree[currentFile] && fileTree[currentFile].file && typeof fileTree[currentFile].file.contents === 'string' && fileTree[currentFile].file.contents.length > 0 ? (
-                <div style={{ height: '100%', minHeight: 200, width: '100%' }}>
+                <div style={{ flex: 1, minHeight: 0, width: '100%', display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
                   <CodeMirror
                     className={settings.display.syntaxHighlighting === false && isDarkMode ? "syntax-off-dark" : ""}
                     value={fileTree[currentFile].file.contents}
-                    height="400px"
                     theme={settings.display.syntaxHighlighting === false ? undefined : (isDarkMode ? 'dark' : 'light')}
                     extensions={
                       settings.display.syntaxHighlighting === false
@@ -912,6 +911,8 @@ const Project = () => {
                       fontSize: settings.display.messageFontSize === 'large' ? '1.2rem' : settings.display.messageFontSize === 'small' ? '0.9rem' : '1rem',
                       background: settings.display.syntaxHighlighting === false && isDarkMode ? '#181e29' : (isDarkMode ? '#111827' : 'white'),
                       color: settings.display.syntaxHighlighting === false && isDarkMode ? '#fff' : undefined,
+                      height: '100%',
+                      minHeight: 0,
                     }}
                   />
                 </div>
@@ -1091,18 +1092,6 @@ const Project = () => {
                       >
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.syntaxHighlighting ? 'translate-x-6' : 'translate-x-1'}`} />
                       </button>
-                    </div>
-                    {/* Syntax Highlighting Theme */}
-                    <div>
-                      <label className="text-sm font-medium text-black dark:text-white">Syntax Highlighting Theme</label>
-                      <select
-                        value={settings.display.syntaxTheme || 'github-dark'}
-                        onChange={e => updateSettings('display', 'syntaxTheme', e.target.value)}
-                        className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                      >
-                        <option value="github-light">GitHub Light</option>
-                        <option value="github-dark">GitHub Dark</option>
-                      </select>
                     </div>
                     {/* More useful options */}
                     <div className="flex items-center justify-between">
