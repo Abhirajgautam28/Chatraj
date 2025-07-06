@@ -8,7 +8,10 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
-- Added a new feature in version 2.0.0
+- Major Project Page update:
+  - Introduced a comprehensive Advanced Settings menu on the Project page, including options for auto-save, formatting, syntax highlighting, linting, completion, suggestions, refactoring, navigation, search, debugging, profiling, testing, deployment, versioning, and collaboration.
+  - Added a scrollable, responsive settings modal for easy access to all options.
+  - All settings are now persisted to the backend per project and user, with real-time sync across collaborators.
 
 ---
 
