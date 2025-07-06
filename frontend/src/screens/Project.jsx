@@ -129,6 +129,10 @@ const Project = () => {
   const [activeSettingsTab, setActiveSettingsTab] = useState('display');
   const [messageEmojiPickers, setMessageEmojiPickers] = useState({});
   const [vimMode, setVimMode] = useState(() => settings.display?.vimMode || false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [aiInput, setAiInput] = useState("");
+  const [aiResponse, setAiResponse] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
 
   const toggleEmojiPicker = (messageId) => {
     setMessageEmojiPickers(prev => ({
@@ -223,6 +227,20 @@ const Project = () => {
       setIsTyping(false);
       sendMessage('stop-typing', { userId: user._id, projectId: project._id });
     }, 1000);
+  };
+
+  const handleAISend = async () => {
+    if (!aiInput.trim()) return;
+    setAiLoading(true);
+    setAiResponse("");
+    try {
+      // Send user's googleApiKey for Gemini API access
+      const res = await axios.post("/ai", { prompt: aiInput, userApiKey: user.googleApiKey });
+      setAiResponse(res.data?.response || "No response from AI.");
+    } catch (err) {
+      setAiResponse("Error: " + (err.response?.data?.error || err.message));
+    }
+    setAiLoading(false);
   };
 
   useEffect(() => {
@@ -608,7 +626,7 @@ const Project = () => {
               <span className="text-gray-800 dark:text-white">Add Users</span>
             </button>
             {settings.display?.aiAssistant && (
-              <button className="p-2 text-gray-800 dark:text-white" title="AI Assistant">
+              <button className="p-2 text-gray-800 dark:text-white" title="AI Assistant" onClick={() => setIsAIModalOpen(true)}>
                 <i className="ri-robot-2-line"></i>
               </button>
             )}
@@ -1484,6 +1502,50 @@ const Project = () => {
           </>
         )}
       </AnimatePresence>
+
+      {isAIModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="relative w-full max-w-md p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
+            <button
+              className="absolute text-gray-500 top-2 right-2 hover:text-gray-900 dark:hover:text-white"
+              onClick={() => {
+                setIsAIModalOpen(false);
+                setAiInput("");
+                setAiResponse("");
+              }}
+            >
+              <i className="text-2xl ri-close-line"></i>
+            </button>
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">AI Assistant</h2>
+            <input
+              type="text"
+              className="w-full p-2 mb-2 border rounded dark:bg-gray-700 dark:text-white"
+              placeholder="Ask ChatRaj..."
+              value={aiInput}
+              onChange={e => setAiInput(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  if (aiInput.trim()) handleAISend();
+                }
+              }}
+              autoFocus
+            />
+            <button
+              className="w-full py-2 mb-2 text-white bg-blue-600 rounded hover:bg-blue-700"
+              onClick={handleAISend}
+              disabled={aiLoading || !aiInput.trim()}
+            >
+              {aiLoading ? 'Thinking...' : 'Send'}
+            </button>
+            {aiResponse && (
+              <div className="p-2 mt-2 text-gray-800 whitespace-pre-wrap bg-gray-100 rounded dark:bg-gray-700 dark:text-white">
+                {aiResponse}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   )
 }
