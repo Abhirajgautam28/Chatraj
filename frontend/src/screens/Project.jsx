@@ -120,6 +120,7 @@ const Project = () => {
     const defaultSettings = {
       display: {
         darkMode: isDarkMode,
+        showAvatars: true, // Add this line for avatar toggle
       },
     };
     return savedSettings ? { ...defaultSettings, ...JSON.parse(savedSettings) } : defaultSettings;
@@ -426,11 +427,9 @@ const Project = () => {
           </div>
         )}
         <div className="flex items-start gap-2">
-          {!isCurrentUser && (
-            <Avatar 
-              firstName={typeof msg.sender === "object" ? msg.sender.firstName : undefined}
-              className="w-8 h-8 text-sm"
-            />
+          {/* Show Avatar before message ONLY for other users, and after message ONLY for current user */}
+          {settings.display?.showAvatars && !isCurrentUser && msg.sender && (
+            <Avatar firstName={msg.sender.firstName} className="w-8 h-8" />
           )}
           <div
             className={`flex flex-col p-2 max-w-xs break-words ${bubbleRoundnessClass} ${messageFontSizeClass} ${isCurrentUser ? "" : "bg-white text-gray-800 shadow"}`}
@@ -443,8 +442,8 @@ const Project = () => {
             )}
             <div className={`whitespace-pre-wrap ${messageFontSizeClass}`}>
               {msg.sender && msg.sender._id === "Chatraj" ? (
-                <div className={`p-2 rounded ${settings.display.syntaxHighlighting === false 
-  ? (isDarkMode ? "bg-gray-900 text-white" : "bg-slate-200 text-black") 
+                <div className={`p-2 rounded ${settings.display.syntaxHighlighting === false
+  ? (isDarkMode ? "bg-gray-900 text-white" : "bg-slate-200 text-black")
   : "text-white bg-slate-950"} ${messageFontSizeClass}`}>
                   <Markdown options={{
                     overrides: {
@@ -470,7 +469,7 @@ const Project = () => {
               )}
             </div>
           </div>
-          {isCurrentUser && (
+          {settings.display?.showAvatars && isCurrentUser && (
             <Avatar 
               firstName={user.firstName}
               className="w-8 h-8 text-sm"
@@ -606,6 +605,11 @@ const Project = () => {
               <i className="text-gray-800 ri-user-add-fill dark:text-white"></i>
               <span className="text-gray-800 dark:text-white">Add Users</span>
             </button>
+            {settings.display?.aiAssistant && (
+              <button className="p-2 text-gray-800 dark:text-white" title="AI Assistant">
+                <i className="ri-robot-2-line"></i>
+              </button>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <button 
@@ -1093,7 +1097,7 @@ const Project = () => {
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.syntaxHighlighting ? 'translate-x-6' : 'translate-x-1'}`} />
                       </button>
                     </div>
-                    {/* More useful options */}
+                    {/* Show Avatars */}
                     <div className="flex items-center justify-between">
                       <label className="text-sm font-medium text-black dark:text-white">Show Avatars</label>
                       <button
