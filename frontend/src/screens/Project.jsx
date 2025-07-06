@@ -427,8 +427,8 @@ const Project = () => {
           </div>
         )}
         <div className="flex items-start gap-2">
-          {/* Show Avatar before message ONLY for other users, and after message ONLY for current user */}
-          {settings.display?.showAvatars && !isCurrentUser && msg.sender && (
+          {/* Only show Avatar before bubble for others */}
+          {!isCurrentUser && settings.display?.showAvatars && msg.sender && (
             <Avatar firstName={msg.sender.firstName} className="w-8 h-8" />
           )}
           <div
@@ -469,7 +469,7 @@ const Project = () => {
               )}
             </div>
           </div>
-          {settings.display?.showAvatars && isCurrentUser && (
+          {isCurrentUser && (
             <Avatar 
               firstName={user.firstName}
               className="w-8 h-8 text-sm"
@@ -479,9 +479,11 @@ const Project = () => {
         </div>
         <div className="relative group">
           <div className="flex items-center gap-2 mt-1">
-            <small className="text-[10px] text-gray-600">
-              {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-            </small>
+            {settings.display?.showTimestamps && (
+              <small className="text-[10px] text-gray-600">
+                {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              </small>
+            )}
             <div className="relative">
               {!isCurrentUser && (
                 <button
