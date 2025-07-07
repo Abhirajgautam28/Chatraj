@@ -18,21 +18,39 @@ connect().catch(console.error);
 
 const app = express();
 
+// Improved CORS middleware for Vercel/Render/localhost
+const dynamicCors = (req, callback) => {
+  const origin = req.header('Origin');
+  // Allow all vercel.app subdomains and localhost
+  const vercelRegex = /^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/;
+  if (!origin) return callback(null, true);
+  if (
+    allowedOrigins.includes(origin) ||
+    vercelRegex.test(origin) ||
+    origin === 'null'
+  ) {
+    return callback(null, true);
+  }
+  return callback(new Error('Not allowed by CORS'));
+};
+
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, etc.)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    } else {
-      return callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: dynamicCors,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   exposedHeaders: ['Set-Cookie']
 }));
+
+// Explicitly handle preflight OPTIONS requests for all routes
+app.options('*', cors({
+  origin: dynamicCors,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  exposedHeaders: ['Set-Cookie']
+}));
+
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
