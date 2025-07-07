@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@codemirror/lang-javascript": "^6.2.4",
+    "@monaco-editor/react": "^4.7.0",
     "@replit/codemirror-vim": "^6.3.0",
     "@uiw/codemirror-theme-vscode": "^4.24.0",
     "@uiw/react-codemirror": "^4.23.14",
@@ -20,6 +21,8 @@
     "framer-motion": "^10.16.4",
     "highlight.js": "^11.11.1",
     "markdown-to-jsx": "^7.7.10",
+    "monaco-editor": "^0.52.2",
+    "monaco-vim": "^0.4.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.1.3",
