@@ -16,6 +16,7 @@ import PropTypes from 'prop-types';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { vim } from '@replit/codemirror-vim';
+import VimCodeEditor from '../components/VimCodeEditor';
 
 function deduplicateMessages(messages) {
   const seen = new Set();
@@ -529,7 +530,6 @@ const Project = () => {
             </div>
             {Object.entries(reactionGroups).map(([emoji, users]) => {
               if (users.length === 0) return null;
-              
               return (
                 <button
                   key={emoji}
@@ -924,41 +924,61 @@ const Project = () => {
                   <div>fileTree[currentFile]?.file?.contents length: {fileTree[currentFile]?.file?.contents?.length ?? 'N/A'}</div>
                 </div>
               )}
-              {fileTree && currentFile && fileTree[currentFile] && fileTree[currentFile].file && typeof fileTree[currentFile].file.contents === 'string' && fileTree[currentFile].file.contents.length > 0 ? (
+              {fileTree && currentFile && fileTree[currentFile]?.file?.contents?.length > 0 ? (
                 <div style={{ flex: 1, minHeight: 0, width: '100%', display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
-                  <CodeMirror
-                    className={settings.display.syntaxHighlighting === false && isDarkMode ? "syntax-off-dark" : ""}
-                    value={fileTree[currentFile].file.contents}
-                    theme={settings.display.syntaxHighlighting === false ? undefined : (isDarkMode ? 'dark' : 'light')}
-                    extensions={
-                      settings.display.syntaxHighlighting === false
-                        ? []
-                        : [
-                            javascript(),
-                            vimMode ? vim() : [],
-                          ]
-                    }
-                    onChange={(value) => {
-                      const ft = { ...fileTree, [currentFile]: { file: { contents: value } } }
-                      setFileTree(ft)
-                    }}
-                    basicSetup={{
-                      lineNumbers: true,
-                      highlightActiveLine: true,
-                      highlightActiveLineGutter: true,
-                    }}
-                    style={{
-                      fontSize: settings.display.messageFontSize === 'large' ? '1.2rem' : settings.display.messageFontSize === 'small' ? '0.9rem' : '1rem',
-                      background: settings.display.syntaxHighlighting === false && isDarkMode
-                        ? '#181e29'
-                        : isDarkMode
-                        ? '#111827'
-                        : 'white',
-                      color: settings.display.syntaxHighlighting === false && isDarkMode ? '#fff' : undefined,
-                      height: '100%',
-                      minHeight: 0,
-                    }}
-                  />
+                  {vimMode ? (
+                    <VimCodeEditor
+                      value={fileTree[currentFile].file.contents}
+                      onChange={(value) => {
+                        setFileTree((prev) => ({
+                          ...prev,
+                          [currentFile]: {
+                            ...prev[currentFile],
+                            file: { ...prev[currentFile].file, contents: value },
+                          },
+                        }));
+                      }}
+                      isDarkMode={isDarkMode}
+                      fontSize={settings.display.messageFontSize === 'large' ? '1.2rem' : settings.display.messageFontSize === 'small' ? '0.9rem' : '1rem'}
+                    />
+                  ) : (
+                    <CodeMirror
+                      className={settings.display.syntaxHighlighting === false && isDarkMode ? 'syntax-off-dark' : ''}
+                      value={fileTree[currentFile].file.contents}
+                      theme={settings.display.syntaxHighlighting === false ? undefined : (isDarkMode ? 'dark' : 'light')}
+                      extensions={
+                        settings.display.syntaxHighlighting === false
+                          ? []
+                          : [javascript()]
+                      }
+                      onChange={(value) => {
+                        setFileTree((prev) => ({
+                          ...prev,
+                          [currentFile]: {
+                            ...prev[currentFile],
+                            file: { ...prev[currentFile].file, contents: value },
+                          },
+                        }));
+                      }}
+                      basicSetup={{
+                        lineNumbers: true,
+                        highlightActiveLine: true,
+                        highlightActiveLineGutter: true,
+                      }}
+                      style={{
+                        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                        fontSize: settings.display.messageFontSize === 'large' ? '1.2rem' : settings.display.messageFontSize === 'small' ? '0.9rem' : '1rem',
+                        background: settings.display.syntaxHighlighting === false && isDarkMode
+                          ? '#181e29'
+                          : isDarkMode
+                          ? '#111827'
+                          : 'white',
+                        color: settings.display.syntaxHighlighting === false && isDarkMode ? '#fff' : undefined,
+                        height: '100%',
+                        minHeight: 0,
+                      }}
+                    />
+                  )}
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-full min-h-[200px] text-gray-400 italic select-none" style={{padding:'2rem'}}>
