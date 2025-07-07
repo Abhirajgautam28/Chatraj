@@ -19,8 +19,7 @@ connect().catch(console.error);
 const app = express();
 
 // Improved CORS middleware for Vercel/Render/localhost
-const dynamicCors = (req, callback) => {
-  const origin = req.header('Origin');
+const dynamicCors = (origin, callback) => {
   // Allow all vercel.app subdomains and localhost
   const vercelRegex = /^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/;
   if (!origin) return callback(null, true);
