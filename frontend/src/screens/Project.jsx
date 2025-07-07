@@ -1145,15 +1145,6 @@ const Project = () => {
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.aiAssistant ? 'translate-x-6' : 'translate-x-1'}`} />
                       </button>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium text-black dark:text-white">Enable Notifications</label>
-                      <button
-                        onClick={() => updateSettings('display', 'notifications', !settings.display.notifications)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.notifications ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.notifications ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
                     <div>
                       <label className="text-sm font-medium text-black dark:text-white">Editor Font Family</label>
                       <select
