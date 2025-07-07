@@ -593,13 +593,14 @@ const Project = () => {
   }, [settings, setIsDarkMode]);
 
   const updateSettings = (category, key, value) => {
-    setSettings(prev => ({
-      ...prev,
-      [category]: {
-        ...prev[category],
-        [key]: value
-      }
-    }));
+    setSettings(prev => {
+      const updated = { ...prev };
+      if (!updated[category]) updated[category] = {};
+      updated[category][key] = value;
+      // Persist to localStorage
+      localStorage.setItem('projectSettings', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   // Update settings when vimMode changes
@@ -612,6 +613,22 @@ const Project = () => {
       },
     }));
   }, [vimMode]);
+
+  // In CodeMirror style prop, remove fontFamily:
+  // style={{
+  //   ... remove fontFamily ...
+  //   fontSize: settings.display.messageFontSize === 'large' ? '1.2rem' : settings.display.messageFontSize === 'small' ? '0.9rem' : '1rem',
+  //   background: settings.display.syntaxHighlighting === false && isDarkMode
+  //     ? '#181e29'
+  //     : isDarkMode
+  //     ? '#111827'
+  //     : 'white',
+  //   color: settings.display.syntaxHighlighting === false && isDarkMode ? '#fff' : undefined,
+  //   height: '100%',
+  //   minHeight: 0,
+  // }}
+  // }))
+  // ...existing code...
 
   return (
     <main className="flex w-screen h-screen overflow-hidden bg-white dark:bg-gray-900">
@@ -931,9 +948,12 @@ const Project = () => {
                       highlightActiveLineGutter: true,
                     }}
                     style={{
-                      fontFamily: settings.display.editorFont || 'monospace',
                       fontSize: settings.display.messageFontSize === 'large' ? '1.2rem' : settings.display.messageFontSize === 'small' ? '0.9rem' : '1rem',
-                      background: settings.display.syntaxHighlighting === false && isDarkMode ? '#181e29' : (isDarkMode ? '#111827' : 'white'),
+                      background: settings.display.syntaxHighlighting === false && isDarkMode
+                        ? '#181e29'
+                        : isDarkMode
+                        ? '#111827'
+                        : 'white',
                       color: settings.display.syntaxHighlighting === false && isDarkMode ? '#fff' : undefined,
                       height: '100%',
                       minHeight: 0,
@@ -1002,21 +1022,16 @@ const Project = () => {
               {users.map((u) => (
                 <div
                   key={u._id}
-                  className={`user cursor-pointer hover:bg-slate-200 ${
-                    Array.from(selectedUserId).includes(u._id) ? "bg-slate-200" : ""
-                  } p-2 flex gap-2 items-center`}
+                  className={`user cursor-pointer hover:bg-slate-200 ${Array.from(selectedUserId).includes(u._id) ? "bg-slate-200" : ""} p-2 flex gap-2 items-center`}
                   onClick={() => handleUserClick(u._id)}
                 >
-                  <Avatar 
-                    firstName={u.firstName}
-                    className="w-12 h-12 text-base"
-                  />
+                  <Avatar firstName={u.firstName} className="w-12 h-12 text-base" />
                   <h1 className="text-lg font-semibold text-gray-900">{u.firstName}</h1>
                 </div>
               ))}
             </div>
-            <button 
-              onClick={addCollaborators} 
+            <button
+              onClick={addCollaborators}
               className="absolute px-4 py-2 text-white transform -translate-x-1/2 bg-blue-600 rounded-md hover:bg-blue-700 bottom-4 left-1/2"
             >
               Add Collaborators
@@ -1144,18 +1159,6 @@ const Project = () => {
                       >
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.aiAssistant ? 'translate-x-6' : 'translate-x-1'}`} />
                       </button>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-black dark:text-white">Editor Font Family</label>
-                      <select
-                        value={settings.display.editorFont || 'monospace'}
-                        onChange={e => updateSettings('display', 'editorFont', e.target.value)}
-                        className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                      >
-                        <option value="monospace">Monospace</option>
-                        <option value="sans-serif">Sans Serif</option>
-                        <option value="serif">Serif</option>
-                      </select>
                     </div>
                     {/* Vim Mode (newly added) */}
                     <div className="flex items-center justify-between">
