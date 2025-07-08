@@ -65,11 +65,13 @@ io.on('connection', socket => {
                 sender: data.sender,
                 message: messageText,
                 parentMessageId: parentMessageId,
-                createdAt: new Date()
+                createdAt: new Date(),
+                deliveredTo: [], // Track delivery
+                readBy: [] // Track reads
             });
         } catch (err) {
             console.error("Error saving message:", err);
-            savedMessage = { ...data, createdAt: new Date().toISOString() };
+            savedMessage = { ...data, createdAt: new Date().toISOString(), deliveredTo: [], readBy: [] };
         }
         io.to(socket.roomId).emit('project-message', savedMessage);
 
@@ -94,6 +96,34 @@ io.on('connection', socket => {
             return;
         }
     })
+
+    // Delivery event: when a user receives a message, mark as delivered
+    socket.on('message-delivered', async ({ messageId, userId }) => {
+        try {
+            const message = await Message.findById(messageId);
+            if (message && !message.deliveredTo.includes(userId)) {
+                message.deliveredTo.push(userId);
+                await message.save();
+                io.to(socket.roomId).emit('message-delivered', { messageId, userId });
+            }
+        } catch (err) {
+            console.error('Error updating deliveredTo:', err);
+        }
+    });
+
+    // Read event: when a user reads a message, mark as read
+    socket.on('message-read', async ({ messageId, userId }) => {
+        try {
+            const message = await Message.findById(messageId);
+            if (message && !message.readBy.includes(userId)) {
+                message.readBy.push(userId);
+                await message.save();
+                io.to(socket.roomId).emit('message-read', { messageId, userId });
+            }
+        } catch (err) {
+            console.error('Error updating readBy:', err);
+        }
+    });
 
     socket.on('message-reaction', async (data) => {
         try {
