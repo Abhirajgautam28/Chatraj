@@ -122,10 +122,36 @@ const Project = () => {
     const defaultSettings = {
       display: {
         darkMode: isDarkMode,
-        showAvatars: true, // Add this line for avatar toggle
+        showAvatars: true,
+        vimMode: false, // <-- add vimMode to display
+      },
+      behavior: {
+        autoScroll: true,
+        autoSave: false,
+        autoSaveInterval: 30,
+        autoFormatting: false,
+        autoFormattingRules: '',
+      },
+      accessibility: {
+        language: 'en-US',
+      },
+      privacy: {
+        saveHistory: true,
       },
     };
-    return savedSettings ? { ...defaultSettings, ...JSON.parse(savedSettings) } : defaultSettings;
+    if (savedSettings) {
+      // Deep merge saved settings with defaults
+      const parsed = JSON.parse(savedSettings);
+      return {
+        ...defaultSettings,
+        ...parsed,
+        display: { ...defaultSettings.display, ...parsed.display },
+        behavior: { ...defaultSettings.behavior, ...parsed.behavior },
+        accessibility: { ...defaultSettings.accessibility, ...parsed.accessibility },
+        privacy: { ...defaultSettings.privacy, ...parsed.privacy },
+      };
+    }
+    return defaultSettings;
   });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [activeSettingsTab, setActiveSettingsTab] = useState('display');
@@ -1160,11 +1186,22 @@ const Project = () => {
                   </button>
                 ))}
               </div>
-              <div className="flex-1 overflow-y-auto">
+              {/* Make this area scrollable! */}
+              <div className="flex-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 220px)' }}>
                 <div className="p-6 space-y-7">
                   {/* Display Settings */}
                   {activeSettingsTab === 'display' && (
                     <div className="space-y-4">
+                      {/* Vim Mode (Editor) - moved to top for visibility */}
+                      <div className="flex items-center justify-between" title="Enable or disable Vim keybindings in the code editor.">
+                        <span className="font-semibold text-gray-900 dark:text-white">Vim Mode (Editor)</span>
+                        <button
+                          onClick={() => setVimMode(v => !v)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${vimMode ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${vimMode ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
                       {/* Dark Mode */}
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-gray-900 dark:text-white">Dark Mode</span>
@@ -1250,16 +1287,6 @@ const Project = () => {
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.aiAssistant ? 'bg-blue-600' : 'bg-gray-300'}`}
                         >
                           <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.aiAssistant ? 'translate-x-6' : 'translate-x-1'}`} />
-                        </button>
-                      </div>
-                      {/* Vim Mode (Editor) */}
-                      <div>
-                        <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Vim Mode (Editor)</span>
-                        <button
-                          onClick={() => setVimMode(v => !v)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${vimMode ? 'bg-blue-600' : 'bg-gray-300'}`}
-                        >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${vimMode ? 'translate-x-6' : 'translate-x-1'}`} />
                         </button>
                       </div>
                     </div>
