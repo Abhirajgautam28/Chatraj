@@ -123,7 +123,7 @@ const Project = () => {
       display: {
         darkMode: isDarkMode,
         showAvatars: true,
-        vimMode: false, // <-- add vimMode to display
+        vimMode: false,
       },
       behavior: {
         autoScroll: true,
@@ -131,6 +131,8 @@ const Project = () => {
         autoSaveInterval: 30,
         autoFormatting: false,
         autoFormattingRules: '',
+        notifications: true, // new
+        enterToSend: true,   // new
       },
       accessibility: {
         language: 'en-US',
@@ -777,9 +779,17 @@ const Project = () => {
               handleTyping();
             }}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault()
-                send()
+              if (settings.behavior.enterToSend) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  send();
+                }
+              } else {
+                if (e.key === 'Enter' && e.shiftKey) {
+                  // allow new line
+                } else if (e.key === 'Enter') {
+                  // just add new line
+                }
               }
             }}
             className="flex-grow p-2 px-4 bg-transparent border-none outline-none dark:text-white"
@@ -957,7 +967,7 @@ const Project = () => {
               </button>
             </div>
           </div>
-          <div className="flex flex-grow max-w-full bottom shrink" style={{overflow:'hidden', minHeight:0}}>
+          <div className="flex flex-grow max-w-full bottom shrink" style={{overflow:'hidden', minHeight: 0}}>
             <div className="flex-grow h-full code-editor-area bg-slate-50 dark:bg-gray-900 min-h-[200px] border border-blue-200 relative flex flex-col" style={{minWidth:'0',maxWidth:'100vw',overflow:'hidden',display:'flex',flexDirection:'column', minHeight:0, flex:1}}>
               {/* Debug info for production troubleshooting (remove after fix) */}
               {typeof window !== 'undefined' && window.location && window.location.hostname !== 'localhost' && (
@@ -1294,56 +1304,55 @@ const Project = () => {
                   {/* Behavior Tab */}
                   {activeSettingsTab === 'behavior' && (
                     <div className="space-y-4">
-                      {/* Auto Scroll */}
+                      {/* Auto Scroll toggle */}
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-gray-900 dark:text-white">Auto Scroll</span>
                         <button
-                          onClick={() => updateSettings('behavior', 'autoScroll', !settings.behavior?.autoScroll)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior?.autoScroll ? 'bg-blue-600' : 'bg-gray-300'}`}
+                          onClick={() => setSettings(prev => {
+                            const updated = { ...prev, behavior: { ...prev.behavior, autoScroll: !prev.behavior.autoScroll } };
+                            localStorage.setItem('projectSettings', JSON.stringify(updated));
+                            return updated;
+                          })}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.autoScroll ? 'bg-blue-600' : 'bg-gray-300'}`}
                         >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior?.autoScroll ? 'translate-x-6' : 'translate-x-1'}`} />
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.autoScroll ? 'translate-x-6' : 'translate-x-1'}`} />
                         </button>
                       </div>
-                      {/* Auto Save */}
+                      {/* Enable Notifications toggle */}
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-gray-900 dark:text-white">Enable Auto-Save</span>
+                        <span className="font-semibold text-gray-900 dark:text-white">Enable Notifications</span>
                         <button
-                          onClick={() => updateSettings('behavior', 'autoSave', !settings.behavior?.autoSave)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior?.autoSave ? 'bg-blue-600' : 'bg-gray-300'}`}
+                          onClick={async () => {
+                            if (!settings.behavior.notifications) {
+                              // Request permission if enabling
+                              if (window.Notification && Notification.permission !== 'granted') {
+                                await Notification.requestPermission();
+                              }
+                            }
+                            setSettings(prev => {
+                              const updated = { ...prev, behavior: { ...prev.behavior, notifications: !prev.behavior.notifications } };
+                              localStorage.setItem('projectSettings', JSON.stringify(updated));
+                              return updated;
+                            });
+                          }}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.notifications ? 'bg-blue-600' : 'bg-gray-300'}`}
                         >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior?.autoSave ? 'translate-x-6' : 'translate-x-1'}`} />
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.notifications ? 'translate-x-6' : 'translate-x-1'}`} />
                         </button>
                       </div>
-                      {/* Auto-Save Interval */}
-                      <div>
-                        <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Auto-Save Interval (seconds)</span>
-                        <input
-                          type="number"
-                          min="1"
-                          value={settings.behavior?.autoSaveInterval || 30}
-                          onChange={e => updateSettings('behavior', 'autoSaveInterval', Number(e.target.value))}
-                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                        />
-                      </div>
-                      {/* Auto Formatting */}
-                      <div>
-                        <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Enable Auto-Formatting</span>
+                      {/* Enter to Send toggle */}
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-gray-900 dark:text-white">Enter to Send</span>
                         <button
-                          onClick={() => updateSettings('behavior', 'autoFormatting', !settings.behavior?.autoFormatting)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior?.autoFormatting ? 'bg-blue-600' : 'bg-gray-300'}`}
+                          onClick={() => setSettings(prev => {
+                            const updated = { ...prev, behavior: { ...prev.behavior, enterToSend: !prev.behavior.enterToSend } };
+                            localStorage.setItem('projectSettings', JSON.stringify(updated));
+                            return updated;
+                          })}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.enterToSend ? 'bg-blue-600' : 'bg-gray-300'}`}
                         >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior?.autoFormatting ? 'translate-x-6' : 'translate-x-1'}`} />
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.enterToSend ? 'translate-x-6' : 'translate-x-1'}`} />
                         </button>
-                      </div>
-                      {/* Auto-Formatting Rules */}
-                      <div>
-                        <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Auto-Formatting Rules</span>
-                        <input
-                          type="text"
-                          value={settings.behavior?.autoFormattingRules || ''}
-                          onChange={e => updateSettings('behavior', 'autoFormattingRules', e.target.value)}
-                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                        />
                       </div>
                     </div>
                   )}
