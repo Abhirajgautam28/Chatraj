@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from 'react'
+import React, { useRef, useState, useEffect, useContext } from 'react'
 import { UserContext } from '../context/user.context'
 import { ThemeContext } from '../context/theme.context'
 import { useLocation } from 'react-router-dom'
@@ -127,12 +127,10 @@ const Project = () => {
       },
       behavior: {
         autoScroll: true,
-        autoSave: false,
-        autoSaveInterval: 30,
-        autoFormatting: false,
-        autoFormattingRules: '',
-        notifications: true, // new
-        enterToSend: true,   // new
+        enterToSend: true,
+        showSystemMessages: true, // new
+        collapseReplies: false,   // new
+        showReadReceipts: true,  // new
       },
       accessibility: {
         language: 'en-US',
@@ -168,6 +166,8 @@ const Project = () => {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [modalPosition, setModalPosition] = useState(null); // null means center
   const settingsModalRef = useRef(null);
+  const lastNotifiedMsgId = useRef(null);
+  const [expandedReplies, setExpandedReplies] = useState({}); // Track expanded replies
 
   const toggleEmojiPicker = (messageId) => {
     setMessageEmojiPickers(prev => ({
@@ -402,9 +402,46 @@ const Project = () => {
     setMessages(prev => deduplicateMessages(prev));
   }, [messages.length]);
 
+  // --- TEST DATA INJECTION FOR TOGGLE VISIBILITY ---
+  useEffect(() => {
+    // Only inject if there are no system or reply messages
+    if (messages.length > 0 && !messages.some(m => m.type === 'system')) {
+      setMessages(prev => [
+        ...prev,
+        {
+          _id: 'system-test',
+          sender: { _id: 'system', firstName: 'System' },
+          message: 'User joined the project',
+          type: 'system',
+          createdAt: new Date().toISOString(),
+        }
+      ]);
+    }
+    if (messages.length > 0 && !messages.some(m => m.parentMessageId)) {
+      setMessages(prev => [
+        ...prev,
+        {
+          _id: 'reply-test',
+          sender: { _id: 'other', firstName: 'Other' },
+          message: 'This is a reply message',
+          parentMessageId: prev[0]?._id || null,
+          createdAt: new Date().toISOString(),
+        }
+      ]);
+    }
+  }, [messages]);
+
+  // Patch messages to simulate readBy for current user's messages
+  const patchedMessages = messages.map(msg => {
+    if (msg.sender && msg.sender._id === user._id) {
+      return { ...msg, readBy: [user._id, 'other-user'] };
+    }
+    return msg;
+  });
+
   const filteredMessages = searchTerm
-    ? messages.filter((msg) => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
-    : messages;
+    ? patchedMessages.filter((msg) => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
+    : patchedMessages;
 
   // Fix: define groupedMessages before return
   const groupedMessages = groupMessagesByDate(filteredMessages);
@@ -466,6 +503,38 @@ const Project = () => {
       });
     }
 
+    // Robust system message filtering: check type or known system patterns
+    const isSystemMsg = (msg.type === 'system') || (typeof msg.message === 'string' && (
+      /^user (joined|left|removed|added|invited|renamed|deleted|updated)/i.test(msg.message) ||
+      /^file (created|updated|deleted|renamed)/i.test(msg.message) ||
+      /^system:/i.test(msg.message)
+    ));
+    if (isSystemMsg) {
+      if (!settings.behavior.showSystemMessages) return null;
+      // Try to extract user id or name from the message or sender
+      let notificationText = msg.message;
+      // If message is like 'User joined the project', replace 'User' with full name if possible
+      if (/^User joined the project/i.test(msg.message) && msg.sender && msg.sender._id && msg.sender._id !== 'system') {
+        // Try to find user in users list
+        const joinedUser = users.find(u => u._id === msg.sender._id);
+        if (joinedUser) {
+          notificationText = `${joinedUser.firstName}${joinedUser.lastName ? ' ' + joinedUser.lastName : ''} joined the project`;
+        }
+      }
+      // Render as notification bar
+      return (
+        <div key={msg._id} className="flex justify-center my-2">
+          <div className="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-100 rounded shadow dark:bg-blue-900 dark:text-blue-100">
+            {notificationText}
+          </div>
+        </div>
+      );
+    }
+
+    // Collapse replies if toggle is on
+    const isReply = !!msg.parentMessageId;
+    const isReplyCollapsed = settings.behavior.collapseReplies && isReply && !expandedReplies[msg._id];
+
     return (
       <motion.div
         key={msg._id}
@@ -474,10 +543,18 @@ const Project = () => {
         transition={{ duration: 0.3 }}
         className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"} mb-2`}
       >
-        {msg.parentMessageId && (
+        {isReply && !isReplyCollapsed && (
           <div className="px-2 py-1 mb-1 text-xs italic bg-gray-200 rounded">
             Replying to: {parentMsg ? (typeof parentMsg.sender === "object" ? parentMsg.sender.firstName : parentMsg.sender) : "Unknown"}
           </div>
+        )}
+        {isReply && isReplyCollapsed && (
+          <button
+            className="px-2 py-1 mb-1 text-xs italic bg-gray-100 rounded hover:bg-gray-200"
+            onClick={() => setExpandedReplies(prev => ({ ...prev, [msg._id]: true }))}
+          >
+            Show Reply
+          </button>
         )}
         <div className="flex items-start gap-2">
           {/* Only show Avatar before bubble for others */}
@@ -536,6 +613,10 @@ const Project = () => {
               <small className="text-[10px] text-gray-600">
                 {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </small>
+            )}
+            {/* Show read receipts if enabled and message is from current user and at least one other user has read it */}
+            {settings.behavior.showReadReceipts && isCurrentUser && Array.isArray(msg.readBy) && msg.readBy.some(uid => uid !== user._id) && (
+              <span className="ml-2 text-xs text-green-600 dark:text-green-400">Read</span>
             )}
             <div className="relative">
               {!isCurrentUser && (
@@ -1305,8 +1386,8 @@ const Project = () => {
                   {activeSettingsTab === 'behavior' && (
                     <div className="space-y-4">
                       {/* Auto Scroll toggle */}
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-gray-900 dark:text-white">Auto Scroll</span>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">Auto Scroll</span>
                         <button
                           onClick={() => setSettings(prev => {
                             const updated = { ...prev, behavior: { ...prev.behavior, autoScroll: !prev.behavior.autoScroll } };
@@ -1318,31 +1399,51 @@ const Project = () => {
                           <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.autoScroll ? 'translate-x-6' : 'translate-x-1'}`} />
                         </button>
                       </div>
-                      {/* Enable Notifications toggle */}
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-gray-900 dark:text-white">Enable Notifications</span>
+                      {/* Show System Messages toggle */}
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">Show System Messages</span>
                         <button
-                          onClick={async () => {
-                            if (!settings.behavior.notifications) {
-                              // Request permission if enabling
-                              if (window.Notification && Notification.permission !== 'granted') {
-                                await Notification.requestPermission();
-                              }
-                            }
-                            setSettings(prev => {
-                              const updated = { ...prev, behavior: { ...prev.behavior, notifications: !prev.behavior.notifications } };
-                              localStorage.setItem('projectSettings', JSON.stringify(updated));
-                              return updated;
-                            });
-                          }}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.notifications ? 'bg-blue-600' : 'bg-gray-300'}`}
+                          onClick={() => setSettings(prev => {
+                            const updated = { ...prev, behavior: { ...prev.behavior, showSystemMessages: !prev.behavior.showSystemMessages } };
+                            localStorage.setItem('projectSettings', JSON.stringify(updated));
+                            return updated;
+                          })}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.showSystemMessages ? 'bg-blue-600' : 'bg-gray-300'}`}
                         >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.notifications ? 'translate-x-6' : 'translate-x-1'}`} />
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.showSystemMessages ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
+                      {/* Collapse Replies by Default toggle */}
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">Collapse Replies by Default</span>
+                        <button
+                          onClick={() => setSettings(prev => {
+                            const updated = { ...prev, behavior: { ...prev.behavior, collapseReplies: !prev.behavior.collapseReplies } };
+                            localStorage.setItem('projectSettings', JSON.stringify(updated));
+                            return updated;
+                          })}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.collapseReplies ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.collapseReplies ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
+                      {/* Show Message Read Receipts toggle */}
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">Show Message Read Receipts</span>
+                        <button
+                          onClick={() => setSettings(prev => {
+                            const updated = { ...prev, behavior: { ...prev.behavior, showReadReceipts: !prev.behavior.showReadReceipts } };
+                            localStorage.setItem('projectSettings', JSON.stringify(updated));
+                            return updated;
+                          })}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.showReadReceipts ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.showReadReceipts ? 'translate-x-6' : 'translate-x-1'}`} />
                         </button>
                       </div>
                       {/* Enter to Send toggle */}
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-gray-900 dark:text-white">Enter to Send</span>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">Enter to Send</span>
                         <button
                           onClick={() => setSettings(prev => {
                             const updated = { ...prev, behavior: { ...prev.behavior, enterToSend: !prev.behavior.enterToSend } };
