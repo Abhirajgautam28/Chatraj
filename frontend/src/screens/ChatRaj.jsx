@@ -837,45 +837,46 @@ const ChatRaj = () => {
               onClick={() => setIsSettingsOpen(false)}
             />
             <motion.div
-              initial={{ opacity: 0, x: -300 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -300 }}
-              className="fixed bottom-24 left-4 z-50 w-[320px] bg-white rounded-lg shadow-xl dark:bg-gray-800"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 40 }}
+              className="fixed bottom-24 left-8 z-50 w-[480px] max-w-full bg-white rounded-xl shadow-2xl dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
               style={{ 
                 maxHeight: 'calc(100vh - 180px)',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                transition: 'box-shadow 0.18s',
               }}
             >
-              <div className="sticky top-0 z-10 flex items-center justify-between p-4 bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('settings')}</h2>
+              <div className="sticky top-0 z-10 flex items-center justify-between px-7 py-4 bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('settings')}</h2>
                 <button 
                   onClick={() => setIsSettingsOpen(false)}
                   className="p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
                 >
-                  <i className="text-xl ri-close-line"></i>
+                  <i className="text-2xl ri-close-line"></i>
                 </button>
               </div>
 
-              <div className="p-4 border-b dark:border-gray-700">
-                <div className="grid grid-cols-4 gap-1 p-1 bg-gray-100 rounded-lg dark:bg-gray-700">
-                  {['display', 'behavior', 'accessibility', 'sidebar', 'privacy'].map(tab => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveSettingsTab(tab)}
-                      className={`py-2 text-sm font-medium rounded-md transition-colors ${
-                        activeSettingsTab === tab 
-                          ? 'bg-white text-blue-600 shadow dark:bg-gray-600 dark:text-blue-400'
-                          : 'text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400'
-                      }`}
-                    >
-                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                    </button>
-                  ))}
-                </div>
+              {/* Horizontal tab bar */}
+              <div className="flex border-b dark:border-gray-700 bg-gray-100 dark:bg-gray-700 px-7">
+                {['display', 'behavior', 'accessibility', 'sidebar', 'privacy'].map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveSettingsTab(tab)}
+                    className={`px-6 py-3 text-base font-semibold border-b-4 transition-colors duration-150 focus:outline-none ${
+                      activeSettingsTab === tab 
+                        ? 'border-blue-600 text-blue-600 bg-white dark:bg-gray-800 dark:text-blue-400' 
+                        : 'border-transparent text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 bg-transparent'
+                    }`}
+                    style={{ marginBottom: '-1px', borderRadius: '10px 10px 0 0' }}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </button>
+                ))}
               </div>
 
               <div className="flex-1 overflow-y-auto">
-                <div className="p-4 space-y-6">
+                <div className="p-7 space-y-7">
                   {activeSettingsTab === 'display' && (
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
