@@ -25,17 +25,26 @@ export const subscribeNewsletter = async (req, res) => {
     }
     const subscription = await Newsletter.create({ email });
     // Send confirmation email (customized)
-    await transporter.sendMail({
-      from: 'ChatRaj <no-reply@chatraj.in>',
-      to: email,
-      subject: 'Thank you for subscribing to ChatRaj Newsletter!',
-      html: `<h2>Thank you for subscribing to ChatRaj!</h2>
-        <p>You will get weekly updates about new features and improvements.</p>
-        <p>If you want to contribute, visit <a href='https://github.com/Abhirajgautam28/Chatraj'>our GitHub page</a>.</p>
-        <p>Thank you for choosing ChatRaj.<br/>Abhiraj Gautam<br/>ChatRaj Developer<br/><a href='https://abhirajgautam.in'>abhirajgautam.in</a></p>`
-    });
-    res.status(201).json({ message: 'Subscribed successfully!', subscription });
+    try {
+      const mailOptions = {
+        from: 'ChatRaj <no-reply@chatraj.in>',
+        to: email,
+        subject: 'Thank you for subscribing to ChatRaj Newsletter!',
+        html: `<h2>Thank you for subscribing to ChatRaj!</h2>
+          <p>You will get weekly updates about new features and improvements.</p>
+          <p>If you want to contribute, visit <a href='https://github.com/Abhirajgautam28/Chatraj'>our GitHub page</a>.</p>
+          <p>Thank you for choosing ChatRaj.<br/>Abhiraj Gautam<br/>ChatRaj Developer<br/><a href='https://abhirajgautam.in'>abhirajgautam.in</a></p>`
+      };
+      const info = await transporter.sendMail(mailOptions);
+      console.log('Newsletter: Email send response:', info);
+      res.status(201).json({ message: 'Subscribed successfully! Confirmation email sent.', subscription });
+    } catch (mailErr) {
+      // Email sending failed, but subscription is successful
+      console.error('Newsletter: Email send failed:', mailErr);
+      res.status(201).json({ message: 'Subscribed, but confirmation email could not be sent.', subscription, emailError: true });
+    }
   } catch (err) {
+    console.error('Newsletter subscribe error:', err);
     res.status(500).json({ error: 'Server error.' });
   }
 };
