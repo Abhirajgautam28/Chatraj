@@ -615,8 +615,27 @@ const Project = () => {
               </small>
             )}
             {/* Show read receipts if enabled and message is from current user and at least one other user has read it */}
-            {settings.behavior.showReadReceipts && isCurrentUser && Array.isArray(msg.readBy) && msg.readBy.some(uid => uid !== user._id) && (
-              <span className="ml-2 text-xs text-green-600 dark:text-green-400">Read</span>
+            {settings.behavior.showReadReceipts && isCurrentUser && (
+              (() => {
+                const status = getMessageStatus(msg);
+                if (!status) return null;
+                return (
+                  <span className="flex items-center gap-1 ml-2 text-xs" style={{ color: status.icon === 'double-green' ? '#22c55e' : status.icon === 'double' ? '#555' : '#555' }}>
+                    {status.icon === 'single' && (
+                      <i className="ri-check-line" title="Sent"></i>
+                    )}
+                    {status.icon === 'double' && (
+                      <>
+                        <i className="ri-check-double-line" title="Received"></i>
+                      </>
+                    )}
+                    {status.icon === 'double-green' && (
+                      <i className="ri-check-double-line" style={{ color: '#22c55e' }} title="Seen"></i>
+                    )}
+                    <span>{status.label}</span>
+                  </span>
+                );
+              })()
             )}
             <div className="relative">
               {!isCurrentUser && (
@@ -672,6 +691,22 @@ const Project = () => {
         </div>
       </motion.div>
     )
+  }
+
+  // Helper to get message status for current user's messages
+  function getMessageStatus(msg) {
+    if (!msg || !msg.sender || msg.sender._id !== user._id) return null;
+    const others = (project.users || []).filter(u => u._id !== user._id).map(u => u._id);
+    // Seen: at least one other user in readBy
+    if (Array.isArray(msg.readBy) && msg.readBy.some(uid => uid !== user._id && others.includes(uid))) {
+      return { label: 'Seen', icon: 'double-green' };
+    }
+    // Received: at least one other user in deliveredTo
+    if (Array.isArray(msg.deliveredTo) && msg.deliveredTo.some(uid => uid !== user._id && others.includes(uid))) {
+      return { label: 'Received', icon: 'double' };
+    }
+    // Sent: deliveredTo missing or only contains self
+    return { label: 'Sent', icon: 'single' };
   }
 
   const projectId = project?._id;
