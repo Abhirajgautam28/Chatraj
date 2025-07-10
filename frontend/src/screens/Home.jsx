@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserContext } from '../context/user.context';
+import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
 import 'animate.css';
 
 // 9 Key Features for a balanced grid
@@ -425,6 +426,17 @@ function greet(name) {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Newsletter Signup */}
+      <section className="px-4 py-20 bg-blue-900/80">
+        <div className="max-w-xl mx-auto text-center">
+          <h2 className="mb-4 text-3xl font-bold text-white">Stay Updated</h2>
+          <p className="mb-8 text-lg text-blue-100">
+            Subscribe to our newsletter for the latest features and updates.
+          </p>
+          <NewsletterSubscribeForm />
         </div>
       </section>
 
