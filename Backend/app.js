@@ -19,9 +19,18 @@ connect().catch(console.error);
 
 const app = express();
 
+// CORS debug logger
+const corsErrorLogger = (err, req, res, next) => {
+  if (err && err.message && err.message.includes('CORS')) {
+    console.error('CORS error:', err.message, 'Origin:', req.headers.origin);
+    res.status(403).json({ error: 'CORS error', details: err.message });
+  } else {
+    next(err);
+  }
+};
+
 // Improved CORS middleware for Vercel/Render/localhost
 const dynamicCors = (origin, callback) => {
-  // Allow all vercel.app subdomains and localhost
   const vercelRegex = /^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/;
   if (!origin) return callback(null, true);
   if (
@@ -34,12 +43,13 @@ const dynamicCors = (origin, callback) => {
   return callback(new Error('Not allowed by CORS'));
 };
 
+// Apply CORS as the very first middleware
 app.use(cors({
   origin: dynamicCors,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  exposedHeaders: ['Set-Cookie']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Set-Cookie', 'Access-Control-Allow-Origin']
 }));
 
 // Explicitly handle preflight OPTIONS requests for all routes
@@ -47,9 +57,11 @@ app.options('*', cors({
   origin: dynamicCors,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  exposedHeaders: ['Set-Cookie']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Set-Cookie', 'Access-Control-Allow-Origin']
 }));
+
+app.use(corsErrorLogger);
 
 app.use(morgan('dev'));
 app.use(express.json());
