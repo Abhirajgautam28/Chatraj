@@ -5,6 +5,11 @@ import { UserContext } from '../context/user.context';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
 import 'animate.css';
 
+// Newsletter API endpoint for subscription
+const NEWSLETTER_API_URL =
+  import.meta.env.VITE_NEWSLETTER_API_URL ||
+  'https://chatraj-backend.onrender.com/api/newsletter/subscribe';
+
 // 9 Key Features for a balanced grid
 const features = [
   {
@@ -436,7 +441,7 @@ function greet(name) {
           <p className="mb-8 text-lg text-blue-100">
             Subscribe to our newsletter for the latest features and updates.
           </p>
-          <NewsletterSubscribeForm />
+          <NewsletterSubscribeForm apiUrl={NEWSLETTER_API_URL} />
         </div>
       </section>
 
