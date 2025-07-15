@@ -18,12 +18,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 ## [1.3.0] - 2025-07-02
 
 ### Added
-- **Colorful Syntax Highlighting:**
-  - The code editor now uses highlight.js with github/github-dark themes for vibrant, VS Code-like syntax coloring in both light and dark mode.
-- **Run Button Timer:**
-  - The run button now displays a live backwards timer until the WebContainer is ready, so users know exactly when they can execute their code.
-- **Improved Highlight.js Integration:**
-  - Fixed React key warnings and improved highlight.js usage for reliability and color accuracy.
+- The code editor now always displays code, is scrollable, and features colorful syntax highlighting (VS Code-like) in both light and dark mode.
+- Syntax highlighting uses highlight.js with github/github-dark themes for a modern look.
+- The "run" button shows a live backwards timer until the WebContainer is ready, then becomes enabled for code execution.
+
+### Fixed
+- Fixed React key warnings and improved highlight.js integration for reliability.
 
 ---
 
