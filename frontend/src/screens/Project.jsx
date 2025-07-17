@@ -256,6 +256,12 @@ const Project = () => {
       privacy: {
         saveHistory: true,
       },
+      sidebar: {
+        showFileTree: true,
+        showCollaborators: true,
+        pinSidebar: false,
+        sidebarWidth: 240,
+      },
     };
     if (savedSettings) {
       // Deep merge saved settings with defaults
@@ -267,6 +273,7 @@ const Project = () => {
         behavior: { ...defaultSettings.behavior, ...parsed.behavior },
         accessibility: { ...defaultSettings.accessibility, ...parsed.accessibility },
         privacy: { ...defaultSettings.privacy, ...parsed.privacy },
+        sidebar: { ...defaultSettings.sidebar, ...parsed.sidebar },
       };
     }
     return defaultSettings;
@@ -870,6 +877,20 @@ const Project = () => {
       updated[category][key] = value;
       // Persist to localStorage
       localStorage.setItem('projectSettings', JSON.stringify(updated));
+
+      // If updating sidebar, sync with backend
+      if (category === 'sidebar' && project?._id) {
+        axios.put(`/projects/sidebar-settings/${project._id}`,
+          { sidebar: { ...updated.sidebar } })
+          .then(res => {
+            if (res.data && res.data.sidebar) {
+              setSettings(prev2 => ({ ...prev2, sidebar: res.data.sidebar }));
+            }
+          })
+          .catch(err => {
+            console.error('Failed to update sidebar settings:', err);
+          });
+      }
       return updated;
     });
   };
@@ -1634,6 +1655,57 @@ const Project = () => {
                       </div>
                     </div>
                   )}
+                  {/* Sidebar Tab */}
+                  {activeSettingsTab === 'sidebar' && (
+                    <div className="space-y-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-inner border dark:border-gray-700">
+                      {/* Show File Tree */}
+                      <div className="flex items-center justify-between py-2 border-b dark:border-gray-700">
+                        <span className="font-medium text-gray-900 dark:text-white">Show File Tree</span>
+                        <button
+                          onClick={() => updateSettings('sidebar', 'showFileTree', !settings.sidebar?.showFileTree)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${settings.sidebar?.showFileTree ? 'bg-blue-600' : 'bg-gray-300'}`}
+                          aria-pressed={settings.sidebar?.showFileTree}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${settings.sidebar?.showFileTree ? 'translate-x-6' : 'translate-x-1'}`}/>
+                        </button>
+                      </div>
+                      {/* Show Collaborators List */}
+                      <div className="flex items-center justify-between py-2 border-b dark:border-gray-700">
+                        <span className="font-medium text-gray-900 dark:text-white">Show Collaborators List</span>
+                        <button
+                          onClick={() => updateSettings('sidebar', 'showCollaborators', !settings.sidebar?.showCollaborators)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${settings.sidebar?.showCollaborators ? 'bg-blue-600' : 'bg-gray-300'}`}
+                          aria-pressed={settings.sidebar?.showCollaborators}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${settings.sidebar?.showCollaborators ? 'translate-x-6' : 'translate-x-1'}`}/>
+                        </button>
+                      </div>
+                      {/* Pin Sidebar */}
+                      <div className="flex items-center justify-between py-2 border-b dark:border-gray-700">
+                        <span className="font-medium text-gray-900 dark:text-white">Pin Sidebar</span>
+                        <button
+                          onClick={() => updateSettings('sidebar', 'pinSidebar', !settings.sidebar?.pinSidebar)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${settings.sidebar?.pinSidebar ? 'bg-blue-600' : 'bg-gray-300'}`}
+                          aria-pressed={settings.sidebar?.pinSidebar}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${settings.sidebar?.pinSidebar ? 'translate-x-6' : 'translate-x-1'}`}/>
+                        </button>
+                      </div>
+                      {/* Sidebar Width */}
+                      <div className="py-2">
+                        <span className="block mb-2 font-medium text-gray-900 dark:text-white">Sidebar Width</span>
+                        <input
+                          type="range"
+                          min={180}
+                          max={400}
+                          value={settings.sidebar?.sidebarWidth || 240}
+                          onChange={e => updateSettings('sidebar', 'sidebarWidth', Number(e.target.value))}
+                          className="w-full accent-blue-600"
+                        />
+                        <span className="text-xs text-gray-600 dark:text-gray-300">{settings.sidebar?.sidebarWidth || 240}px</span>
+                      </div>
+                    </div>
+                  )}
                   {/* Privacy Tab */}
                   {activeSettingsTab === 'privacy' && (
                     <div className="space-y-4">
@@ -1643,7 +1715,7 @@ const Project = () => {
                           onClick={() => updateSettings('privacy', 'saveHistory', !settings.privacy?.saveHistory)}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.privacy?.saveHistory ? 'bg-blue-600' : 'bg-gray-300'}`}
                         >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.privacy?.saveHistory ? 'translate-x-6' : 'translate-x-1'}`} />
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.privacy?.saveHistory ? 'translate-x-6' : 'translate-x-1'}`}/>
                         </button>
                       </div>
                     </div>

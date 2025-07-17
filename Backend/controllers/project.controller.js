@@ -1,3 +1,22 @@
+// Update only sidebar settings for a project (deep merge)
+export const updateProjectSidebarSettings = async (req, res) => {
+    try {
+        const { projectId } = req.params;
+        const { sidebar } = req.body;
+        if (!sidebar || typeof sidebar !== 'object') {
+            return res.status(400).json({ error: 'Sidebar settings required' });
+        }
+        const project = await projectModel.findById(projectId);
+        if (!project) return res.status(404).json({ error: 'Project not found' });
+        // Deep merge sidebar settings
+        project.settings = project.settings || {};
+        project.settings.sidebar = { ...project.settings.sidebar, ...sidebar };
+        await project.save();
+        res.status(200).json({ sidebar: project.settings.sidebar });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
 import projectModel from '../models/project.model.js';
 import * as projectService from '../services/project.service.js';
 import userModel from '../models/user.model.js';

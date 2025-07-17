@@ -1,9 +1,17 @@
+
 import { Router } from 'express';
 import { body } from 'express-validator';
 import * as projectController from '../controllers/project.controller.js';
 import * as authMiddleWare from '../middleware/auth.middleware.js';
+import { updateProjectSidebarSettings } from '../controllers/project.controller.js';
 
 const router = Router();
+
+// Update only sidebar settings for a project
+router.put('/sidebar-settings/:projectId',
+    authMiddleWare.authUser,
+    updateProjectSidebarSettings
+);
 
 
 router.post('/create',
