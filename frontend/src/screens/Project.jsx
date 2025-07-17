@@ -1,3 +1,121 @@
+// --- Language Translations (fresh logic for Project.jsx) ---
+const PROJECT_TRANSLATIONS = {
+  'en-US': {
+    addUsers: 'Add Users',
+    collaborators: 'Collaborators',
+    options: 'Options',
+    run: 'Run',
+    noFileSelected: 'No file selected.',
+    noCode: 'No code to display.',
+    settings: 'Settings',
+    language: 'Language',
+    aiAssistant: 'AI Assistant',
+    replyTo: 'Replying to',
+    send: 'Send',
+    searchMessages: 'Search messages...',
+    selectUser: 'Select User',
+    addCollaborators: 'Add Collaborators',
+    previewOptions: 'Preview Options',
+    editorSettings: 'Editor Settings (see main settings for more)',
+  },
+  'hi-IN': {
+    addUsers: 'यूज़र जोड़ें',
+    collaborators: 'सहयोगी',
+    options: 'विकल्प',
+    run: 'चलाएँ',
+    noFileSelected: 'कोई फ़ाइल चयनित नहीं है।',
+    noCode: 'कोड उपलब्ध नहीं है।',
+    settings: 'सेटिंग्स',
+    language: 'भाषा',
+    aiAssistant: 'एआई सहायक',
+    replyTo: 'को उत्तर दे रहे हैं',
+    send: 'भेजें',
+    searchMessages: 'संदेश खोजें...',
+    selectUser: 'यूज़र चुनें',
+    addCollaborators: 'सहयोगी जोड़ें',
+    previewOptions: 'पूर्वावलोकन विकल्प',
+    editorSettings: 'संपादक सेटिंग्स (अधिक के लिए मुख्य सेटिंग्स देखें)',
+  },
+  'es-ES': {
+    addUsers: 'Agregar usuarios',
+    collaborators: 'Colaboradores',
+    options: 'Opciones',
+    run: 'Ejecutar',
+    noFileSelected: 'Ningún archivo seleccionado.',
+    noCode: 'No hay código para mostrar.',
+    settings: 'Configuración',
+    language: 'Idioma',
+    aiAssistant: 'Asistente de IA',
+    replyTo: 'Respondiendo a',
+    send: 'Enviar',
+    searchMessages: 'Buscar mensajes...',
+    selectUser: 'Seleccionar usuario',
+    addCollaborators: 'Agregar colaboradores',
+    previewOptions: 'Opciones de vista previa',
+    editorSettings: 'Configuración del editor (ver configuración principal para más)',
+  },
+  'fr-FR': {
+    addUsers: 'Ajouter des utilisateurs',
+    collaborators: 'Collaborateurs',
+    options: 'Options',
+    run: 'Exécuter',
+    noFileSelected: 'Aucun fichier sélectionné.',
+    noCode: 'Aucun code à afficher.',
+    settings: 'Paramètres',
+    language: 'Langue',
+    aiAssistant: 'Assistant IA',
+    replyTo: 'En réponse à',
+    send: 'Envoyer',
+    searchMessages: 'Rechercher des messages...',
+    selectUser: 'Sélectionner un utilisateur',
+    addCollaborators: 'Ajouter des collaborateurs',
+    previewOptions: 'Options d’aperçu',
+    editorSettings: 'Paramètres de l’éditeur (voir les paramètres principaux pour plus)',
+  },
+  'de-DE': {
+    addUsers: 'Benutzer hinzufügen',
+    collaborators: 'Mitarbeiter',
+    options: 'Optionen',
+    run: 'Ausführen',
+    noFileSelected: 'Keine Datei ausgewählt.',
+    noCode: 'Kein Code zum Anzeigen.',
+    settings: 'Einstellungen',
+    language: 'Sprache',
+    aiAssistant: 'KI-Assistent',
+    replyTo: 'Antwort an',
+    send: 'Senden',
+    searchMessages: 'Nachrichten suchen...',
+    selectUser: 'Benutzer auswählen',
+    addCollaborators: 'Mitarbeiter hinzufügen',
+    previewOptions: 'Vorschauoptionen',
+    editorSettings: 'Editor-Einstellungen (siehe Haupteinstellungen für mehr)',
+  },
+  'ja-JP': {
+    addUsers: 'ユーザーを追加',
+    collaborators: '共同作業者',
+    options: 'オプション',
+    run: '実行',
+    noFileSelected: 'ファイルが選択されていません。',
+    noCode: '表示するコードがありません。',
+    settings: '設定',
+    language: '言語',
+    aiAssistant: 'AIアシスタント',
+    replyTo: '返信先',
+    send: '送信',
+    searchMessages: 'メッセージを検索...',
+    selectUser: 'ユーザーを選択',
+    addCollaborators: '共同作業者を追加',
+    previewOptions: 'プレビューオプション',
+    editorSettings: 'エディター設定（詳細はメイン設定を参照）',
+  },
+};
+
+function useProjectTranslation(language) {
+  return React.useMemo(() => {
+    const lang = PROJECT_TRANSLATIONS[language] ? language : 'en-US';
+    return (key) => PROJECT_TRANSLATIONS[lang][key] || key;
+  }, [language]);
+}
 import React, { useRef, useState, useEffect, useContext } from 'react'
 import { UserContext } from '../context/user.context'
 import { ThemeContext } from '../context/theme.context'
@@ -153,6 +271,9 @@ const Project = () => {
     }
     return defaultSettings;
   });
+  // Language translation hook for this page (must be after settings is defined)
+  const language = settings.accessibility?.language || 'en-US';
+  const t = useProjectTranslation(language);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [activeSettingsTab, setActiveSettingsTab] = useState('display');
   const [messageEmojiPickers, setMessageEmojiPickers] = useState({});
@@ -790,10 +911,10 @@ const Project = () => {
               className="flex items-center gap-2 text-gray-800 dark:text-white transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 px-3 py-1.5 rounded-lg"
             >
               <i className="text-gray-800 ri-user-add-fill dark:text-white"></i>
-              <span className="text-gray-800 dark:text-white">Add Users</span>
+              <span className="text-gray-800 dark:text-white">{t('addUsers')}</span>
             </button>
             {settings.display?.aiAssistant && (
-              <button className="p-2 text-gray-800 dark:text-white" title="AI Assistant" onClick={() => setIsAIModalOpen(true)}>
+              <button className="p-2 text-gray-800 dark:text-white" title={t('aiAssistant')} onClick={() => setIsAIModalOpen(true)}>
                 <i className="ri-robot-2-line"></i>
               </button>
             )}
@@ -802,7 +923,7 @@ const Project = () => {
             <button 
               onClick={() => setIsSettingsOpen(true)}
               className="p-2 text-gray-800 transition-colors rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
-              title="Settings"
+              title={t('settings')}
             >
               <i className="text-xl ri-settings-3-line"></i>
             </button>
@@ -817,7 +938,7 @@ const Project = () => {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Search messages..."
+                  placeholder={t('searchMessages')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-48 p-2 text-sm text-gray-800 transition-all duration-300 bg-white border rounded dark:text-white dark:bg-gray-700"
@@ -912,13 +1033,14 @@ const Project = () => {
             type="text"
             placeholder="Enter message"
           />
-          <button 
-            onClick={send} 
-            style={{ backgroundColor: settings.display.themeColor || '#3B82F6' }}
-            className="px-5 text-white hover:brightness-90"
-          >
-            <i className="ri-send-plane-fill"></i>
-          </button>
+              <button 
+                onClick={send} 
+                style={{ backgroundColor: settings.display.themeColor || '#3B82F6' }}
+                className="px-5 text-white hover:brightness-90"
+                title={t('send')}
+              >
+                <i className="ri-send-plane-fill"></i>
+              </button>
         </div>
         <div
           className={`sidePanel w-full h-full flex flex-col gap-2 bg-slate-50 dark:bg-gray-800 absolute transition-all ${
@@ -956,7 +1078,7 @@ const Project = () => {
               style={{marginTop: '10px', marginBottom: '10px'}}
             >
               <i className="text-lg ri-settings-3-line"></i>
-              Options
+              {t('options')}
             </button>
             <div className="file-tree">
               {Object.keys(fileTree).map((file) => (
@@ -1079,7 +1201,7 @@ const Project = () => {
                 style={{ backgroundColor: settings.display.themeColor || '#3B82F6', color: '#fff' }}
                 className="p-2 px-4 rounded hover:brightness-90"
               >
-                run
+                {t('run')}
               </button>
             </div>
           </div>
@@ -1153,7 +1275,7 @@ const Project = () => {
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-full min-h-[200px] text-gray-400 italic select-none" style={{padding:'2rem'}}>
-                  {(!currentFile || !fileTree[currentFile]) ? 'No file selected.' : 'No code to display.'}
+                  {(!currentFile || !fileTree[currentFile]) ? t('noFileSelected') : t('noCode')}
                 </div>
               )}
             </div>
@@ -1204,7 +1326,7 @@ const Project = () => {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="relative max-w-full p-4 bg-white rounded-md w-96">
             <header className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">Select User</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{t('selectUser')}</h2>
               <button onClick={() => setIsModalOpen(false)} className="p-2 text-gray-900">
                 <i className="ri-close-fill"></i>
               </button>
@@ -1225,7 +1347,7 @@ const Project = () => {
               onClick={addCollaborators}
               className="absolute px-4 py-2 text-white transform -translate-x-1/2 bg-blue-600 rounded-md hover:bg-blue-700 bottom-4 left-1/2"
             >
-              Add Collaborators
+              {t('addCollaborators')}
             </button>
           </div>
         </div>
@@ -1288,7 +1410,7 @@ const Project = () => {
                 }}
                 onMouseUp={() => setIsDragging(false)}
               >
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Settings</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('settings')}</h2>
                 <button 
                   onClick={() => setIsSettingsOpen(false)}
                   className="p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
@@ -1308,7 +1430,7 @@ const Project = () => {
                     }`}
                     style={{ marginBottom: '-1px', borderRadius: '10px 10px 0 0' }}
                   >
-                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    {tab === 'accessibility' ? t('language') : tab.charAt(0).toUpperCase() + tab.slice(1)}
                   </button>
                 ))}
               </div>
@@ -1581,7 +1703,7 @@ const Project = () => {
         <div style={{ width: '100%', minHeight: 220, display: 'flex', flexDirection: 'column', position: 'relative' }}>
           {/* Compact header */}
           <div style={{ display: 'flex', alignItems: 'center', borderBottom: isDarkMode ? '1px solid #2c2f36' : '1px solid #e0e0e0', background: isDarkMode ? '#181a1b' : '#f3f6fa', padding: '0 16px', height: 38, fontSize: 14, fontWeight: 600 }}>
-            <span>Options</span>
+            <span>{t('options')}</span>
             <button style={{ marginLeft: 'auto', background: 'none', border: 'none', color: isDarkMode ? '#fff' : '#222', fontSize: 22, cursor: 'pointer', fontWeight: 700, transition: 'color 0.18s', lineHeight: 1 }} onClick={() => setShowOptionsModal(false)}>&times;</button>
           </div>
           {/* Compact options content */}
@@ -1589,11 +1711,11 @@ const Project = () => {
             {/* Example options, replace/add as needed for your app */}
             <div style={{ minWidth: 120, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 7 }}>
               <i className="ri-settings-3-line" style={{ fontSize: 18, marginRight: 6 }}></i>
-              <span>Editor Settings (see main settings for more)</span>
+              <span>{t('editorSettings')}</span>
             </div>
             <div style={{ minWidth: 120, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 7 }}>
               <i className="ri-eye-line" style={{ fontSize: 18, marginRight: 6 }}></i>
-              <span>Preview Options</span>
+              <span>{t('previewOptions')}</span>
             </div>
             {/* Add more compact options as needed */}
           </div>
