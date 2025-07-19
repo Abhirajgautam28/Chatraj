@@ -1104,14 +1104,19 @@ const Project = () => {
             )}
             {/* Show Collaborators Option */}
             {settings.sidebar?.showCollaborators && project.users && (
-              <div className="collaborators-list mt-4">
-                <div className="font-semibold text-gray-800 dark:text-white mb-2">Collaborators</div>
-                {project.users.map((u) => (
-                  <div key={u._id} className="flex items-center gap-2 p-2 cursor-pointer user hover:bg-slate-200 dark:hover:bg-gray-700">
-                    <Avatar firstName={u.firstName} className="w-8 h-8 text-base" />
-                    <span className="text-base font-medium dark:text-white">{u.firstName}</span>
-                  </div>
-                ))}
+              <div className="collaborators-list mt-2 mb-2 px-2 py-2 bg-slate-100 dark:bg-gray-700 rounded-lg shadow">
+                <div className="text-sm font-semibold text-gray-700 dark:text-white mb-2 flex items-center gap-2">
+                  <i className="ri-user-add-fill text-blue-600 dark:text-blue-400"></i>
+                  {t('collaborators')}
+                </div>
+                <div className="flex flex-col gap-2">
+                  {project.users.map((u) => (
+                    <div key={u._id} className="flex items-center gap-3 p-2 rounded cursor-pointer user hover:bg-slate-200 dark:hover:bg-gray-600 transition-colors">
+                      <Avatar firstName={u.firstName} className="w-8 h-8 text-base" />
+                      <span className="text-base font-medium" style={{color: isDarkMode ? '#fff' : '#222'}}>{u.firstName}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
