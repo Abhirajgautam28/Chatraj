@@ -1735,15 +1735,21 @@ const Project = () => {
                   )}
                   {/* Privacy Tab */}
                   {activeSettingsTab === 'privacy' && (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-gray-900 dark:text-white">Save Chat History</span>
+                    <div className="space-y-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-inner border dark:border-gray-700">
+                      <div className="flex items-center justify-between py-2 border-b dark:border-gray-700">
+                        <span className="font-semibold text-gray-900 dark:text-white" style={{color: isDarkMode ? '#fff' : '#222'}}>Save Chat History</span>
                         <button
-                          onClick={() => updateSettings('privacy', 'saveHistory', !settings.privacy?.saveHistory)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.privacy?.saveHistory ? 'bg-blue-600' : 'bg-gray-300'}`}
+                          onClick={() => {
+                            updateSettings('privacy', 'saveHistory', !settings.privacy?.saveHistory);
+                          }}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${settings.privacy?.saveHistory ? 'bg-blue-600' : 'bg-gray-300'}`}
+                          aria-pressed={settings.privacy?.saveHistory}
                         >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.privacy?.saveHistory ? 'translate-x-6' : 'translate-x-1'}`}/>
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${settings.privacy?.saveHistory ? 'translate-x-6' : 'translate-x-1'}`}/>
                         </button>
+                      </div>
+                      <div className="mt-2 text-sm text-gray-700 dark:text-gray-300" style={{color: isDarkMode ? '#ccc' : '#444'}}>
+                        When enabled, your chat history will be saved securely. You can disable this to stop saving new messages.
                       </div>
                     </div>
                   )}
