@@ -530,9 +530,6 @@ const Project = () => {
     setMessages(prev => deduplicateMessages(prev));
   }, [messages.length]);
 
-  // --- TEST DATA INJECTION FOR TOGGLE VISIBILITY ---
-  // Removed automated system/reply message injection
-
   // Patch messages to simulate readBy for current user's messages
   const patchedMessages = messages.map(msg => {
     if (msg.sender && msg.sender._id === user._id) {
