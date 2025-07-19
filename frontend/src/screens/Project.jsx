@@ -1090,7 +1090,19 @@ const Project = () => {
       </section>
 
       <section className="flex flex-grow h-full bg-blue-50 dark:bg-gray-900 right">
-        <div className="h-full explorer max-w-64 min-w-52 bg-slate-200 dark:bg-gray-500">
+        <div
+          className="h-full explorer bg-slate-200 dark:bg-gray-500"
+          style={{
+            maxWidth: settings.sidebar?.sidebarWidth || 240,
+            minWidth: settings.sidebar?.sidebarWidth || 240,
+            transition: 'max-width 0.2s, min-width 0.2s',
+            position: settings.sidebar?.pinSidebar ? 'sticky' : 'relative',
+            left: 0,
+            top: 0,
+            zIndex: settings.sidebar?.pinSidebar ? 20 : 'auto',
+            boxShadow: settings.sidebar?.pinSidebar ? '2px 0 8px rgba(0,0,0,0.08)' : undefined,
+          }}
+        >
           <div className="flex flex-col w-full">
             {/* Options Button */}
             <button
@@ -1101,21 +1113,36 @@ const Project = () => {
               <i className="text-lg ri-settings-3-line"></i>
               {t('options')}
             </button>
-            <div className="file-tree">
-              {Object.keys(fileTree).map((file) => (
-                <button
-                  key={file}
-                  onClick={() => {
-                    setCurrentFile(file);
-                    setOpenFiles([...new Set([...openFiles, file])]);
-                  }}
-                  className="flex items-center w-full gap-2 p-2 px-4 cursor-pointer tree-element hover:bg-slate-400 dark:hover:bg-gray-600 bg-slate-300 dark:bg-gray-700 dark:text-white"
-                >
-                  <FileIcon fileName={file} />
-                  <p className="text-lg font-semibold">{file}</p>
-                </button>
-              ))}
-            </div>
+            {/* Show File Tree Option */}
+            {settings.sidebar?.showFileTree !== false && (
+              <div className="file-tree">
+                {Object.keys(fileTree).map((file) => (
+                  <button
+                    key={file}
+                    onClick={() => {
+                      setCurrentFile(file);
+                      setOpenFiles([...new Set([...openFiles, file])]);
+                    }}
+                    className="flex items-center w-full gap-2 p-2 px-4 cursor-pointer tree-element hover:bg-slate-400 dark:hover:bg-gray-600 bg-slate-300 dark:bg-gray-700 dark:text-white"
+                  >
+                    <FileIcon fileName={file} />
+                    <p className="text-lg font-semibold">{file}</p>
+                  </button>
+                ))}
+              </div>
+            )}
+            {/* Show Collaborators Option */}
+            {settings.sidebar?.showCollaborators && project.users && (
+              <div className="collaborators-list mt-4">
+                <div className="font-semibold text-gray-800 dark:text-white mb-2">Collaborators</div>
+                {project.users.map((u) => (
+                  <div key={u._id} className="flex items-center gap-2 p-2 cursor-pointer user hover:bg-slate-200 dark:hover:bg-gray-700">
+                    <Avatar firstName={u.firstName} className="w-8 h-8 text-base" />
+                    <span className="text-base font-medium dark:text-white">{u.firstName}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex flex-col flex-grow h-full code-editor shrink">
