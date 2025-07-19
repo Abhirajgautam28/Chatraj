@@ -530,35 +530,6 @@ const Project = () => {
     setMessages(prev => deduplicateMessages(prev));
   }, [messages.length]);
 
-  // --- TEST DATA INJECTION FOR TOGGLE VISIBILITY ---
-  useEffect(() => {
-    // Only inject if there are no system or reply messages
-    if (messages.length > 0 && !messages.some(m => m.type === 'system')) {
-      setMessages(prev => [
-        ...prev,
-        {
-          _id: 'system-test',
-          sender: { _id: 'system', firstName: 'System' },
-          message: 'User joined the project',
-          type: 'system',
-          createdAt: new Date().toISOString(),
-        }
-      ]);
-    }
-    if (messages.length > 0 && !messages.some(m => m.parentMessageId)) {
-      setMessages(prev => [
-        ...prev,
-        {
-          _id: 'reply-test',
-          sender: { _id: 'other', firstName: 'Other' },
-          message: 'This is a reply message',
-          parentMessageId: prev[0]?._id || null,
-          createdAt: new Date().toISOString(),
-        }
-      ]);
-    }
-  }, [messages]);
-
   // Patch messages to simulate readBy for current user's messages
   const patchedMessages = messages.map(msg => {
     if (msg.sender && msg.sender._id === user._id) {
