@@ -128,8 +128,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Avatar from '../components/Avatar';
 import EmojiPicker from '../components/EmojiPicker';
 import FileIcon from '../components/FileIcon';
-import EditorToolbar from '../components/EditorToolbar';
-import EditorStatusBar from '../components/EditorStatusBar';
 import 'highlight.js/styles/github.css';
 import 'highlight.js/styles/github-dark.css';
 import PropTypes from 'prop-types';
@@ -1138,7 +1136,6 @@ const Project = () => {
                 </button>
               ))}
             </div>
-          <EditorToolbar isDarkMode={isDarkMode} />
             <div className="flex gap-2 actions">
               <button
                 onClick={async () => {
@@ -1243,7 +1240,7 @@ const Project = () => {
                 </div>
               )}
               {fileTree && currentFile && fileTree[currentFile]?.file?.contents?.length > 0 ? (
-                <div style={{ flex: 1, minHeight: 0, width: '100%', display: 'flex', flexDirection: 'column', overflow: 'auto', position: 'relative' }}>
+                <div style={{ flex: 1, minHeight: 0, width: '100%', display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
                   {vimMode ? (
                     <VimCodeEditor
                       value={fileTree[currentFile].file.contents}
@@ -1299,13 +1296,6 @@ const Project = () => {
                       }}
                     />
                   )}
-                  <EditorStatusBar
-                    fileName={currentFile}
-                    language={fileTree[currentFile]?.language || 'javascript'}
-                    line={1}
-                    col={1}
-                    isDarkMode={isDarkMode}
-                  />
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-full min-h-[200px] text-gray-400 italic select-none" style={{padding:'2rem'}}>
