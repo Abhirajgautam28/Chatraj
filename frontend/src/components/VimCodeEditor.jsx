@@ -61,13 +61,7 @@ const FEATURE_CATEGORIES = [
       { label: 'Theme', key: 'theme', type: 'select', options: THEMES },
     ],
   },
-  {
-    name: 'Vim',
-    options: [
-      { label: 'Vim Mode', key: 'vim', type: 'toggle' },
-      { label: 'Vim Remap', key: 'vimRemap', type: 'remap' },
-    ],
-  },
+  // Vim category removed
   {
     name: 'Editor',
     options: [
