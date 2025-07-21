@@ -128,7 +128,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Avatar from '../components/Avatar';
 import EmojiPicker from '../components/EmojiPicker';
 import FileIcon from '../components/FileIcon';
-import VSCodeToolbar from '../components/VSCodeToolbar';
 import EditorToolbar from '../components/EditorToolbar';
 import EditorStatusBar from '../components/EditorStatusBar';
 import 'highlight.js/styles/github.css';
