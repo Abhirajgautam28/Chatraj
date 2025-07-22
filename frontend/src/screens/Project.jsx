@@ -1,4 +1,24 @@
-// --- Language Translations (fresh logic for Project.jsx) ---
+import React, { useRef, useState, useEffect, useContext } from 'react'
+import { UserContext } from '../context/user.context'
+import { ThemeContext } from '../context/theme.context'
+import { useLocation } from 'react-router-dom'
+import axios from '../config/axios'
+import { initializeSocket, receiveMessage, sendMessage } from '../config/socket'
+import Markdown from 'markdown-to-jsx'
+import { getWebContainer } from '../config/webContainer'
+import { motion, AnimatePresence } from 'framer-motion'
+import Avatar from '../components/Avatar';
+import EmojiPicker from '../components/EmojiPicker';
+import FileIcon from '../components/FileIcon';
+import 'highlight.js/styles/github.css';
+import 'highlight.js/styles/github-dark.css';
+import PropTypes from 'prop-types';
+import CodeMirror from '@uiw/react-codemirror';
+import { javascript } from '@codemirror/lang-javascript';
+import { vim } from '@replit/codemirror-vim';
+import VimCodeEditor from '../components/VimCodeEditor';
+import ReactModal from 'react-modal';
+
 const PROJECT_TRANSLATIONS = {
   'en-US': {
     addUsers: 'Add Users',
@@ -116,26 +136,6 @@ function useProjectTranslation(language) {
     return (key) => PROJECT_TRANSLATIONS[lang][key] || key;
   }, [language]);
 }
-import React, { useRef, useState, useEffect, useContext } from 'react'
-import { UserContext } from '../context/user.context'
-import { ThemeContext } from '../context/theme.context'
-import { useLocation } from 'react-router-dom'
-import axios from '../config/axios'
-import { initializeSocket, receiveMessage, sendMessage } from '../config/socket'
-import Markdown from 'markdown-to-jsx'
-import { getWebContainer } from '../config/webContainer'
-import { motion, AnimatePresence } from 'framer-motion'
-import Avatar from '../components/Avatar';
-import EmojiPicker from '../components/EmojiPicker';
-import FileIcon from '../components/FileIcon';
-import 'highlight.js/styles/github.css';
-import 'highlight.js/styles/github-dark.css';
-import PropTypes from 'prop-types';
-import CodeMirror from '@uiw/react-codemirror';
-import { javascript } from '@codemirror/lang-javascript';
-import { vim } from '@replit/codemirror-vim';
-import VimCodeEditor from '../components/VimCodeEditor';
-import ReactModal from 'react-modal';
 
 function deduplicateMessages(messages) {
   const seen = new Set();
