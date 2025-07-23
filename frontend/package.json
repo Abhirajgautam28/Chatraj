@@ -26,7 +26,7 @@
     "@webcontainer/api": "^1.0.0",
     "animate.css": "^4.1.1",
     "antd": "^5.26.6",
-    "axios": "^1.10.0",
+    "axios": "^1.11.0",
     "bootstrap": "^5.3.7",
     "framer-motion": "^12.23.6",
     "highlight.js": "^11.11.1",
