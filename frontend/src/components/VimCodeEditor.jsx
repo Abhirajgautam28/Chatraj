@@ -61,17 +61,6 @@ const FEATURE_CATEGORIES = [
       { label: 'Theme', key: 'theme', type: 'select', options: THEMES },
     ],
   },
-  // Vim category removed
-  {
-    name: 'Editor',
-    options: [
-      { label: 'Format Document', key: 'format', type: 'action' },
-      { label: 'Go to Definition', key: 'goto', type: 'action' },
-      { label: 'Find References', key: 'refs', type: 'action' },
-      { label: 'Insert Snippet', key: 'snippet', type: 'snippet' },
-      { label: 'Multi-Cursor', key: 'multiCursor', type: 'action' },
-    ],
-  },
   {
     name: 'Problems',
     options: [
@@ -288,39 +277,53 @@ const VimCodeEditor = ({
         {/* Options Content - now in a two-column grid, no vertical scroll needed */}
         <div className="flex-1" style={{ maxHeight: 'calc(100vh - 220px)' }}>
           <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
-            {FEATURE_CATEGORIES.find(cat => cat.name === selectedCategory).options.map(opt => (
-              <div key={opt.key} className="flex items-center justify-between gap-4">
-                <span className="font-semibold text-gray-900 dark:text-white">{opt.label}</span>
-                {opt.type === 'toggle' && (
-                  <button
-                    onClick={() => handleToggleOption(opt.key)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${!!editorOptions[opt.key] || (typeof editorOptions[opt.key] === 'object' && editorOptions[opt.key].enabled) ? 'bg-blue-600' : 'bg-gray-300'}`}
-                  >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${!!editorOptions[opt.key] || (typeof editorOptions[opt.key] === 'object' && editorOptions[opt.key].enabled) ? 'translate-x-6' : 'translate-x-1'}`} />
-                  </button>
-                )}
-                {opt.type === 'select' && (
-                  <select
-                    value={theme}
-                    onChange={e => handleThemeChange(e.target.value)}
-                    className="p-2 rounded border dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                  >
-                    {opt.options.map(t => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
-                    ))}
-                  </select>
-                )}
-                {opt.type === 'action' && (
-                  <button
-                    onClick={() => runEditorAction(opt.key)}
-                    className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 font-semibold shadow"
-                  >
-                    {opt.label}
-                  </button>
-                )}
-                {/* ...existing code for other option types... */}
-              </div>
-            ))}
+            {FEATURE_CATEGORIES.find(cat => cat.name === selectedCategory).options.map(opt => {
+              // Determine toggle state correctly for all types
+              let isToggled = false;
+              if (typeof editorOptions[opt.key] === 'object' && editorOptions[opt.key] !== null && 'enabled' in editorOptions[opt.key]) {
+                isToggled = !!editorOptions[opt.key].enabled;
+              } else if (typeof editorOptions[opt.key] === 'boolean') {
+                isToggled = editorOptions[opt.key];
+              } else if (opt.key === 'lineNumbers') {
+                isToggled = editorOptions.lineNumbers === 'on';
+              } else if (opt.key === 'wordWrap') {
+                isToggled = editorOptions.wordWrap === 'on';
+              }
+              return (
+                <div key={opt.key} className="flex items-center justify-between gap-4">
+                  <span className="font-semibold text-gray-900 dark:text-white">{opt.label}</span>
+                  {opt.type === 'toggle' && (
+                    <button
+                      onClick={() => handleToggleOption(opt.key)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${isToggled ? 'bg-blue-600' : 'bg-gray-300'}`}
+                      aria-pressed={isToggled}
+                    >
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${isToggled ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
+                  )}
+                  {opt.type === 'select' && (
+                    <select
+                      value={theme}
+                      onChange={e => handleThemeChange(e.target.value)}
+                      className="p-2 rounded border dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                    >
+                      {opt.options.map(t => (
+                        <option key={t.value} value={t.value}>{t.label}</option>
+                      ))}
+                    </select>
+                  )}
+                  {opt.type === 'action' && (
+                    <button
+                      onClick={() => runEditorAction(opt.key)}
+                      className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 font-semibold shadow"
+                    >
+                      {opt.label}
+                    </button>
+                  )}
+                  {/* ...existing code for other option types... */}
+                </div>
+              );
+            })}
           </div>
         </div>
       </ReactModal>
