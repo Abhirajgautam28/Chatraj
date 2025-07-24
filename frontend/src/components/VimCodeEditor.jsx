@@ -285,11 +285,11 @@ const VimCodeEditor = ({
             </button>
           ))}
         </div>
-        {/* Options Content - scrollable, padded, spaced like settings modal */}
-        <div className="flex-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 220px)' }}>
-          <div className="p-6 space-y-7">
+        {/* Options Content - now in a two-column grid, no vertical scroll needed */}
+        <div className="flex-1" style={{ maxHeight: 'calc(100vh - 220px)' }}>
+          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
             {FEATURE_CATEGORIES.find(cat => cat.name === selectedCategory).options.map(opt => (
-              <div key={opt.key} className="flex items-center justify-between mb-4">
+              <div key={opt.key} className="flex items-center justify-between gap-4">
                 <span className="font-semibold text-gray-900 dark:text-white">{opt.label}</span>
                 {opt.type === 'toggle' && (
                   <button
