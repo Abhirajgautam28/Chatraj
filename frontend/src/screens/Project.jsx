@@ -17,7 +17,6 @@ import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { vim } from '@replit/codemirror-vim';
 import VimCodeEditor from '../components/VimCodeEditor';
-import ReactModal from 'react-modal';
 
 const PROJECT_TRANSLATIONS = {
   'en-US': {
@@ -1716,72 +1715,7 @@ const Project = () => {
         )}
       </AnimatePresence>
 
-      {/* Options Modal (centered dialog, compact, VimCodeEditor style) */}
-      <ReactModal
-        isOpen={showOptionsModal}
-        onRequestClose={() => setShowOptionsModal(false)}
-        closeTimeoutMS={250}
-        style={{
-          overlay: {
-            zIndex: 10002,
-            background: 'rgba(0,0,0,0.45)',
-            transition: 'opacity 0.25s',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backdropFilter: 'blur(2px)',
-          },
-          content: {
-            position: 'relative',
-            top: '40%', // Move a bit above center
-            left: '50%',
-            right: 'auto',
-            bottom: 'auto',
-            transform: 'translate(-50%, -40%)', // Adjust transform to match new top
-            maxWidth: 420,
-            minWidth: 280,
-            minHeight: 220,
-            margin: '0 auto',
-            borderRadius: 12,
-            padding: 0,
-            background: isDarkMode ? '#20232a' : '#f8fafd',
-            color: isDarkMode ? '#fff' : '#222',
-            border: 'none',
-            boxShadow: '0 8px 40px rgba(0,0,0,0.22)',
-            transition: 'transform 0.25s cubic-bezier(.4,2,.6,1), opacity 0.25s',
-            opacity: showOptionsModal ? 1 : 0,
-            overflow: 'hidden',
-            outline: 'none',
-            fontSize: 13,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }
-        }}
-        ariaHideApp={false}
-      >
-        <div style={{ width: '100%', minHeight: 220, display: 'flex', flexDirection: 'column', position: 'relative' }}>
-          {/* Compact header */}
-          <div style={{ display: 'flex', alignItems: 'center', borderBottom: isDarkMode ? '1px solid #2c2f36' : '1px solid #e0e0e0', background: isDarkMode ? '#181a1b' : '#f3f6fa', padding: '0 16px', height: 38, fontSize: 14, fontWeight: 600 }}>
-            <span>{t('options')}</span>
-            <button style={{ marginLeft: 'auto', background: 'none', border: 'none', color: isDarkMode ? '#fff' : '#222', fontSize: 22, cursor: 'pointer', fontWeight: 700, transition: 'color 0.18s', lineHeight: 1 }} onClick={() => setShowOptionsModal(false)}>&times;</button>
-          </div>
-          {/* Compact options content */}
-          <div style={{ flex: 1, padding: '18px 18px', minHeight: 120, background: isDarkMode ? '#20232a' : '#f8fafd', display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 16, alignItems: 'flex-start', fontSize: 13 }}>
-            {/* Example options, replace/add as needed for your app */}
-            <div style={{ minWidth: 120, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 7 }}>
-              <i className="ri-settings-3-line" style={{ fontSize: 18, marginRight: 6 }}></i>
-              <span>{t('editorSettings')}</span>
-            </div>
-            <div style={{ minWidth: 120, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 7 }}>
-              <i className="ri-eye-line" style={{ fontSize: 18, marginRight: 6 }}></i>
-              <span>{t('previewOptions')}</span>
-            </div>
-            {/* Add more compact options as needed */}
-          </div>
-        </div>
-      </ReactModal>
+      {/* Options Modal is now only handled by VimCodeEditor or the code editor component. */}
 
       {isAIModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
