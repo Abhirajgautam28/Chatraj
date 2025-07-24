@@ -1714,9 +1714,6 @@ const Project = () => {
           </>
         )}
       </AnimatePresence>
-
-      {/* Options Modal is now only handled by VimCodeEditor or the code editor component. */}
-
       {isAIModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="relative w-full max-w-md p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
