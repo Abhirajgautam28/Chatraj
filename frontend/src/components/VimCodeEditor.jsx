@@ -252,7 +252,7 @@ const VimCodeEditor = ({
 
   return (
     <div style={{ height: '100%', width: '100%', position: 'relative' }}>
-      {/* Options Modal - styled like settings modal */}
+      {/* Options Modal - now styled to match Settings modal */}
       <ReactModal
         isOpen={showOptionsModal}
         onRequestClose={onCloseOptionsModal}
@@ -261,8 +261,8 @@ const VimCodeEditor = ({
         className="fixed z-50 w-full max-w-md bg-white border border-gray-200 shadow-2xl dark:bg-gray-800 rounded-xl dark:border-gray-700 left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 outline-none flex flex-col"
         overlayClassName="fixed inset-0 z-40 bg-black bg-opacity-50 flex items-center justify-center"
       >
-        {/* Modal Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-white border-b cursor-pointer select-none dark:bg-gray-800 dark:border-gray-700 rounded-t-xl">
+        {/* Modal Header - sticky, matches settings modal */}
+        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-white border-b cursor-move select-none dark:bg-gray-800 dark:border-gray-700 rounded-t-xl">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">Options</h2>
           <button
             onClick={onCloseOptionsModal}
@@ -272,8 +272,8 @@ const VimCodeEditor = ({
             <i className="text-2xl ri-close-line"></i>
           </button>
         </div>
-        {/* Category Tabs */}
-        <div className="flex border-b dark:border-gray-700 bg-gray-100 dark:bg-gray-700 px-6">
+        {/* Category Tabs - matches settings modal */}
+        <div className="flex px-6 bg-gray-100 border-b dark:border-gray-700 dark:bg-gray-700">
           {FEATURE_CATEGORIES.map(cat => (
             <button
               key={cat.name}
@@ -285,43 +285,43 @@ const VimCodeEditor = ({
             </button>
           ))}
         </div>
-        {/* Options Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-7" style={{ maxHeight: 'calc(100vh - 220px)' }}>
-          {FEATURE_CATEGORIES.find(cat => cat.name === selectedCategory).options.map(opt => (
-            <div key={opt.key} className="flex items-center gap-4 mb-4">
-              {opt.type === 'toggle' && (
-                <label className="flex items-center cursor-pointer font-medium text-gray-900 dark:text-white">
-                  <input
-                    type="checkbox"
-                    checked={!!editorOptions[opt.key] || (typeof editorOptions[opt.key] === 'object' && editorOptions[opt.key].enabled)}
-                    onChange={() => handleToggleOption(opt.key)}
-                    className="w-5 h-5 accent-blue-600 mr-2"
-                  />
-                  {opt.label}
-                </label>
-              )}
-              {opt.type === 'select' && (
-                <select
-                  value={theme}
-                  onChange={e => handleThemeChange(e.target.value)}
-                  className="p-2 rounded border dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                >
-                  {opt.options.map(t => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
-                  ))}
-                </select>
-              )}
-              {opt.type === 'action' && (
-                <button
-                  onClick={() => runEditorAction(opt.key)}
-                  className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 font-semibold shadow"
-                >
-                  {opt.label}
-                </button>
-              )}
-              {/* ...existing code for other option types... */}
-            </div>
-          ))}
+        {/* Options Content - scrollable, padded, spaced like settings modal */}
+        <div className="flex-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 220px)' }}>
+          <div className="p-6 space-y-7">
+            {FEATURE_CATEGORIES.find(cat => cat.name === selectedCategory).options.map(opt => (
+              <div key={opt.key} className="flex items-center justify-between mb-4">
+                <span className="font-semibold text-gray-900 dark:text-white">{opt.label}</span>
+                {opt.type === 'toggle' && (
+                  <button
+                    onClick={() => handleToggleOption(opt.key)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${!!editorOptions[opt.key] || (typeof editorOptions[opt.key] === 'object' && editorOptions[opt.key].enabled) ? 'bg-blue-600' : 'bg-gray-300'}`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${!!editorOptions[opt.key] || (typeof editorOptions[opt.key] === 'object' && editorOptions[opt.key].enabled) ? 'translate-x-6' : 'translate-x-1'}`} />
+                  </button>
+                )}
+                {opt.type === 'select' && (
+                  <select
+                    value={theme}
+                    onChange={e => handleThemeChange(e.target.value)}
+                    className="p-2 rounded border dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                  >
+                    {opt.options.map(t => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
+                    ))}
+                  </select>
+                )}
+                {opt.type === 'action' && (
+                  <button
+                    onClick={() => runEditorAction(opt.key)}
+                    className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 font-semibold shadow"
+                  >
+                    {opt.label}
+                  </button>
+                )}
+                {/* ...existing code for other option types... */}
+              </div>
+            ))}
+          </div>
         </div>
       </ReactModal>
       {/* Monaco Editor */}
