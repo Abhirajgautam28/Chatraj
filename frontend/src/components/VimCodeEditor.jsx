@@ -252,110 +252,76 @@ const VimCodeEditor = ({
 
   return (
     <div style={{ height: '100%', width: '100%', position: 'relative' }}>
-      {/* Options Modal - centered dialog layout */}
+      {/* Options Modal - styled like settings modal */}
       <ReactModal
         isOpen={showOptionsModal}
         onRequestClose={onCloseOptionsModal}
         closeTimeoutMS={250}
-        style={{
-          overlay: {
-            zIndex: 10002,
-            background: 'rgba(0,0,0,0.45)',
-            transition: 'opacity 0.25s',
-            display: 'flex',
-            alignItems: 'center', // Ensure vertical centering
-            justifyContent: 'center', // Ensure horizontal centering
-            backdropFilter: 'blur(2px)',
-          },
-          content: {
-            position: 'static',
-            maxWidth: 420,
-            minWidth: 280,
-            minHeight: 260,
-            margin: '0 auto',
-            borderRadius: 12,
-            padding: 0,
-            background: isDarkMode ? '#20232a' : '#f8fafd',
-            color: isDarkMode ? '#fff' : '#222',
-            border: 'none',
-            boxShadow: '0 8px 40px rgba(0,0,0,0.22)',
-            transition: 'opacity 0.25s',
-            opacity: showOptionsModal ? 1 : 0,
-            overflow: 'hidden',
-            outline: 'none',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }
-        }}
         ariaHideApp={false}
+        className="fixed z-50 w-full max-w-md bg-white border border-gray-200 shadow-2xl dark:bg-gray-800 rounded-xl dark:border-gray-700 left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 outline-none flex flex-col"
+        overlayClassName="fixed inset-0 z-40 bg-black bg-opacity-50 flex items-center justify-center"
       >
-        <div style={{ width: '100%', minHeight: 260, display: 'flex', flexDirection: 'column' }}>
-          {/* Compact category tabs */}
-          <div style={{ display: 'flex', borderBottom: isDarkMode ? '1px solid #2c2f36' : '1px solid #e0e0e0', background: isDarkMode ? '#181a1b' : '#f3f6fa', padding: '0 12px', height: 38, alignItems: 'center' }}>
-            {FEATURE_CATEGORIES.map(cat => (
-              <div
-                key={cat.name}
-                style={{
-                  padding: '0 12px',
-                  cursor: 'pointer',
-                  height: 38,
-                  display: 'flex',
-                  alignItems: 'center',
-                  borderBottom: selectedCategory === cat.name ? '2px solid #0078d4' : '2px solid transparent',
-                  fontWeight: selectedCategory === cat.name ? 600 : 400,
-                  color: selectedCategory === cat.name ? (isDarkMode ? '#fff' : '#1a237e') : undefined,
-                  fontSize: 13.5,
-                  letterSpacing: 0.1,
-                  transition: 'border 0.18s, color 0.18s',
-                  background: 'none',
-                }}
-                onClick={() => setSelectedCategory(cat.name)}
-              >
-                {cat.name}
-              </div>
-            ))}
-          </div>
-          {/* Compact options rows */}
-          <div style={{ flex: 1, padding: '18px 18px', minHeight: 120, background: isDarkMode ? '#20232a' : '#f8fafd', display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 16, alignItems: 'flex-start' }}>
-            {FEATURE_CATEGORIES.find(cat => cat.name === selectedCategory).options.map(opt => (
-              <div key={opt.key} style={{ minWidth: 120, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 7 }}>
-                {opt.type === 'toggle' && (
-                  <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontWeight: 500, fontSize: 13.5 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!editorOptions[opt.key] || (typeof editorOptions[opt.key] === 'object' && editorOptions[opt.key].enabled)}
-                      onChange={() => handleToggleOption(opt.key)}
-                      style={{ width: 15, height: 15, accentColor: '#0078d4', marginRight: 6 }}
-                    />
-                    {opt.label}
-                  </label>
-                )}
-                {opt.type === 'select' && (
-                  <select
-                    value={theme}
-                    onChange={e => handleThemeChange(e.target.value)}
-                    style={{ fontSize: 13, padding: '4px 8px', borderRadius: 5, border: '1px solid #aaa', background: isDarkMode ? '#23272e' : '#fff', color: isDarkMode ? '#fff' : '#222' }}
-                  >
-                    {opt.options.map(t => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
-                    ))}
-                  </select>
-                )}
-                {opt.type === 'action' && (
-                  <button
-                    onClick={() => runEditorAction(opt.key)}
-                    style={{ fontSize: 13, padding: '4px 10px', borderRadius: 5, border: 'none', background: '#0078d4', color: '#fff', fontWeight: 500, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
-                  >
-                    {opt.label}
-                  </button>
-                )}
-                {/* ...existing code for other option types... */}
-              </div>
-            ))}
-          </div>
-          <button style={{ position: 'absolute', top: 8, right: 10, background: 'none', border: 'none', color: isDarkMode ? '#fff' : '#222', fontSize: 22, cursor: 'pointer', fontWeight: 700, transition: 'color 0.18s', lineHeight: 1 }} onClick={onCloseOptionsModal}>&times;</button>
+        {/* Modal Header */}
+        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-white border-b cursor-pointer select-none dark:bg-gray-800 dark:border-gray-700 rounded-t-xl">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Options</h2>
+          <button
+            onClick={onCloseOptionsModal}
+            className="p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+            aria-label="Close options modal"
+          >
+            <i className="text-2xl ri-close-line"></i>
+          </button>
+        </div>
+        {/* Category Tabs */}
+        <div className="flex border-b dark:border-gray-700 bg-gray-100 dark:bg-gray-700 px-6">
+          {FEATURE_CATEGORIES.map(cat => (
+            <button
+              key={cat.name}
+              onClick={() => setSelectedCategory(cat.name)}
+              className={`px-4 py-2 text-base font-semibold border-b-4 transition-colors duration-150 focus:outline-none ${selectedCategory === cat.name ? 'border-blue-600 text-blue-600 bg-white dark:bg-gray-800 dark:text-blue-400' : 'border-transparent text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 bg-transparent'}`}
+              style={{ marginBottom: '-1px', borderRadius: '10px 10px 0 0' }}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+        {/* Options Content */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-7" style={{ maxHeight: 'calc(100vh - 220px)' }}>
+          {FEATURE_CATEGORIES.find(cat => cat.name === selectedCategory).options.map(opt => (
+            <div key={opt.key} className="flex items-center gap-4 mb-4">
+              {opt.type === 'toggle' && (
+                <label className="flex items-center cursor-pointer font-medium text-gray-900 dark:text-white">
+                  <input
+                    type="checkbox"
+                    checked={!!editorOptions[opt.key] || (typeof editorOptions[opt.key] === 'object' && editorOptions[opt.key].enabled)}
+                    onChange={() => handleToggleOption(opt.key)}
+                    className="w-5 h-5 accent-blue-600 mr-2"
+                  />
+                  {opt.label}
+                </label>
+              )}
+              {opt.type === 'select' && (
+                <select
+                  value={theme}
+                  onChange={e => handleThemeChange(e.target.value)}
+                  className="p-2 rounded border dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                >
+                  {opt.options.map(t => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
+                </select>
+              )}
+              {opt.type === 'action' && (
+                <button
+                  onClick={() => runEditorAction(opt.key)}
+                  className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 font-semibold shadow"
+                >
+                  {opt.label}
+                </button>
+              )}
+              {/* ...existing code for other option types... */}
+            </div>
+          ))}
         </div>
       </ReactModal>
       {/* Monaco Editor */}
