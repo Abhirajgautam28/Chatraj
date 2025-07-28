@@ -35,7 +35,7 @@
     "monaco-vim": "^0.4.2",
     "react": "^18.3.1",
     "react-bootstrap": "^2.10.10",
-    "react-dom": "^18.3.1",
+    "react-dom": "^19.1.1",
     "react-modal": "^3.16.3",
     "react-router-dom": "^7.7.1",
     "remixicon": "^4.6.0",
