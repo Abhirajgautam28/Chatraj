@@ -48,7 +48,6 @@ ChatRaj is a comprehensive, AI-powered platform designed to streamline software 
 
 - **Newsletter Subscription:** Users receive a professional confirmation email upon subscribing to the ChatRaj newsletter, delivered via Gmail SMTP. The newsletter email includes upcoming release info and community benefits.
 - **Gmail SMTP Integration:** All transactional emails (OTP, newsletter) are sent using Gmail SMTP for reliability and security. Previous fallback/test SMTP logic (Brevo, Ethereal) has been removed for a streamlined setup.
-- **Logo Handling:** The ChatRaj newsletter email template was updated to include a custom logo, but it was later removed to ensure consistent rendering across all email clients and deployments.
 
 ### Real-time Collaboration
 
