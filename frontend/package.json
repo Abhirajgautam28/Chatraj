@@ -28,7 +28,7 @@
     "antd": "^5.26.7",
     "axios": "^1.11.0",
     "bootstrap": "^5.3.7",
-    "framer-motion": "^12.23.11",
+    "framer-motion": "^12.23.12",
     "highlight.js": "^11.11.1",
     "markdown-to-jsx": "^7.7.12",
     "monaco-editor": "^0.52.2",
