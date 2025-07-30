@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import 'animate.css';
 
@@ -23,8 +23,23 @@ const Categories = () => {
     { title: 'Code Refactoring', description: 'Improve structure without changing behavior', icon: 'ri-scissors-cut-line' }
   ];
 
+
+  const [projectCounts, setProjectCounts] = useState({});
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    fetch('http://localhost:8080/projects/category-counts', {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      }
+    })
+      .then(res => res.json())
+      .then(data => setProjectCounts(data || {}))
+      .catch(() => setProjectCounts({}));
+  }, []);
+
   const handleCategoryClick = (categoryTitle) => {
-    console.log("Category clicked:", categoryTitle);
     navigate("/dashboard", { state: { selectedCategory: categoryTitle } });
   };
 
@@ -43,17 +58,44 @@ const Categories = () => {
             Explore Categories
           </h1>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {categories.map((cat, index) => (
-              <button
-                key={index}
-                onClick={() => handleCategoryClick(cat.title)}
-                className="flex flex-col items-center justify-center p-2 text-white transition transform bg-gray-700 rounded-md hover:bg-gray-600 hover:scale-105"
-              >
-                <i className={`${cat.icon} text-5xl mb-2`}></i>
-                <h2 className="text-lg font-semibold text-center">{cat.title}</h2>
-                <p className="text-sm text-center">{cat.description}</p>
-              </button>
-            ))}
+            {categories.map((cat, index) => {
+              const count = projectCounts[cat.title] ?? 0;
+              return (
+                <button
+                  key={index}
+                  onClick={() => handleCategoryClick(cat.title)}
+                  className="relative flex flex-col items-center justify-center p-2 text-white transition transform bg-gray-700 rounded-md hover:bg-gray-600 hover:scale-105"
+                  style={{ minHeight: 120 }}
+                >
+                  {count > 0 && (
+                    <span
+                      className="absolute"
+                      style={{
+                        top: 8,
+                        right: 8,
+                        minWidth: 22,
+                        height: 22,
+                        background: '#2563eb',
+                        color: '#fff',
+                        borderRadius: '999px',
+                        fontWeight: 700,
+                        fontSize: 13,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                        zIndex: 2
+                      }}
+                    >
+                      {count}
+                    </span>
+                  )}
+                  <i className={`${cat.icon} text-5xl mb-2`}></i>
+                  <h2 className="text-lg font-semibold text-center">{cat.title}</h2>
+                  <p className="text-sm text-center">{cat.description}</p>
+                </button>
+              );
+            })}
           </div>
         </div>
       </main>

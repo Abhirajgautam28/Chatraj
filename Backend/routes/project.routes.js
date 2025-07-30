@@ -1,58 +1,73 @@
 
 import { Router } from 'express';
 import { body } from 'express-validator';
-import * as projectController from '../controllers/project.controller.js';
-import * as authMiddleWare from '../middleware/auth.middleware.js';
-import { updateProjectSidebarSettings } from '../controllers/project.controller.js';
+import {
+  getProjectCountsByCategory,
+  updateProjectSidebarSettings,
+  createProject,
+  getAllProject,
+  addUserToProject,
+  getProjectById,
+  updateFileTree,
+  getProjectSettings,
+  updateProjectSettings
+} from '../controllers/project.controller.js';
+import { authUser } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
+// Add project counts by category route
+router.get('/category-counts',
+    authUser,
+    getProjectCountsByCategory
+);
+
 // Update only sidebar settings for a project
 router.put('/sidebar-settings/:projectId',
-    authMiddleWare.authUser,
+    authUser,
     updateProjectSidebarSettings
 );
 
 
 router.post('/create',
-    authMiddleWare.authUser,
+    authUser,
     body('name').isString().withMessage('Name is required'),
-    projectController.createProject
+    createProject
 )
 
 router.get('/all',
-    authMiddleWare.authUser,
-    projectController.getAllProject
+    authUser,
+    getAllProject
 )
 
 router.put('/add-user',
-    authMiddleWare.authUser,
+    authUser,
     body('projectId').isString().withMessage('Project ID is required'),
     body('users').isArray({ min: 1 }).withMessage('Users must be an array of strings').bail()
         .custom((users) => users.every(user => typeof user === 'string')).withMessage('Each user must be a string'),
-    projectController.addUserToProject
+    addUserToProject
 )
 
 router.get('/get-project/:projectId',
-    authMiddleWare.authUser,
-    projectController.getProjectById
+    authUser,
+    getProjectById
 )
 
 router.put('/update-file-tree',
-    authMiddleWare.authUser,
+    authUser,
     body('projectId').isString().withMessage('Project ID is required'),
     body('fileTree').isObject().withMessage('File tree is required'),
-    projectController.updateFileTree
+    updateFileTree
 )
 
 router.get('/settings/:projectId',
-    authMiddleWare.authUser,
-    projectController.getProjectSettings
+    authUser,
+    getProjectSettings
 )
 
 router.put('/settings/:projectId',
-    authMiddleWare.authUser,
-    projectController.updateProjectSettings
+    authUser,
+    updateProjectSettings
 )
 
 
