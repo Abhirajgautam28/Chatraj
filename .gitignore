@@ -6,3 +6,5 @@
 node_modules/
 dist/
 build/
+prompt.txt
+.vscode/

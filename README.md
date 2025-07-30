@@ -8,7 +8,6 @@ ChatRaj is a comprehensive, AI-powered platform designed to streamline software 
 
 - [ChatRaj – AI-Powered Software Engineering Collaboration Platform](#chatraj--ai-powered-software-engineering-collaboration-platform)
   - [Table of Contents](#table-of-contents)
-  - [Latest Updates (2025-07-02)](#latest-updates-2025-07-02)
   - [Features](#features)
     - [Real-time Collaboration](#real-time-collaboration)
     - [AI-Powered Assistance](#ai-powered-assistance)
@@ -43,17 +42,6 @@ ChatRaj is a comprehensive, AI-powered platform designed to streamline software 
   - [Roadmap](#roadmap)
   - [License](#license)
   - [Contact](#contact)
-
----
-
-## Latest Updates (2025-07-02)
-
-- The code editor now always displays code, is scrollable, and features colorful syntax highlighting (VS Code-like) in both light and dark mode.
-- Syntax highlighting uses highlight.js with github/github-dark themes for a modern look.
-- The "run" button shows a live backwards timer until the WebContainer is ready, then becomes enabled for code execution.
-- Fixed React key warnings and improved highlight.js integration for reliability.
-
----
 
 ## Features
 
@@ -308,6 +296,7 @@ Please follow our [Code of Conduct](CODE_OF_CONDUCT.md) and ensure your code adh
 - [ ] **AI Model Training:** Task-specific AI enhancements.
 - [ ] **Advanced Debugging:** Real-time error detection and suggestions.
 - [ ] **Expanded Language Support:** More languages for global teams.
+- [ ] **Visual Studio Code Support:** Provide support for Visual Studio Code in Project Page.
 - [ ] **Enhanced Privacy:** Advanced data protection and compliance.
 - [ ] **Mobile App:** Native mobile experience.
 - [ ] **Plugin System:** Extend ChatRaj with custom plugins.
