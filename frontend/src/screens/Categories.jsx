@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import 'animate.css';
 
@@ -67,7 +67,7 @@ const Categories = () => {
                   className="relative flex flex-col items-center justify-center p-2 text-white transition transform bg-gray-700 rounded-md hover:bg-gray-600 hover:scale-105"
                   style={{ minHeight: 120 }}
                 >
-                  {count > 0 && (
+                  {count > 0 ? (
                     <span
                       className="absolute"
                       style={{
@@ -89,7 +89,7 @@ const Categories = () => {
                     >
                       {count}
                     </span>
-                  )}
+                  ) : null}
                   <i className={`${cat.icon} text-5xl mb-2`}></i>
                   <h2 className="text-lg font-semibold text-center">{cat.title}</h2>
                   <p className="text-sm text-center">{cat.description}</p>
