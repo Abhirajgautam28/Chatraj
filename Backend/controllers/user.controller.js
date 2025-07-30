@@ -1,4 +1,7 @@
 import userModel from '../models/user.model.js';
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+dotenv.config();
 import * as userService from '../services/user.service.js';
 import { validationResult } from 'express-validator';
 import redisClient from '../services/redis.service.js';
@@ -13,17 +16,60 @@ export const createUserController = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
     try {
-        const user = await userService.createUser(req.body);
-
-        const token = await user.generateJWT();
-
-        delete user._doc.password;
-
-        res.status(201).json({ user, token });
+        // Generate OTP
+        const otp = generateOTP(7);
+        // Create user with OTP and isVerified false
+        const user = await userService.createUser({ ...req.body, otp, isVerified: false });
+        // Send OTP email
+        await sendOtpEmail(user.email, otp);
+        res.status(201).json({ message: 'OTP sent to email. Please verify.', userId: user._id });
     } catch (error) {
         res.status(400).send(error.message);
     }
 }
+
+// Helper: Generate 7-char OTP
+function generateOTP(length) {
+    const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*';
+    let otp = '';
+    for (let i = 0; i < length; i++) {
+        otp += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return otp;
+}
+
+// Helper: Send OTP email
+async function sendOtpEmail(email, otp) {
+    const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587,
+        secure: false,
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+        },
+    });
+    let info = await transporter.sendMail({
+        from: process.env.SMTP_FROM || 'ChatRaj <no-reply@chatraj.com>',
+        to: email,
+        subject: 'Your ChatRaj OTP Verification',
+        text: `Welcome to ChatRaj!\n\nYour OTP is: ${otp}\n\nPlease enter this code in the registration popup to activate your account.`
+    });
+    console.log('OTP email sent: %s', info.messageId);
+}
+
+export const verifyOtpController = async (req, res) => {
+    const { userId, otp } = req.body;
+    if (!userId || !otp) return res.status(400).json({ message: 'User ID and OTP required' });
+    const user = await userModel.findById(userId).select('+otp');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (user.otp !== otp) return res.status(401).json({ message: 'Invalid OTP' });
+    user.isVerified = true;
+    user.otp = undefined;
+    await user.save();
+    const token = await user.generateJWT();
+    res.status(200).json({ message: 'Verified successfully', token, user });
+};
 
 export const loginController = async (req, res) => {
     const errors = validationResult(req);
@@ -31,22 +77,19 @@ export const loginController = async (req, res) => {
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
-
     try {
         const { email, password } = req.body;
         const user = await userModel.findOne({ email }).select('+password +googleApiKey');
         if (!user) {
-            return res.status(401).json({
-                errors: 'Invalid credentials'
-            })
+            return res.status(401).json({ errors: 'Invalid credentials' });
         }
         const isMatch = await user.isValidPassword(password);
         if (!isMatch) {
-            return res.status(401).json({
-                errors: 'Invalid credentials'
-            })
+            return res.status(401).json({ errors: 'Invalid credentials' });
         }
-        // Do NOT delete googleApiKey here, it is needed by frontend
+        if (!user.isVerified) {
+            return res.status(403).json({ errors: 'Account not verified. Please check your email for OTP.' });
+        }
         const token = await user.generateJWT();
         delete user._doc.password;
         res.status(200).json({ user, token });
@@ -90,7 +133,6 @@ export const getAllUsersController = async (req, res) => {
         })
 
         const allUsers = await userService.getAllUsers({ userId: loggedInUser._id });
-        // Send _id, firstName, lastName for each user
         const usersWithNames = allUsers.map(u => ({
             _id: u._id,
             firstName: u.firstName,
@@ -117,7 +159,6 @@ export const resetPasswordController = async (req, res) => {
             { expiresIn: '15m' }
         );
 
-        // TODO: Send resetToken via email to user.email
         res.json({ message: 'Reset link sent to email', resetToken });
     } catch (err) {
         res.status(500).json({ message: err.message });
