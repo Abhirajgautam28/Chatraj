@@ -3,9 +3,41 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org/).
 
----
 
-## [Unreleased]
+## Latest Features
+
+### 2025-07-30
+**Email & Newsletter Improvements**
+- Switched newsletter and OTP email delivery from Brevo/Sendinblue to Gmail SMTP for reliability.
+- Improved newsletter email template with a professional design, upcoming release highlights, and community benefits.
+
+### 2025-07-29
+**Project Settings & Collaboration**
+- Added advanced project settings modal with grouped options for auto-save, formatting, syntax highlighting, linting, completion, suggestions, refactoring, navigation, search, debugging, profiling, testing, deployment, versioning, and collaboration.
+- Enabled real-time sync of project settings across all collaborators for seamless teamwork.
+
+### 2025-07-02
+**Code Editor & Execution**
+- Code editor now always displays code, is scrollable, and features vibrant syntax highlighting (VS Code-like) in both light and dark mode.
+- Syntax highlighting uses highlight.js with github/github-dark themes for a modern look.
+- "Run" button shows a live backwards timer until the WebContainer is ready, then becomes enabled for code execution.
+
+### 2025-06-25
+**AI Assistant & Chat Features**
+- Integrated Gemini API for AI-powered code suggestions and explanations.
+- Enabled @ChatRaj mentions in chat for direct AI interaction and code help.
+
+### 2025-05-10
+**Project & Team Management**
+- Project management: Create, join, and manage projects with unique names and categories.
+- Collaborator management: Add/remove users, assign roles, user profile pictures in chat and file tree.
+- AI system prompt: Enhanced system instructions for AI code generation.
+- Interactive onboarding tour for new users.
+
+### 2025-04-01
+**Initial Release**
+- ChatRaj launched: AI-powered software engineering collaboration platform.
+- Core features: Real-time chat, collaborative code editor, file tree explorer, AI assistant, user authentication, responsive design, notification system.
 
 ### Added
 - Major Project Page update:
