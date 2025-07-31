@@ -2,15 +2,14 @@ name: Auto-Approve PRs by Admin
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, ready_for_review]
 
 jobs:
   auto-approve:
     if: github.actor == 'Abhirajgautam28'
     runs-on: ubuntu-latest
     steps:
-      - name: Auto-approve PR
-        uses: hmarr/auto-approve-action@v3
+      - uses: hmarr/auto-approve-action@v3
         with:
-          github-token: ${{ secrets.GH_PAT }}
+          github-token: ${{ secrets.BOT_APPROVE_TOKEN }}
           message: 'Auto-approved by Abhirajgautam28'
