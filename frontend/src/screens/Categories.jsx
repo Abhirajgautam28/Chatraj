@@ -47,8 +47,14 @@ const Categories = () => {
     <div className="min-h-screen bg-gradient-to-r from-blue-800 to-gray-900">
       <main className="relative flex items-center justify-center min-h-screen">
         <button
+          onClick={() => navigate('/logout', { replace: true })}
+          className="fixed z-50 flex items-center justify-center px-4 py-2 text-white transition-all transform bg-blue-600 rounded-full shadow-lg cursor-pointer hover:bg-blue-700 top-4 right-4 hover:scale-110 animate__animated animate__bounceIn"
+        >
+          <i className="text-2xl ri-logout-box-r-line"></i>
+        </button>
+        <button
           onClick={() => navigate('/welcome-chatraj')}
-          className="fixed flex items-center gap-2 px-4 py-2 text-white transition-all transform bg-blue-600 rounded-full shadow-lg cursor-pointer hover:bg-blue-700 top-4 right-4 hover:scale-110 animate__animated animate__bounceIn"
+          className="fixed flex items-center gap-2 px-4 py-2 text-white transition-all transform bg-blue-600 rounded-full shadow-lg cursor-pointer hover:bg-blue-700 top-4 right-24 hover:scale-110 animate__animated animate__bounceIn"
         >
           <i className="text-2xl ri-robot-2-line"></i>
         </button>
