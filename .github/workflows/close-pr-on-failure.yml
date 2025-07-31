@@ -1,0 +1,29 @@
+name: Close PR if Deployment Fails
+
+on:
+  deployment_status:
+
+jobs:
+  close-pr-on-failure:
+    if: github.event.deployment_status.state == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const prs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open'
+            });
+
+            for (const pr of prs.data) {
+              if (pr.head.sha === context.payload.deployment.sha) {
+                await github.rest.pulls.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pr.number,
+                  state: 'closed'
+                });
+              }
+            }
