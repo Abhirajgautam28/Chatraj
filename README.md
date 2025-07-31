@@ -300,6 +300,7 @@ Please follow our [Code of Conduct](CODE_OF_CONDUCT.md) and ensure your code adh
 - [ ] **AI Model Training:** Task-specific AI enhancements.
 - [ ] **Advanced Debugging:** Real-time error detection and suggestions.
 - [ ] **Expanded Language Support:** More languages for global teams.
+- [ ] **Visual Studio Code Support:** Provide support for Visual Studio Code in Project Page.
 - [ ] **Enhanced Privacy:** Advanced data protection and compliance.
 - [ ] **Mobile App:** Native mobile experience.
 - [ ] **Plugin System:** Extend ChatRaj with custom plugins.
