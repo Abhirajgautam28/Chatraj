@@ -28,3 +28,4 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           merge-method: squash
+          message: 'Auto-merged by Abhirajgautam28'
