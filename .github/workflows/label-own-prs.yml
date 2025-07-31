@@ -1,20 +1,18 @@
-name: Label own PRs as automerge
+name: Label Own PRs
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  pull_request_target:
+    types: [opened, reopened]
 
 jobs:
   label:
     if: github.actor == 'Abhirajgautam28'
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
-      - uses: actions/github-script@v7
+      - name: Add automerge label to your own PR
+        uses: actions-ecosystem/action-add-labels@v1
         with:
-          script: |
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              labels: ['automerge']
-            });
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: automerge
