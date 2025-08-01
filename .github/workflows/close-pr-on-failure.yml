@@ -5,7 +5,10 @@ on:
 
 jobs:
   close-pr-on-failure:
-    if: github.event.deployment_status.state == 'failure'
+    if: >
+      github.event.deployment_status.state == 'failure' ||
+      github.event.deployment_status.state == 'error' ||
+      github.event.deployment_status.state == 'inactive'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v7

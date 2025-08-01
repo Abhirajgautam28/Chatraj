@@ -14,6 +14,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Set up GitHub CLI
+        uses: cli/cli-action@v2
+
       - name: Add automerge label
         run: gh pr edit "$PR_URL" --add-label "automerge"
         env:

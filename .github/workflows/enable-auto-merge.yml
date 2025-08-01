@@ -16,4 +16,3 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           merge-method: squash
           pull-request-number: ${{ github.event.pull_request.number }}
-          commit-message: 'Auto-merge enabled by @${{ github.actor }}'
