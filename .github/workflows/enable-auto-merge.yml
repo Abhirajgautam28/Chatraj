@@ -1,23 +1,24 @@
-name: Enable Auto Merge on Own PRs
+name: Enable Auto-Merge
 
 on:
-  pull_request:
+  pull_request_target:
     types: [labeled]
-    branches: [main]
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  enable:
+  enable-auto-merge:
     if: |
-      github.actor == 'Abhirajgautam28' &&
-      contains(join(github.event.pull_request.labels.*.name, ','), 'automerge')
+      github.actor == github.event.pull_request.user.login &&
+      contains(github.event.pull_request.labels.*.name, 'automerge')
     runs-on: ubuntu-latest
     steps:
       - name: Enable auto-merge
         uses: peter-evans/enable-pull-request-automerge@v3
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           pull-request-number: ${{ github.event.pull_request.number }}
           merge-method: squash
+          
