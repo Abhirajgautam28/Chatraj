@@ -2,12 +2,11 @@ name: Enable Auto Merge
 
 on:
   pull_request_target:
-    types:
-      - labeled
+    types: [labeled]
 
 jobs:
   enable-auto-merge:
-    if: github.actor == 'Abhirajgautam28' && contains(github.event.label.name, 'automerge')
+    if: github.actor == github.event.pull_request.user.login && github.event.label.name == 'automerge'
     permissions:
       pull-requests: write
     runs-on: ubuntu-latest
@@ -17,4 +16,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           merge-method: squash
           pull-request-number: ${{ github.event.pull_request.number }}
-          commit-message: 'Enable auto-merge for own PRs'
+          commit-message: 'Auto-merge enabled by @${{ github.actor }}'

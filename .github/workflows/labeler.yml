@@ -1,20 +1,16 @@
-name: Auto Label PRs
+name: Auto Label Own PRs
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened, synchronize]
 
 jobs:
   label:
-    if: github.actor == 'Abhirajgautam28'
     runs-on: ubuntu-latest
+    if: github.actor == github.event.pull_request.user.login
     steps:
-      - uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              labels: ['automerge']
-            });
+      - name: Add 'automerge' label to own PR
+        run: gh pr edit "$PR_URL" --add-label "automerge"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
