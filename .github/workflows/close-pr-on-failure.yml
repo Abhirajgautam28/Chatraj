@@ -1,11 +1,11 @@
-name: Close PR if Deployment Fails
+name: close-pr-on-failure
 
 on:
   deployment_status:
 
 jobs:
   close-pr-on-failure:
-    if: >
+    if: |
       github.event.deployment_status.state == 'failure' ||
       github.event.deployment_status.state == 'error' ||
       github.event.deployment_status.state == 'inactive'
@@ -14,13 +14,18 @@ jobs:
       - uses: actions/github-script@v7
         with:
           script: |
-            const prs = await github.rest.pulls.list({
+            if (context.payload.deployment.environment !== 'production') {
+              return;
+            }
+
+            const prs = await github.paginate(github.rest.pulls.list, {
               owner: context.repo.owner,
               repo: context.repo.repo,
-              state: 'open'
+              state: 'open',
+              per_page: 100
             });
 
-            for (const pr of prs.data) {
+            for (const pr of prs) {
               if (pr.head.sha === context.payload.deployment.sha) {
                 await github.rest.pulls.update({
                   owner: context.repo.owner,

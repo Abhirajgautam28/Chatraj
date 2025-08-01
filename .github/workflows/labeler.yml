@@ -1,4 +1,4 @@
-name: Auto Label Own PRs
+name: label
 
 on:
   pull_request_target:
@@ -14,11 +14,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Set up GitHub CLI
-        uses: cli/cli-action@v2
-
       - name: Add automerge label
-        run: gh pr edit "$PR_URL" --add-label "automerge"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: automerge
