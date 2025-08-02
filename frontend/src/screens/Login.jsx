@@ -275,24 +275,27 @@ const Login = () => {
                                                     placeholder="Enter OTP"
                                                     required
                                                 />
-                                                <div className="flex items-center justify-between mb-4">
+                                                <div className="flex flex-col items-center mb-4">
                                                     <button
                                                         type="button"
-                                                        className={`text-sm px-3 py-1 rounded bg-blue-500 text-white transition duration-300 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 ${!otpResendActive ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                                        className={`w-full flex items-center justify-center gap-2 text-sm px-4 py-2 rounded-full font-semibold bg-gradient-to-r from-blue-500 to-blue-700 text-white shadow-lg transition duration-150 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 ${!otpResendActive ? 'opacity-60 cursor-not-allowed' : ''}`}
                                                         disabled={!otpResendActive}
                                                         onClick={async () => {
                                                             if (!otpResendActive) return;
                                                             setOtpResendActive(false);
                                                             setOtpResendTimer(30);
                                                             setResetError('');
-                                                            try {
-                                                                await axios.post('/users/send-otp', { email: resetEmail });
-                                                            } catch (err) {
-                                                                setResetError('Failed to resend OTP. Please try again.');
-                                                                setOtpResendTimer(0);
-                                                                setOtpResendActive(true);
-                                                                return;
-                                                            }
+                                                            // Show instant feedback
+                                                            setResetError('Sending OTP...');
+                                                            axios.post('/users/send-otp', { email: resetEmail })
+                                                                .then(() => {
+                                                                    setResetError('OTP sent!');
+                                                                })
+                                                                .catch(() => {
+                                                                    setResetError('Failed to resend OTP. Please try again.');
+                                                                    setOtpResendTimer(0);
+                                                                    setOtpResendActive(true);
+                                                                });
                                                             let timer = 30;
                                                             const interval = setInterval(() => {
                                                                 timer--;
@@ -304,9 +307,10 @@ const Login = () => {
                                                             }, 1000);
                                                         }}
                                                     >
+                                                        <i className="ri-refresh-line text-lg"></i>
                                                         {otpResendActive ? 'Resend OTP' : `Resend OTP (${otpResendTimer}s)`}
                                                     </button>
-                                                    <span className="text-xs text-gray-400">Didn't receive OTP?</span>
+                                                    <span className="mt-2 text-xs text-gray-400">Didn't receive OTP?</span>
                                                 </div>
                                                 <button
                                                     type="submit"
@@ -337,6 +341,7 @@ const Login = () => {
                                                         className="w-full p-3 text-white transition duration-300 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
                                                         placeholder="Enter new password"
                                                         required
+                                                        disabled={resetSuccess}
                                                     />
                                                     <span
                                                         className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
@@ -355,17 +360,20 @@ const Login = () => {
                                                     className="w-full p-3 mb-4 text-white transition duration-300 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                     placeholder="Confirm new password"
                                                     required
+                                                    disabled={resetSuccess}
                                                 />
                                                 <button
                                                     type="submit"
                                                     className="w-full p-3 text-white transition duration-300 bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    disabled={resetSuccess}
                                                 >
-                                                    Reset Password
+                                                    {resetSuccess ? 'Password Reset Successful' : 'Reset Password'}
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowReset(false)}
                                                     className="w-full p-2 mt-3 text-sm text-gray-300 hover:text-white"
+                                                    disabled={resetSuccess}
                                                 >
                                                     Cancel
                                                 </button>
