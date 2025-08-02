@@ -59,30 +59,30 @@ const Categories = () => {
           <i className="text-2xl ri-robot-2-line"></i>
         </button>
 
-        <div className="w-full max-w-7xl p-8">
-          <h1 className="mb-12 text-5xl font-extrabold tracking-tight text-center text-white animate__animated animate__fadeInDown">
+        <div className="w-full max-w-7xl p-6">
+          <h1 className="mb-10 text-4xl font-bold text-center text-white animate__animated animate__fadeInDown">
             Explore Categories
           </h1>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
             {categories.map((cat, index) => {
               const count = projectCounts[cat.title] ?? 0;
               return (
                 <div
                   key={index}
                   onClick={() => handleCategoryClick(cat.title)}
-                  className="relative p-6 transition-all duration-300 transform bg-gray-800 border-2 border-gray-700 rounded-lg shadow-lg cursor-pointer hover:shadow-2xl hover:-translate-y-2 hover:border-blue-500"
-                  style={{ minHeight: 220 }}
+                  className="relative p-4 transition-all duration-300 transform bg-gray-800 border border-gray-700 rounded-lg shadow-md cursor-pointer hover:shadow-lg hover:-translate-y-1 hover:border-blue-600"
+                  style={{ minHeight: 160 }}
                 >
                   {count > 0 && (
-                    <span className="absolute top-0 right-0 px-2 py-1 text-xs font-bold text-white bg-blue-600 rounded-bl-lg rounded-tr-lg">
+                    <span className="absolute top-2 right-2 px-2 py-1 text-xs font-bold text-white bg-blue-600 rounded-full">
                       {count}
                     </span>
                   )}
-                  <div className="flex items-center justify-center w-16 h-16 mb-4 text-white bg-gray-700 rounded-full">
-                    <i className={`${cat.icon} text-3xl`}></i>
+                  <div className="flex items-center justify-center w-12 h-12 mb-3 text-white bg-gray-700 rounded-lg">
+                    <i className={`${cat.icon} text-2xl`}></i>
                   </div>
-                  <h2 className="mb-2 text-xl font-bold text-white">{cat.title}</h2>
-                  <p className="text-sm text-gray-400">{cat.description}</p>
+                  <h2 className="mb-1 text-lg font-semibold text-white">{cat.title}</h2>
+                  <p className="text-xs text-gray-400">{cat.description}</p>
                 </div>
               );
             })}
