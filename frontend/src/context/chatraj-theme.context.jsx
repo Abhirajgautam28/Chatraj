@@ -1,4 +1,5 @@
-import React, { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 
 export const ChatRajThemeContext = createContext();
 
@@ -22,3 +23,7 @@ export function ChatRajThemeProvider({ children }) {
     </ChatRajThemeContext.Provider>
   );
 }
+
+ChatRajThemeProvider.propTypes = {
+    children: PropTypes.node.isRequired,
+};
