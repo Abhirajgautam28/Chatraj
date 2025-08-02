@@ -1,11 +1,11 @@
-import React, { useContext, useState, useEffect } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { UserContext } from '../context/user.context';
 import axios from "../config/axios";
 import { useNavigate, useLocation } from 'react-router-dom';
 import 'animate.css';
 
 const Dashboard = () => {
-  const { setUser, user } = useContext(UserContext);
+  useContext(UserContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectName, setProjectName] = useState('');
   const [projects, setProjects] = useState([]);

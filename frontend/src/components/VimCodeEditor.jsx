@@ -1,12 +1,8 @@
 import { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import MonacoEditor from '@monaco-editor/react';
-import { initVimMode, disposeVimMode } from 'monaco-vim';
+import { initVimMode } from 'monaco-vim';
 import ReactModal from 'react-modal';
-
-const SUPPORTED_LANGUAGES = [
-  'javascript', 'typescript', 'python', 'java', 'c', 'cpp', 'go', 'ruby', 'php', 'json', 'markdown', 'html', 'css', 'scss', 'less', 'shell', 'powershell', 'sql', 'yaml', 'xml', 'plaintext'
-];
 
 // Additional themes
 const THEMES = [
@@ -107,7 +103,6 @@ const VimCodeEditor = ({
   value,
   onChange,
   isDarkMode,
-  fontSize = '16px',
   language = 'javascript',
   showOptionsModal = false, // controlled by parent
   onCloseOptionsModal = () => {}, // controlled by parent
@@ -129,7 +124,7 @@ const VimCodeEditor = ({
   const [showVimRemapMenu, setShowVimRemapMenu] = useState(false);
   const [vimRemaps, setVimRemaps] = useState([]);
   const [diagnostics, setDiagnostics] = useState([]);
-  const [fileName, setFileName] = useState('untitled.txt');
+  const [, setFileName] = useState('untitled.txt');
   const [selectedCategory, setSelectedCategory] = useState(FEATURE_CATEGORIES[0].name);
 
   // Update status bar on cursor move
@@ -272,16 +267,6 @@ const VimCodeEditor = ({
     setVimRemaps((remaps) => [...remaps, { from, to }]);
     setShowVimRemapMenu(false);
     // Optionally, apply remap to monaco-vim here
-  }
-
-  function handleDownload() {
-    const blob = new Blob([value], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    a.click();
-    URL.revokeObjectURL(url);
   }
 
   function handleUpload(e) {

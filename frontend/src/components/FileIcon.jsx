@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 const FileIcon = ({ fileName }) => {
   const getIcon = (fileName) => {
     const ext = fileName.split('.').pop().toLowerCase();
@@ -186,6 +188,10 @@ const FileIcon = ({ fileName }) => {
   return (
     <i className={`${getIcon(fileName)} text-lg mr-2`}></i>
   );
+};
+
+FileIcon.propTypes = {
+    fileName: PropTypes.string.isRequired,
 };
 
 export default FileIcon;

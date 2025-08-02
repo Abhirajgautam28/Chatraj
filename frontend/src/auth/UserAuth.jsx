@@ -1,6 +1,7 @@
-import React, { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { UserContext } from '../context/user.context'
+import PropTypes from 'prop-types';
 
 const UserAuth = ({ children }) => {
 
@@ -35,5 +36,9 @@ const UserAuth = ({ children }) => {
             {children}</>
     )
 }
+
+UserAuth.propTypes = {
+    children: PropTypes.node.isRequired,
+};
 
 export default UserAuth
