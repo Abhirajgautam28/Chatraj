@@ -59,47 +59,31 @@ const Categories = () => {
           <i className="text-2xl ri-robot-2-line"></i>
         </button>
 
-        <div className="w-full max-w-6xl p-4">
-          <h1 className="mb-6 text-2xl font-bold text-center text-white animate__animated animate__fadeInDown">
+        <div className="w-full max-w-7xl p-8">
+          <h1 className="mb-12 text-5xl font-extrabold tracking-tight text-center text-white animate__animated animate__fadeInDown">
             Explore Categories
           </h1>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {categories.map((cat, index) => {
               const count = projectCounts[cat.title] ?? 0;
               return (
-                <button
+                <div
                   key={index}
                   onClick={() => handleCategoryClick(cat.title)}
-                  className="relative flex flex-col items-center justify-center p-2 text-white transition transform bg-gray-700 rounded-md hover:bg-gray-600 hover:scale-105"
-                  style={{ minHeight: 120 }}
+                  className="relative p-6 transition-all duration-300 transform bg-gray-800 border-2 border-gray-700 rounded-lg shadow-lg cursor-pointer hover:shadow-2xl hover:-translate-y-2 hover:border-blue-500"
+                  style={{ minHeight: 220 }}
                 >
-                  {count > 0 ? (
-                    <span
-                      className="absolute"
-                      style={{
-                        top: 8,
-                        right: 8,
-                        minWidth: 22,
-                        height: 22,
-                        background: '#2563eb',
-                        color: '#fff',
-                        borderRadius: '999px',
-                        fontWeight: 700,
-                        fontSize: 13,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-                        zIndex: 2
-                      }}
-                    >
+                  {count > 0 && (
+                    <span className="absolute top-0 right-0 px-2 py-1 text-xs font-bold text-white bg-blue-600 rounded-bl-lg rounded-tr-lg">
                       {count}
                     </span>
-                  ) : null}
-                  <i className={`${cat.icon} text-5xl mb-2`}></i>
-                  <h2 className="text-lg font-semibold text-center">{cat.title}</h2>
-                  <p className="text-sm text-center">{cat.description}</p>
-                </button>
+                  )}
+                  <div className="flex items-center justify-center w-16 h-16 mb-4 text-white bg-gray-700 rounded-full">
+                    <i className={`${cat.icon} text-3xl`}></i>
+                  </div>
+                  <h2 className="mb-2 text-xl font-bold text-white">{cat.title}</h2>
+                  <p className="text-sm text-gray-400">{cat.description}</p>
+                </div>
               );
             })}
           </div>
