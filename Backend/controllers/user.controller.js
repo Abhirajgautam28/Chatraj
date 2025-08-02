@@ -1,3 +1,21 @@
+// Send OTP for password reset (used in Login.jsx)
+export const sendOtpController = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ message: 'Email is required' });
+        const user = await userModel.findOne({ email });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        // Generate OTP
+        const otp = generateOTP(7);
+        user.otp = otp;
+        user.isVerified = false;
+        await user.save();
+        await sendOtpEmail(user.email, otp);
+        res.status(200).json({ message: 'OTP sent to email.' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 import userModel from '../models/user.model.js';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
@@ -58,16 +76,23 @@ async function sendOtpEmail(email, otp) {
     console.log('OTP email sent: %s', info.messageId);
 }
 
+// OTP verification for both registration (userId) and password reset (email)
 export const verifyOtpController = async (req, res) => {
-    const { userId, otp } = req.body;
-    if (!userId || !otp) return res.status(400).json({ message: 'User ID and OTP required' });
-    const user = await userModel.findById(userId).select('+otp');
+    const { userId, email, otp } = req.body;
+    if ((!userId && !email) || !otp) return res.status(400).json({ message: 'User ID or email and OTP required' });
+    let user;
+    if (userId) {
+        user = await userModel.findById(userId).select('+otp');
+    } else if (email) {
+        user = await userModel.findOne({ email }).select('+otp');
+    }
     if (!user) return res.status(404).json({ message: 'User not found' });
     if (user.otp !== otp) return res.status(401).json({ message: 'Invalid OTP' });
     user.isVerified = true;
     user.otp = undefined;
     await user.save();
-    const token = await user.generateJWT();
+    let token = null;
+    if (userId) token = await user.generateJWT();
     res.status(200).json({ message: 'Verified successfully', token, user });
 };
 

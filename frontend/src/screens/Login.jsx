@@ -13,8 +13,14 @@ const Login = () => {
 
     const [showReset, setShowReset] = useState(false);
     const [resetEmail, setResetEmail] = useState('');
+    const [resetOtpSent, setResetOtpSent] = useState(false);
+    const [resetOtp, setResetOtp] = useState('');
+    const [resetOtpVerified, setResetOtpVerified] = useState(false);
     const [resetNewPassword, setResetNewPassword] = useState('');
+    const [resetConfirmPassword, setResetConfirmPassword] = useState('');
     const [resetSuccess, setResetSuccess] = useState(false);
+    const [resetError, setResetError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     function submitHandler(e) {
         e.preventDefault();
@@ -37,8 +43,53 @@ const Login = () => {
             });
     }
 
-    const handleResetPassword = async (e) => {
+
+    // Step 1: Send OTP to email (use same logic as registration)
+    const handleSendOtp = async (e) => {
         e.preventDefault();
+        setResetError('');
+        if (!resetEmail) {
+            setResetError('Please enter your email address.');
+            return;
+        }
+        try {
+            // Use the same endpoint and payload as registration OTP
+            await axios.post('/users/send-otp', { email: resetEmail });
+            setResetOtpSent(true);
+        } catch (err) {
+            setResetError('Failed to send OTP. Please try again.');
+        }
+    };
+
+    // Step 2: Verify OTP
+    const handleVerifyOtp = async (e) => {
+        e.preventDefault();
+        setResetError('');
+        if (!resetOtp) {
+            setResetError('Please enter the OTP sent to your email.');
+            return;
+        }
+        try {
+            await axios.post('/users/verify-otp', { email: resetEmail, otp: resetOtp });
+            setResetOtpVerified(true);
+        } catch (err) {
+            setResetError('Invalid OTP. Please check your email and try again.');
+        }
+    };
+
+    // Step 3: Set new password
+    const handleSetNewPassword = async (e) => {
+        e.preventDefault();
+        setResetError('');
+        if (resetNewPassword.length < 8) {
+            setResetError('Password must be at least 8 characters long.');
+            return;
+        }
+        if (resetNewPassword !== resetConfirmPassword) {
+            setResetError('Confirm password does not match the password you mentioned above.');
+            setResetConfirmPassword('');
+            return;
+        }
         try {
             await axios.post('/users/update-password', {
                 email: resetEmail,
@@ -49,10 +100,16 @@ const Login = () => {
                 setShowReset(false);
                 setResetSuccess(false);
                 setResetEmail('');
+                setResetOtp('');
+                setResetOtpSent(false);
+                setResetOtpVerified(false);
                 setResetNewPassword('');
-            }, 1500);
+                setResetConfirmPassword('');
+                setShowPassword(false);
+                setResetError('');
+            }, 2500);
         } catch (err) {
-            alert('Failed to reset password. Please try again.');
+            setResetError('Failed to reset password. Please try again.');
         }
     };
 
@@ -158,43 +215,122 @@ const Login = () => {
                                 {!resetSuccess ? (
                                     <>
                                         <h3 className="mb-4 text-xl font-bold text-center text-white">Reset Password</h3>
-                                        <form onSubmit={handleResetPassword}>
-                                            <label className="block mb-2 text-sm font-medium text-gray-400">
-                                                Enter your email address
-                                            </label>
-                                            <input
-                                                type="email"
-                                                value={resetEmail}
-                                                onChange={(e) => setResetEmail(e.target.value)}
-                                                className="w-full p-3 mb-4 text-white transition duration-300 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                placeholder="Enter your email"
-                                                required
-                                            />
-                                            <label className="block mb-2 text-sm font-medium text-gray-400">
-                                                New Password
-                                            </label>
-                                            <input
-                                                type="password"
-                                                value={resetNewPassword}
-                                                onChange={(e) => setResetNewPassword(e.target.value)}
-                                                className="w-full p-3 mb-4 text-white transition duration-300 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                placeholder="Enter new password"
-                                                required
-                                            />
-                                            <button
-                                                type="submit"
-                                                className="w-full p-3 text-white transition duration-300 bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            >
-                                                Reset Password
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowReset(false)}
-                                                className="w-full p-2 mt-3 text-sm text-gray-300 hover:text-white"
-                                            >
-                                                Cancel
-                                            </button>
-                                        </form>
+                                        {/* Step 1: Enter email and send OTP */}
+                                        {!resetOtpSent && (
+                                            <form onSubmit={handleSendOtp}>
+                                                <label className="block mb-2 text-sm font-medium text-gray-400">
+                                                    Enter your email address
+                                                </label>
+                                                <input
+                                                    type="email"
+                                                    value={resetEmail}
+                                                    onChange={(e) => setResetEmail(e.target.value)}
+                                                    className="w-full p-3 mb-4 text-white transition duration-300 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    placeholder="Enter your email"
+                                                    required
+                                                    disabled={resetOtpSent}
+                                                />
+                                                <button
+                                                    type="submit"
+                                                    className="w-full p-3 text-white transition duration-300 bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    disabled={resetOtpSent}
+                                                >
+                                                    {resetOtpSent ? 'OTP Sent' : 'Send OTP'}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setShowReset(false);
+                                                        setResetOtpSent(false);
+                                                        setResetEmail('');
+                                                        setResetError('');
+                                                    }}
+                                                    className="w-full p-2 mt-3 text-sm text-gray-300 hover:text-white"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                {resetError && <div className="mt-2 text-sm text-red-400 text-center">{resetError}</div>}
+                                            </form>
+                                        )}
+                                        {/* Step 2: Enter OTP */}
+                                        {resetOtpSent && !resetOtpVerified && (
+                                            <form onSubmit={handleVerifyOtp}>
+                                                <label className="block mb-2 text-sm font-medium text-gray-400">
+                                                    Enter OTP sent to your email
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={resetOtp}
+                                                    onChange={e => setResetOtp(e.target.value)}
+                                                    className="w-full p-3 mb-4 text-white transition duration-300 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    placeholder="Enter OTP"
+                                                    required
+                                                />
+                                                <button
+                                                    type="submit"
+                                                    className="w-full p-3 text-white transition duration-300 bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                >
+                                                    Verify OTP
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowReset(false)}
+                                                    className="w-full p-2 mt-3 text-sm text-gray-300 hover:text-white"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                {resetError && <div className="mt-2 text-sm text-red-400 text-center">{resetError}</div>}
+                                            </form>
+                                        )}
+                                        {/* Step 3: Enter new password and confirm password */}
+                                        {resetOtpVerified && (
+                                            <form onSubmit={handleSetNewPassword}>
+                                                <label className="block mb-2 text-sm font-medium text-gray-400">
+                                                    New Password
+                                                </label>
+                                                <div className="relative mb-4">
+                                                    <input
+                                                        type={showPassword ? "text" : "password"}
+                                                        value={resetNewPassword}
+                                                        onChange={e => setResetNewPassword(e.target.value)}
+                                                        className="w-full p-3 text-white transition duration-300 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                                                        placeholder="Enter new password"
+                                                        required
+                                                    />
+                                                    <span
+                                                        className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
+                                                        onClick={() => setShowPassword(!showPassword)}
+                                                    >
+                                                        <i className={`ri-eye${showPassword ? '' : '-close'}-line text-xl text-gray-400`}></i>
+                                                    </span>
+                                                </div>
+                                                <label className="block mb-2 text-sm font-medium text-gray-400">
+                                                    Confirm Password
+                                                </label>
+                                                <input
+                                                    type="password"
+                                                    value={resetConfirmPassword}
+                                                    onChange={e => setResetConfirmPassword(e.target.value)}
+                                                    className="w-full p-3 mb-4 text-white transition duration-300 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    placeholder="Confirm new password"
+                                                    required
+                                                />
+                                                <button
+                                                    type="submit"
+                                                    className="w-full p-3 text-white transition duration-300 bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                >
+                                                    Reset Password
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowReset(false)}
+                                                    className="w-full p-2 mt-3 text-sm text-gray-300 hover:text-white"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                {resetError && <div className="mt-2 text-sm text-red-400 text-center">{resetError}</div>}
+                                            </form>
+                                        )}
                                     </>
                                 ) : (
                                     <div className="flex flex-col items-center justify-center">
