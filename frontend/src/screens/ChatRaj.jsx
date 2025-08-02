@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect, useContext } from 'react';
+import { useState, useRef, useEffect, useContext, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import 'animate.css';
+import PropTypes from 'prop-types';
 import { ChatRajThemeContext } from '../context/chatraj-theme.context';
 import { UserContext } from '../context/user.context';
 import { useNavigate } from 'react-router-dom';
@@ -16,103 +17,13 @@ const formatMessageTime = (timestamp) => {
   return `${dateString} ${timeString}`;
 };
 
-const WaveAnimation = ({ isListening }) => {
-  return (
-    <motion.div 
-      className={`absolute bottom-0 left-0 right-0 flex justify-center overflow-hidden transition-all duration-300 ${
-        isListening ? 'h-32' : 'h-0'
-      }`}
-    >
-      <div className="relative w-full">
-        {[...Array(3)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute bottom-0 left-0 right-0 h-full"
-            style={{
-              background: `rgba(59, 130, 246, ${0.2 - i * 0.05})`,
-              backgroundImage: 'linear-gradient(to bottom, transparent, rgba(59, 130, 246, 0.2))',
-            }}
-            animate={{
-              y: [0, -10, 0],
-              scaleY: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              delay: i * 0.4,
-              ease: "easeInOut"
-            }}
-          />
-        ))}
-      </div>
-    </motion.div>
-  );
-};
-
-const VoiceVisualization = ({ isListening }) => {
-  return (
-    <motion.div 
-      className={`absolute left-0 right-0 flex items-center justify-center ${
-        isListening ? 'bottom-20' : 'bottom-0'
-      } transition-all duration-300`}
-    >
-      <div className="flex items-center space-x-1">
-        {[...Array(5)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="w-1 bg-blue-400"
-            animate={{
-              height: isListening ? [20, 40, 20] : 0,
-            }}
-            transition={{
-              duration: 0.5,
-              repeat: Infinity,
-              delay: i * 0.1,
-              ease: "easeInOut"
-            }}
-          />
-        ))}
-      </div>
-    </motion.div>
-  );
-};
-
-const VoiceIndicator = ({ isListening }) => {
-  return (
-    <motion.div 
-      className={`absolute -top-16 left-0 flex items-center justify-center p-3 space-x-2 text-sm text-white bg-black rounded-lg ${
-        isListening ? 'opacity-100' : 'opacity-0'
-      } transition-opacity duration-200`}
-    >
-      <div className="flex space-x-1">
-        {[...Array(3)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="w-1.5 h-1.5 bg-blue-500 rounded-full"
-            animate={{
-              scale: [1, 1.5, 1],
-              opacity: [0.3, 1, 0.3]
-            }}
-            transition={{
-              duration: 1,
-              repeat: Infinity,
-              delay: i * 0.2
-            }}
-          />
-        ))}
-      </div>
-      <span>Listening...</span>
-    </motion.div>
-  );
-};
-
 const ChatRaj = () => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [, setIsSpeaking] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -203,7 +114,7 @@ const ChatRaj = () => {
   const messageEndRef = useRef(null);
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
-  const { isDarkMode, setIsDarkMode } = useContext(ChatRajThemeContext);
+  useContext(ChatRajThemeContext);
   const { user } = useContext(UserContext);
 
   const [autoCompleteOptions, setAutoCompleteOptions] = useState([]);
@@ -325,7 +236,7 @@ const ChatRaj = () => {
 
       recognitionRef.current = recognition;
     }
-  }, []);
+  }, [handleSubmit]);
 
   useEffect(() => {
     const sidebar = document.querySelector('.sidebar');
@@ -419,7 +330,7 @@ const ChatRaj = () => {
     }
   };
 
-  const speakResponse = (text) => {
+  const speakResponse = useCallback((text) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       setIsSpeaking(true);
@@ -458,9 +369,9 @@ const ChatRaj = () => {
 
       window.speechSynthesis.speak(utterance);
     }
-  };
+  }, [setIsSpeaking]);
 
-  const handleSubmit = async (e, voiceInput = null) => {
+  const handleSubmit = useCallback(async (e, voiceInput = null) => {
     e?.preventDefault();
     
     const messageToSend = voiceInput || inputMessage;
@@ -490,7 +401,7 @@ const ChatRaj = () => {
         speakResponse(aiMessage.content);
       }
     }, 1500);
-  };
+  }, [inputMessage, speakResponse]);
 
   const handleNewChat = () => {
     setMessages([]);
@@ -1149,6 +1060,10 @@ const ChatRaj = () => {
       </AnimatePresence>
     </div>
   );
+};
+
+ChatRaj.propTypes = {
+    isListening: PropTypes.bool,
 };
 
 export default ChatRaj;
