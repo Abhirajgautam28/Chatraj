@@ -44,7 +44,7 @@ const Login = () => {
     }
 
 
-    // Step 1: Send OTP to email
+    // Step 1: Send OTP to email (use same logic as registration)
     const handleSendOtp = async (e) => {
         e.preventDefault();
         setResetError('');
@@ -53,7 +53,8 @@ const Login = () => {
             return;
         }
         try {
-            await axios.post('/users/reset-password', { email: resetEmail });
+            // Use the same endpoint and payload as registration OTP
+            await axios.post('/users/send-otp', { email: resetEmail });
             setResetOtpSent(true);
         } catch (err) {
             setResetError('Failed to send OTP. Please try again.');
@@ -227,16 +228,23 @@ const Login = () => {
                                                     className="w-full p-3 mb-4 text-white transition duration-300 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                     placeholder="Enter your email"
                                                     required
+                                                    disabled={resetOtpSent}
                                                 />
                                                 <button
                                                     type="submit"
                                                     className="w-full p-3 text-white transition duration-300 bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    disabled={resetOtpSent}
                                                 >
-                                                    Send OTP
+                                                    {resetOtpSent ? 'OTP Sent' : 'Send OTP'}
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    onClick={() => setShowReset(false)}
+                                                    onClick={() => {
+                                                        setShowReset(false);
+                                                        setResetOtpSent(false);
+                                                        setResetEmail('');
+                                                        setResetError('');
+                                                    }}
                                                     className="w-full p-2 mt-3 text-sm text-gray-300 hover:text-white"
                                                 >
                                                     Cancel
