@@ -237,8 +237,7 @@ async function sendPasswordResetSuccessEmail(email, name) {
           <h2 style="color: #2563eb; margin-bottom: 12px;">What's Next?</h2>
           <ul style="font-size: 16px; line-height: 1.7; margin:0; padding-left: 18px;">
             <li>🔑 <b>Login with your new password</b> – Your account is now secure and ready to use.</li>
-            <li>🤖 <b>AI-Powered Collaboration</b> – Enjoy real-time code editing, chat, and project management.</li>
-            <li>🎨 <b>Beautiful UI</b> – Modern, themeable, and accessible for all users.</li>
+            <li>📧 <b>Keep your email updated</b> – Ensure you receive important notifications.</li>
           </ul>
         </div>
         <div style="background: #fff; border-radius: 10px; padding: 24px; margin-bottom: 24px; border: 1px solid #e3eaf5;">
