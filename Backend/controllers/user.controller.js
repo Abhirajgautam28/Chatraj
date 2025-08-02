@@ -222,16 +222,18 @@ async function sendPasswordResetSuccessEmail(email, name) {
         },
     });
     const html = `
-    <div style="background:linear-gradient(90deg,#2563eb 0%,#1e293b 100%);padding:32px 0;font-family:'Segoe UI',Arial,sans-serif;color:#fff;text-align:center;">
-      <div style="max-width:420px;margin:0 auto;background:#1e293b;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.12);padding:32px 24px;">
-        <h2 style="color:#60a5fa;font-size:2rem;margin-bottom:12px;">Password Reset Successful</h2>
+    <div style="background:linear-gradient(90deg,#2563eb 0%,#1e293b 100%);padding:0;font-family:'Segoe UI',Arial,sans-serif;color:#fff;text-align:center;">
+      <div style="max-width:480px;margin:40px auto;background:#1e293b;border-radius:18px;box-shadow:0 6px 32px rgba(0,0,0,0.14);padding:40px 32px;">
+        <div style="margin-bottom:24px;">
+          <span style="display:inline-block;background:#2563eb;color:#fff;padding:12px 32px;border-radius:999px;font-weight:700;font-size:1.2rem;box-shadow:0 2px 12px rgba(0,0,0,0.14);letter-spacing:0.5px;">Password Reset Successful</span>
+        </div>
         <p style="font-size:1.1rem;margin-bottom:24px;">Hi <b>${name}</b>,<br>Your ChatRaj password has been reset successfully.</p>
         <div style="margin-bottom:24px;">
-          <span style="display:inline-block;background:#2563eb;color:#fff;padding:10px 24px;border-radius:999px;font-weight:600;font-size:1.1rem;box-shadow:0 2px 8px rgba(0,0,0,0.12);">You can now login with your new password</span>
+          <span style="display:inline-block;background:#60a5fa;color:#fff;padding:10px 24px;border-radius:999px;font-weight:600;font-size:1.05rem;box-shadow:0 2px 8px rgba(0,0,0,0.10);">You can now login with your new password</span>
         </div>
-        <p style="font-size:0.95rem;color:#cbd5e1;margin-bottom:16px;">If you did not request this change, please contact our support team immediately.</p>
-        <a href="https://chatraj.com/login" style="display:inline-block;margin-top:12px;padding:10px 32px;background:#60a5fa;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.10);">Login to ChatRaj</a>
-        <div style="margin-top:32px;font-size:0.9rem;color:#94a3b8;">Thank you for using ChatRaj!<br>— The ChatRaj Team</div>
+        <p style="font-size:0.98rem;color:#cbd5e1;margin-bottom:18px;">If you did not request this change, please contact our support team immediately.</p>
+        <a href="https://chatraj.com/login" style="display:inline-block;margin-top:12px;padding:12px 36px;background:#2563eb;color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:1.05rem;box-shadow:0 2px 8px rgba(0,0,0,0.10);">Login to ChatRaj</a>
+        <div style="margin-top:36px;font-size:0.95rem;color:#94a3b8;">Thank you for using ChatRaj!<br>— The ChatRaj Team</div>
       </div>
     </div>
     `;
