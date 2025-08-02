@@ -14,6 +14,8 @@ const Login = () => {
     const [showReset, setShowReset] = useState(false);
     const [resetEmail, setResetEmail] = useState('');
     const [resetOtpSent, setResetOtpSent] = useState(false);
+    const [otpResendTimer, setOtpResendTimer] = useState(0);
+    const [otpResendActive, setOtpResendActive] = useState(false);
     const [resetOtp, setResetOtp] = useState('');
     const [resetOtpVerified, setResetOtpVerified] = useState(false);
     const [resetNewPassword, setResetNewPassword] = useState('');
@@ -43,8 +45,6 @@ const Login = () => {
             });
     }
 
-
-    // Step 1: Send OTP to email (use same logic as registration)
     const handleSendOtp = async (e) => {
         e.preventDefault();
         setResetError('');
@@ -52,16 +52,28 @@ const Login = () => {
             setResetError('Please enter your email address.');
             return;
         }
+        if (otpResendTimer > 0) return;
+        setOtpResendTimer(30);
+        setOtpResendActive(false);
         try {
-            // Use the same endpoint and payload as registration OTP
             await axios.post('/users/send-otp', { email: resetEmail });
             setResetOtpSent(true);
+            let timer = 30;
+            const interval = setInterval(() => {
+                timer--;
+                setOtpResendTimer(timer);
+                if (timer <= 0) {
+                    setOtpResendActive(true);
+                    clearInterval(interval);
+                }
+            }, 1000);
         } catch (err) {
             setResetError('Failed to send OTP. Please try again.');
+            setOtpResendTimer(0);
+            setOtpResendActive(true);
         }
     };
 
-    // Step 2: Verify OTP
     const handleVerifyOtp = async (e) => {
         e.preventDefault();
         setResetError('');
@@ -77,7 +89,6 @@ const Login = () => {
         }
     };
 
-    // Step 3: Set new password
     const handleSetNewPassword = async (e) => {
         e.preventDefault();
         setResetError('');
@@ -215,7 +226,6 @@ const Login = () => {
                                 {!resetSuccess ? (
                                     <>
                                         <h3 className="mb-4 text-xl font-bold text-center text-white">Reset Password</h3>
-                                        {/* Step 1: Enter email and send OTP */}
                                         {!resetOtpSent && (
                                             <form onSubmit={handleSendOtp}>
                                                 <label className="block mb-2 text-sm font-medium text-gray-400">
@@ -252,7 +262,6 @@ const Login = () => {
                                                 {resetError && <div className="mt-2 text-sm text-red-400 text-center">{resetError}</div>}
                                             </form>
                                         )}
-                                        {/* Step 2: Enter OTP */}
                                         {resetOtpSent && !resetOtpVerified && (
                                             <form onSubmit={handleVerifyOtp}>
                                                 <label className="block mb-2 text-sm font-medium text-gray-400">
@@ -262,10 +271,43 @@ const Login = () => {
                                                     type="text"
                                                     value={resetOtp}
                                                     onChange={e => setResetOtp(e.target.value)}
-                                                    className="w-full p-3 mb-4 text-white transition duration-300 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    className="w-full p-3 mb-2 text-white transition duration-300 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                     placeholder="Enter OTP"
                                                     required
                                                 />
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <button
+                                                        type="button"
+                                                        className={`text-sm px-3 py-1 rounded bg-blue-500 text-white transition duration-300 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 ${!otpResendActive ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                                        disabled={!otpResendActive}
+                                                        onClick={async () => {
+                                                            if (!otpResendActive) return;
+                                                            setOtpResendActive(false);
+                                                            setOtpResendTimer(30);
+                                                            setResetError('');
+                                                            try {
+                                                                await axios.post('/users/send-otp', { email: resetEmail });
+                                                            } catch (err) {
+                                                                setResetError('Failed to resend OTP. Please try again.');
+                                                                setOtpResendTimer(0);
+                                                                setOtpResendActive(true);
+                                                                return;
+                                                            }
+                                                            let timer = 30;
+                                                            const interval = setInterval(() => {
+                                                                timer--;
+                                                                setOtpResendTimer(timer);
+                                                                if (timer <= 0) {
+                                                                    setOtpResendActive(true);
+                                                                    clearInterval(interval);
+                                                                }
+                                                            }, 1000);
+                                                        }}
+                                                    >
+                                                        {otpResendActive ? 'Resend OTP' : `Resend OTP (${otpResendTimer}s)`}
+                                                    </button>
+                                                    <span className="text-xs text-gray-400">Didn't receive OTP?</span>
+                                                </div>
                                                 <button
                                                     type="submit"
                                                     className="w-full p-3 text-white transition duration-300 bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -282,7 +324,6 @@ const Login = () => {
                                                 {resetError && <div className="mt-2 text-sm text-red-400 text-center">{resetError}</div>}
                                             </form>
                                         )}
-                                        {/* Step 3: Enter new password and confirm password */}
                                         {resetOtpVerified && (
                                             <form onSubmit={handleSetNewPassword}>
                                                 <label className="block mb-2 text-sm font-medium text-gray-400">

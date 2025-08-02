@@ -201,8 +201,45 @@ export const updatePasswordController = async (req, res) => {
         user.password = await userModel.hashPassword(newPassword);
         await user.save();
 
+        // Send password reset success email
+        await sendPasswordResetSuccessEmail(user.email, user.firstName || user.email);
+
         res.json({ message: 'Password updated successfully' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 };
+
+// Helper: Send password reset success email with modern template
+async function sendPasswordResetSuccessEmail(email, name) {
+    const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587,
+        secure: false,
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+        },
+    });
+    const html = `
+    <div style="background:linear-gradient(90deg,#2563eb 0%,#1e293b 100%);padding:32px 0;font-family:'Segoe UI',Arial,sans-serif;color:#fff;text-align:center;">
+      <div style="max-width:420px;margin:0 auto;background:#1e293b;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.12);padding:32px 24px;">
+        <h2 style="color:#60a5fa;font-size:2rem;margin-bottom:12px;">Password Reset Successful</h2>
+        <p style="font-size:1.1rem;margin-bottom:24px;">Hi <b>${name}</b>,<br>Your ChatRaj password has been reset successfully.</p>
+        <div style="margin-bottom:24px;">
+          <span style="display:inline-block;background:#2563eb;color:#fff;padding:10px 24px;border-radius:999px;font-weight:600;font-size:1.1rem;box-shadow:0 2px 8px rgba(0,0,0,0.12);">You can now login with your new password</span>
+        </div>
+        <p style="font-size:0.95rem;color:#cbd5e1;margin-bottom:16px;">If you did not request this change, please contact our support team immediately.</p>
+        <a href="https://chatraj.com/login" style="display:inline-block;margin-top:12px;padding:10px 32px;background:#60a5fa;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.10);">Login to ChatRaj</a>
+        <div style="margin-top:32px;font-size:0.9rem;color:#94a3b8;">Thank you for using ChatRaj!<br>— The ChatRaj Team</div>
+      </div>
+    </div>
+    `;
+    let info = await transporter.sendMail({
+        from: process.env.SMTP_FROM || 'ChatRaj <no-reply@chatraj.com>',
+        to: email,
+        subject: 'Your ChatRaj Password Has Been Reset',
+        html
+    });
+    console.log('Password reset success email sent: %s', info.messageId);
+}
