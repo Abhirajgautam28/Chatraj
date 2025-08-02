@@ -89,8 +89,10 @@ const Login = () => {
         }
     };
 
+    const [resetInProgress, setResetInProgress] = useState(false);
     const handleSetNewPassword = async (e) => {
         e.preventDefault();
+        if (resetInProgress || resetSuccess) return;
         setResetError('');
         if (resetNewPassword.length < 8) {
             setResetError('Password must be at least 8 characters long.');
@@ -101,6 +103,7 @@ const Login = () => {
             setResetConfirmPassword('');
             return;
         }
+        setResetInProgress(true);
         try {
             await axios.post('/users/update-password', {
                 email: resetEmail,
@@ -118,9 +121,11 @@ const Login = () => {
                 setResetConfirmPassword('');
                 setShowPassword(false);
                 setResetError('');
+                setResetInProgress(false);
             }, 2500);
         } catch (err) {
             setResetError('Failed to reset password. Please try again.');
+            setResetInProgress(false);
         }
     };
 
@@ -364,10 +369,10 @@ const Login = () => {
                                                 />
                                                 <button
                                                     type="submit"
-                                                    className="w-full p-3 text-white transition duration-300 bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    disabled={resetSuccess}
+                                                    className={`w-full p-3 text-white transition duration-300 bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 ${resetInProgress ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                                    disabled={resetSuccess || resetInProgress}
                                                 >
-                                                    {resetSuccess ? 'Password Reset Successful' : 'Reset Password'}
+                                                    {resetSuccess ? 'Password Reset Successful' : resetInProgress ? 'Resetting...' : 'Reset Password'}
                                                 </button>
                                                 <button
                                                     type="button"

@@ -198,10 +198,16 @@ export const updatePasswordController = async (req, res) => {
         const user = await userModel.findOne({ email });
         if (!user) return res.status(404).json({ message: 'User not found' });
 
+        // Prevent duplicate password reset emails by using a flag
+        if (user._passwordResetEmailSent) {
+            return res.json({ message: 'Password updated successfully' });
+        }
+
         user.password = await userModel.hashPassword(newPassword);
+        user._passwordResetEmailSent = true;
         await user.save();
 
-        // Send password reset success email
+        // Send password reset success email only once
         await sendPasswordResetSuccessEmail(user.email, user.firstName || user.email);
 
         res.json({ message: 'Password updated successfully' });
