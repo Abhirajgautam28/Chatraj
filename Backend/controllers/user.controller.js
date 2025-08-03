@@ -16,6 +16,15 @@ export const sendOtpController = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+export const getLeaderboardController = async (req, res) => {
+    try {
+        const users = await User.find({}).sort({ projects: -1 }).limit(10);
+        res.status(200).json({ users });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
 import userModel from '../models/user.model.js';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';

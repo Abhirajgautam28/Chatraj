@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
+import UserLeaderboard from '../components/UserLeaderboard.jsx';
+import ProjectShowcase from '../components/ProjectShowcase.jsx';
 import 'animate.css';
 
 // Newsletter API endpoint for subscription
@@ -377,6 +379,20 @@ const Home = () => {
         </section>
 
         <section className="py-20 bg-white dark:bg-gray-900">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-white">Project Showcase</h2>
+            <ProjectShowcase />
+          </div>
+        </section>
+
+        <section className="py-20 bg-gray-100 dark:bg-gray-800">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-white">User Leaderboard</h2>
+            <UserLeaderboard />
+          </div>
+        </section>
+
+        <section className="py-20 bg-gray-100 dark:bg-gray-800">
           <div className="max-w-4xl mx-auto">
             <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-white">Frequently Asked Questions</h2>
             <div className="space-y-4">
