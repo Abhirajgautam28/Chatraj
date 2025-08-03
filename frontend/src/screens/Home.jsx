@@ -246,7 +246,7 @@ const Home = () => {
           transition={{ duration: 1, delay: 0.7 }}
           className="max-w-2xl p-6 mx-auto mt-16 transition-all duration-300 border shadow-xl rounded-xl bg-gray-900/80 border-blue-900/30 group hover:scale-105 hover:shadow-2xl hover:border-blue-400 hover:bg-gray-800"
         >
-          <pre className={`font-mono text-base leading-relaxed text-left ${isDarkMode ? 'text-blue-200' : 'text-gray-800'}`}>
+          <pre className={`font-mono text-base leading-relaxed text-left ${isDarkMode ? 'text-blue-200' : 'text-black'}`}>
 {`// AI-powered code suggestion
 function greet(name) {
   return \`Hello, \${name} 👋\`;
@@ -432,8 +432,6 @@ function greet(name) {
             <p className="mb-12 text-xl text-gray-600 dark:text-gray-300">
               Join our growing developer community, contribute, and get support on GitHub.
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-4 mb-12">
-            </div>
           </div>
         </section>
 
