@@ -132,7 +132,7 @@ export const getProjectCountsByCategory = async (req, res) => {
 
 export const getProjectShowcase = async (req, res) => {
     try {
-        const projects = await Project.find({}).sort({ users: -1 }).limit(10);
+        const projects = await projectModel.find({}).sort({ users: -1 }).limit(10);
         res.status(200).json({ projects });
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });

@@ -3,16 +3,23 @@ import axios from '../config/axios';
 
 const ProjectShowcase = () => {
     const [projects, setProjects] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         axios.get('/projects/showcase')
             .then(res => {
                 setProjects(res.data.projects);
+                setLoading(false);
             })
             .catch(err => {
                 console.error(err);
+                setLoading(false);
             });
     }, []);
+
+    if (loading) {
+        return <div className="text-center">Loading...</div>;
+    }
 
     return (
         <div className="p-6 bg-white rounded-lg shadow-md dark:bg-gray-700">

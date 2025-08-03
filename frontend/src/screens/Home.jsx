@@ -136,7 +136,6 @@ const Home = () => {
 
   const [, setIsNavVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  const [showOptionalButtons, setShowOptionalButtons] = useState(false);
   const [showFabMenu, setShowFabMenu] = useState(false);
 
   useEffect(() => {
@@ -247,7 +246,7 @@ const Home = () => {
           transition={{ duration: 1, delay: 0.7 }}
           className="max-w-2xl p-6 mx-auto mt-16 transition-all duration-300 border shadow-xl rounded-xl bg-gray-900/80 border-blue-900/30 group hover:scale-105 hover:shadow-2xl hover:border-blue-400 hover:bg-gray-800"
         >
-          <pre className="font-mono text-base leading-relaxed text-left text-blue-200">
+          <pre className={`font-mono text-base leading-relaxed text-left ${isDarkMode ? 'text-blue-200' : 'text-gray-800'}`}>
 {`// AI-powered code suggestion
 function greet(name) {
   return \`Hello, \${name} 👋\`;
@@ -434,38 +433,6 @@ function greet(name) {
               Join our growing developer community, contribute, and get support on GitHub.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4 mb-12">
-              <button
-                onClick={() => setShowOptionalButtons(!showOptionalButtons)}
-                className="px-6 py-3 font-medium text-white transition-colors bg-gray-600 rounded-lg shadow-lg hover:bg-gray-700"
-              >
-                {showOptionalButtons ? 'Hide Optional Buttons' : 'Show Optional Buttons'}
-              </button>
-              {showOptionalButtons && (
-                <>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleTryChatRaj}
-                    className="px-8 py-3 text-lg font-medium text-white transition-all bg-blue-600 rounded-full hover:bg-blue-700"
-                  >
-                    Try ChatRaj Now
-                  </motion.button>
-                  <Link
-                    to="/register"
-                    className="px-8 py-3 text-lg font-medium text-blue-600 transition-colors rounded-full hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-gray-800"
-                  >
-                    Create Account
-                  </Link>
-                  <a
-                    href="https://github.com/Abhirajgautam28/Chatraj"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-8 py-3 text-lg font-medium text-gray-800 transition-colors rounded-full hover:bg-gray-200 dark:text-white dark:hover:bg-gray-700"
-                  >
-                    <i className="mr-2 ri-github-fill"></i> GitHub
-                  </a>
-                </>
-              )}
             </div>
           </div>
         </section>
