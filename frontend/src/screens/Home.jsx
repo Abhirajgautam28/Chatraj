@@ -1,11 +1,14 @@
 import { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
 import UserLeaderboard from '../components/UserLeaderboard.jsx';
 import ProjectShowcase from '../components/ProjectShowcase.jsx';
+import Testimonials from '../components/Testimonials.jsx';
+import Blog from '../components/Blog.jsx';
+import ContactUs from '../components/ContactUs.jsx';
 import 'animate.css';
 
 // Newsletter API endpoint for subscription
@@ -138,6 +141,9 @@ const Home = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showFabMenu, setShowFabMenu] = useState(false);
 
+  const { scrollYProgress } = useScroll();
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
+
   useEffect(() => {
     if (user) {
       navigate('/categories', { replace: true });
@@ -203,7 +209,7 @@ const Home = () => {
       </header>
 
       <main className="flex-grow pt-16">
-        <section className="relative flex flex-col items-center justify-center min-h-screen text-center">
+        <motion.section style={{ y }} className="relative flex flex-col items-center justify-center min-h-screen text-center">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -256,7 +262,7 @@ function greet(name) {
 `}
           </pre>
         </motion.div>
-        </section>
+        </motion.section>
 
         <section className="py-20 bg-gray-100 dark:bg-gray-800">
           <div className="max-w-6xl mx-auto">
@@ -434,6 +440,12 @@ function greet(name) {
             </p>
           </div>
         </section>
+
+        <Testimonials />
+
+        <Blog />
+
+        <ContactUs />
 
         <section className="py-20 bg-gray-100 dark:bg-gray-800">
           <div className="max-w-xl mx-auto text-center">
