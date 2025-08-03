@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/user.context';
 import axios from '../config/axios';
@@ -39,9 +39,9 @@ const Register = () => {
                 setUserId(res.data.userId);
                 setShowOtpModal(true);
             })
-            .catch((err) => {
-                if (err.response?.data?.errors) {
-                    setErrorMsg(err.response.data.errors.map(e => e.msg).join(' '));
+            .catch((error) => {
+                if (error.response?.data?.errors) {
+                    setErrorMsg(error.response.data.errors.map(e => e.msg).join(' '));
                 } else {
                     setErrorMsg('Registration failed. Please try again.');
                 }
@@ -57,7 +57,7 @@ const Register = () => {
                 setShowOtpModal(false);
                 navigate('/categories', { replace: true });
             })
-            .catch((err) => {
+            .catch(() => {
                 alert('Invalid OTP. Please check your email and try again.');
             });
     }

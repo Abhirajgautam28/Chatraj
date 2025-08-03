@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/user.context';
 import axios from '../config/axios';
@@ -39,8 +39,8 @@ const Login = () => {
                     navigate('/categories', { replace: true });
                 }
             })
-            .catch((err) => {
-                console.error('Login error:', err.response?.data || err);
+            .catch((error) => {
+                console.error('Login error:', error.response?.data || error);
                 alert('Login failed. Please check your credentials.');
             });
     }
@@ -67,7 +67,7 @@ const Login = () => {
                     clearInterval(interval);
                 }
             }, 1000);
-        } catch (err) {
+        } catch {
             setResetError('Failed to send OTP. Please try again.');
             setOtpResendTimer(0);
             setOtpResendActive(true);
@@ -84,7 +84,7 @@ const Login = () => {
         try {
             await axios.post('/users/verify-otp', { email: resetEmail, otp: resetOtp });
             setResetOtpVerified(true);
-        } catch (err) {
+        } catch {
             setResetError('Invalid OTP. Please check your email and try again.');
         }
     };
@@ -123,7 +123,7 @@ const Login = () => {
                 setResetError('');
                 setResetInProgress(false);
             }, 2500);
-        } catch (err) {
+        } catch {
             setResetError('Failed to reset password. Please try again.');
             setResetInProgress(false);
         }
@@ -208,7 +208,7 @@ const Login = () => {
                 </form>
 
                 <p className="mt-4 text-center text-gray-400">
-                    Don't have an account?{' '}
+                    Don&apos;t have an account?{' '}
                     <Link to="/register" className="text-blue-400 hover:underline">
                         Create one
                     </Link>
@@ -315,7 +315,7 @@ const Login = () => {
                                                         <i className="ri-refresh-line text-lg"></i>
                                                         {otpResendActive ? 'Resend OTP' : `Resend OTP (${otpResendTimer}s)`}
                                                     </button>
-                                                    <span className="mt-2 text-xs text-gray-400">Didn't receive OTP?</span>
+                                                    <span className="mt-2 text-xs text-gray-400">Didn&apos;t receive OTP?</span>
                                                 </div>
                                                 <button
                                                     type="submit"

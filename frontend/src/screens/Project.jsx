@@ -15,7 +15,6 @@ import 'highlight.js/styles/github-dark.css';
 import PropTypes from 'prop-types';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
-import { vim } from '@replit/codemirror-vim';
 import VimCodeEditor from '../components/VimCodeEditor';
 
 const PROJECT_TRANSLATIONS = {
@@ -293,7 +292,6 @@ const Project = () => {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [modalPosition, setModalPosition] = useState(null); // null means center
   const settingsModalRef = useRef(null);
-  const lastNotifiedMsgId = useRef(null);
   const [expandedReplies, setExpandedReplies] = useState({}); // Track expanded replies
 
   const toggleEmojiPicker = (messageId) => {
@@ -1407,10 +1405,10 @@ const Project = () => {
               onMouseUp={() => setIsDragging(false)}
               onMouseMove={e => {
                 if (isDragging) {
-                  setModalPosition(prev => ({
+                  setModalPosition({
                     x: e.clientX - dragOffset.x,
                     y: e.clientY - dragOffset.y
-                  }));
+                  });
                 }
               }}
             >
@@ -1760,5 +1758,9 @@ const Project = () => {
     </main>
   )
 }
+
+Project.propTypes = {
+    children: PropTypes.node,
+};
 
 export default Project

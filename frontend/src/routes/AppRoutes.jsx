@@ -1,4 +1,3 @@
-import React from 'react'
 import { Route, BrowserRouter, Routes } from 'react-router-dom'
 import Login from '../screens/Login'
 import Register from '../screens/Register'
