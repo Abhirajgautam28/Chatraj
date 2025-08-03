@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { UserContext } from '../context/user.context';
+import { ThemeContext } from '../context/theme.context';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
 import 'animate.css';
 
@@ -59,6 +60,57 @@ const features = [
   }
 ];
 
+const useCases = [
+  {
+    icon: 'ri-lightbulb-flash-line',
+    title: 'Learning & Experimentation',
+    description: 'Practice coding, learn new languages, and experiment with AI-powered suggestions.'
+  },
+  {
+    icon: 'ri-group-line',
+    title: 'Team Projects',
+    description: 'Collaborate with your team on real-world projects in real time.'
+  },
+  {
+    icon: 'ri-terminal-window-line',
+    title: 'Interview Preparation',
+    description: 'Sharpen your coding skills and prepare for interviews with instant feedback.'
+  }
+];
+
+const benefits = [
+  {
+    icon: 'ri-flashlight-line',
+    title: 'Lightning Fast',
+    description: 'Experience instant code suggestions and real-time collaboration.'
+  },
+  {
+    icon: 'ri-lock-2-line',
+    title: 'Secure & Private',
+    description: 'Your code and data are encrypted and never shared without your consent.'
+  },
+  {
+    icon: 'ri-settings-3-line',
+    title: 'Highly Customizable',
+    description: 'Adjust themes, layouts, and features to fit your workflow.'
+  },
+  {
+    icon: 'ri-customer-service-2-line',
+    title: '24/7 Support',
+    description: 'Get help anytime from our community and support team.'
+  }
+];
+
+const techStack = [
+  { icon: 'ri-reactjs-line', name: 'React' },
+  { icon: 'ri-nodejs-line', name: 'Node.js' },
+  { icon: 'ri-javascript-line', name: 'JavaScript' },
+  { icon: 'ri-database-2-line', name: 'MongoDB' },
+  { icon: 'ri-git-merge-line', name: 'Socket.io' },
+  { icon: 'ri-brain-line', name: 'Google GenAI' },
+  { icon: 'ri-css3-line', name: 'Tailwind CSS' },
+  { icon: 'ri-github-fill', name: 'GitHub' }
+];
 
 const faqs = [
   {
@@ -77,6 +129,7 @@ const faqs = [
 
 const Home = () => {
   const { user } = useContext(UserContext);
+  const { isDarkMode, setIsDarkMode } = useContext(ThemeContext);
   const navigate = useNavigate();
 
   const [, setIsNavVisible] = useState(true);
@@ -137,6 +190,12 @@ const Home = () => {
             className="px-4 py-2 text-sm font-medium text-white transition-colors bg-blue-600 rounded-lg shadow-md hover:bg-blue-700"
           >
             Try ChatRaj
+          </button>
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className="p-2 text-gray-600 transition-colors rounded-lg hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
+          >
+            <i className={`text-xl ${isDarkMode ? 'ri-sun-line' : 'ri-moon-line'}`}></i>
           </button>
         </div>
       </header>
@@ -206,45 +265,118 @@ const Home = () => {
         <section className="py-20">
           <div className="max-w-6xl mx-auto">
             <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-white">How It Works</h2>
-            <div className="relative">
-              <div className="absolute top-0 left-1/2 w-0.5 h-full bg-gray-300 dark:bg-gray-600"></div>
-              <div className="flex flex-col gap-12">
-                <div className="flex items-center gap-8">
-                  <div className="flex-shrink-0 w-12 h-12 text-xl font-bold text-white bg-blue-600 rounded-full flex-center">1</div>
-                  <div className="flex-grow p-6 bg-white rounded-lg shadow-md dark:bg-gray-700">
-                    <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white">Register or log in to your account.</h3>
-                  </div>
-                </div>
-                <div className="flex items-center gap-8">
-                  <div className="flex-shrink-0 w-12 h-12 text-xl font-bold text-white bg-blue-600 rounded-full flex-center">2</div>
-                  <div className="flex-grow p-6 bg-white rounded-lg shadow-md dark:bg-gray-700">
-                    <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white">Create or join a project and invite your team.</h3>
-                  </div>
-                </div>
-                <div className="flex items-center gap-8">
-                  <div className="flex-shrink-0 w-12 h-12 text-xl font-bold text-white bg-blue-600 rounded-full flex-center">3</div>
-                  <div className="flex-grow p-6 bg-white rounded-lg shadow-md dark:bg-gray-700">
-                    <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white">Start coding with AI-powered suggestions and real-time chat.</h3>
-                  </div>
-                </div>
-                <div className="flex items-center gap-8">
-                  <div className="flex-shrink-0 w-12 h-12 text-xl font-bold text-white bg-blue-600 rounded-full flex-center">4</div>
-                  <div className="flex-grow p-6 bg-white rounded-lg shadow-md dark:bg-gray-700">
-                    <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white">Run, test, and review code collaboratively.</h3>
-                  </div>
-                </div>
-                <div className="flex items-center gap-8">
-                  <div className="flex-shrink-0 w-12 h-12 text-xl font-bold text-white bg-blue-600 rounded-full flex-center">5</div>
-                  <div className="flex-grow p-6 bg-white rounded-lg shadow-md dark:bg-gray-700">
-                    <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white">Export, share, and manage your projects securely.</h3>
-                  </div>
-                </div>
+            <div className="flex flex-col items-center w-full max-w-6xl gap-12 mx-auto md:flex-row">
+              <div className="flex-1 min-w-0">
+                <ol className="space-y-6 text-lg text-gray-600 dark:text-gray-300">
+                  <li className="flex items-center gap-4">
+                    <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 text-xl font-bold text-white bg-blue-600 rounded-full">1</div>
+                    <span>Register or log in to your account.</span>
+                  </li>
+                  <li className="flex items-center gap-4">
+                    <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 text-xl font-bold text-white bg-blue-600 rounded-full">2</div>
+                    <span>Create or join a project and invite your team.</span>
+                  </li>
+                  <li className="flex items-center gap-4">
+                    <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 text-xl font-bold text-white bg-blue-600 rounded-full">3</div>
+                    <span>Start coding with AI-powered suggestions and real-time chat.</span>
+                  </li>
+                  <li className="flex items-center gap-4">
+                    <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 text-xl font-bold text-white bg-blue-600 rounded-full">4</div>
+                    <span>Run, test, and review code collaboratively.</span>
+                  </li>
+                  <li className="flex items-center gap-4">
+                    <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 text-xl font-bold text-white bg-blue-600 rounded-full">5</div>
+                    <span>Export, share, and manage your projects securely.</span>
+                  </li>
+                </ol>
+              </div>
+              <div className="flex items-center justify-center flex-1 min-w-0">
+                {/* 3D-like SVG illustration */}
+                <svg className="w-full h-auto max-w-xs" viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <ellipse cx="160" cy="200" rx="120" ry="18" fill="#e0e7ff" opacity="0.5"/>
+                  <rect x="60" y="40" width="200" height="120" rx="20" fill="#4f46e5" stroke="#60a5fa" strokeWidth="3"/>
+                  <rect x="90" y="70" width="140" height="60" rx="12" fill="#312e81" stroke="#818cf8" strokeWidth="2"/>
+                  <rect x="120" y="90" width="80" height="20" rx="6" fill="#38bdf8" opacity="0.7"/>
+                  <circle cx="100" cy="60" r="8" fill="#38bdf8"/>
+                  <circle cx="220" cy="60" r="8" fill="#818cf8"/>
+                  <circle cx="160" cy="170" r="12" fill="#f472b6"/>
+                  <rect x="140" y="120" width="40" height="10" rx="3" fill="#fbbf24" opacity="0.7"/>
+                  <rect x="110" y="110" width="100" height="6" rx="2" fill="#94a3b8" opacity="0.5"/>
+                </svg>
               </div>
             </div>
           </div>
         </section>
 
         <section className="py-20 bg-gray-100 dark:bg-gray-800">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-white">Popular Use Cases</h2>
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+              {useCases.map((useCase, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="p-6 text-center bg-white rounded-lg shadow-md dark:bg-gray-700"
+                >
+                  <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 text-white bg-blue-600 rounded-full">
+                    <i className={`text-3xl ${useCase.icon}`}></i>
+                  </div>
+                  <h3 className="mb-2 text-xl font-semibold text-gray-800 dark:text-white">{useCase.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-300">{useCase.description}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-20">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-white">Why Choose ChatRaj</h2>
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+              {benefits.map((benefit, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="flex gap-4 p-6 bg-white rounded-lg shadow-md dark:bg-gray-700"
+                >
+                  <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 text-white bg-blue-600 rounded-full">
+                    <i className={`text-2xl ${benefit.icon}`}></i>
+                  </div>
+                  <div>
+                    <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white">{benefit.title}</h3>
+                    <p className="text-gray-600 dark:text-gray-300">{benefit.description}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-20 bg-gray-100 dark:bg-gray-800">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-white">Powered By</h2>
+            <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+              {techStack.map((tech, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="flex flex-col items-center p-6 text-center bg-white rounded-lg shadow-md dark:bg-gray-700"
+                >
+                  <i className={`text-4xl text-blue-600 ${tech.icon}`}></i>
+                  <span className="mt-2 text-gray-800 dark:text-white">{tech.name}</span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-20 bg-white dark:bg-gray-900">
           <div className="max-w-4xl mx-auto">
             <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-white">Frequently Asked Questions</h2>
             <div className="space-y-4">
