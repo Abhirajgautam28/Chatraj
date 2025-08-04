@@ -12,6 +12,12 @@ const WelcomeChatRaj = () => {
       navigate('/login', { replace: true });
       return;
     }
+
+    const timer = setTimeout(() => {
+      navigate('/chat', { replace: true });
+    }, 4000);
+
+    return () => clearTimeout(timer);
   }, [user, navigate]);
 
   return (
@@ -134,8 +140,8 @@ const WelcomeChatRaj = () => {
 
             <div className="flex justify-center mt-8 space-x-12">
               {[
-                'System Check', 
-                'Loading Models', 
+                'System Check',
+                'Loading Models',
                 'Initializing AI'
               ].map((step, i) => (
                 <motion.div
@@ -148,31 +154,15 @@ const WelcomeChatRaj = () => {
                   <motion.div
                     className="w-3 h-3 mb-3 rounded-full bg-[#3E57E5]"
                     initial={{ scale: 1, opacity: 0.5 }}
-                    animate={i === 0 ? {
-                      scale: [1, 1.5, 1],
-                      opacity: [0.5, 1, 0.5],
-                    } : i === 1 ? {
-                      scale: [1, 1.5, 1],
-                      opacity: [0.5, 1, 0.5],
-                    } : {
+                    animate={{
                       scale: [1, 1.5, 1],
                       opacity: [0.5, 1, 0.5],
                     }}
                     transition={{
                       duration: 1,
-                      repeat: 0,
-                      delay: i * 1,
+                      repeat: Infinity,
+                      delay: i * 0.3,
                       ease: "easeInOut",
-                    }}
-                    onAnimationStart={() => {
-                      console.log(`Dot ${i + 1} animation started`);
-                    }}
-                    onAnimationComplete={() => {
-                      if (i === 2) {
-                        setTimeout(() => {
-                          navigate('/chat', { replace: true });
-                        }, 500);
-                      }
                     }}
                     style={{
                       boxShadow: '0 0 20px rgba(62, 87, 229, 0.5)',

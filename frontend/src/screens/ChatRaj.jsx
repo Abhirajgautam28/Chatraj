@@ -217,6 +217,38 @@ const ChatRaj = () => {
     return languages[lang]?.translations[key] || languages['en-US'].translations[key];
   };
 
+  const handleSubmit = useCallback(async (e, voiceInput = null) => {
+    e?.preventDefault();
+
+    const messageToSend = voiceInput || inputMessage;
+    if (!messageToSend.trim()) return;
+
+    const userMessage = {
+      type: 'user',
+      content: messageToSend,
+      timestamp: new Date().toISOString()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputMessage('');
+    setIsThinking(true);
+
+    setTimeout(() => {
+      const aiMessage = {
+        type: 'ai',
+        content: "I understand and I'm here to help you! 🌟",
+        timestamp: new Date().toISOString()
+      };
+
+      setMessages(prev => [...prev, aiMessage]);
+      setIsThinking(false);
+
+      if (voiceInput) {
+        speakResponse(aiMessage.content);
+      }
+    }, 1500);
+  }, [inputMessage, speakResponse]);
+
   useEffect(() => {
     if ('webkitSpeechRecognition' in window) {
       const recognition = new window.webkitSpeechRecognition();
@@ -370,38 +402,6 @@ const ChatRaj = () => {
       window.speechSynthesis.speak(utterance);
     }
   }, [setIsSpeaking]);
-
-  const handleSubmit = useCallback(async (e, voiceInput = null) => {
-    e?.preventDefault();
-    
-    const messageToSend = voiceInput || inputMessage;
-    if (!messageToSend.trim()) return;
-    
-    const userMessage = {
-      type: 'user',
-      content: messageToSend,
-      timestamp: new Date().toISOString()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
-    setIsThinking(true);
-
-    setTimeout(() => {
-      const aiMessage = {
-        type: 'ai',
-        content: "I understand and I'm here to help you! 🌟",
-        timestamp: new Date().toISOString()
-      };
-      
-      setMessages(prev => [...prev, aiMessage]);
-      setIsThinking(false);
-
-      if (voiceInput) {
-        speakResponse(aiMessage.content);
-      }
-    }, 1500);
-  }, [inputMessage, speakResponse]);
 
   const handleNewChat = () => {
     setMessages([]);
