@@ -562,6 +562,13 @@ const ChatRaj = () => {
                 <i className="text-xl ri-settings-3-line"></i>
                 <span className="text-sm font-medium">{t('settings')}</span>
               </button>
+              <button
+                onClick={() => navigate('/blogs')}
+                className="flex items-center w-full gap-3 p-2 mb-2 text-black transition-colors rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <i className="ri-newspaper-line"></i>
+                <span className="text-sm font-medium">Blogs</span>
+              </button>
             </div>
           </div>
         </div>

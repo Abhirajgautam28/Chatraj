@@ -6,7 +6,6 @@ import { ThemeContext } from '../context/theme.context';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
 import UserLeaderboard from '../components/UserLeaderboard.jsx';
 import ProjectShowcase from '../components/ProjectShowcase.jsx';
-import Testimonials from '../components/Testimonials.jsx';
 import Blog from '../components/Blog.jsx';
 import ContactUs from '../components/ContactUs.jsx';
 import 'animate.css';
@@ -440,8 +439,6 @@ function greet(name) {
             </p>
           </div>
         </section>
-
-        <Testimonials />
 
         <Blog />
 

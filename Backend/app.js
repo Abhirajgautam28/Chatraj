@@ -6,6 +6,7 @@ import projectRoutes from './routes/project.routes.js';
 import aiRoutes from './routes/ai.routes.js';
 import setupRoutes from './routes/setup.routes.js';
 import newsletterRoutes from './routes/newsletter.routes.js';
+import blogRoutes from './routes/blog.routes.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 
@@ -80,6 +81,7 @@ app.use('/users', userRoutes);
 app.use('/projects', projectRoutes);
 app.use("/ai", aiRoutes);
 app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/blogs', blogRoutes);
 
 app.use((err, req, res, next) => {
     console.error(err.stack);

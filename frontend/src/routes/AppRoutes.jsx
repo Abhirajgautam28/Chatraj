@@ -10,6 +10,9 @@ import Logout from '../screens/Logout'
 import WelcomeChatRaj from '../screens/WelcomeChatRaj';
 import ChatRaj from '../screens/ChatRaj';
 import { ChatRajThemeProvider } from '../context/chatraj-theme.context';
+import Blogs from '../screens/Blogs';
+import CreateBlogForm from '../components/CreateBlogForm';
+import SingleBlogPage from '../screens/SingleBlogPage';
 
 const AppRoutes = () => {
     return (
@@ -30,6 +33,9 @@ const AppRoutes = () => {
                         </ChatRajThemeProvider>
                     </UserAuth>
                 } />
+                <Route path="/blogs" element={<UserAuth><Blogs /></UserAuth>} />
+                <Route path="/blogs/create" element={<UserAuth><CreateBlogForm /></UserAuth>} />
+                <Route path="/blogs/:id" element={<UserAuth><SingleBlogPage /></UserAuth>} />
             </Routes>
         </BrowserRouter>
     )
