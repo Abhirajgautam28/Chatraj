@@ -252,7 +252,7 @@ const Home = () => {
           transition={{ duration: 1, delay: 0.7 }}
           className="max-w-2xl p-6 mx-auto mt-16 transition-all duration-300 border shadow-xl rounded-xl bg-gray-900/80 border-blue-900/30 group hover:scale-105 hover:shadow-2xl hover:border-blue-400 hover:bg-gray-800"
         >
-          <pre className={`font-mono text-base leading-relaxed text-left ${isDarkMode ? 'text-blue-200' : 'text-gray-800'}`}>
+          <pre className={`font-mono text-base leading-relaxed text-left ${isDarkMode ? 'text-blue-200' : 'text-black'}`}>
 {`// AI-powered code suggestion
 function greet(name) {
   return \`Hello, \${name} 👋\`;
@@ -431,7 +431,7 @@ function greet(name) {
 
         <section className="py-20">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="mb-8 text-3xl font-bold text-gray-800 dark:text-white">Security & Community</h2>
+            <h2 className="text-3xl font-bold text-gray-800 dark:text-white">Security & Community</h2>
             <p className="mb-6 text-xl text-gray-600 dark:text-gray-300">
               Your privacy and security are our top priorities. ChatRaj uses secure authentication, encrypted data storage, and gives you full control over your data retention.
             </p>
