@@ -10,7 +10,8 @@ import {
   getProjectById,
   updateFileTree,
   getProjectSettings,
-  updateProjectSettings
+  updateProjectSettings,
+  getProjectShowcase
 } from '../controllers/project.controller.js';
 import { authUser } from '../middleware/auth.middleware.js';
 
