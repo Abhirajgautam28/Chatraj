@@ -8,7 +8,9 @@ const ProjectShowcase = () => {
     useEffect(() => {
         axios.get('/projects/showcase')
             .then(res => {
-                setProjects(res.data.projects);
+                if (Array.isArray(res.data.projects)) {
+                    setProjects(res.data.projects);
+                }
                 setLoading(false);
             })
             .catch(err => {

@@ -13,7 +13,8 @@ import cors from 'cors';
 const allowedOrigins = [
   'https://chatraj-frontend.vercel.app',
   'https://chatraj.vercel.app',
-  'http://localhost:5173'
+  'http://localhost:5173',
+  'http://localhost:5174'
 ];
 
 connect().catch(console.error);

@@ -8,7 +8,9 @@ const UserLeaderboard = () => {
     useEffect(() => {
         axios.get('/users/leaderboard')
             .then(res => {
-                setUsers(res.data.users);
+                if (Array.isArray(res.data.users)) {
+                    setUsers(res.data.users);
+                }
                 setLoading(false);
             })
             .catch(err => {
