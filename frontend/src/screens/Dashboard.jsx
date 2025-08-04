@@ -36,7 +36,12 @@ const Dashboard = () => {
     const url = selectedCategory ? `/projects/all?category=${selectedCategory}` : '/projects/all';
     axios.get(url)
       .then((res) => {
-        setProjects(res.data.projects);
+        if (selectedCategory) {
+          const filteredProjects = res.data.projects.filter(project => project.category === selectedCategory);
+          setProjects(filteredProjects);
+        } else {
+          setProjects(res.data.projects);
+        }
       })
       .catch(err => {
         console.log(err);

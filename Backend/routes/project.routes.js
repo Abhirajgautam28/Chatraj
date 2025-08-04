@@ -70,5 +70,7 @@ router.put('/settings/:projectId',
     updateProjectSettings
 )
 
+router.get('/showcase', getProjectShowcase);
+
 
 export default router;

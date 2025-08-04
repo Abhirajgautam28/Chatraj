@@ -1,9 +1,14 @@
 import { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
+import UserLeaderboard from '../components/UserLeaderboard.jsx';
+import ProjectShowcase from '../components/ProjectShowcase.jsx';
+import Testimonials from '../components/Testimonials.jsx';
+import Blog from '../components/Blog.jsx';
+import ContactUs from '../components/ContactUs.jsx';
 import 'animate.css';
 
 // Newsletter API endpoint for subscription
@@ -134,7 +139,10 @@ const Home = () => {
 
   const [, setIsNavVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  useState(false);
+  const [showFabMenu, setShowFabMenu] = useState(false);
+
+  const { scrollYProgress } = useScroll();
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
 
   useEffect(() => {
     if (user) {
@@ -201,7 +209,7 @@ const Home = () => {
       </header>
 
       <main className="flex-grow pt-16">
-        <section className="py-20 text-center">
+        <motion.section style={{ y }} className="relative flex flex-col items-center justify-center min-h-screen text-center">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -237,7 +245,24 @@ const Home = () => {
               Create Account
             </Link>
           </motion.div>
-        </section>
+        {/* Animated code snippet card with hover effect */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.7 }}
+          className="max-w-2xl p-6 mx-auto mt-16 transition-all duration-300 border shadow-xl rounded-xl bg-gray-900/80 border-blue-900/30 group hover:scale-105 hover:shadow-2xl hover:border-blue-400 hover:bg-gray-800"
+        >
+          <pre className={`font-mono text-base leading-relaxed text-left ${isDarkMode ? 'text-blue-200' : 'text-gray-800'}`}>
+{`// AI-powered code suggestion
+function greet(name) {
+  return \`Hello, \${name} 👋\`;
+}
+
+// Real-time collaboration enabled!
+`}
+          </pre>
+        </motion.div>
+        </motion.section>
 
         <section className="py-20 bg-gray-100 dark:bg-gray-800">
           <div className="max-w-6xl mx-auto">
@@ -378,6 +403,20 @@ const Home = () => {
 
         <section className="py-20 bg-white dark:bg-gray-900">
           <div className="max-w-4xl mx-auto">
+            <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-white">Project Showcase</h2>
+            <ProjectShowcase />
+          </div>
+        </section>
+
+        <section className="py-20 bg-gray-100 dark:bg-gray-800">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-white">User Leaderboard</h2>
+            <UserLeaderboard />
+          </div>
+        </section>
+
+        <section className="py-20 bg-gray-100 dark:bg-gray-800">
+          <div className="max-w-4xl mx-auto">
             <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-white">Frequently Asked Questions</h2>
             <div className="space-y-4">
               {faqs.map((faq, i) => (
@@ -391,6 +430,24 @@ const Home = () => {
         </section>
 
         <section className="py-20">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="mb-8 text-3xl font-bold text-gray-800 dark:text-white">Security & Community</h2>
+            <p className="mb-6 text-xl text-gray-600 dark:text-gray-300">
+              Your privacy and security are our top priorities. ChatRaj uses secure authentication, encrypted data storage, and gives you full control over your data retention.
+            </p>
+            <p className="text-xl text-gray-600 dark:text-gray-300">
+              Join our growing developer community, contribute, and get support on GitHub.
+            </p>
+          </div>
+        </section>
+
+        <Testimonials />
+
+        <Blog />
+
+        <ContactUs />
+
+        <section className="py-20 bg-gray-100 dark:bg-gray-800">
           <div className="max-w-xl mx-auto text-center">
             <h2 className="mb-4 text-3xl font-bold text-gray-800 dark:text-white">Stay Updated</h2>
             <p className="mb-8 text-lg text-gray-600 dark:text-gray-300">
@@ -404,6 +461,64 @@ const Home = () => {
       <footer className="py-6 text-center bg-gray-200 dark:bg-gray-800">
         <p className="text-gray-600 dark:text-gray-400">© 2025 ChatRaj All rights reserved.</p>
       </footer>
+
+      {/* Floating Action Button (Rocket) */}
+      <div className="fixed z-50 bottom-8 right-8">
+        <div className="relative">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowFabMenu((v) => !v)}
+            className="flex items-center justify-center w-12 h-12 text-2xl text-white bg-blue-600 rounded-full shadow-lg hover:bg-blue-700 focus:outline-none"
+            aria-label="Quick Actions"
+          >
+            <i className="ri-rocket-2-line"></i>
+          </motion.button>
+          <AnimatePresence>
+            {showFabMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                className="absolute right-0 flex flex-col w-48 gap-2 p-4 bg-white rounded-lg shadow-xl bottom-14"
+              >
+                <button
+                  onClick={() => {
+                    setShowFabMenu(false);
+                    handleTryChatRaj();
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 text-blue-600 transition rounded hover:bg-blue-50"
+                >
+                  <i className="ri-chat-3-line"></i> Try ChatRaj
+                </button>
+                <Link
+                  to="/register"
+                  className="flex items-center gap-2 px-4 py-2 text-blue-600 transition rounded hover:bg-blue-50"
+                  onClick={() => setShowFabMenu(false)}
+                >
+                  <i className="ri-user-add-line"></i> Create Account
+                </Link>
+                <Link
+                  to="/login"
+                  className="flex items-center gap-2 px-4 py-2 text-blue-600 transition rounded hover:bg-blue-50"
+                  onClick={() => setShowFabMenu(false)}
+                >
+                  <i className="ri-login-box-line"></i> Login
+                </Link>
+                <a
+                  href="https://github.com/Abhirajgautam28/Chatraj"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 text-blue-600 transition rounded hover:bg-blue-50"
+                  onClick={() => setShowFabMenu(false)}
+                >
+                  <i className="ri-github-fill"></i> GitHub
+                </a>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
     </div>
   );
 };
