@@ -14,7 +14,8 @@ const allowedOrigins = [
   'https://chatraj-frontend.vercel.app',
   'https://chatraj.vercel.app',
   'http://localhost:5173',
-  'http://localhost:5174'
+  'http://localhost:5174',
+  'https://chatraj-fpo1pa3bz-abhiraj-gautams-projects.vercel.app'
 ];
 
 connect().catch(console.error);
@@ -77,10 +78,10 @@ app.get('/health', (req, res) => {
     });
 });
 
-app.use('/setup', setupRoutes);
-app.use('/users', userRoutes);
-app.use('/projects', projectRoutes);
-app.use("/ai", aiRoutes);
+app.use('/api/setup', setupRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/projects', projectRoutes);
+app.use("/api/ai", aiRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/blogs', blogRoutes);
 
