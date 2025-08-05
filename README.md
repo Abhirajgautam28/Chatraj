@@ -110,6 +110,7 @@ ChatRaj is a comprehensive, AI-powered platform designed to streamline software 
 
 **AI Integration:**
 - Google Generative AI (`@google/generative-ai`)
+- Google Jules
 - Speech Recognition API
 - Text-to-Speech
 
