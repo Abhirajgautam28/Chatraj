@@ -19,11 +19,10 @@ export const sendOtpController = async (req, res) => {
 
 export const getLeaderboardController = async (req, res) => {
     try {
-        // Sort by a valid field, e.g., 'projectsCount' (add this field to user model if needed)
-        const users = await userModel.find({}).sort({ projectsCount: -1 }).limit(10);
-        res.status(200).json({ users: users || [] });
+        const users = await userModel.find({}).sort({ projects: -1 }).limit(10);
+        res.status(200).json({ users });
     } catch (error) {
-        res.status(500).json({ error: 'Internal server error', details: error.message });
+        res.status(500).json({ error: 'Internal server error' });
     }
 };
 import userModel from '../models/user.model.js';
