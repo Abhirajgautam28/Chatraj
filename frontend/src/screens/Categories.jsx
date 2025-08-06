@@ -40,7 +40,7 @@ const Categories = () => {
   }, []);
 
   const handleCategoryClick = (categoryTitle) => {
-    navigate("/chat", { state: { selectedCategory: categoryTitle } });
+    navigate("/dashboard", { state: { selectedCategory: categoryTitle } });
   };
 
   return (

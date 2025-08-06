@@ -248,7 +248,6 @@ const ChatRaj = () => {
       }
     }, 1500);
   }, [inputMessage, speakResponse]);
-
   useEffect(() => {
     if ('webkitSpeechRecognition' in window) {
       const recognition = new window.webkitSpeechRecognition();
@@ -268,7 +267,7 @@ const ChatRaj = () => {
 
       recognitionRef.current = recognition;
     }
-  }, [handleSubmit]);
+  }, [handleSubmit, inputMessage, speakResponse]);
 
   useEffect(() => {
     const sidebar = document.querySelector('.sidebar');
