@@ -34,7 +34,7 @@ const UserLeaderboard = () => {
                                 <p className="text-sm text-gray-600 dark:text-gray-300">{user.email}</p>
                             </div>
                         </div>
-                        <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{user.projects.length}</span>
+                        <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{Array.isArray(user.projects) ? user.projects.length : 0}</span>
                     </li>
                 ))}
             </ul>

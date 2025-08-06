@@ -19,10 +19,29 @@ export const sendOtpController = async (req, res) => {
 
 export const getLeaderboardController = async (req, res) => {
     try {
-        const users = await User.find({}).sort({ projects: -1 }).limit(10);
-        res.status(200).json({ users });
+        // Fetch users and populate projects
+        const users = await userModel.find({})
+            .populate('projects')
+            .lean();
+        // Sort users by number of projects (descending)
+        const sortedUsers = users.sort((a, b) => {
+            const aLen = Array.isArray(a.projects) ? a.projects.length : 0;
+            const bLen = Array.isArray(b.projects) ? b.projects.length : 0;
+            return bLen - aLen;
+        });
+        // Limit to top 10
+        const topUsers = sortedUsers.slice(0, 10);
+        // Defensive: always return an array for projects
+        const safeUsers = topUsers.map(u => ({
+            _id: u._id,
+            firstName: u.firstName,
+            lastName: u.lastName,
+            email: u.email,
+            projects: Array.isArray(u.projects) ? u.projects : [],
+        }));
+        res.status(200).json({ users: safeUsers });
     } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ users: [], error: error.message || 'Internal server error' });
     }
 };
 import userModel from '../models/user.model.js';
