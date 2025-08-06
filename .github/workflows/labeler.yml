@@ -9,7 +9,6 @@ permissions:
 
 jobs:
   label:
-    if: github.ref == 'refs/heads/main'
     if: github.ref == 'refs/heads/main' && github.actor == 'Abhirajgautam28'
     runs-on: ubuntu-latest
     steps:

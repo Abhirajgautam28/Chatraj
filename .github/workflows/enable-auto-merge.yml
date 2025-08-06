@@ -12,7 +12,6 @@ permissions:
 
 jobs:
   enable-auto-merge:
-    if: github.ref == 'refs/heads/main'
     if: github.ref == 'refs/heads/main' && github.actor == 'Abhirajgautam28' && contains(join(github.event.pull_request.labels.*.name, ','), 'automerge')
     runs-on: ubuntu-latest
     steps:
