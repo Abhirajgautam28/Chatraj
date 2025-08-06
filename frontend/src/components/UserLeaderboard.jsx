@@ -27,8 +27,8 @@ const UserLeaderboard = () => {
         <div className="p-6 bg-white rounded-lg shadow-md dark:bg-gray-700">
             <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white">User Leaderboard</h3>
             <ul className="space-y-4">
-                {users.map((user, index) => (
-                    <li key={user._id} className="flex items-center justify-between">
+                {(Array.isArray(users) ? users : []).map((user, index) => (
+                    <li key={user._id || index} className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <span className="text-lg font-bold text-gray-600 dark:text-gray-300">{index + 1}</span>
                             <div>
@@ -36,7 +36,7 @@ const UserLeaderboard = () => {
                                 <p className="text-sm text-gray-600 dark:text-gray-300">{user.email}</p>
                             </div>
                         </div>
-                        <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{user.projects.length}</span>
+                        <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{Array.isArray(user.projects) ? user.projects.length : 0}</span>
                     </li>
                 ))}
             </ul>

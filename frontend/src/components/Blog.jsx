@@ -10,8 +10,8 @@ const Blog = () => {
     useEffect(() => {
         const fetchBlogs = async () => {
             try {
-                const response = await axios.get('/api/blogs');
-                setBlogs(response.data.slice(0, 3));
+                const res = await axios.get('/api/blogs');
+                setBlogs(res.data);
             } catch (error) {
                 console.error('Error fetching blogs:', error);
             }

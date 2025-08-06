@@ -43,6 +43,11 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     }
+    ,
+    projectsCount: {
+        type: Number,
+        default: 0
+    }
 });
 
 userSchema.statics.hashPassword = async function (password) {
