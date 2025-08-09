@@ -1,3 +1,13 @@
+import userModel from '../models/user.model.js';
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+dotenv.config();
+import * as userService from '../services/user.service.js';
+import { validationResult } from 'express-validator';
+import redisClient from '../services/redis.service.js';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+
 // Send OTP for password reset (used in Login.jsx)
 export const sendOtpController = async (req, res) => {
     try {
@@ -17,6 +27,7 @@ export const sendOtpController = async (req, res) => {
     }
 };
 
+// FIXED: getLeaderboardController (no conflict, always returns top 10 users sorted by project count)
 export const getLeaderboardController = async (req, res) => {
     try {
         // Fetch users and populate projects
@@ -44,18 +55,8 @@ export const getLeaderboardController = async (req, res) => {
         res.status(500).json({ users: [], error: error.message || 'Internal server error' });
     }
 };
-import userModel from '../models/user.model.js';
-import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
-dotenv.config();
-import * as userService from '../services/user.service.js';
-import { validationResult } from 'express-validator';
-import redisClient from '../services/redis.service.js';
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
 
 export const createUserController = async (req, res) => {
-
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -153,11 +154,9 @@ export const loginController = async (req, res) => {
 }
 
 export const profileController = async (req, res) => {
-
     res.status(200).json({
         user: req.user
     });
-
 }
 
 export const logoutController = async (req, res) => {

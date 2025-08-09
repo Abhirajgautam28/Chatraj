@@ -6,13 +6,16 @@ import projectRoutes from './routes/project.routes.js';
 import aiRoutes from './routes/ai.routes.js';
 import setupRoutes from './routes/setup.routes.js';
 import newsletterRoutes from './routes/newsletter.routes.js';
+import blogRoutes from './routes/blog.routes.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 
 const allowedOrigins = [
   'https://chatraj-frontend.vercel.app',
   'https://chatraj.vercel.app',
-  'http://localhost:5173'
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'https://chatraj-fpo1pa3bz-abhiraj-gautams-projects.vercel.app'
 ];
 
 connect().catch(console.error);
@@ -63,6 +66,12 @@ app.options('*', cors({
 
 app.use(corsErrorLogger);
 
+app.use((req, res, next) => {
+    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    next();
+});
+
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -75,11 +84,12 @@ app.get('/health', (req, res) => {
     });
 });
 
-app.use('/setup', setupRoutes);
-app.use('/users', userRoutes);
-app.use('/projects', projectRoutes);
-app.use("/ai", aiRoutes);
+app.use('/api/setup', setupRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/projects', projectRoutes);
+app.use("/api/ai", aiRoutes);
 app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/blogs', blogRoutes);
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
