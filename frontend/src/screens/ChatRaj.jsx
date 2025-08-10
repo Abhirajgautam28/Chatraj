@@ -17,13 +17,37 @@ const formatMessageTime = (timestamp) => {
   return `${dateString} ${timeString}`;
 };
 
+// Move speakResponse above ChatRaj to avoid ReferenceError
+const speakResponse = (text) => {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    // Optionally set speaking state if needed
+    const utterance = new window.SpeechSynthesisUtterance(text);
+    const loadVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      const femaleVoice = voices.find(voice =>
+        voice.name.toLowerCase().includes('female') ||
+        voice.name.includes('Samantha') ||
+        voice.name.includes('Victoria') ||
+        voice.name.includes('Karen') ||
+        voice.name.includes('Tessa')
+      );
+      utterance.voice = femaleVoice || voices[0];
+      window.speechSynthesis.speak(utterance);
+    };
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+    loadVoices();
+  }
+};
+
 const ChatRaj = () => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [, setIsSpeaking] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -364,7 +388,7 @@ const ChatRaj = () => {
   const speakResponse = useCallback((text) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      setIsSpeaking(true);
+  // Removed setIsSpeaking, not needed
 
       const utterance = new SpeechSynthesisUtterance(text);
 
@@ -391,16 +415,16 @@ const ChatRaj = () => {
       loadVoices();
 
       utterance.onstart = () => {
-        setIsSpeaking(true);
+  // Removed setIsSpeaking, not needed
       };
 
       utterance.onend = () => {
-        setIsSpeaking(false);
+  // Removed setIsSpeaking, not needed
       };
 
       window.speechSynthesis.speak(utterance);
     }
-  }, [setIsSpeaking]);
+  }, []); // Removed setIsSpeaking from dependency array
 
   const handleNewChat = () => {
     setMessages([]);
