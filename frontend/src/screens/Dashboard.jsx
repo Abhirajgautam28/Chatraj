@@ -10,12 +10,7 @@ const Dashboard = () => {
   const [projectName, setProjectName] = useState('');
   const [projects, setProjects] = useState([]);
   const navigate = useNavigate();
-  const location = useLocation();
-  // Get category from URL params if present
-  const urlCategory = location.pathname.startsWith('/projects/category/')
-    ? decodeURIComponent(location.pathname.replace('/projects/category/', ''))
-    : null;
-  const selectedCategory = location.state?.selectedCategory || urlCategory || null;
+  const { categoryName } = useParams();
 
   const createProject = (e) => {
     e.preventDefault();
@@ -39,8 +34,8 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-  const url = selectedCategory ? `/projects/all?category=${selectedCategory}` : '/projects/all';
-  axiosInstance.get(url)
+    const url = categoryName ? `/projects/all?category=${categoryName}` : '/projects/all';
+    axios.get(url)
       .then((res) => {
         if (Array.isArray(res.data.projects)) {
           if (categoryName) {

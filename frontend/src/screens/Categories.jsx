@@ -53,7 +53,7 @@ const Categories = () => {
           <i className="text-2xl ri-logout-box-r-line"></i>
         </button>
         <button
-          onClick={() => navigate('/chat')}
+          onClick={() => navigate('/welcome-chatraj')}
           className="fixed flex items-center gap-2 px-4 py-2 text-white transition-all transform bg-blue-600 rounded-full shadow-lg cursor-pointer hover:bg-blue-700 top-4 right-24 hover:scale-110 animate__animated animate__bounceIn"
         >
           <i className="text-2xl ri-robot-2-line"></i>

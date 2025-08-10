@@ -17,7 +17,6 @@ const formatMessageTime = (timestamp) => {
   return `${dateString} ${timeString}`;
 };
 
-
 const ChatRaj = () => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);

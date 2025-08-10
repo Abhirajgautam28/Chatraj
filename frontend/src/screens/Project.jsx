@@ -422,13 +422,13 @@ const Project = () => {
         console.log("container started")
       })
     }
-  axios.get(`/api/projects/get-project/${location.state.project._id}`).then((res) => {
+    axios.get(`/projects/get-project/${location.state.project._id}`).then((res) => {
       console.log(res.data.project)
       setProject(res.data.project)
       setFileTree(res.data.project.fileTree || {})
     })
     axios
-  .get("/api/users/all")
+      .get("/users/all")
       .then((res) => {
         setUsers(res.data.users)
       })
@@ -450,7 +450,7 @@ const Project = () => {
             const normalizedTree = normalizeFileTree(aiResponse.fileTree);
             setFileTree(normalizedTree);
             // Optionally, update the backend as well:
-            axios.put('/api/projects/update-file-tree', {
+            axios.put('/projects/update-file-tree', {
               projectId: project._id,
               fileTree: normalizedTree
             });
@@ -810,7 +810,7 @@ const Project = () => {
   useEffect(() => {
     // Load settings from backend on mount
     if (projectId) {
-  axios.get(`/api/projects/settings/${projectId}`)
+      axios.get(`/projects/settings/${projectId}`)
         .then(res => {
           if (res.data && res.data.settings) {
             setSettings(prev => ({ ...prev, ...res.data.settings }));
@@ -826,7 +826,7 @@ const Project = () => {
   // Save settings to backend whenever they change
   useEffect(() => {
     if (projectId) {
-  axios.put(`/api/projects/settings/${projectId}`, { settings })
+      axios.put(`/projects/settings/${projectId}`, { settings })
         .catch(() => {});
     }
     localStorage.setItem('projectSettings', JSON.stringify(settings));
@@ -848,7 +848,7 @@ const Project = () => {
 
       // If updating sidebar, sync with backend
       if (category === 'sidebar' && project?._id) {
-  axios.put(`/api/projects/sidebar-settings/${project._id}`,
+        axios.put(`/projects/sidebar-settings/${project._id}`,
           { sidebar: { ...updated.sidebar } })
           .then(res => {
             if (res.data && res.data.sidebar) {
@@ -1044,8 +1044,8 @@ const Project = () => {
           </header>
           <div className="flex flex-col gap-2 users">
             {project.users &&
-              project.users.map((u, idx) => (
-                <div key={u._id || idx} className="flex items-center gap-2 p-2 cursor-pointer user hover:bg-slate-200 dark:hover:bg-gray-700">
+              project.users.map((u) => (
+                <div key={u._id} className="flex items-center gap-2 p-2 cursor-pointer user hover:bg-slate-200 dark:hover:bg-gray-700">
                   <Avatar 
                     firstName={u.firstName}
                     className="w-12 h-12 text-base"
