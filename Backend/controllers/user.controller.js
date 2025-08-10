@@ -27,6 +27,7 @@ export const sendOtpController = async (req, res) => {
     }
 };
 
+// FIXED: getLeaderboardController (no conflict, always returns top 10 users sorted by project count)
 export const getLeaderboardController = async (req, res) => {
     try {
         // Fetch users and populate projects
