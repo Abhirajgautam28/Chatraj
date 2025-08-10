@@ -11,7 +11,9 @@ const Blog = () => {
         const fetchBlogs = async () => {
             try {
                 const response = await axios.get('/api/blogs');
-                setBlogs(response.data.slice(0, 3));
+                if (Array.isArray(response.data)) {
+                    setBlogs(response.data.slice(0, 3));
+                }
             } catch (error) {
                 console.error('Error fetching blogs:', error);
             }
@@ -34,7 +36,7 @@ const Blog = () => {
             <div className="max-w-6xl mx-auto">
                 <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-white">From Our Blog</h2>
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-                    {blogs.map((blog, index) => (
+                    {Array.isArray(blogs) && blogs.map((blog, index) => (
                         <motion.div
                             key={index}
                             initial={{ opacity: 0, y: 20 }}
