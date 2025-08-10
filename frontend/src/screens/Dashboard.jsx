@@ -1,6 +1,6 @@
 import { useContext, useState, useEffect } from 'react';
 import { UserContext } from '../context/user.context';
-import axios from "../config/axios";
+import axiosInstance from "../config/axios";
 import { useNavigate, useLocation } from 'react-router-dom';
 import 'animate.css';
 
@@ -15,7 +15,7 @@ const Dashboard = () => {
 
   const createProject = (e) => {
     e.preventDefault();
-    axios.post('/projects/create', {
+  axiosInstance.post('/projects/create', {
       name: projectName,
       category: selectedCategory
     })
@@ -33,8 +33,8 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    const url = selectedCategory ? `/projects/all?category=${selectedCategory}` : '/projects/all';
-    axios.get(url)
+  const url = selectedCategory ? `/projects/all?category=${selectedCategory}` : '/projects/all';
+  axiosInstance.get(url)
       .then((res) => {
         if (selectedCategory) {
           const filteredProjects = res.data.projects.filter(project => project.category === selectedCategory);

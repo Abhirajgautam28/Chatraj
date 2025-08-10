@@ -1,10 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import 'animate.css';
-
-const Categories = () => {
-  const navigate = useNavigate();
-
+import axiosInstance from '../config/axios';
   const categories = [
     { title: 'DSA', description: 'Data Structures & Algorithms', icon: 'ri-bar-chart-fill' },
     { title: 'Frontend Development', description: 'UI coding & client-side logic', icon: 'ri-code-box-line' },
@@ -24,23 +20,18 @@ const Categories = () => {
   ];
 
 
+const Categories = () => {
+  const navigate = useNavigate();
   const [projectCounts, setProjectCounts] = useState({});
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    fetch('http://localhost:8080/projects/category-counts', {
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
-      }
-    })
-      .then(res => res.json())
-      .then(data => setProjectCounts(data || {}))
+  axiosInstance.get('/api/projects/category-counts')
+      .then(res => setProjectCounts(res.data || {}))
       .catch(() => setProjectCounts({}));
   }, []);
 
   const handleCategoryClick = (categoryTitle) => {
-    navigate("/dashboard", { state: { selectedCategory: categoryTitle } });
+    navigate(`/projects/category/${encodeURIComponent(categoryTitle)}`);
   };
 
   return (

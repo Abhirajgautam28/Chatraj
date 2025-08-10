@@ -6,7 +6,7 @@ const ProjectShowcase = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        axios.get('/projects/showcase')
+        axios.get('/api/projects/showcase')
             .then(res => {
                 if (Array.isArray(res.data.projects)) {
                     setProjects(res.data.projects);

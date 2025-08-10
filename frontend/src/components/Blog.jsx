@@ -10,7 +10,7 @@ const Blog = () => {
     useEffect(() => {
         const fetchBlogs = async () => {
             try {
-                const res = await axiosInstance.get('/blogs');
+                const res = await axiosInstance.get('/api/blogs');
                 setBlogs(res.data);
             } catch (error) {
                 console.error('Error fetching blogs:', error);
