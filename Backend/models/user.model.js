@@ -43,12 +43,6 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     }
-    ,
-    projects: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'project',
-        default: []
-    }]
 });
 
 userSchema.statics.hashPassword = async function (password) {

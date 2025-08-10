@@ -24,6 +24,7 @@ const ChatRaj = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [, setIsSpeaking] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -364,7 +365,7 @@ const ChatRaj = () => {
   const speakResponse = useCallback((text) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-  // Removed setIsSpeaking, not needed
+      setIsSpeaking(true);
 
       const utterance = new SpeechSynthesisUtterance(text);
 
@@ -391,16 +392,16 @@ const ChatRaj = () => {
       loadVoices();
 
       utterance.onstart = () => {
-  // Removed setIsSpeaking, not needed
+        setIsSpeaking(true);
       };
 
       utterance.onend = () => {
-  // Removed setIsSpeaking, not needed
+        setIsSpeaking(false);
       };
 
       window.speechSynthesis.speak(utterance);
     }
-  }, []); // Removed setIsSpeaking from dependency array
+  }, [setIsSpeaking]);
 
   const handleNewChat = () => {
     setMessages([]);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import axiosInstance from '../config/axios';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const Blog = () => {
@@ -10,8 +10,8 @@ const Blog = () => {
     useEffect(() => {
         const fetchBlogs = async () => {
             try {
-                const res = await axiosInstance.get('/api/blogs');
-                setBlogs(res.data);
+                const response = await axios.get('/api/blogs');
+                setBlogs(response.data.slice(0, 3));
             } catch (error) {
                 console.error('Error fetching blogs:', error);
             }
