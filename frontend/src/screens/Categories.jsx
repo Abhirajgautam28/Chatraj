@@ -28,7 +28,7 @@ const Categories = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-  fetch('/api/projects/category-counts', {
+  fetch('http://localhost:8080/projects/category-counts', {
       headers: {
         'Accept': 'application/json',
         'Authorization': token ? `Bearer ${token}` : ''
@@ -47,7 +47,14 @@ const Categories = () => {
     <div className="min-h-screen bg-gradient-to-r from-blue-800 to-gray-900">
       <main className="flex items-center justify-center min-h-screen">
         <button
-          onClick={() => navigate('/logout', { replace: true })}
+          onClick={async () => {
+            try {
+              await fetch('/users/logout');
+              navigate('/login', { replace: true });
+            } catch (err) {
+              console.error('Logout failed', err);
+            }
+          }}
           className="fixed z-50 flex items-center justify-center px-4 py-2 text-white transition-all transform bg-blue-600 rounded-full shadow-lg cursor-pointer hover:bg-blue-700 top-4 right-4 hover:scale-110 animate__animated animate__bounceIn"
         >
           <i className="text-2xl ri-logout-box-r-line"></i>
