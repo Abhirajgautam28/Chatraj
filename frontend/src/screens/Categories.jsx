@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import 'animate.css';
+import axios from '../config/axios.js';
 
 const Categories = () => {
   const navigate = useNavigate();
@@ -27,15 +28,10 @@ const Categories = () => {
   const [projectCounts, setProjectCounts] = useState({});
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    fetch('http://localhost:8080/projects/category-counts', {
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
-      }
-    })
-      .then(res => res.json())
-      .then(data => setProjectCounts(data || {}))
+    axios.get('/projects/category-counts')
+      .then(res => {
+        setProjectCounts(res.data || {});
+      })
       .catch(() => setProjectCounts({}));
   }, []);
 
