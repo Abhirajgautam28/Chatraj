@@ -10,7 +10,7 @@ const Blog = () => {
     useEffect(() => {
         const fetchBlogs = async () => {
             try {
-                const response = await axios.get('/api/blogs');
+                const response = await axios.get('blogs');
                 if (Array.isArray(response.data)) {
                     setBlogs(response.data.slice(0, 3));
                 }

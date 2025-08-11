@@ -28,7 +28,7 @@ const Categories = () => {
   const [projectCounts, setProjectCounts] = useState({});
 
   useEffect(() => {
-    axios.get('/projects/category-counts')
+    axios.get('projects/category-counts')
       .then(res => {
         setProjectCounts(res.data || {});
       })
@@ -41,7 +41,7 @@ const Categories = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-800 to-gray-900">
-      <main className="flex items-center justify-center min-h-screen">
+      <main className="relative z-10 flex items-center justify-center min-h-screen">
         <button
           onClick={() => navigate('/logout', { replace: true })}
           className="fixed z-50 flex items-center justify-center px-4 py-2 text-white transition-all transform bg-blue-600 rounded-full shadow-lg cursor-pointer hover:bg-blue-700 top-4 right-4 hover:scale-110 animate__animated animate__bounceIn"
