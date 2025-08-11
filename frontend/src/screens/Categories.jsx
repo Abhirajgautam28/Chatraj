@@ -28,10 +28,15 @@ const Categories = () => {
   const [projectCounts, setProjectCounts] = useState({});
 
   useEffect(() => {
-    axios.get('projects/category-counts')
-      .then(res => {
-        setProjectCounts(res.data || {});
-      })
+    const token = localStorage.getItem('token');
+  fetch('/api/projects/category-counts', {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      }
+    })
+      .then(res => res.json())
+      .then(data => setProjectCounts(data || {}))
       .catch(() => setProjectCounts({}));
   }, []);
 

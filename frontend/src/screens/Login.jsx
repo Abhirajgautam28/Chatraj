@@ -26,7 +26,7 @@ const Login = () => {
 
     function submitHandler(e) {
         e.preventDefault();
-        axios.post('/users/login', { email, password })
+    axios.post('/api/users/login', { email, password })
             .then((res) => {
                 localStorage.setItem('token', res.data.token);
                 setUser(res.data.user);
