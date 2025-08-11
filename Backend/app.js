@@ -66,12 +66,6 @@ app.options('*', cors({
 
 app.use(corsErrorLogger);
 
-app.use((req, res, next) => {
-    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
-    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-    next();
-});
-
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
