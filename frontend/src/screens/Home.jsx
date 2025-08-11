@@ -262,7 +262,7 @@ function greet(name) {
           </pre>
         </motion.div>
         </motion.section>
-
+        
         <section className="py-20 bg-gray-100 dark:bg-gray-800">
           <div className="max-w-6xl mx-auto">
             <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-white">Key Features</h2>
