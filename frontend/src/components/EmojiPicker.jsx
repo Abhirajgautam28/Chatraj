@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 const EmojiPicker = ({ onSelect, isOpen, setIsOpen, isCurrentUser = false }) => {
   const emojis = ['👍', '❤️', '😂', '🎉', '🚀', '💯', '👀', '🔥'];
   
@@ -34,6 +36,13 @@ const EmojiPicker = ({ onSelect, isOpen, setIsOpen, isCurrentUser = false }) => 
       </button>
     </div>
   );
+};
+
+EmojiPicker.propTypes = {
+    onSelect: PropTypes.func.isRequired,
+    isOpen: PropTypes.bool.isRequired,
+    setIsOpen: PropTypes.func.isRequired,
+    isCurrentUser: PropTypes.bool,
 };
 
 export default EmojiPicker;

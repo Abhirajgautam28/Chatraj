@@ -3,7 +3,7 @@ import userModel from '../models/user.model.js';
 
 
 export const createUser = async ({
-    firstName, lastName, email, password, googleApiKey
+    firstName, lastName, email, password, googleApiKey, otp, isVerified
 }) => {
     if (!firstName || !lastName || !email || !password || !googleApiKey) {
         throw new Error('All fields are required');
@@ -15,7 +15,9 @@ export const createUser = async ({
         lastName,
         email,
         password: hashedPassword,
-        googleApiKey
+        googleApiKey,
+        otp,
+        isVerified
     });
     return user;
 }

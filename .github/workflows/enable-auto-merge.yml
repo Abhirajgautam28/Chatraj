@@ -1,0 +1,25 @@
+name: Enable Auto-Merge
+
+on:
+  pull_request_target:
+    types:
+      - labeled
+      - unlabeled
+      - synchronize
+
+permissions:
+  pull-requests: write
+
+jobs:
+  enable-auto-merge:
+    if: |
+      github.actor == 'Abhirajgautam28' &&
+      contains(join(github.event.pull_request.labels.*.name, ','), 'automerge')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enable auto-merge for PR
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ github.event.pull_request.number }}
+          merge-method: SQUASH

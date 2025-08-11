@@ -47,53 +47,43 @@ const Categories = () => {
     <div className="min-h-screen bg-gradient-to-r from-blue-800 to-gray-900">
       <main className="relative flex items-center justify-center min-h-screen">
         <button
+          onClick={() => navigate('/logout', { replace: true })}
+          className="fixed z-50 flex items-center justify-center px-4 py-2 text-white transition-all transform bg-blue-600 rounded-full shadow-lg cursor-pointer hover:bg-blue-700 top-4 right-4 hover:scale-110 animate__animated animate__bounceIn"
+        >
+          <i className="text-2xl ri-logout-box-r-line"></i>
+        </button>
+        <button
           onClick={() => navigate('/welcome-chatraj')}
-          className="fixed flex items-center gap-2 px-4 py-2 text-white transition-all transform bg-blue-600 rounded-full shadow-lg cursor-pointer hover:bg-blue-700 top-4 right-4 hover:scale-110 animate__animated animate__bounceIn"
+          className="fixed flex items-center gap-2 px-4 py-2 text-white transition-all transform bg-blue-600 rounded-full shadow-lg cursor-pointer hover:bg-blue-700 top-4 right-24 hover:scale-110 animate__animated animate__bounceIn"
         >
           <i className="text-2xl ri-robot-2-line"></i>
         </button>
 
-        <div className="w-full max-w-6xl p-4">
-          <h1 className="mb-6 text-2xl font-bold text-center text-white animate__animated animate__fadeInDown">
+        <div className="w-full max-w-7xl p-6">
+          <h1 className="mb-10 text-4xl font-bold text-center text-white animate__animated animate__fadeInDown">
             Explore Categories
           </h1>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
             {categories.map((cat, index) => {
               const count = projectCounts[cat.title] ?? 0;
               return (
-                <button
+                <div
                   key={index}
                   onClick={() => handleCategoryClick(cat.title)}
-                  className="relative flex flex-col items-center justify-center p-2 text-white transition transform bg-gray-700 rounded-md hover:bg-gray-600 hover:scale-105"
-                  style={{ minHeight: 120 }}
+                  className="relative p-4 transition-all duration-300 transform bg-gray-800 border border-gray-700 rounded-lg shadow-md cursor-pointer hover:shadow-lg hover:-translate-y-1 hover:border-blue-600"
+                  style={{ minHeight: 160 }}
                 >
-                  {count > 0 ? (
-                    <span
-                      className="absolute"
-                      style={{
-                        top: 8,
-                        right: 8,
-                        minWidth: 22,
-                        height: 22,
-                        background: '#2563eb',
-                        color: '#fff',
-                        borderRadius: '999px',
-                        fontWeight: 700,
-                        fontSize: 13,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-                        zIndex: 2
-                      }}
-                    >
+                  {count > 0 && (
+                    <span className="absolute top-2 right-2 px-2 py-1 text-xs font-bold text-white bg-blue-600 rounded-full">
                       {count}
                     </span>
-                  ) : null}
-                  <i className={`${cat.icon} text-5xl mb-2`}></i>
-                  <h2 className="text-lg font-semibold text-center">{cat.title}</h2>
-                  <p className="text-sm text-center">{cat.description}</p>
-                </button>
+                  )}
+                  <div className="flex items-center justify-center w-12 h-12 mb-3 text-white bg-gray-700 rounded-lg">
+                    <i className={`${cat.icon} text-2xl`}></i>
+                  </div>
+                  <h2 className="mb-1 text-lg font-semibold text-white">{cat.title}</h2>
+                  <p className="text-xs text-gray-400">{cat.description}</p>
+                </div>
               );
             })}
           </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import axios from '../config/axios';
 
 const NewsletterSubscribeForm = () => {
@@ -11,7 +11,7 @@ const NewsletterSubscribeForm = () => {
     setStatus('loading');
     setError('');
     try {
-      const res = await axios.post('/api/newsletter/subscribe', { email });
+      await axios.post('/api/newsletter/subscribe', { email });
       setStatus('success');
       setEmail('');
     } catch (err) {

@@ -1,0 +1,19 @@
+name: Label PRs for Auto-Merge
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  label:
+    if: github.actor == 'Abhirajgautam28'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add automerge label
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: automerge

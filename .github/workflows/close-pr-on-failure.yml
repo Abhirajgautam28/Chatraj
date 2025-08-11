@@ -1,0 +1,29 @@
+name: Close PRs on Production Deployment Failure
+
+on:
+  deployment_status
+
+permissions:
+  pull-requests: write
+
+jobs:
+  close-failed-pr:
+    if: github.event.deployment_status.state == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close PR using GitHub REST API
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pr_url=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            https://api.github.com/repos/${{ github.repository }}/deployments/${{ github.event.deployment_status.deployment.id }}/statuses \
+            | jq -r '.[0].target_url')
+
+          pr_number=$(echo "$pr_url" | grep -oE '[0-9]+$')
+
+          if [[ "$pr_number" != "" ]]; then
+            curl -X PATCH -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/${{ github.repository }}/pulls/$pr_number \
+              -d '{"state":"closed"}'
+          fi
