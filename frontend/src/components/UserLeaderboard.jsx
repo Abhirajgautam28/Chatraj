@@ -6,17 +6,17 @@ const UserLeaderboard = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-    axios.get('http://localhost:8080/users/leaderboard')
-        .then(res => {
-            if (Array.isArray(res.data.users)) {
-                setUsers(res.data.users);
-            }
-            setLoading(false);
-        })
-        .catch(err => {
-            console.error(err);
-            setLoading(false);
-        });
+        axios.get('users/leaderboard')
+            .then(res => {
+                if (Array.isArray(res.data.users)) {
+                    setUsers(res.data.users);
+                }
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error(err);
+                setLoading(false);
+            });
     }, []);
 
     if (loading) {
@@ -27,7 +27,7 @@ const UserLeaderboard = () => {
         <div className="p-6 bg-white rounded-lg shadow-md dark:bg-gray-700">
             <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white">User Leaderboard</h3>
             <ul className="space-y-4">
-                {users.map((user, index) => (
+                {Array.isArray(users) && users.map((user, index) => (
                     <li key={user._id} className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <span className="text-lg font-bold text-gray-600 dark:text-gray-300">{index + 1}</span>

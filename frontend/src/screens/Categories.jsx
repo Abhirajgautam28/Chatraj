@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import 'animate.css';
+import axios from '../config/axios.js';
 
 const Categories = () => {
   const navigate = useNavigate();
@@ -40,12 +41,12 @@ const Categories = () => {
   }, []);
 
   const handleCategoryClick = (categoryTitle) => {
-    navigate("/dashboard", { state: { selectedCategory: categoryTitle } });
+    navigate(`/dashboard/${categoryTitle}`);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-800 to-gray-900">
-      <main className="flex items-center justify-center min-h-screen">
+      <main className="relative z-10 flex items-center justify-center min-h-screen">
         <button
           onClick={async () => {
             try {
