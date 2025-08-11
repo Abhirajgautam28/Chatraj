@@ -28,7 +28,7 @@ const Categories = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    fetch('http://localhost:8080/projects/category-counts', {
+  fetch('/api/projects/category-counts', {
       headers: {
         'Accept': 'application/json',
         'Authorization': token ? `Bearer ${token}` : ''

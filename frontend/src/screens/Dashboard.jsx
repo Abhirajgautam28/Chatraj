@@ -15,7 +15,7 @@ const Dashboard = () => {
 
   const createProject = (e) => {
     e.preventDefault();
-    axios.post('/projects/create', {
+  axios.post('/api/projects/create', {
       name: projectName,
       category: selectedCategory
     })
@@ -33,7 +33,7 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    const url = selectedCategory ? `/projects/all?category=${selectedCategory}` : '/projects/all';
+  const url = selectedCategory ? `/api/projects/all?category=${selectedCategory}` : '/api/projects/all';
     axios.get(url)
       .then((res) => {
         if (selectedCategory) {
