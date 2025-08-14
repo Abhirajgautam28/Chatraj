@@ -626,7 +626,7 @@ const ChatRaj = () => {
                         </p>
                       )}
                     </div>
-                  </motion.div>
+                  </div>
                 ))
               )}
               {isThinking && (
