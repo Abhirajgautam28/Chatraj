@@ -1,7 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
 import axios from '../config/axios';
 import { useParams, Link } from 'react-router-dom';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import 'remixicon/fonts/remixicon.css';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const SingleBlogPage = () => {
     const [blog, setBlog] = useState(null);
@@ -10,6 +14,7 @@ const SingleBlogPage = () => {
     const [progress, setProgress] = useState(0);
     const { id } = useParams();
     const contentRef = useRef(null);
+    const heroRef = useRef(null);
 
     useEffect(() => {
         const fetchBlog = async () => {
@@ -27,6 +32,31 @@ const SingleBlogPage = () => {
     }, [id]);
 
     useEffect(() => {
+        if (!loading && contentRef.current) {
+            gsap.to(heroRef.current, {
+                backgroundPosition: '50% 100%',
+                ease: 'none',
+                scrollTrigger: {
+                    trigger: heroRef.current,
+                    start: 'top top',
+                    end: 'bottom top',
+                    scrub: true,
+                },
+            });
+
+            gsap.utils.toArray('.prose > *').forEach(el => {
+                gsap.from(el, {
+                    opacity: 0,
+                    y: 50,
+                    duration: 1,
+                    ease: 'power3.out',
+                    scrollTrigger: {
+                        trigger: el,
+                        start: 'top 80%',
+                    }
+                });
+            });
+        }
         const handleScroll = () => {
             if (contentRef.current) {
                 const { top, height } = contentRef.current.getBoundingClientRect();
@@ -39,7 +69,7 @@ const SingleBlogPage = () => {
 
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [blog]);
+    }, [blog, loading]);
 
     const handleLike = async () => {
         try {
@@ -90,7 +120,7 @@ const SingleBlogPage = () => {
             <div className="fixed top-0 left-0 w-full h-1 bg-gray-700 z-50">
                 <div className="h-full bg-gradient-to-r from-blue-400 to-teal-400" style={{ width: `${progress}%` }}></div>
             </div>
-            <header className="relative h-96">
+            <header ref={heroRef} className="relative h-96 bg-cover bg-center bg-fixed" style={{ backgroundImage: `url(${blog.coverImage || 'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'})`}}>
                 <div className="absolute inset-0 bg-black opacity-50"></div>
                 <div className="container px-4 py-8 mx-auto h-full flex flex-col justify-end">
                     <h1 className="text-5xl font-extrabold mb-2">{blog.title}</h1>
@@ -140,6 +170,24 @@ const SingleBlogPage = () => {
                                     <div>
                                         <p className="font-bold">{comment.user.firstName} {comment.user.lastName}</p>
                                         <p className="text-gray-400">{comment.text}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div className="py-16 bg-gray-900">
+                <div className="container px-4 mx-auto">
+                    <div className="max-w-4xl mx-auto">
+                        <h2 className="text-3xl font-bold mb-8">Related Posts</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {/* Mock data for related posts */}
+                            {[1, 2].map(i => (
+                                <div key={i} className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+                                    <div className="p-6">
+                                        <h3 className="text-xl font-bold mb-2">Related Post {i}</h3>
+                                        <p className="text-gray-400">This is a placeholder for a related blog post.</p>
                                     </div>
                                 </div>
                             ))}

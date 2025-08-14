@@ -33,6 +33,7 @@
     "react-dnd-html5-backend": "^16.0.1",
     "masonry-layout": "^4.2.2",
     "imagesloaded": "^5.0.0",
+    "gsap": "^3.12.5",
     "highlight.js": "^11.11.1",
     "markdown-to-jsx": "^7.7.13",
     "monaco-editor": "^0.52.2",
