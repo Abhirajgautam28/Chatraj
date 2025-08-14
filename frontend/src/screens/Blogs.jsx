@@ -45,7 +45,15 @@ const Blogs = () => {
                         Explore the latest stories and insights from our community.
                     </p>
                 </div>
-                <div className="flex justify-end mb-8">
+                <div className="flex justify-between items-center mb-8">
+                    <div className="flex gap-4">
+                        <select className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2">
+                            <option>Filter by Topic</option>
+                        </select>
+                        <select className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2">
+                            <option>Sort by Date</option>
+                        </select>
+                    </div>
                     <Link to="/blogs/create">
                         <button
                             className="px-6 py-3 font-bold text-white bg-gradient-to-r from-blue-500 to-teal-500 rounded-lg hover:from-blue-600 hover:to-teal-600 transition-all duration-300 transform hover:scale-105"
@@ -57,11 +65,11 @@ const Blogs = () => {
                 {loading ? (
                     <div className="text-center text-2xl font-semibold">Loading...</div>
                 ) : (
-                    <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="column-1 md:column-2 lg:column-3 gap-8">
                         {blogs.map((blog) => (
                             <div
                                 key={blog._id}
-                                className="blog-card bg-gray-800 rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300"
+                                className="blog-card bg-gray-800 rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 mb-8 break-inside-avoid"
                             >
                                 <div className="p-6">
                                     <h2 className="mb-2 text-2xl font-bold text-white hover:text-blue-400 transition-colors duration-300">
