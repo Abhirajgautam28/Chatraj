@@ -904,25 +904,25 @@ const Project = () => {
               <span style={{ color: isDarkMode ? '#fff' : '#1f2937' }}>{t('addUsers')}</span>
             </button>
             {settings.display?.aiAssistant && (
-              <button className="p-2 text-gray-800 dark:text-white" title={t('aiAssistant')} onClick={() => setIsAIModalOpen(true)}>
-                <i className="ri-robot-2-line"></i>
+              <button className="p-2" title={t('aiAssistant')} onClick={() => setIsAIModalOpen(true)}>
+                <i className="ri-robot-2-line" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
               </button>
             )}
           </div>
           <div className="flex items-center gap-2">
             <button 
               onClick={() => setIsSettingsOpen(true)}
-              className="p-2 text-gray-800 transition-colors rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
+              className="p-2 transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
               title={t('settings')}
             >
-              <i className="text-xl ri-settings-3-line"></i>
+              <i className="text-xl ri-settings-3-line" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
             </button>
             {!showSearch ? (
               <button 
                 onClick={() => setShowSearch(true)} 
-                className="p-2 text-gray-800 transition-colors rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
+                className="p-2 transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
               >
-                <i className="text-gray-800 ri-search-eye-fill dark:text-white"></i>
+                <i className="ri-search-eye-fill" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
               </button>
             ) : (
               <div className="relative">
@@ -935,17 +935,17 @@ const Project = () => {
                 />
                 <button 
                   onClick={() => setShowSearch(false)} 
-                  className="absolute text-gray-800 right-2 top-2 dark:text-white"
+                  className="absolute right-2 top-2"
                 >
-                  <i className="ri-close-line"></i>
+                  <i className="ri-close-line" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
                 </button>
               </div>
             )}
             <button 
               onClick={() => setIsSidePanelOpen(!isSidePanelOpen)} 
-              className="p-2 text-gray-800 transition-colors rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
+              className="p-2 transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
             >
-              <i className="text-gray-800 ri-user-community-line dark:text-white"></i>
+              <i className="ri-user-community-line" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
             </button>
           </div>
         </header>
