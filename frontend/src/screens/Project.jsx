@@ -781,7 +781,7 @@ const Project = () => {
             </button>
           </div>
         </div>
-      </motion.div>
+      </div>
     )
   }
 
@@ -989,7 +989,7 @@ const Project = () => {
                 return typingUser?.firstName || 'Unknown';
               }).join(', ')} {typingUsers.size === 1 ? 'is' : 'are'} typing...
             </div>
-          </motion.div>
+          </div>
         )}
         <div className="absolute bottom-0 flex w-full bg-white inputField dark:bg-gray-800">
           <input
