@@ -28,7 +28,7 @@ const Categories = () => {
   const [projectCounts, setProjectCounts] = useState({});
 
   useEffect(() => {
-    axios.get('/projects/category-counts')
+    axios.get('/api/projects/category-counts')
       .then(res => setProjectCounts(res.data || {}))
       .catch(() => setProjectCounts({}));
   }, []);
