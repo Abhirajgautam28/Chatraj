@@ -6,7 +6,7 @@ const UserLeaderboard = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-    axios.get('http://localhost:8080/users/leaderboard')
+        axios.get('/users/leaderboard')
             .then(res => {
                 if (Array.isArray(res.data.users)) {
                     setUsers(res.data.users);

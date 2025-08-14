@@ -34,13 +34,12 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-  const url = selectedCategory ? `/api/projects/all?category=${selectedCategory}` : '/api/projects/all';
-    axios.get(url)
+    // Always fetch all projects for the user, then filter by category on the frontend
+    axios.get('/api/projects/all')
       .then((res) => {
         if (Array.isArray(res.data.projects)) {
           if (categoryName) {
-            const filteredProjects = res.data.projects.filter(project => project.category === categoryName);
-            setProjects(filteredProjects);
+            setProjects(res.data.projects.filter(p => p.category === categoryName));
           } else {
             setProjects(res.data.projects);
           }
