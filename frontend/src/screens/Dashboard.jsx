@@ -30,6 +30,8 @@ const Dashboard = () => {
   };
 
   const handleLogout = () => {
+    // Remove token and user, then redirect to logout screen
+    localStorage.removeItem('token');
     navigate('/logout', { replace: true });
   };
 

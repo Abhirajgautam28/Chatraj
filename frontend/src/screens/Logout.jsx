@@ -10,19 +10,13 @@ const Logout = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Always clear token and user, then redirect to home page
+    localStorage.removeItem('token');
+    setUser(null);
+    axios.get('/users/logout').catch(() => {});
     const timer = setTimeout(() => {
-        navigate('/', { replace: true });
-    }, 4000);
-
-    axios.get('/users/logout')
-        .then(() => {
-            localStorage.removeItem('token');
-            setUser(null);
-        })
-        .catch((err) => {
-            console.error(err);
-        });
-
+      navigate('/', { replace: true });
+    }, 2000);
     return () => clearTimeout(timer);
   }, [navigate, setUser]);
 

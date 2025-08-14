@@ -16,17 +16,9 @@ const UserAuth = ({ children }) => {
             navigate('/login', { replace: true });
             return;
         }
-
-        // If there is a token, but the user object isn't populated in the context yet,
-        // we wait. The UserContext is responsible for verifying the token and fetching the user.
-        // If the token is invalid, the context will clear it, and this component will re-run,
-        // catching the !token case above.
         if (user) {
             setLoading(false);
         }
-
-        // We don't navigate away if there's a token but no user yet.
-        // We just stay in the loading state.
     }, [user, token, navigate]);
 
     if (loading) {
