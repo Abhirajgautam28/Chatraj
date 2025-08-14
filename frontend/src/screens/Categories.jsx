@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import 'animate.css';
 import axios from '../config/axios.js';
 
 const Categories = () => {

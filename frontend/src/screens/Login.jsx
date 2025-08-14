@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/user.context';
 import axios from '../config/axios';
 import anime from 'animejs';
-import 'animate.css';
 
 const Login = () => {
     const [email, setEmail] = useState('');

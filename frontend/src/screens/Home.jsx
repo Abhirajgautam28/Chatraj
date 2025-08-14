@@ -7,7 +7,6 @@ import UserLeaderboard from '../components/UserLeaderboard.jsx';
 import ProjectShowcase from '../components/ProjectShowcase.jsx';
 import Blog from '../components/Blog.jsx';
 import ContactUs from '../components/ContactUs.jsx';
-import 'animate.css';
 
 // Newsletter API endpoint for subscription
 const NEWSLETTER_API_URL =
