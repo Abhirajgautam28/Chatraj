@@ -13,7 +13,7 @@ const Logout = () => {
     // Always clear token and user, then redirect to home page
     localStorage.removeItem('token');
     setUser(null);
-    axios.get('/users/logout').catch(() => {});
+  axios.get('/api/users/logout').catch(() => {});
     const timer = setTimeout(() => {
       navigate('/', { replace: true });
     }, 2000);
