@@ -38,15 +38,11 @@ const ContactUs = () => {
                         </p>
                         <div className="flex items-center gap-4 mb-4">
                             <i className="text-2xl text-blue-600 ri-map-pin-line"></i>
-                            <p className="text-gray-600 dark:text-gray-300">123 Main St, Anytown, USA</p>
+                            <p className="text-gray-600 dark:text-gray-300">Bengaluru, India.</p>
                         </div>
                         <div className="flex items-center gap-4 mb-4">
                             <i className="text-2xl text-blue-600 ri-mail-line"></i>
-                            <p className="text-gray-600 dark:text-gray-300">contact@chatraj.com</p>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <i className="text-2xl text-blue-600 ri-phone-line"></i>
-                            <p className="text-gray-600 dark:text-gray-300">+1 (555) 123-4567</p>
+                            <p className="text-gray-600 dark:text-gray-300">Abhirajgautam28@gmail.com</p>
                         </div>
                     </motion.div>
                     <motion.div
