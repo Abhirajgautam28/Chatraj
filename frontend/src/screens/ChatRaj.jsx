@@ -217,6 +217,50 @@ const ChatRaj = () => {
     return languages[lang]?.translations[key] || languages['en-US'].translations[key];
   };
 
+  // Duplicate speakResponse removed
+
+  // Move speakResponse above handleSubmit to avoid ReferenceError
+  const speakResponse = useCallback((text) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(true);
+
+      const utterance = new SpeechSynthesisUtterance(text);
+
+      const loadVoices = () => {
+        const voices = window.speechSynthesis.getVoices();
+        const femaleVoice = voices.find(voice =>
+          voice.name.toLowerCase().includes('female') ||
+          voice.name.includes('Samantha') ||
+          voice.name.includes('Victoria') ||
+          voice.name.includes('Karen') ||
+          voice.name.includes('Tessa')
+        );
+
+        if (femaleVoice) {
+          utterance.voice = femaleVoice;
+          utterance.pitch = 1.2;
+          utterance.rate = 0.9;
+        }
+      };
+
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+      }
+      loadVoices();
+
+      utterance.onstart = () => {
+        setIsSpeaking(true);
+      };
+
+      utterance.onend = () => {
+        setIsSpeaking(false);
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+  }, [setIsSpeaking]);
+
   const handleSubmit = useCallback(async (e, voiceInput = null) => {
     e?.preventDefault();
 
@@ -360,47 +404,6 @@ const ChatRaj = () => {
       recognitionRef.current.start();
     }
   };
-
-  const speakResponse = useCallback((text) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(true);
-
-      const utterance = new SpeechSynthesisUtterance(text);
-
-      const loadVoices = () => {
-        const voices = window.speechSynthesis.getVoices();
-        const femaleVoice = voices.find(voice =>
-          voice.name.toLowerCase().includes('female') ||
-          voice.name.includes('Samantha') ||
-          voice.name.includes('Victoria') ||
-          voice.name.includes('Karen') ||
-          voice.name.includes('Tessa')
-        );
-
-        if (femaleVoice) {
-          utterance.voice = femaleVoice;
-          utterance.pitch = 1.2;
-          utterance.rate = 0.9;
-        }
-      };
-
-      if (window.speechSynthesis.onvoiceschanged !== undefined) {
-        window.speechSynthesis.onvoiceschanged = loadVoices;
-      }
-      loadVoices();
-
-      utterance.onstart = () => {
-        setIsSpeaking(true);
-      };
-
-      utterance.onend = () => {
-        setIsSpeaking(false);
-      };
-
-      window.speechSynthesis.speak(utterance);
-    }
-  }, [setIsSpeaking]);
 
   const handleNewChat = () => {
     setMessages([]);
