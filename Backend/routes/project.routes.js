@@ -10,7 +10,8 @@ import {
   getProjectById,
   updateFileTree,
   getProjectSettings,
-  updateProjectSettings
+  updateProjectSettings,
+  getProjectShowcase
 } from '../controllers/project.controller.js';
 import { authUser } from '../middleware/auth.middleware.js';
 
@@ -69,6 +70,8 @@ router.put('/settings/:projectId',
     authUser,
     updateProjectSettings
 )
+
+router.get('/showcase', getProjectShowcase);
 
 
 export default router;

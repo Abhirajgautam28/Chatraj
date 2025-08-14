@@ -893,14 +893,15 @@ const Project = () => {
   return (
     <main className="flex w-screen h-screen overflow-hidden bg-white dark:bg-gray-900">
       <section className="relative flex flex-col h-screen left min-w-96 bg-slate-100 dark:bg-gray-800">
-        <header className="absolute top-0 z-10 flex items-center justify-between w-full p-2 px-4 bg-slate-100 dark:bg-gray-800">
+  <header className="absolute top-0 z-10 flex items-center justify-between w-full p-2 px-4 bg-slate-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 text-gray-800 dark:text-white transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 px-3 py-1.5 rounded-lg"
+              className="flex items-center gap-2 text-gray-800 dark:text-white transition-colors hover:bg-gray-200 dark:hover:bg-gray-800 px-3 py-1.5 rounded-lg focus:outline-none"
+              style={{ background: 'transparent', border: 'none' }}
             >
-              <i className="text-gray-800 ri-user-add-fill dark:text-white"></i>
-              <span className="text-gray-800 dark:text-white">{t('addUsers')}</span>
+              <i className="ri-user-add-fill" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
+              <span style={{ color: isDarkMode ? '#fff' : '#1f2937' }}>{t('addUsers')}</span>
             </button>
             {settings.display?.aiAssistant && (
               <button className="p-2 text-gray-800 dark:text-white" title={t('aiAssistant')} onClick={() => setIsAIModalOpen(true)}>
@@ -957,8 +958,8 @@ const Project = () => {
             .map((groupLabel) => (
               <div key={groupLabel}>
                 <div className="py-2 text-sm text-center text-gray-500 dark:text-gray-400">{groupLabel}</div>
-                {groupedMessages[groupLabel].map((msg) => (
-                  <React.Fragment key={msg._id}>{renderMessage(msg)}</React.Fragment>
+                {groupedMessages[groupLabel].map((msg, idx) => (
+                  <React.Fragment key={msg._id || `${groupLabel}-${idx}`}>{renderMessage(msg)}</React.Fragment>
                 ))}
               </div>
             ))}
@@ -1084,19 +1085,23 @@ const Project = () => {
             {/* Show File Tree Option */}
             {settings.sidebar?.showFileTree !== false && (
               <div className="file-tree">
-                {Object.keys(fileTree).map((file) => (
-                  <button
-                    key={file}
-                    onClick={() => {
-                      setCurrentFile(file);
-                      setOpenFiles([...new Set([...openFiles, file])]);
-                    }}
-                    className="flex items-center w-full gap-2 p-2 px-4 cursor-pointer tree-element hover:bg-slate-400 dark:hover:bg-gray-600 bg-slate-300 dark:bg-gray-700 dark:text-white"
-                  >
-                    <FileIcon fileName={file} />
-                    <p className="text-lg font-semibold">{file}</p>
-                  </button>
-                ))}
+                {fileTree && Object.keys(fileTree).length > 0 ? (
+                  Object.keys(fileTree).map((file) => (
+                    <button
+                      key={file}
+                      onClick={() => {
+                        setCurrentFile(file);
+                        setOpenFiles([...new Set([...openFiles, file])]);
+                      }}
+                      className="flex items-center w-full gap-2 p-2 px-4 cursor-pointer tree-element hover:bg-slate-400 dark:hover:bg-gray-600 bg-slate-300 dark:bg-gray-700 dark:text-white"
+                    >
+                      <FileIcon fileName={file} />
+                      <p className="text-lg font-semibold">{file}</p>
+                    </button>
+                  ))
+                ) : (
+                  <div className="text-gray-500 dark:text-gray-300 p-4">No files found in this project.</div>
+                )}
               </div>
             )}
             {/* Show Collaborators Option */}

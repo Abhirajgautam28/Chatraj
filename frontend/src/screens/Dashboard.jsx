@@ -1,7 +1,7 @@
 import { useContext, useState, useEffect } from 'react';
 import { UserContext } from '../context/user.context';
 import axios from "../config/axios";
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import 'animate.css';
 
 const Dashboard = () => {
@@ -10,18 +10,19 @@ const Dashboard = () => {
   const [projectName, setProjectName] = useState('');
   const [projects, setProjects] = useState([]);
   const navigate = useNavigate();
-  const location = useLocation();
-  const selectedCategory = location.state?.selectedCategory || null;
+  const { categoryName } = useParams();
 
   const createProject = (e) => {
     e.preventDefault();
-    axios.post('/projects/create', {
+  axios.post('/api/projects/create', {
       name: projectName,
-      category: selectedCategory
+      category: categoryName
     })
       .then((res) => {
         console.log(res);
+        setProjects(prev => [...prev, res.data.project]);
         setIsModalOpen(false);
+        setProjectName('');
       })
       .catch((error) => {
         console.log(error);
@@ -33,15 +34,24 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    const url = selectedCategory ? `/projects/all?category=${selectedCategory}` : '/projects/all';
-    axios.get(url)
+    // Always fetch all projects for the user, then filter by category on the frontend
+    axios.get('/api/projects/all')
       .then((res) => {
-        setProjects(res.data.projects);
+        if (Array.isArray(res.data.projects)) {
+          if (categoryName) {
+            setProjects(res.data.projects.filter(p => p.category === categoryName));
+          } else {
+            setProjects(res.data.projects);
+          }
+        } else {
+          setProjects([]);
+        }
       })
       .catch(err => {
         console.log(err);
+        setProjects([]);
       });
-  }, [selectedCategory]);
+  }, [categoryName]);
 
   return (
     <main className="relative min-h-screen p-4 bg-gradient-to-r from-blue-800 to-gray-900 animate__animated animate__fadeIn">
@@ -55,7 +65,7 @@ const Dashboard = () => {
         </button>
         <div className="w-full max-w-4xl p-8 transition duration-500 transform bg-gray-800 rounded-lg shadow-2xl hover:scale-105">
           <h1 className="mb-6 text-2xl font-bold text-center text-white animate__animated animate__fadeInDown">
-            {selectedCategory ? `${selectedCategory} Projects` : 'Your Projects'}
+            {categoryName ? `${categoryName} Projects` : 'Your Projects'}
           </h1>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
             <button

@@ -116,6 +116,11 @@ export const getProjectById = async ({ projectId }) => {
         _id: projectId
     }).populate('users', '_id firstName lastName')
 
+    // Always return a valid fileTree object
+    if (project && (!project.fileTree || typeof project.fileTree !== 'object')) {
+        project.fileTree = {};
+    }
+
     return project;
 }
 

@@ -21,6 +21,14 @@ const messageSchema = new mongoose.Schema({
     type: Array,
     default: []
   },
+  deliveredTo: {
+    type: [String],
+    default: []
+  },
+  readBy: {
+    type: [String],
+    default: []
+  },
   createdAt: {
     type: Date,
     default: Date.now
