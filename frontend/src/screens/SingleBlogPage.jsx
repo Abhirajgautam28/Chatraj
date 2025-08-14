@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import axios from 'axios';
+import axios from '../config/axios';
 import { useParams } from 'react-router-dom';
 import 'remixicon/fonts/remixicon.css';
 
@@ -56,10 +55,7 @@ const SingleBlogPage = () => {
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
             <div className="container px-4 py-8 mx-auto">
-                <motion.div
-                    initial={{ opacity: 0, y: -50 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
+                <div
                     className="p-8 mx-auto bg-white rounded-lg shadow-lg dark:bg-gray-800 max-w-7xl"
                 >
                     <h1 className="mb-4 text-4xl font-bold text-gray-800 dark:text-white">{blog.title}</h1>
@@ -68,20 +64,15 @@ const SingleBlogPage = () => {
                     </p>
                     <div className="mb-8 text-gray-700 dark:text-gray-300" dangerouslySetInnerHTML={{ __html: blog.content }}></div>
                     <div className="flex items-center">
-                        <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
+                        <button
                             onClick={handleLike}
                             className="flex items-center px-4 py-2 mr-4 font-bold text-white bg-blue-500 rounded-full hover:bg-blue-700"
                         >
                             <i className="mr-2 ri-heart-fill"></i> {blog.likes.length}
-                        </motion.button>
+                        </button>
                     </div>
-                </motion.div>
-                <motion.div
-                    initial={{ opacity: 0, y: 50 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
+                </div>
+                <div
                     className="p-8 mx-auto mt-8 bg-white rounded-lg shadow-lg dark:bg-gray-800 max-w-7xl"
                 >
                     <h2 className="mb-4 text-2xl font-bold text-gray-800 dark:text-white">Comments</h2>
@@ -93,14 +84,12 @@ const SingleBlogPage = () => {
                             placeholder="Add a comment..."
                             required
                         ></textarea>
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                        <button
                             type="submit"
                             className="px-4 py-2 mt-2 font-bold text-white bg-blue-500 rounded-full hover:bg-blue-700"
                         >
                             Post Comment
-                        </motion.button>
+                        </button>
                     </form>
                     <div className="mt-8">
                         {blog.comments.map((comment) => (
@@ -112,7 +101,7 @@ const SingleBlogPage = () => {
                             </div>
                         ))}
                     </div>
-                </motion.div>
+                </div>
             </div>
         </div>
     );

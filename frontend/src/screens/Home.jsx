@@ -1,6 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
@@ -140,9 +139,6 @@ const Home = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showFabMenu, setShowFabMenu] = useState(false);
 
-  const { scrollYProgress } = useScroll();
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
-
   useEffect(() => {
     if (user) {
       navigate('/categories', { replace: true });
@@ -208,27 +204,18 @@ const Home = () => {
       </header>
 
       <main className="flex-grow pt-16">
-        <motion.section style={{ y }} className="relative flex flex-col items-center justify-center min-h-screen text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+        <section className="relative flex flex-col items-center justify-center min-h-screen text-center">
+          <h1
             className="max-w-4xl mx-auto mb-4 text-4xl font-extrabold leading-tight text-gray-800 md:text-5xl dark:text-white"
           >
             Your Intelligent Software Engineering Assistant
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+          </h1>
+          <p
             className="max-w-2xl mx-auto mb-8 text-lg text-gray-600 dark:text-gray-300"
           >
             Streamline your development workflow with AI-powered code assistance, real-time collaboration, and intelligent project management.
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7, delay: 0.4 }}
+          </p>
+          <div
             className="flex flex-wrap items-center justify-center gap-4"
           >
             <button
@@ -243,12 +230,9 @@ const Home = () => {
             >
               Create Account
             </Link>
-          </motion.div>
+          </div>
         {/* Animated code snippet card with hover effect */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.7 }}
+        <div
           className={`max-w-2xl p-6 mx-auto mt-16 transition-all duration-300 border shadow-xl rounded-xl group hover:scale-105 hover:shadow-2xl hover:border-blue-400 ${isDarkMode ? 'bg-gray-900/80 border-blue-900/30 hover:bg-gray-800' : 'bg-gray-50 border-blue-100 hover:bg-white'}`}
         >
           <pre className={`font-mono text-base leading-relaxed text-left ${isDarkMode ? 'text-blue-200' : 'text-black'}`}>
@@ -260,19 +244,16 @@ function greet(name) {
 // Real-time collaboration enabled!
 `}
           </pre>
-        </motion.div>
-        </motion.section>
+        </div>
+        </section>
 
         <section className="py-20 bg-gray-100 dark:bg-gray-800">
           <div className="max-w-6xl mx-auto">
             <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-white">Key Features</h2>
             <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
               {features.map((feature, index) => (
-                <motion.div
+                <div
                   key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
                   className="p-6 text-center bg-white rounded-lg shadow-md dark:bg-gray-700"
                 >
                   <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 text-white bg-blue-600 rounded-full">
@@ -280,7 +261,7 @@ function greet(name) {
                   </div>
                   <h3 className="mb-2 text-xl font-semibold text-gray-800 dark:text-white">{feature.title}</h3>
                   <p className="text-gray-600 dark:text-gray-300">{feature.description}</p>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
@@ -337,11 +318,8 @@ function greet(name) {
             <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-white">Popular Use Cases</h2>
             <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
               {useCases.map((useCase, index) => (
-                <motion.div
+                <div
                   key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
                   className="p-6 text-center bg-white rounded-lg shadow-md dark:bg-gray-700"
                 >
                   <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 text-white bg-blue-600 rounded-full">
@@ -349,7 +327,7 @@ function greet(name) {
                   </div>
                   <h3 className="mb-2 text-xl font-semibold text-gray-800 dark:text-white">{useCase.title}</h3>
                   <p className="text-gray-600 dark:text-gray-300">{useCase.description}</p>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
@@ -360,11 +338,8 @@ function greet(name) {
             <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-white">Why Choose ChatRaj</h2>
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
               {benefits.map((benefit, index) => (
-                <motion.div
+                <div
                   key={index}
-                  initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
                   className="flex gap-4 p-6 bg-white rounded-lg shadow-md dark:bg-gray-700"
                 >
                   <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 text-white bg-blue-600 rounded-full">
@@ -374,7 +349,7 @@ function greet(name) {
                     <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white">{benefit.title}</h3>
                     <p className="text-gray-600 dark:text-gray-300">{benefit.description}</p>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
@@ -385,16 +360,13 @@ function greet(name) {
             <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-white">Powered By</h2>
             <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
               {techStack.map((tech, index) => (
-                <motion.div
+                <div
                   key={index}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
                   className="flex flex-col items-center p-6 text-center bg-white rounded-lg shadow-md dark:bg-gray-700"
                 >
                   <i className={`text-4xl text-blue-600 ${tech.icon}`}></i>
                   <span className="mt-2 text-gray-800 dark:text-white">{tech.name}</span>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
@@ -462,21 +434,15 @@ function greet(name) {
       {/* Floating Action Button (Rocket) */}
       <div className="fixed z-50 bottom-8 right-8">
         <div className="relative">
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={() => setShowFabMenu((v) => !v)}
             className="flex items-center justify-center w-12 h-12 text-2xl text-white bg-blue-600 rounded-full shadow-lg hover:bg-blue-700 focus:outline-none"
             aria-label="Quick Actions"
           >
             <i className="ri-rocket-2-line"></i>
-          </motion.button>
-          <AnimatePresence>
+          </button>
             {showFabMenu && (
-              <motion.div
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              <div
                 className="absolute right-0 flex flex-col w-48 gap-2 p-4 bg-white rounded-lg shadow-xl bottom-14"
               >
                 <button
@@ -511,9 +477,8 @@ function greet(name) {
                 >
                   <i className="ri-github-fill"></i> GitHub
                 </a>
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
         </div>
       </div>
     </div>

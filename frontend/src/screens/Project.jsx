@@ -6,7 +6,6 @@ import axios from '../config/axios'
 import { initializeSocket, receiveMessage, sendMessage } from '../config/socket'
 import Markdown from 'markdown-to-jsx'
 import { getWebContainer } from '../config/webContainer'
-import { motion, AnimatePresence } from 'framer-motion'
 import Avatar from '../components/Avatar';
 import EmojiPicker from '../components/EmojiPicker';
 import FileIcon from '../components/FileIcon';
@@ -632,11 +631,8 @@ const Project = () => {
     const isReplyCollapsed = settings.behavior.collapseReplies && isReply && !expandedReplies[msg._id];
 
     return (
-      <motion.div
+      <div
         key={msg._id}
-        initial={{ opacity: 0, x: isCurrentUser ? 20 : -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3 }}
         className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"} mb-2`}
       >
         {isReply && !isReplyCollapsed && (
@@ -979,10 +975,7 @@ const Project = () => {
           </div>
         )}
         {typingUsers.size > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
+          <div
             className="absolute text-sm text-gray-500 bottom-14 left-4 dark:text-gray-400"
           >
             <div className="flex items-center gap-2">
@@ -1380,18 +1373,14 @@ const Project = () => {
       )}
 
       {/* Settings Modal (centered dialog) */}
-      <AnimatePresence>
         {isSettingsOpen && (
           <>
             <div 
               className="fixed inset-0 z-50 bg-black bg-opacity-50"
               onClick={() => setIsSettingsOpen(false)}
             />
-            <motion.div
+            <div
               ref={settingsModalRef}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
               className="fixed z-50 w-full max-w-md bg-white border border-gray-200 shadow-2xl dark:bg-gray-800 rounded-xl dark:border-gray-700"
               style={modalPosition ? {
                 left: modalPosition.x,
@@ -1713,10 +1702,9 @@ const Project = () => {
                   )}
                 </div>
               </div>
-            </motion.div>
+            </div>
           </>
         )}
-      </AnimatePresence>
       {isAIModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="relative w-full max-w-md p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
