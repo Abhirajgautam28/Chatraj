@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useContext, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import 'animate.css';
 import PropTypes from 'prop-types';
 import { ChatRajThemeContext } from '../context/chatraj-theme.context';
@@ -601,14 +600,8 @@ const ChatRaj = () => {
                     )
                   : messages
                 ).map((message, index) => (
-                  <motion.div
+                  <div
                     key={index}
-                    initial={settings.behavior.animations.messageTransition ? { 
-                      opacity: 0, 
-                      x: message.type === 'user' ? 20 : -20 
-                    } : false}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3 }}
                     className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div className={`max-w-[80%] px-4 py-3 ${settings.display.chatBubbles.roundness} ${
@@ -633,18 +626,16 @@ const ChatRaj = () => {
                         </p>
                       )}
                     </div>
-                  </motion.div>
+                  </div>
                 ))
               )}
               {isThinking && (
                 <div className="flex items-center gap-2 text-sm text-black dark:text-white">
                   <div className="flex space-x-1">
                     {[...Array(3)].map((_, i) => (
-                      <motion.div
+                      <div
                         key={i}
                         className="w-1.5 h-1.5 bg-current rounded-full"
-                        animate={{ scale: [1, 1.3, 1] }}
-                        transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.2 }}
                       />
                     ))}
                   </div>
@@ -749,17 +740,13 @@ const ChatRaj = () => {
         </div>
       </div>
 
-      <AnimatePresence>
-        {isSettingsOpen && (
+      {isSettingsOpen && (
           <>
             <div 
               className="fixed inset-0 z-50 bg-black bg-opacity-50"
               onClick={() => setIsSettingsOpen(false)}
             />
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 40 }}
+            <div
               className="fixed bottom-24 left-8 z-50 w-[480px] max-w-full bg-white rounded-xl shadow-2xl dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
               style={{ 
                 maxHeight: 'calc(100vh - 180px)',
@@ -1063,10 +1050,9 @@ const ChatRaj = () => {
                   )}
                 </div>
               </div>
-            </motion.div>
+            </div>
           </>
         )}
-      </AnimatePresence>
     </div>
   );
 };

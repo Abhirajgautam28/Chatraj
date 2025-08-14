@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import axios from 'axios';
+import axios from '../config/axios';
 import { useNavigate } from 'react-router-dom';
 
 const Blog = () => {
@@ -37,11 +36,8 @@ const Blog = () => {
                 <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-white">From Our Blog</h2>
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
                     {Array.isArray(blogs) && blogs.map((blog, index) => (
-                        <motion.div
+                        <div
                             key={index}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: index * 0.1 }}
                             className="overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-700"
                             onClick={() => handleBlogClick(blog._id)}
                         >
@@ -50,7 +46,7 @@ const Blog = () => {
                                 <h3 className="mb-2 text-xl font-semibold text-gray-800 dark:text-white">{blog.title}</h3>
                                 <p className="text-gray-600 dark:text-gray-300">{blog.content.substring(0, 100)}...</p>
                             </div>
-                        </motion.div>
+                        </div>
                     ))}
                 </div>
             </div>
