@@ -1,14 +1,10 @@
-import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import 'remixicon/fonts/remixicon.css';
 import PropTypes from 'prop-types';
 
 const BlogCard = ({ blog }) => {
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+        <div
             className="overflow-hidden bg-white rounded-lg shadow-lg dark:bg-gray-800"
         >
             <div className="p-6">
@@ -33,7 +29,7 @@ const BlogCard = ({ blog }) => {
                     </div>
                 </div>
             </div>
-        </motion.div>
+        </div>
     );
 };
 
