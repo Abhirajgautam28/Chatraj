@@ -422,7 +422,7 @@ const Project = () => {
         console.log("container started")
       })
     }
-    axios.get(`/projects/get-project/${location.state.project._id}`).then((res) => {
+  axios.get(`/api/projects/get-project/${location.state.project._id}`).then((res) => {
       console.log(res.data.project)
       setProject(res.data.project)
       setFileTree(res.data.project.fileTree || {})
@@ -450,7 +450,7 @@ const Project = () => {
             const normalizedTree = normalizeFileTree(aiResponse.fileTree);
             setFileTree(normalizedTree);
             // Optionally, update the backend as well:
-            axios.put('/projects/update-file-tree', {
+            axios.put('/api/projects/update-file-tree', {
               projectId: project._id,
               fileTree: normalizedTree
             });
@@ -810,7 +810,7 @@ const Project = () => {
   useEffect(() => {
     // Load settings from backend on mount
     if (projectId) {
-      axios.get(`/projects/settings/${projectId}`)
+  axios.get(`/api/projects/settings/${projectId}`)
         .then(res => {
           if (res.data && res.data.settings) {
             setSettings(prev => ({ ...prev, ...res.data.settings }));
@@ -826,7 +826,7 @@ const Project = () => {
   // Save settings to backend whenever they change
   useEffect(() => {
     if (projectId) {
-      axios.put(`/projects/settings/${projectId}`, { settings })
+  axios.put(`/api/projects/settings/${projectId}`, { settings })
         .catch(() => {});
     }
     localStorage.setItem('projectSettings', JSON.stringify(settings));
@@ -848,7 +848,7 @@ const Project = () => {
 
       // If updating sidebar, sync with backend
       if (category === 'sidebar' && project?._id) {
-        axios.put(`/projects/sidebar-settings/${project._id}`,
+  axios.put(`/api/projects/sidebar-settings/${project._id}`,
           { sidebar: { ...updated.sidebar } })
           .then(res => {
             if (res.data && res.data.sidebar) {
@@ -959,7 +959,7 @@ const Project = () => {
               <div key={groupLabel}>
                 <div className="py-2 text-sm text-center text-gray-500 dark:text-gray-400">{groupLabel}</div>
                 {groupedMessages[groupLabel].map((msg, idx) => (
-                  <React.Fragment key={msg._id || `${groupLabel}-${idx}`}>{renderMessage(msg)}</React.Fragment>
+                  <React.Fragment key={msg._id ? `${groupLabel}-${msg._id}` : `${groupLabel}-idx-${idx}`}>{renderMessage(msg)}</React.Fragment>
                 ))}
               </div>
             ))}
