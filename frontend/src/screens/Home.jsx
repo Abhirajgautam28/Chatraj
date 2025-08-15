@@ -480,63 +480,59 @@ function greet(name) {
       <div className="fixed z-50 bottom-8 right-8">
         <div className="relative">
           <motion.button
-            whileTap={{ scale: 0.95 }}
+            whileTap={{ scale: 0.96 }}
             onClick={() => setShowFabMenu((v) => !v)}
             className="flex items-center justify-center w-12 h-12 text-2xl text-white bg-blue-600 rounded-full shadow-lg hover:bg-blue-700 focus:outline-none"
             aria-label="Quick Actions"
           >
-            <motion.span
-              style={{ display: 'inline-block', position: 'relative' }}
-              animate={{
-                y: [0, -8, 0, 8, 0],
-                rotate: [0, 2, 0, -2, 0]
-              }}
-              transition={{
-                duration: 2.2,
-                repeat: Infinity,
-                ease: 'easeInOut',
-                repeatType: 'loop'
-              }}
-              whileHover={{
-                y: -18,
-                rotate: -18,
-                scale: 1.18,
-                transition: { type: 'spring', stiffness: 300, damping: 15 }
-              }}
-            >
-              <i className="ri-rocket-2-line" />
-              {/* Rocket flame on hover */}
-              <motion.span
-                initial={{ opacity: 0, scale: 0.7 }}
-                whileHover={{
-                  opacity: 1,
-                  scale: [1, 1.2, 0.9, 1.1, 1],
-                  y: [0, 8, 0, 10, 0],
-                  filter: 'drop-shadow(0 0 8px #fbbf24)'
+            <span style={{ display: 'inline-block', position: 'relative' }}>
+              <motion.i
+                className="ri-rocket-2-line"
+                style={{ display: 'inline-block', zIndex: 2, position: 'relative' }}
+                animate={{
+                  y: [0, 2, 0, -2, 0]
                 }}
                 transition={{
-                  duration: 0.6,
+                  duration: 2.2,
                   repeat: Infinity,
-                  repeatType: 'loop',
-                  ease: 'easeInOut'
+                  ease: 'easeInOut',
+                  repeatType: 'loop'
                 }}
+                whileHover={{
+                  rotate: -10,
+                  transition: { type: 'spring', stiffness: 250, damping: 18 }
+                }}
+              />
+              {/* Minimal animated smoke at the tail */}
+              <motion.span
                 style={{
                   position: 'absolute',
                   left: '50%',
-                  bottom: '-10px',
+                  bottom: '-8px',
                   transform: 'translateX(-50%)',
-                  width: '10px',
-                  height: '18px',
                   zIndex: 1,
-                  pointerEvents: 'none'
+                  pointerEvents: 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '2px',
+                }}
+                animate={{
+                  opacity: [0.7, 0.4, 0.7],
+                  y: [0, 3, 0, -3, 0]
+                }}
+                transition={{
+                  duration: 2.2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                  repeatType: 'loop'
                 }}
               >
-                <svg width="10" height="18" viewBox="0 0 10 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <ellipse cx="5" cy="12" rx="4" ry="6" fill="#fbbf24" fillOpacity="0.8"/>
-                  <ellipse cx="5" cy="15" rx="2" ry="3" fill="#f59e42" fillOpacity="0.7"/>
-                </svg>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(203,213,225,0.7)', marginBottom: 1, display: 'block' }} />
+                <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(203,213,225,0.5)', marginBottom: 1, display: 'block' }} />
+                <span style={{ width: 2, height: 2, borderRadius: '50%', background: 'rgba(203,213,225,0.3)', display: 'block' }} />
               </motion.span>
-            </motion.span>
+            </span>
           </motion.button>
           <AnimatePresence>
             {showFabMenu && (
