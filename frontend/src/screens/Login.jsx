@@ -1,5 +1,23 @@
-import { useState, useContext, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useContext, useEffect, useRef } from 'react';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import {
+  Container,
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Link,
+  Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
+  InputAdornment,
+  CircularProgress,
+  Grid,
+} from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { UserContext } from '../context/user.context';
 import axios from '../config/axios';
 import anime from 'animejs';
@@ -154,251 +172,196 @@ const Login = () => {
     };
 
     return (
-        <div ref={containerRef} className="relative flex items-center justify-center min-h-screen bg-gray-900 overflow-hidden">
-            <div className="absolute inset-0 z-0">
-                {[...Array(10)].map((_, i) => (
-                    <div
-                        key={i}
-                        className="background-shape absolute bg-blue-500 rounded-full"
-                        style={{
-                            width: `${Math.random() * 100 + 50}px`,
-                            height: `${Math.random() * 100 + 50}px`,
-                            top: `${Math.random() * 100}%`,
-                            left: `${Math.random() * 100}%`,
-                            opacity: Math.random() * 0.2 + 0.1,
-                        }}
-                    />
-                ))}
-            </div>
+    <Box
+      ref={containerRef}
+      sx={{
+        position: 'relative',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        bgcolor: 'background.default',
+      }}
+    >
+      {[...Array(10)].map((_, i) => (
+        <Box
+          key={i}
+          className="background-shape"
+          sx={{
+            position: 'absolute',
+            bgcolor: 'primary.main',
+            borderRadius: '50%',
+            width: `${Math.random() * 100 + 50}px`,
+            height: `${Math.random() * 100 + 50}px`,
+            top: `${Math.random() * 100}%`,
+            left: `${Math.random() * 100}%`,
+            opacity: Math.random() * 0.2 + 0.1,
+          }}
+        />
+      ))}
+      <Container component="main" maxWidth="xs">
+        <Paper
+          elevation={6}
+          sx={{
+            p: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            bgcolor: 'background.paper',
+            borderRadius: 2,
+          }}
+        >
+          <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
+            Welcome Back
+          </Typography>
+          <Box component="form" onSubmit={submitHandler} sx={{ mt: 1 }}>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="Email Address"
+              name="email"
+              autoComplete="email"
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Password"
+              type="password"
+              id="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <Box sx={{ textAlign: 'right', my: 1 }}>
+              <Link component="button" variant="body2" onClick={() => setShowReset(true)} type="button">
+                Forgot password?
+              </Link>
+            </Box>
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+            >
+              Login
+            </Button>
+            <Grid container justifyContent="flex-end">
+              <Grid item>
+                <Link component={RouterLink} to="/register" variant="body2">
+                  {"Don't have an account? Sign Up"}
+                </Link>
+              </Grid>
+            </Grid>
+          </Box>
+        </Paper>
+      </Container>
 
-            <div className="form-container relative z-10 w-full max-w-md p-8 bg-gray-800/50 backdrop-blur-sm rounded-lg shadow-2xl">
-                <h2 className="mb-6 text-3xl font-bold text-center text-white">Welcome Back</h2>
-                <form onSubmit={submitHandler}>
-                    <div className="mb-4">
-                        <label className="block mb-2 text-sm font-medium text-gray-300">
-                            Email
-                        </label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full p-3 text-white bg-gray-700/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-                            placeholder="your.email@example.com"
-                            required
-                        />
-                    </div>
-
-                    <div className="mb-2">
-                        <label className="block mb-2 text-sm font-medium text-gray-300">
-                            Password
-                        </label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full p-3 text-white bg-gray-700/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-                            placeholder="••••••••"
-                            required
-                        />
-                    </div>
-                    <div className="mb-6 text-right">
-                        <button
-                            type="button"
-                            onClick={() => setShowReset(true)}
-                            className="text-sm text-blue-400 hover:underline focus:outline-none"
-                        >
-                            Forgot password?
-                        </button>
-                    </div>
-
-                    <button
-                        type="submit"
-                        className="w-full p-3 text-white font-bold transition duration-300 bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500"
-                    >
-                        Login
-                    </button>
-                </form>
-
-                <p className="mt-6 text-center text-gray-400">
-                    Don&apos;t have an account?{' '}
-                    <Link to="/register" className="text-blue-400 font-semibold hover:underline">
-                        Sign up
-                    </Link>
-                </p>
-            </div>
-
-            {showReset && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-                    <div className="w-full max-w-sm p-8 bg-gray-800 rounded-lg shadow-2xl">
-                        {!resetSuccess ? (
-                            <>
-                                <h3 className="mb-4 text-xl font-bold text-center text-white">Reset Password</h3>
-                                {!resetOtpSent && (
-                                    <form onSubmit={handleSendOtp}>
-                                        <label className="block mb-2 text-sm font-medium text-gray-400">
-                                            Enter your email address
-                                        </label>
-                                        <input
-                                            type="email"
-                                            value={resetEmail}
-                                            onChange={(e) => setResetEmail(e.target.value)}
-                                            className="w-full p-3 mb-4 text-white transition duration-300 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="Enter your email"
-                                            required
-                                            disabled={resetOtpSent}
-                                        />
-                                        <button
-                                            type="submit"
-                                            className="w-full p-3 text-white transition duration-300 bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            disabled={resetOtpSent}
-                                        >
-                                            {resetOtpSent ? 'OTP Sent' : 'Send OTP'}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setShowReset(false);
-                                                setResetOtpSent(false);
-                                                setResetEmail('');
-                                                setResetError('');
-                                            }}
-                                            className="w-full p-2 mt-3 text-sm text-gray-300 hover:text-white"
-                                        >
-                                            Cancel
-                                        </button>
-                                        {resetError && <div className="mt-2 text-sm text-red-400 text-center">{resetError}</div>}
-                                    </form>
-                                )}
-                                {resetOtpSent && !resetOtpVerified && (
-                                    <form onSubmit={handleVerifyOtp}>
-                                        <label className="block mb-2 text-sm font-medium text-gray-400">
-                                            Enter OTP sent to your email
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={resetOtp}
-                                            onChange={e => setResetOtp(e.target.value)}
-                                            className="w-full p-3 mb-2 text-white transition duration-300 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="Enter OTP"
-                                            required
-                                        />
-                                        <div className="flex flex-col items-center mb-4">
-                                            <button
-                                                type="button"
-                                                className={`w-full flex items-center justify-center gap-2 text-sm px-4 py-2 rounded-full font-semibold bg-gradient-to-r from-blue-500 to-blue-700 text-white shadow-lg transition duration-150 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 ${!otpResendActive ? 'opacity-60 cursor-not-allowed' : ''}`}
-                                                disabled={!otpResendActive}
-                                                onClick={async () => {
-                                                    if (!otpResendActive) return;
-                                                    setOtpResendActive(false);
-                                                    setOtpResendTimer(30);
-                                                    setResetError('');
-                                                    // Show instant feedback
-                                                    setResetError('Sending OTP...');
-                                                    axios.post('/users/send-otp', { email: resetEmail })
-                                                        .then(() => {
-                                                            setResetError('OTP sent!');
-                                                        })
-                                                        .catch(() => {
-                                                            setResetError('Failed to resend OTP. Please try again.');
-                                                            setOtpResendTimer(0);
-                                                            setOtpResendActive(true);
-                                                        });
-                                                    let timer = 30;
-                                                    const interval = setInterval(() => {
-                                                        timer--;
-                                                        setOtpResendTimer(timer);
-                                                        if (timer <= 0) {
-                                                            setOtpResendActive(true);
-                                                            clearInterval(interval);
-                                                        }
-                                                    }, 1000);
-                                                }}
-                                            >
-                                                <i className="ri-refresh-line text-lg"></i>
-                                                {otpResendActive ? 'Resend OTP' : `Resend OTP (${otpResendTimer}s)`}
-                                            </button>
-                                            <span className="mt-2 text-xs text-gray-400">Didn&apos;t receive OTP?</span>
-                                        </div>
-                                        <button
-                                            type="submit"
-                                            className="w-full p-3 text-white transition duration-300 bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        >
-                                            Verify OTP
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowReset(false)}
-                                            className="w-full p-2 mt-3 text-sm text-gray-300 hover:text-white"
-                                        >
-                                            Cancel
-                                        </button>
-                                        {resetError && <div className="mt-2 text-sm text-red-400 text-center">{resetError}</div>}
-                                    </form>
-                                )}
-                                {resetOtpVerified && (
-                                    <form onSubmit={handleSetNewPassword}>
-                                        <label className="block mb-2 text-sm font-medium text-gray-400">
-                                            New Password
-                                        </label>
-                                        <div className="relative mb-4">
-                                            <input
-                                                type={showPassword ? "text" : "password"}
-                                                value={resetNewPassword}
-                                                onChange={e => setResetNewPassword(e.target.value)}
-                                                className="w-full p-3 text-white transition duration-300 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
-                                                placeholder="Enter new password"
-                                                required
-                                                disabled={resetSuccess}
-                                            />
-                                            <span
-                                                className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
-                                                onClick={() => setShowPassword(!showPassword)}
-                                            >
-                                                <i className={`ri-eye${showPassword ? '' : '-close'}-line text-xl text-gray-400`}></i>
-                                            </span>
-                                        </div>
-                                        <label className="block mb-2 text-sm font-medium text-gray-400">
-                                            Confirm Password
-                                        </label>
-                                        <input
-                                            type="password"
-                                            value={resetConfirmPassword}
-                                            onChange={e => setResetConfirmPassword(e.target.value)}
-                                            className="w-full p-3 mb-4 text-white transition duration-300 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="Confirm new password"
-                                            required
-                                            disabled={resetSuccess}
-                                        />
-                                        <button
-                                            type="submit"
-                                            className={`w-full p-3 text-white transition duration-300 bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 ${resetInProgress ? 'opacity-60 cursor-not-allowed' : ''}`}
-                                            disabled={resetSuccess || resetInProgress}
-                                        >
-                                            {resetSuccess ? 'Password Reset Successful' : resetInProgress ? 'Resetting...' : 'Reset Password'}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowReset(false)}
-                                            className="w-full p-2 mt-3 text-sm text-gray-300 hover:text-white"
-                                            disabled={resetSuccess}
-                                        >
-                                            Cancel
-                                        </button>
-                                        {resetError && <div className="mt-2 text-sm text-red-400 text-center">{resetError}</div>}
-                                    </form>
-                                )}
-                            </>
-                        ) : (
-                            <div className="flex flex-col items-center justify-center">
-                                <i className="mb-4 text-4xl text-blue-400 ri-checkbox-circle-line"></i>
-                                <p className="mb-2 text-lg font-semibold text-white">Password reset!</p>
-                                <p className="text-center text-gray-400">You can now log in with your new password.</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-        </div>
+      <Dialog open={showReset} onClose={() => setShowReset(false)} fullWidth maxWidth="xs">
+        <DialogTitle>Reset Password</DialogTitle>
+        <DialogContent>
+          {!resetSuccess ? (
+            <>
+              {!resetOtpSent ? (
+                <Box component="form" onSubmit={handleSendOtp} sx={{ mt: 1 }}>
+                  <TextField
+                    autoFocus
+                    margin="dense"
+                    id="reset-email"
+                    label="Email Address"
+                    type="email"
+                    fullWidth
+                    variant="standard"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    required
+                  />
+                  {resetError && <Typography color="error" variant="body2">{resetError}</Typography>}
+                  <DialogActions>
+                    <Button onClick={() => setShowReset(false)}>Cancel</Button>
+                    <Button type="submit">Send OTP</Button>
+                  </DialogActions>
+                </Box>
+              ) : !resetOtpVerified ? (
+                <Box component="form" onSubmit={handleVerifyOtp} sx={{ mt: 1 }}>
+                  <TextField
+                    autoFocus
+                    margin="dense"
+                    id="otp"
+                    label="OTP"
+                    type="text"
+                    fullWidth
+                    variant="standard"
+                    value={resetOtp}
+                    onChange={(e) => setResetOtp(e.target.value)}
+                    required
+                  />
+                   {/* Resend OTP button can be added here */}
+                  {resetError && <Typography color="error" variant="body2">{resetError}</Typography>}
+                  <DialogActions>
+                    <Button onClick={() => setShowReset(false)}>Cancel</Button>
+                    <Button type="submit">Verify OTP</Button>
+                  </DialogActions>
+                </Box>
+              ) : (
+                <Box component="form" onSubmit={handleSetNewPassword} sx={{ mt: 1 }}>
+                  <TextField
+                    autoFocus
+                    margin="dense"
+                    id="new-password"
+                    label="New Password"
+                    type={showPassword ? 'text' : 'password'}
+                    fullWidth
+                    variant="standard"
+                    value={resetNewPassword}
+                    onChange={(e) => setResetNewPassword(e.target.value)}
+                    required
+                    InputProps={{
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                              {showPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }}
+                  />
+                  <TextField
+                    margin="dense"
+                    id="confirm-password"
+                    label="Confirm New Password"
+                    type="password"
+                    fullWidth
+                    variant="standard"
+                    value={resetConfirmPassword}
+                    onChange={(e) => setResetConfirmPassword(e.target.value)}
+                    required
+                  />
+                  {resetError && <Typography color="error" variant="body2">{resetError}</Typography>}
+                  <DialogActions>
+                    <Button onClick={() => setShowReset(false)}>Cancel</Button>
+                    <Button type="submit" disabled={resetInProgress}>
+                      {resetInProgress ? <CircularProgress size={24} /> : "Reset Password"}
+                    </Button>
+                  </DialogActions>
+                </Box>
+              )}
+            </>
+          ) : (
+            <Box sx={{textAlign: 'center', py: 3}}>
+              <Typography>Password has been reset successfully!</Typography>
+            </Box>
+          )}
+        </DialogContent>
+      </Dialog>
+    </Box>
     );
 };
 

@@ -1,5 +1,20 @@
-import { useState, useContext, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useContext, useEffect, useRef } from 'react';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import {
+  Container,
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Link,
+  Paper,
+  Grid,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
+} from '@mui/material';
 import { UserContext } from '../context/user.context';
 import axios from '../config/axios';
 import anime from 'animejs';
@@ -87,158 +102,173 @@ const Register = () => {
     }
 
     return (
-        <div ref={containerRef} className="relative flex items-center justify-center min-h-screen bg-gray-900 overflow-hidden">
-            {errorMsg && (
-                <div className="fixed top-8 left-1/2 z-50 -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded shadow-lg text-center font-semibold animate__animated animate__fadeInDown">
-                    {errorMsg}
-                </div>
-            )}
-            {showOtpModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-                    <div className="bg-gray-800 rounded-lg shadow-2xl p-8 w-full max-w-sm">
-                        <h2 className="mb-4 text-xl font-bold text-center text-white">Enter OTP</h2>
-                        <form onSubmit={handleOtpSubmit}>
-                            <input
-                                type="text"
-                                value={otp}
-                                onChange={e => setOtp(e.target.value)}
-                                className="w-full p-3 mb-4 text-white bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Enter the OTP sent to your email"
-                                required
-                            />
-                            <button type="submit" className="w-full p-3 text-white bg-blue-500 rounded hover:bg-blue-600">Verify OTP</button>
-                        </form>
-                    </div>
-                </div>
-            )}
-            <div className="absolute inset-0 z-0">
-                {[...Array(10)].map((_, i) => (
-                    <div
-                        key={i}
-                        className="background-shape absolute bg-blue-500 rounded-full"
-                        style={{
-                            width: `${Math.random() * 100 + 50}px`,
-                            height: `${Math.random() * 100 + 50}px`,
-                            top: `${Math.random() * 100}%`,
-                            left: `${Math.random() * 100}%`,
-                            opacity: Math.random() * 0.2 + 0.1,
-                        }}
-                    />
-                ))}
-            </div>
-
-            <div className="form-container relative z-10 w-full max-w-md p-8 bg-gray-800/50 backdrop-blur-sm rounded-lg shadow-2xl">
-                <h2 className="mb-6 text-3xl font-bold text-center text-white">Create an Account</h2>
-                <form onSubmit={submitHandler}>
-                    <div className="flex gap-4 mb-4">
-                        <div className="w-1/2">
-                            <label className="block mb-2 text-sm font-medium text-gray-300">
-                                First Name
-                            </label>
-                            <input
-                                type="text"
-                                value={firstName}
-                                onChange={(e) => setFirstName(e.target.value)}
-                                className="w-full p-3 text-white bg-gray-700/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-                                placeholder="John"
-                                required
-                            />
-                        </div>
-                        <div className="w-1/2">
-                            <label className="block mb-2 text-sm font-medium text-gray-300">
-                                Last Name
-                            </label>
-                            <input
-                                type="text"
-                                value={lastName}
-                                onChange={(e) => setLastName(e.target.value)}
-                                className="w-full p-3 text-white bg-gray-700/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-                                placeholder="Doe"
-                                required
-                            />
-                        </div>
-                    </div>
-                    <div className="mb-4">
-                        <label className="block mb-2 text-sm font-medium text-gray-300">
-                            Email
-                        </label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full p-3 text-white bg-gray-700/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-                            placeholder="your.email@example.com"
-                            required
-                        />
-                    </div>
-                    <div className="mb-4">
-                        <div className="flex items-center justify-between mb-2">
-                            <label className="text-sm font-medium text-gray-300">
-                                Google API Key
-                            </label>
-                            <a
-                                href="https://aistudio.google.com/app/apikey"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs text-blue-400 hover:underline whitespace-nowrap"
-                            >
-                                Get API key here
-                            </a>
-                        </div>
-                        <input
-                            type="text"
-                            value={googleApiKey}
-                            onChange={(e) => setGoogleApiKey(e.target.value)}
-                            className="w-full p-3 text-white bg-gray-700/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-                            placeholder="Enter your Google API Key"
-                            required
-                        />
-                    </div>
-                    <div className="flex gap-4 mb-6">
-                        <div className="w-1/2">
-                            <label className="block mb-2 text-sm font-medium text-gray-300">
-                                Password
-                            </label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full p-3 text-white bg-gray-700/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-                                placeholder="••••••••"
-                                required
-                            />
-                        </div>
-                        <div className="w-1/2">
-                            <label className="block mb-2 text-sm font-medium text-gray-300">
-                                Confirm Password
-                            </label>
-                            <input
-                                type="password"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                className="w-full p-3 text-white bg-gray-700/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-                                placeholder="••••••••"
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <button
-                        type="submit"
-                        className="w-full p-3 text-white font-bold transition duration-300 bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500"
-                    >
-                        Register
-                    </button>
-                </form>
-
-                <p className="mt-6 text-center text-gray-400">
-                    Already have an account?{' '}
-                    <Link to="/login" className="text-blue-400 font-semibold hover:underline">
-                        Login
-                    </Link>
-                </p>
-            </div>
-        </div>
+    <Box
+      ref={containerRef}
+      sx={{
+        position: 'relative',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        bgcolor: 'background.default'
+      }}
+    >
+      {[...Array(10)].map((_, i) => (
+        <Box
+          key={i}
+          className="background-shape"
+          sx={{
+            position: 'absolute',
+            bgcolor: 'primary.main',
+            borderRadius: '50%',
+            width: `${Math.random() * 100 + 50}px`,
+            height: `${Math.random() * 100 + 50}px`,
+            top: `${Math.random() * 100}%`,
+            left: `${Math.random() * 100}%`,
+            opacity: Math.random() * 0.2 + 0.1,
+          }}
+        />
+      ))}
+      <Container component="main" maxWidth="xs">
+        <Paper
+          elevation={6}
+          sx={{
+            p: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            bgcolor: 'background.paper',
+            borderRadius: 2,
+          }}
+        >
+          <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
+            Create an Account
+          </Typography>
+          {errorMsg && <Alert severity="error" sx={{ width: '100%', mb: 2 }}>{errorMsg}</Alert>}
+          <Box component="form" onSubmit={submitHandler} sx={{ mt: 1 }}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  autoComplete="given-name"
+                  name="firstName"
+                  required
+                  fullWidth
+                  id="firstName"
+                  label="First Name"
+                  autoFocus
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  required
+                  fullWidth
+                  id="lastName"
+                  label="Last Name"
+                  name="lastName"
+                  autoComplete="family-name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  id="email"
+                  label="Email Address"
+                  name="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="body2">Google API Key</Typography>
+                  <Link href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" variant="body2">
+                    Get API key here
+                  </Link>
+                </Box>
+                <TextField
+                  required
+                  fullWidth
+                  name="googleApiKey"
+                  label="Google API Key"
+                  id="googleApiKey"
+                  value={googleApiKey}
+                  onChange={(e) => setGoogleApiKey(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  name="password"
+                  label="Password"
+                  type="password"
+                  id="password"
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  name="confirmPassword"
+                  label="Confirm Password"
+                  type="password"
+                  id="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+              </Grid>
+            </Grid>
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+            >
+              Register
+            </Button>
+            <Grid container justifyContent="flex-end">
+              <Grid item>
+                <Link component={RouterLink} to="/login" variant="body2">
+                  Already have an account? Login
+                </Link>
+              </Grid>
+            </Grid>
+          </Box>
+        </Paper>
+      </Container>
+      <Dialog open={showOtpModal} onClose={() => setShowOtpModal(false)}>
+        <DialogTitle>Enter OTP</DialogTitle>
+        <DialogContent>
+            <Typography>Enter the OTP sent to your email</Typography>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="otp"
+            label="OTP"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+            required
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowOtpModal(false)}>Cancel</Button>
+          <Button onClick={handleOtpSubmit}>Verify OTP</Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
     );
 };
 

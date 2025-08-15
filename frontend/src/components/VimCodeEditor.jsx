@@ -294,165 +294,92 @@ const VimCodeEditor = ({
 
   return (
     <div style={{ height: '100%', width: '100%', position: 'relative' }}>
-      {/* Options Modal - now styled to match Settings modal */}
-      <ReactModal
-        isOpen={showOptionsModal}
-        onRequestClose={onCloseOptionsModal}
-        closeTimeoutMS={250}
-        ariaHideApp={false}
-        className="fixed z-50 w-full max-w-md bg-white border border-gray-200 shadow-2xl dark:bg-gray-800 rounded-xl dark:border-gray-700 left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 outline-none flex flex-col"
-        overlayClassName="fixed inset-0 z-40 bg-black bg-opacity-50 flex items-center justify-center"
-      >
-        {/* Modal Header - sticky, matches settings modal */}
-        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-white border-b cursor-move select-none dark:bg-gray-800 dark:border-gray-700 rounded-t-xl">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Options</h2>
-          <button
+      <Dialog open={showOptionsModal} onClose={onCloseOptionsModal} fullWidth maxWidth="md">
+        <DialogTitle>
+          Options
+          <IconButton
+            aria-label="close"
             onClick={onCloseOptionsModal}
-            className="p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-            aria-label="Close options modal"
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: (theme) => theme.palette.grey[500],
+            }}
           >
-            <i className="text-2xl ri-close-line"></i>
-          </button>
-        </div>
-        {/* Category Tabs - matches settings modal */}
-        <div className="flex px-6 bg-gray-100 border-b dark:border-gray-700 dark:bg-gray-700">
-          {FEATURE_CATEGORIES.map(cat => (
-            <button
-              key={cat.name}
-              onClick={() => setSelectedCategory(cat.name)}
-              className={`px-4 py-2 text-base font-semibold border-b-4 transition-colors duration-150 focus:outline-none ${selectedCategory === cat.name ? 'border-blue-600 text-blue-600 bg-white dark:bg-gray-800 dark:text-blue-400' : 'border-transparent text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 bg-transparent'}`}
-              style={{ marginBottom: '-1px', borderRadius: '10px 10px 0 0' }}
-            >
-              {cat.name}
-            </button>
-          ))}
-        </div>
-        {/* Options Content - now in a two-column grid, no vertical scroll needed */}
-        <div className="flex-1" style={{ maxHeight: 'calc(100vh - 220px)' }}>
-          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
-            {FEATURE_CATEGORIES.find(cat => cat.name === selectedCategory).options.map(opt => {
-              // Determine toggle state correctly for all types
-              let isToggled = false;
-              switch (opt.key) {
-                case 'lineNumbers':
-                  isToggled = editorOptions.lineNumbers === 'on';
-                  break;
-                case 'minimap':
-                  isToggled = editorOptions.minimap.enabled;
-                  break;
-                case 'wordWrap':
-                  isToggled = editorOptions.wordWrap === 'on';
-                  break;
-                case 'folding':
-                  isToggled = editorOptions.folding;
-                  break;
-                case 'renderWhitespace':
-                  isToggled = editorOptions.renderWhitespace === 'all';
-                  break;
-                case 'bracketPairColorization':
-                  isToggled = editorOptions.bracketPairColorization.enabled;
-                  break;
-                case 'guides':
-                  isToggled = editorOptions.guides.indentation;
-                  break;
-                case 'inlayHints':
-                  isToggled = editorOptions.inlayHints.enabled;
-                  break;
-                case 'hover':
-                  isToggled = editorOptions.hover.enabled;
-                  break;
-                case 'contextmenu':
-                  isToggled = editorOptions.contextmenu;
-                  break;
-                case 'formatOnType':
-                  isToggled = editorOptions.formatOnType;
-                  break;
-                case 'formatOnPaste':
-                  isToggled = editorOptions.formatOnPaste;
-                  break;
-                case 'autoClosingBrackets':
-                  isToggled = editorOptions.autoClosingBrackets === 'always';
-                  break;
-                case 'autoClosingQuotes':
-                  isToggled = editorOptions.autoClosingQuotes === 'always';
-                  break;
-                case 'matchBrackets':
-                  isToggled = editorOptions.matchBrackets === 'always';
-                  break;
-                default:
-                  break;
-              }
-              return (
-                <div key={opt.key} className="flex items-center justify-between gap-4">
-                  <span className="font-semibold text-gray-900 dark:text-white">{opt.label}</span>
-                  {opt.type === 'toggle' && (
-                    <button
-                      onClick={() => handleToggleOption(opt.key)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${isToggled ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      aria-pressed={isToggled}
-                    >
-                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${isToggled ? 'translate-x-6' : 'translate-x-1'}`} />
-                    </button>
-                  )}
-                  {opt.type === 'select' && opt.key === 'theme' && (
-                    <select
-                      value={theme}
-                      onChange={e => handleThemeChange(e.target.value)}
-                      className="p-2 rounded border dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                    >
-                      {opt.options.map(t => (
-                        <option key={t.value} value={t.value}>{t.label}</option>
-                      ))}
-                    </select>
-                  )}
-                  {opt.type === 'select' && opt.key === 'fontSize' && (
-                    <select
-                      value={editorOptions.fontSize}
-                      onChange={e => setEditorOptions(opts => ({ ...opts, fontSize: Number(e.target.value) }))}
-                      className="p-2 rounded border dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                    >
-                      {opt.options.map(t => (
-                        <option key={t.value} value={t.value}>{t.label}</option>
-                      ))}
-                    </select>
-                  )}
-                  {opt.type === 'select' && opt.key === 'cursorBlinking' && (
-                    <select
-                      value={editorOptions.cursorBlinking}
-                      onChange={e => setEditorOptions(opts => ({ ...opts, cursorBlinking: e.target.value }))}
-                      className="p-2 rounded border dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                    >
-                      {opt.options.map(t => (
-                        <option key={t.value} value={t.value}>{t.label}</option>
-                      ))}
-                    </select>
-                  )}
-                  {opt.type === 'select' && opt.key === 'tabSize' && (
-                    <select
-                      value={editorOptions.tabSize}
-                      onChange={e => setEditorOptions(opts => ({ ...opts, tabSize: Number(e.target.value) }))}
-                      className="p-2 rounded border dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                    >
-                      {opt.options.map(t => (
-                        <option key={t.value} value={t.value}>{t.label}</option>
-                      ))}
-                    </select>
-                  )}
-                  {opt.type === 'action' && (
-                    <button
-                      onClick={() => runEditorAction(opt.key)}
-                      className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 font-semibold shadow"
-                    >
-                      {opt.label}
-                    </button>
-                  )}
-                  {/* ...existing code for other option types... */}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </ReactModal>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Tabs
+            value={selectedCategory}
+            onChange={(e, newValue) => setSelectedCategory(newValue)}
+            aria-label="options tabs"
+          >
+            {FEATURE_CATEGORIES.map((cat) => (
+              <Tab key={cat.name} label={cat.name} value={cat.name} />
+            ))}
+          </Tabs>
+          <Box sx={{ p: 3 }}>
+            <Grid container spacing={2}>
+                {FEATURE_CATEGORIES.find(cat => cat.name === selectedCategory).options.map(opt => (
+                    <Grid item xs={12} sm={6} key={opt.key}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography>{opt.label}</Typography>
+                            {opt.type === 'toggle' && (
+                                <Switch
+                                    checked={(() => {
+                                        switch (opt.key) {
+                                            case 'lineNumbers': return editorOptions.lineNumbers === 'on';
+                                            case 'minimap': return editorOptions.minimap.enabled;
+                                            case 'wordWrap': return editorOptions.wordWrap === 'on';
+                                            case 'folding': return editorOptions.folding;
+                                            case 'renderWhitespace': return editorOptions.renderWhitespace === 'all';
+                                            case 'bracketPairColorization': return editorOptions.bracketPairColorization.enabled;
+                                            case 'guides': return editorOptions.guides.indentation;
+                                            case 'inlayHints': return editorOptions.inlayHints.enabled;
+                                            case 'hover': return editorOptions.hover.enabled;
+                                            case 'contextmenu': return editorOptions.contextmenu;
+                                            case 'formatOnType': return editorOptions.formatOnType;
+                                            case 'formatOnPaste': return editorOptions.formatOnPaste;
+                                            case 'autoClosingBrackets': return editorOptions.autoClosingBrackets === 'always';
+                                            case 'autoClosingQuotes': return editorOptions.autoClosingQuotes === 'always';
+                                            case 'matchBrackets': return editorOptions.matchBrackets === 'always';
+                                            default: return false;
+                                        }
+                                    })()}
+                                    onChange={() => handleToggleOption(opt.key)}
+                                />
+                            )}
+                            {opt.type === 'select' && (
+                                <Select
+                                    value={(() => {
+                                        if (opt.key === 'theme') return theme;
+                                        if (opt.key === 'fontSize') return editorOptions.fontSize;
+                                        if (opt.key === 'cursorBlinking') return editorOptions.cursorBlinking;
+                                        if (opt.key === 'tabSize') return editorOptions.tabSize;
+                                        return '';
+                                    })()}
+                                    onChange={(e) => {
+                                        if (opt.key === 'theme') handleThemeChange(e.target.value);
+                                        else setEditorOptions(opts => ({ ...opts, [opt.key]: e.target.value }));
+                                    }}
+                                >
+                                    {opt.options.map(t => (
+                                        <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>
+                                    ))}
+                                </Select>
+                            )}
+                            {opt.type === 'action' && (
+                                <Button onClick={() => runEditorAction(opt.key)}>{opt.label}</Button>
+                            )}
+                        </Box>
+                    </Grid>
+                ))}
+            </Grid>
+          </Box>
+        </DialogContent>
+      </Dialog>
       {/* Monaco Editor */}
       <MonacoEditor
         height="calc(100% - 68px)"

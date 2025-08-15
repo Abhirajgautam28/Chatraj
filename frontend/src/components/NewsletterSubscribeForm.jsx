@@ -1,4 +1,11 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import {
+  Box,
+  TextField,
+  Button,
+  CircularProgress,
+  Alert,
+} from '@mui/material';
 import axios from '../config/axios';
 
 const NewsletterSubscribeForm = () => {
@@ -28,33 +35,38 @@ const NewsletterSubscribeForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col items-center w-full max-w-xl gap-4 mx-auto md:flex-row md:justify-center">
-      <input
+    <Box
+      component="form"
+      onSubmit={handleSubmit}
+      sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, width: '100%', maxWidth: 'sm' }}
+    >
+      <TextField
         type="email"
-        required
+        label="Enter your email"
+        variant="outlined"
         value={email}
-        onChange={e => setEmail(e.target.value)}
-        placeholder="Enter your email"
-        className="w-full max-w-xs px-4 py-3 text-lg text-gray-900 bg-white border border-blue-200 rounded-full shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
+        onChange={(e) => setEmail(e.target.value)}
+        required
+        fullWidth
         disabled={status === 'loading' || status === 'success'}
       />
-      <button
+      <Button
         type="submit"
-        className="px-8 py-3 text-lg font-medium text-white transition-all bg-blue-600 rounded-full hover:bg-blue-700 disabled:opacity-60"
+        variant="contained"
+        size="large"
         disabled={status === 'loading' || status === 'success'}
+        startIcon={status === 'loading' ? <CircularProgress size={20} /> : null}
       >
         {status === 'loading' ? 'Subscribing...' : status === 'success' ? 'Subscribed!' : 'Subscribe'}
-      </button>
+      </Button>
       {status === 'success' && (
-        <span className="block mt-2 text-green-400">Thank you for subscribing!</span>
+        <Alert severity="success">Thank you for subscribing!</Alert>
       )}
       {status === 'duplicate' && (
-        <span className="block mt-2 text-yellow-400">You are already subscribed.</span>
+        <Alert severity="warning">You are already subscribed.</Alert>
       )}
-      {status === 'error' && (
-        <span className="block mt-2 text-red-400">{error}</span>
-      )}
-    </form>
+      {status === 'error' && <Alert severity="error">{error}</Alert>}
+    </Box>
   );
 };
 

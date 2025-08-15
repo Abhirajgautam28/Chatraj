@@ -1,20 +1,17 @@
+import React from 'react';
+import MuiAvatar from '@mui/material/Avatar';
 import PropTypes from 'prop-types';
 
-const Avatar = ({ firstName = "", className = "" }) => {
-  const getInitials = () => {
-    if (firstName) return firstName[0].toUpperCase();
-    return "?";
-  };
+const Avatar = ({ firstName = "", ...props }) => {
   return (
-    <div className={`flex items-center justify-center rounded-full bg-blue-500 text-white ${className}`}>
-      {getInitials()}
-    </div>
+    <MuiAvatar {...props}>
+      {firstName ? firstName[0].toUpperCase() : '?'}
+    </MuiAvatar>
   );
 };
 
 Avatar.propTypes = {
   firstName: PropTypes.string,
-  className: PropTypes.string
 };
 
 export default Avatar;

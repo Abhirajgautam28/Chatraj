@@ -1,9 +1,9 @@
+import React from 'react';
+import { Popover, Box, IconButton } from '@mui/material';
 import PropTypes from 'prop-types';
 
-const EmojiPicker = ({ onSelect, isOpen, setIsOpen, isCurrentUser = false }) => {
+const EmojiPicker = ({ onSelect, isOpen, setIsOpen, anchorEl }) => {
   const emojis = ['👍', '❤️', '😂', '🎉', '🚀', '💯', '👀', '🔥'];
-  
-  if (!isOpen) return null;
 
   const handleEmojiClick = (emoji) => {
     onSelect(emoji);
@@ -11,38 +11,35 @@ const EmojiPicker = ({ onSelect, isOpen, setIsOpen, isCurrentUser = false }) => 
   };
 
   return (
-    <div 
-      className={`absolute z-20 flex items-center px-3 py-1 rounded-full shadow-md ${
-        isCurrentUser ? 'right-2' : 'left-2'
-      } bottom-full mb-2 bg-gradient-to-r from-blue-500 to-purple-500`}
+    <Popover
+      open={isOpen}
+      anchorEl={anchorEl}
+      onClose={() => setIsOpen(false)}
+      anchorOrigin={{
+        vertical: 'top',
+        horizontal: 'center',
+      }}
+      transformOrigin={{
+        vertical: 'bottom',
+        horizontal: 'center',
+      }}
     >
-      <i className="text-xs text-white ri-emotion-line" />
-      <div className="flex gap-1 mx-2">
-        {emojis.map(emoji => (
-          <button
-            key={emoji}
-            onClick={() => handleEmojiClick(emoji)}
-            className="p-1 text-sm transition-transform hover:scale-125"
-          >
+      <Box sx={{ display: 'flex', p: 1 }}>
+        {emojis.map((emoji) => (
+          <IconButton key={emoji} onClick={() => handleEmojiClick(emoji)} size="small">
             {emoji}
-          </button>
+          </IconButton>
         ))}
-      </div>
-      <button
-        className="ml-1 focus:outline-none"
-        onClick={() => setIsOpen(false)}
-      >
-        <i className="text-xs text-white ri-close-line"></i>
-      </button>
-    </div>
+      </Box>
+    </Popover>
   );
 };
 
 EmojiPicker.propTypes = {
-    onSelect: PropTypes.func.isRequired,
-    isOpen: PropTypes.bool.isRequired,
-    setIsOpen: PropTypes.func.isRequired,
-    isCurrentUser: PropTypes.bool,
+  onSelect: PropTypes.func.isRequired,
+  isOpen: PropTypes.bool.isRequired,
+  setIsOpen: PropTypes.func.isRequired,
+  anchorEl: PropTypes.object,
 };
 
 export default EmojiPicker;
