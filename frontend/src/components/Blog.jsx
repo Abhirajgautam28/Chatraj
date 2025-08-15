@@ -26,7 +26,7 @@ const Blog = () => {
         if (token) {
             navigate(`/blogs/${blogId}`);
         } else {
-            navigate('/login');
+            navigate('/login', { state: { from: `/blogs/${blogId}` } });
         }
     };
 

@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { UserContext } from '../context/user.context';
 import axios from '../config/axios';
 import anime from 'animejs';
@@ -9,6 +9,7 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const { setUser } = useContext(UserContext);
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [showReset, setShowReset] = useState(false);
     const [resetEmail, setResetEmail] = useState('');
@@ -59,6 +60,8 @@ const Login = () => {
                 if (fromTryChatRaj === 'true') {
                     localStorage.removeItem('fromTryChatRaj');
                     navigate('/welcome-chatraj', { replace: true });
+                } else if (location.state && location.state.from) {
+                    navigate(location.state.from, { replace: true });
                 } else {
                     navigate('/categories', { replace: true });
                 }
