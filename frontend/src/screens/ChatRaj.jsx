@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useContext, useCallback } from 'react';
-import 'animate.css';
 import PropTypes from 'prop-types';
 import { ChatRajThemeContext } from '../context/chatraj-theme.context';
 import { UserContext } from '../context/user.context';
