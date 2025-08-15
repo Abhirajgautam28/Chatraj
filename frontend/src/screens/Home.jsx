@@ -1,11 +1,12 @@
+import ProjectShowcase from '../components/ProjectShowcase.jsx';
+import UserLeaderboard from '../components/UserLeaderboard.jsx';
 import { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
-import UserLeaderboard from '../components/UserLeaderboard.jsx';
-import ProjectShowcase from '../components/ProjectShowcase.jsx';
+// ...existing code...
 import Blog from '../components/Blog.jsx';
 import ContactUs from '../components/ContactUs.jsx';
 
@@ -199,7 +200,10 @@ const Home = () => {
 
   return (
     <div className={`flex flex-col min-h-screen overflow-x-hidden ${isDarkMode ? 'bg-gradient-to-r from-blue-900 via-gray-900 to-blue-900' : 'bg-gray-50'}`}>
-      <AnimatedBg />
+      {/* Only render AnimatedBg if user does not prefer reduced motion */}
+      {typeof window !== "undefined" && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && (
+        <AnimatedBg />
+      )}
 
       {/* Navbar */}
       <motion.nav
@@ -429,15 +433,31 @@ function greet(name) {
         </div>
       </section>
 
+      {/* Project Showcase Section */}
+      <section className={`py-20 ${isDarkMode ? 'bg-white/5' : 'bg-white'}`}>
+        <div className="max-w-4xl mx-auto">
+          <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-gray-900">Project Showcase</h2>
+          <ProjectShowcase />
+        </div>
+      </section>
+
+      {/* User Leaderboard Section */}
+      <section className={`py-20 ${isDarkMode ? 'bg-gray-100/10' : 'bg-gray-100'}`}>
+        <div className="max-w-4xl mx-auto">
+          <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-gray-900">User Leaderboard</h2>
+          <UserLeaderboard />
+        </div>
+      </section>
+
       <section className={`px-4 py-20 ${isDarkMode ? 'bg-gray-800/80' : 'bg-gray-100'}`}>
         <div className="max-w-4xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Frequently Asked Questions</h2>
           <div className="space-y-6">
             {faqs.map((faq, i) => (
-              <div key={i} className={`p-6 rounded-lg shadow ${isDarkMode ? 'bg-gray-900/70' : 'bg-white'}`}>
-                <h3 className={`mb-2 text-lg font-semibold ${isDarkMode ? 'text-blue-400' : 'text-gray-800'}`}>{faq.q}</h3>
+              <details key={i} className={`p-6 rounded-lg shadow ${isDarkMode ? 'bg-gray-900/70' : 'bg-white'}`}>
+                <summary className={`mb-2 text-lg font-semibold cursor-pointer ${isDarkMode ? 'text-blue-400' : 'text-gray-800'}`}>{faq.q}</summary>
                 <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{faq.a}</p>
-              </div>
+              </details>
             ))}
           </div>
         </div>
@@ -471,10 +491,12 @@ function greet(name) {
           <AnimatePresence>
             {showFabMenu && (
               <motion.div
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                initial={{ opacity: 0, y: 40, scale: 0.8, filter: 'blur(8px)' }}
+                animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, y: 40, scale: 0.8, filter: 'blur(8px)' }}
+                transition={{ type: 'spring', stiffness: 400, damping: 30, duration: 0.35 }}
                 className="absolute right-0 flex flex-col w-48 gap-2 p-4 bg-white rounded-lg shadow-xl bottom-14"
+                style={{ boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.25)' }}
               >
                 <button
                   onClick={() => {
