@@ -8,7 +8,7 @@ const Categories = () => {
 
   // State for search/filter and view toggle
   const [search, setSearch] = useState("");
-  const [view, setView] = useState("grid");
+  const [view, setView] = useState("grid"); // grid, list, compact
   const [recent, setRecent] = useState([]);
 
   const categories = [
@@ -125,6 +125,13 @@ const Categories = () => {
               >
                 <i className="ri-list-check-2 mr-1"></i> List
               </button>
+              <button
+                className={`px-3 py-1 rounded-lg text-sm font-medium ${view === 'compact' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-blue-200'} transition`}
+                onClick={() => setView('compact')}
+                aria-label="Compact"
+              >
+                <i className="ri-layout-column-line mr-1"></i> Compact
+              </button>
             </div>
           </div>
           {/* Recently Accessed */}
@@ -204,7 +211,7 @@ const Categories = () => {
                 })}
               </AnimatePresence>
             </motion.div>
-          ) : (
+          ) : view === 'list' ? (
             <motion.div className="flex flex-col gap-4">
               <AnimatePresence>
                 {categories.filter(cat => cat.title.toLowerCase().includes(search.toLowerCase()) || cat.description.toLowerCase().includes(search.toLowerCase())).map((cat, index) => {
@@ -240,6 +247,40 @@ const Categories = () => {
                       </div>
                       {count > 0 && (
                         <span className="px-2 py-1 text-xs font-bold text-white bg-blue-600 rounded-full">
+                          {count}
+                        </span>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </motion.div>
+          ) : (
+            <motion.div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <AnimatePresence>
+                {categories.filter(cat => cat.title.toLowerCase().includes(search.toLowerCase()) || cat.description.toLowerCase().includes(search.toLowerCase())).map((cat, index) => {
+                  const count = projectCounts[cat.title] ?? 0;
+                  return (
+                    <motion.div
+                      key={index}
+                      onClick={() => handleCategoryClick(cat.title)}
+                      className="flex flex-col items-center justify-center p-2 bg-gray-800 border border-gray-700 rounded-lg shadow cursor-pointer group transition-all min-h-[90px]"
+                      initial={{ opacity: 0, scale: 0.92 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.92 }}
+                      transition={{ duration: 0.3, delay: index * 0.04 }}
+                      whileHover={{
+                        scale: 1.04,
+                        boxShadow: '0 4px 16px 0 rgba(59,130,246,0.13)',
+                        backgroundColor: '#1e293b',
+                        borderColor: '#2563eb',
+                      }}
+                      whileTap={{ scale: 0.97 }}
+                    >
+                      <i className={`${cat.icon} text-xl text-blue-300 mb-1`}></i>
+                      <span className="text-xs font-semibold text-white mb-0.5 text-center">{cat.title}</span>
+                      {count > 0 && (
+                        <span className="px-2 py-0.5 text-[10px] font-bold text-white bg-blue-600 rounded-full mt-1">
                           {count}
                         </span>
                       )}
