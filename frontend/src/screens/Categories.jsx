@@ -30,17 +30,10 @@ const Categories = () => {
   ];
   const [showSortMenu, setShowSortMenu] = useState(false);
   // Theme dropdown
-  // Theme dropdown: sync with context and system
-  const getSystemTheme = () => {
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
-    return 'light';
-  };
+  // Theme dropdown: sync with ThemeContext only
   const [theme, setTheme] = useState(() => {
-    // On mount, reflect context and system
     if (localStorage.getItem('themeMode')) return localStorage.getItem('themeMode');
-    return 'system';
+    return isDarkMode ? 'dark' : 'light';
   });
   const themeOptions = [
     { key: 'system', label: 'System', icon: 'ri-computer-line' },
@@ -82,30 +75,14 @@ const Categories = () => {
 
   // Sync theme dropdown with context and system
   useEffect(() => {
-    if (theme === 'system') {
-      const sys = getSystemTheme();
-      setIsDarkMode(sys === 'dark');
-      document.documentElement.classList.toggle('dark', sys === 'dark');
-    } else if (theme === 'dark') {
+    if (theme === 'dark') {
       setIsDarkMode(true);
-      document.documentElement.classList.add('dark');
-    } else {
+      localStorage.setItem('themeMode', 'dark');
+    } else if (theme === 'light') {
       setIsDarkMode(false);
-      document.documentElement.classList.remove('dark');
+      localStorage.setItem('themeMode', 'light');
     }
-    localStorage.setItem('themeMode', theme);
-  }, [theme, setIsDarkMode]);
-
-  // Listen for system theme changes if 'system' is selected
-  useEffect(() => {
-    if (theme !== 'system') return;
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = (e) => {
-      setIsDarkMode(e.matches);
-      document.documentElement.classList.toggle('dark', e.matches);
-    };
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
+    // If you want to support system mode, add logic here, but for now only dark/light
   }, [theme, setIsDarkMode]);
 
   useEffect(() => {
