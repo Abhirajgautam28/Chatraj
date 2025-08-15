@@ -2,7 +2,7 @@ import { useState, useContext, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/user.context';
 import axios from '../config/axios';
-import anime from 'animejs';
+import anime from 'animejs/lib/anime.es.js';
 
 const Register = () => {
     const [email, setEmail] = useState('');
