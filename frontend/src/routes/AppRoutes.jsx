@@ -13,6 +13,7 @@ import { ChatRajThemeProvider } from '../context/chatraj-theme.context';
 import Blogs from '../screens/Blogs';
 import CreateBlogForm from '../components/CreateBlogForm';
 import SingleBlogPage from '../screens/SingleBlogPage';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 const AppRoutes = () => {
     return (
@@ -33,7 +34,7 @@ const AppRoutes = () => {
                     </ChatRajThemeProvider>
                 </UserAuth>
             } />
-                <Route path="/blogs" element={<Blogs />} />
+                <Route path="/blogs" element={<ErrorBoundary><Blogs /></ErrorBoundary>} />
             <Route path="/blogs/create" element={<UserAuth><CreateBlogForm /></UserAuth>} />
             <Route path="/blogs/:id" element={<UserAuth><SingleBlogPage /></UserAuth>} />
         </Routes>
