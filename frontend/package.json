@@ -29,7 +29,6 @@
     "antd": "^5.27.0",
     "axios": "^1.11.0",
     "bootstrap": "^5.3.7",
-    "animejs": "^3.2.2",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "masonry-layout": "^4.2.2",
