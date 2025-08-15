@@ -479,53 +479,51 @@ function greet(name) {
       {/* Floating Action Button (Rocket) with air and cloud effects */}
       <div className="fixed z-50 bottom-8 right-8">
         <div className="relative flex items-end justify-end" style={{ minHeight: 120, minWidth: 120 }}>
-          {/* Animated clouds */}
-          <motion.div
-            className="absolute left-0 bottom-2"
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 0.7, x: [30, 0, 10, 0] }}
-            transition={{ duration: 6, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' }}
-            style={{ zIndex: 0 }}
-          >
-            <svg width="48" height="24" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <ellipse cx="12" cy="18" rx="12" ry="6" fill="#e0e7ef" fillOpacity="0.7"/>
-              <ellipse cx="32" cy="12" rx="16" ry="8" fill="#e0e7ef" fillOpacity="0.5"/>
-            </svg>
-          </motion.div>
-          <motion.div
-            className="absolute right-0 bottom-8"
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 0.6, x: [-30, 0, -10, 0] }}
-            transition={{ duration: 7, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut', delay: 2 }}
-            style={{ zIndex: 0 }}
-          >
-            <svg width="36" height="18" viewBox="0 0 36 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <ellipse cx="10" cy="14" rx="10" ry="4" fill="#e0e7ef" fillOpacity="0.6"/>
-              <ellipse cx="26" cy="8" rx="8" ry="6" fill="#e0e7ef" fillOpacity="0.4"/>
-            </svg>
-          </motion.div>
-          {/* Air stream lines */}
-          <motion.div
-            className="absolute left-1/2 bottom-10"
-            style={{ transform: 'translateX(-50%)', zIndex: 1 }}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: [0.2, 0.5, 0.2], y: [10, 0, 10] }}
-            transition={{ duration: 2.5, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' }}
-          >
-            <svg width="18" height="32" viewBox="0 0 18 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 0 Q7 16 9 32" stroke="#bae6fd" strokeWidth="2" strokeLinecap="round" fill="none"/>
-              <path d="M13 4 Q11 16 13 28" stroke="#bae6fd" strokeWidth="1.2" strokeLinecap="round" fill="none"/>
-              <path d="M5 8 Q3 16 5 24" stroke="#bae6fd" strokeWidth="1" strokeLinecap="round" fill="none"/>
-            </svg>
-          </motion.div>
           <motion.button
             whileTap={{ scale: 0.96 }}
             onClick={() => setShowFabMenu((v) => !v)}
-            className="flex items-center justify-center w-12 h-12 text-2xl text-white bg-blue-600 rounded-full shadow-lg hover:bg-blue-700 focus:outline-none"
+            className="flex items-center justify-center w-12 h-12 text-2xl text-white bg-blue-600 rounded-full shadow-lg hover:bg-blue-700 focus:outline-none overflow-hidden"
             aria-label="Quick Actions"
-            style={{ zIndex: 2 }}
+            style={{ zIndex: 2, position: 'relative' }}
           >
-            <span style={{ display: 'inline-block', position: 'relative' }}>
+            <span style={{ display: 'inline-block', position: 'relative', width: 48, height: 48 }}>
+              {/* Clouds inside the button */}
+              <motion.span
+                style={{ position: 'absolute', left: 2, bottom: 6, zIndex: 0 }}
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 0.7, x: [10, 0, 4, 0] }}
+                transition={{ duration: 5, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' }}
+              >
+                <svg width="18" height="10" viewBox="0 0 18 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <ellipse cx="5" cy="8" rx="5" ry="2" fill="#e0e7ef" fillOpacity="0.7"/>
+                  <ellipse cx="13" cy="5" rx="5" ry="3" fill="#e0e7ef" fillOpacity="0.5"/>
+                </svg>
+              </motion.span>
+              <motion.span
+                style={{ position: 'absolute', right: 2, bottom: 16, zIndex: 0 }}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 0.6, x: [-10, 0, -4, 0] }}
+                transition={{ duration: 6, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut', delay: 1.5 }}
+              >
+                <svg width="14" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <ellipse cx="4" cy="6" rx="4" ry="2" fill="#e0e7ef" fillOpacity="0.6"/>
+                  <ellipse cx="10" cy="3" rx="4" ry="3" fill="#e0e7ef" fillOpacity="0.4"/>
+                </svg>
+              </motion.span>
+              {/* Air stream lines inside the button */}
+              <motion.span
+                style={{ position: 'absolute', left: '50%', bottom: 12, transform: 'translateX(-50%)', zIndex: 1 }}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: [0.2, 0.5, 0.2], y: [6, 0, 6] }}
+                transition={{ duration: 2.5, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' }}
+              >
+                <svg width="12" height="20" viewBox="0 0 12 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 0 Q5 10 6 20" stroke="#bae6fd" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+                  <path d="M9 2 Q8 10 9 18" stroke="#bae6fd" strokeWidth="1" strokeLinecap="round" fill="none"/>
+                  <path d="M3 4 Q2 10 3 16" stroke="#bae6fd" strokeWidth="0.8" strokeLinecap="round" fill="none"/>
+                </svg>
+              </motion.span>
+              {/* Rocket icon */}
               <motion.i
                 className="ri-rocket-2-line"
                 style={{ display: 'inline-block', zIndex: 2, position: 'relative' }}
@@ -562,7 +560,7 @@ function greet(name) {
                 style={{
                   position: 'absolute',
                   left: '50%',
-                  bottom: '-10px',
+                  bottom: '-2px',
                   transform: 'translateX(-50%)',
                   width: '14px',
                   height: '14px',
