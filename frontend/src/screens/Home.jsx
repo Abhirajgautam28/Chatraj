@@ -130,6 +130,8 @@ const faqs = [
   }
 ];
 
+
+
 const Home = () => {
   const { user } = useContext(UserContext);
   const { isDarkMode, setIsDarkMode } = useContext(ThemeContext);
@@ -138,6 +140,7 @@ const Home = () => {
   const [, setIsNavVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showFabMenu, setShowFabMenu] = useState(false);
+
 
   useEffect(() => {
     if (user) {
