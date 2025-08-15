@@ -10,7 +10,8 @@ const Dashboard = () => {
   const [projectName, setProjectName] = useState('');
   const [projects, setProjects] = useState([]);
   const navigate = useNavigate();
-  const { categoryName } = useParams();
+  const { categoryName: rawCategoryName } = useParams();
+  const categoryName = rawCategoryName ? decodeURIComponent(rawCategoryName) : undefined;
 
   const createProject = (e) => {
     e.preventDefault();
