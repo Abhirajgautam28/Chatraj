@@ -847,7 +847,7 @@ const Project = () => {
       </section>
       </Grid>
       <Grid item xs={12} md={8} lg={9} sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div className="flex flex-grow h-full bg-blue-50 dark:bg-gray-900 right">
+      <section className="flex flex-grow h-full bg-blue-50 dark:bg-gray-900 right">
         <div
           className="h-full explorer bg-slate-200 dark:bg-gray-500"
           style={{
@@ -1165,7 +1165,7 @@ const Project = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+      </Grid>
   )
 }
 
