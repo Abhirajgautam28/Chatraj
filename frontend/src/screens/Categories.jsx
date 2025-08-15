@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import axios from '../config/axios.js';
+import { ThemeContext } from '../context/theme.context.jsx';
 
 const Categories = () => {
   const navigate = useNavigate();
+  const { isDarkMode, setIsDarkMode } = useContext(ThemeContext);
 
   // State for search/filter and view toggle
   const [search, setSearch] = useState("");
@@ -28,7 +30,18 @@ const Categories = () => {
   ];
   const [showSortMenu, setShowSortMenu] = useState(false);
   // Theme dropdown
-  const [theme, setTheme] = useState('system');
+  // Theme dropdown: sync with context and system
+  const getSystemTheme = () => {
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+    return 'light';
+  };
+  const [theme, setTheme] = useState(() => {
+    // On mount, reflect context and system
+    if (localStorage.getItem('themeMode')) return localStorage.getItem('themeMode');
+    return 'system';
+  });
   const themeOptions = [
     { key: 'system', label: 'System', icon: 'ri-computer-line' },
     { key: 'dark', label: 'Dark', icon: 'ri-moon-line' },
@@ -65,6 +78,35 @@ const Categories = () => {
 
 
   const [projectCounts, setProjectCounts] = useState({});
+
+
+  // Sync theme dropdown with context and system
+  useEffect(() => {
+    if (theme === 'system') {
+      const sys = getSystemTheme();
+      setIsDarkMode(sys === 'dark');
+      document.documentElement.classList.toggle('dark', sys === 'dark');
+    } else if (theme === 'dark') {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    } else {
+      setIsDarkMode(false);
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('themeMode', theme);
+  }, [theme, setIsDarkMode]);
+
+  // Listen for system theme changes if 'system' is selected
+  useEffect(() => {
+    if (theme !== 'system') return;
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = (e) => {
+      setIsDarkMode(e.matches);
+      document.documentElement.classList.toggle('dark', e.matches);
+    };
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, [theme, setIsDarkMode]);
 
   useEffect(() => {
     axios.get('/api/projects/category-counts')
@@ -219,7 +261,10 @@ const Categories = () => {
                       <button
                         key={opt.key}
                         className={`w-full flex items-center gap-2 px-4 py-2 text-left text-sm rounded-lg transition-colors ${theme === opt.key ? 'bg-blue-600 text-white' : 'text-blue-200 hover:bg-gray-800'} select-none`}
-                        onClick={() => { setTheme(opt.key); setShowThemeMenu(false); }}
+                        onClick={() => {
+                          setTheme(opt.key);
+                          setShowThemeMenu(false);
+                        }}
                         aria-selected={theme === opt.key}
                       >
                         <i className={`${opt.icon}`}></i> {opt.label}
@@ -257,39 +302,7 @@ const Categories = () => {
               </div>
             </div>
           </div>
-          {/* Recently Accessed */}
-          {recent.length > 0 && (
-            <motion.div className="mb-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-            >
-              <h2 className="text-lg font-semibold text-blue-200 mb-2">Recently Accessed</h2>
-              <div className="flex flex-wrap gap-3">
-                {recent.map((catTitle, i) => {
-                  const cat = categories.find(c => c.title === catTitle);
-                  if (!cat) return null;
-                  const count = projectCounts[cat.title] ?? 0;
-                  return (
-                    <motion.button
-                      key={cat.title}
-                      onClick={() => handleCategoryClick(cat.title)}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 border border-blue-700 text-white hover:bg-blue-700 hover:text-white transition shadow-md"
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.4, delay: i * 0.08 }}
-                      whileHover={{ scale: 1.08, boxShadow: '0 4px 24px 0 rgba(59,130,246,0.15)', backgroundColor: '#1e293b' }}
-                      whileTap={{ scale: 0.97 }}
-                    >
-                      <i className={`${cat.icon} text-xl`}></i>
-                      <span>{cat.title}</span>
-                      {count > 0 && <span className="ml-2 px-2 py-0.5 text-xs font-bold bg-blue-600 rounded-full">{count}</span>}
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </motion.div>
-          )}
+          {/* Recently Accessed removed as per request */}
           {/* Category grid/list */}
           {/* Sorting logic for categories */}
           {(() => {
