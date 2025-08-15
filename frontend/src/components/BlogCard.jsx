@@ -1,35 +1,43 @@
-import { Link } from 'react-router-dom';
-import 'remixicon/fonts/remixicon.css';
+import { Link as RouterLink } from 'react-router-dom';
 import PropTypes from 'prop-types';
+import {
+    Card,
+    CardContent,
+    Typography,
+    Button,
+    Box,
+    Link
+} from '@mui/material';
+import { FavoriteBorder } from '@mui/icons-material';
 
 const BlogCard = ({ blog }) => {
     return (
-        <div
-            className="overflow-hidden bg-white rounded-lg shadow-lg dark:bg-gray-800"
-        >
-            <div className="p-6">
-                <h2 className="mb-2 text-2xl font-bold text-gray-800 dark:text-white">
-                    <Link to={`/blogs/${blog._id}`}>{blog.title}</Link>
-                </h2>
-                <p className="mb-4 text-gray-600 dark:text-gray-400">
-                    By {blog.author.firstName} {blog.author.lastName}
-                </p>
-                <p className="mb-4 text-gray-700 dark:text-gray-300">
-                    {blog.content.substring(0, 100)}...
-                </p>
-                <div className="flex items-center justify-between">
-                    <Link
-                        to={`/blogs/${blog._id}`}
-                        className="text-blue-500 hover:underline"
-                    >
-                        Read More
+        <Card>
+            <CardContent>
+                <Typography variant="h5" component="div" gutterBottom>
+                    <Link component={RouterLink} to={`/blogs/${blog._id}`} color="inherit" underline="hover">
+                        {blog.title}
                     </Link>
-                    <div className="flex items-center">
-                        <i className="mr-1 ri-heart-line"></i> {blog.likes.length}
-                    </div>
-                </div>
-            </div>
-        </div>
+                </Typography>
+                <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+                    By {blog.author.firstName} {blog.author.lastName}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" paragraph>
+                    {blog.content.substring(0, 100)}...
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
+                    <Button component={RouterLink} to={`/blogs/${blog._id}`} size="small">
+                        Read More
+                    </Button>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <FavoriteBorder sx={{ mr: 0.5 }} />
+                        <Typography variant="body2" color="text.secondary">
+                            {blog.likes.length}
+                        </Typography>
+                    </Box>
+                </Box>
+            </CardContent>
+        </Card>
     );
 };
 

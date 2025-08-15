@@ -1,5 +1,12 @@
 import { useState, useEffect } from 'react';
 import axios from '../config/axios';
+import {
+    Paper,
+    Typography,
+    Grid,
+    CircularProgress,
+    Box,
+} from '@mui/material';
 
 const ProjectShowcase = () => {
     const [projects, setProjects] = useState([]);
@@ -20,21 +27,33 @@ const ProjectShowcase = () => {
     }, []);
 
     if (loading) {
-        return <div className="text-center">Loading...</div>;
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                <CircularProgress />
+            </Box>
+        );
     }
 
     return (
-        <div className="p-6 bg-white rounded-lg shadow-md dark:bg-gray-700">
-            <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Project Showcase</h3>
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+        <Paper elevation={3} sx={{ p: 3 }}>
+            <Typography variant="h5" component="h3" gutterBottom>
+                Project Showcase
+            </Typography>
+            <Grid container spacing={2}>
                 {Array.isArray(projects) && projects.map(project => (
-                    <div key={project._id} className="p-4 bg-gray-100 rounded-lg dark:bg-gray-800">
-                        <h4 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white">{project.name}</h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">{project.category}</p>
-                    </div>
+                    <Grid item key={project._id} xs={12} md={6}>
+                        <Paper elevation={1} sx={{ p: 2 }}>
+                            <Typography variant="h6" component="h4" gutterBottom>
+                                {project.name}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                {project.category}
+                            </Typography>
+                        </Paper>
+                    </Grid>
                 ))}
-            </div>
-        </div>
+            </Grid>
+        </Paper>
     );
 };
 

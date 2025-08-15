@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react';
 import axios from '../config/axios';
 import { useNavigate } from 'react-router-dom';
+import {
+    Container,
+    Typography,
+    Grid,
+    Card,
+    CardActionArea,
+    CardContent,
+} from '@mui/material';
 
 const Blog = () => {
     const [blogs, setBlogs] = useState([]);
@@ -31,26 +39,32 @@ const Blog = () => {
     };
 
     return (
-        <section className="py-20 bg-gray-100 dark:bg-gray-800">
-            <div className="max-w-6xl mx-auto">
-                <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-white">From Our Blog</h2>
-                <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-                    {Array.isArray(blogs) && blogs.map((blog, index) => (
-                        <div
-                            key={index}
-                            className="overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-700"
-                            onClick={() => handleBlogClick(blog._id)}
-                        >
-                            <div className="p-6">
-                                <p className="mb-2 text-sm text-gray-600 dark:text-gray-300">{new Date(blog.createdAt).toLocaleDateString()}</p>
-                                <h3 className="mb-2 text-xl font-semibold text-gray-800 dark:text-white">{blog.title}</h3>
-                                <p className="text-gray-600 dark:text-gray-300">{blog.content.substring(0, 100)}...</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </section>
+        <Container sx={{ py: 8 }}>
+            <Typography variant="h4" component="h2" align="center" gutterBottom>
+                From Our Blog
+            </Typography>
+            <Grid container spacing={4}>
+                {Array.isArray(blogs) && blogs.map((blog) => (
+                    <Grid item key={blog._id} xs={12} sm={6} md={4}>
+                        <Card>
+                            <CardActionArea onClick={() => handleBlogClick(blog._id)}>
+                                <CardContent>
+                                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                                        {new Date(blog.createdAt).toLocaleDateString()}
+                                    </Typography>
+                                    <Typography variant="h5" component="div" gutterBottom>
+                                        {blog.title}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        {blog.content.substring(0, 100)}...
+                                    </Typography>
+                                </CardContent>
+                            </CardActionArea>
+                        </Card>
+                    </Grid>
+                ))}
+            </Grid>
+        </Container>
     );
 };
 

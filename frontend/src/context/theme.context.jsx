@@ -1,5 +1,7 @@
 import { createContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { ThemeProvider as MuiThemeProvider, CssBaseline } from '@mui/material';
+import { lightTheme, darkTheme } from '../theme/material-theme';
 
 export const ThemeContext = createContext();
 
@@ -19,9 +21,14 @@ export function ThemeProvider({ children }) {
     }
   }, [isDarkMode]);
 
+  const theme = isDarkMode ? darkTheme : lightTheme;
+
   return (
     <ThemeContext.Provider value={{ isDarkMode, setIsDarkMode }}>
-      {children}
+      <MuiThemeProvider theme={theme}>
+        <CssBaseline />
+        {children}
+      </MuiThemeProvider>
     </ThemeContext.Provider>
   );
 }

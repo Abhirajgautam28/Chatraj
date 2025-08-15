@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types';
+import { Popper, Paper, IconButton, Box } from '@mui/material';
+import { Close } from '@mui/icons-material';
 
-const EmojiPicker = ({ onSelect, isOpen, setIsOpen, isCurrentUser = false }) => {
+const EmojiPicker = ({ onSelect, isOpen, setIsOpen, anchorEl }) => {
   const emojis = ['👍', '❤️', '😂', '🎉', '🚀', '💯', '👀', '🔥'];
-  
-  if (!isOpen) return null;
 
   const handleEmojiClick = (emoji) => {
     onSelect(emoji);
@@ -11,30 +11,22 @@ const EmojiPicker = ({ onSelect, isOpen, setIsOpen, isCurrentUser = false }) => 
   };
 
   return (
-    <div 
-      className={`absolute z-20 flex items-center px-3 py-1 rounded-full shadow-md ${
-        isCurrentUser ? 'right-2' : 'left-2'
-      } bottom-full mb-2 bg-gradient-to-r from-blue-500 to-purple-500`}
-    >
-      <i className="text-xs text-white ri-emotion-line" />
-      <div className="flex gap-1 mx-2">
+    <Popper open={isOpen} anchorEl={anchorEl} placement="top" sx={{ zIndex: 1300 }}>
+      <Paper sx={{ p: 1, display: 'flex', alignItems: 'center' }}>
         {emojis.map(emoji => (
-          <button
+          <IconButton
             key={emoji}
             onClick={() => handleEmojiClick(emoji)}
-            className="p-1 text-sm transition-transform hover:scale-125"
+            size="small"
           >
             {emoji}
-          </button>
+          </IconButton>
         ))}
-      </div>
-      <button
-        className="ml-1 focus:outline-none"
-        onClick={() => setIsOpen(false)}
-      >
-        <i className="text-xs text-white ri-close-line"></i>
-      </button>
-    </div>
+        <IconButton onClick={() => setIsOpen(false)} size="small" sx={{ ml: 1 }}>
+            <Close fontSize="small" />
+        </IconButton>
+      </Paper>
+    </Popper>
   );
 };
 
@@ -42,7 +34,7 @@ EmojiPicker.propTypes = {
     onSelect: PropTypes.func.isRequired,
     isOpen: PropTypes.bool.isRequired,
     setIsOpen: PropTypes.func.isRequired,
-    isCurrentUser: PropTypes.bool,
+    anchorEl: PropTypes.object,
 };
 
 export default EmojiPicker;

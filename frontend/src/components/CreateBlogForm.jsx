@@ -3,7 +3,25 @@ import axios from '../config/axios';
 import { useNavigate } from 'react-router-dom';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import 'remixicon/fonts/remixicon.css';
+import {
+    Container,
+    Typography,
+    Grid,
+    TextField,
+    Button,
+    Paper,
+    IconButton,
+    Box,
+} from '@mui/material';
+import {
+    Add,
+    Image,
+    Videocam,
+    Code,
+    FormatQuote,
+    Delete,
+    DragIndicator,
+} from '@mui/icons-material';
 
 const ItemTypes = {
     BLOCK: 'block',
@@ -47,65 +65,52 @@ const Block = ({ id, type, content, index, moveBlock, updateContent, deleteBlock
 
     drag(drop(ref));
 
+    const renderContent = () => {
+        const commonProps = {
+            fullWidth: true,
+            variant: "outlined",
+            value: content,
+            onChange: (e) => updateContent(id, e.target.value),
+        };
+
+        switch (type) {
+            case 'text':
+                return <TextField {...commonProps} multiline rows={4} placeholder="Start writing your story..." />;
+            case 'image':
+                return <TextField {...commonProps} placeholder="Enter image URL" />;
+            case 'video':
+                return <TextField {...commonProps} placeholder="Enter video URL (e.g., YouTube)" />;
+            case 'code':
+                return <TextField {...commonProps} multiline rows={10} placeholder="Write your code here..." inputProps={{ style: { fontFamily: 'monospace' } }} />;
+            case 'quote':
+                return <TextField {...commonProps} multiline rows={3} placeholder="Enter a quote..." sx={{ fontStyle: 'italic', borderLeft: '4px solid', borderColor: 'primary.main', pl: 2 }} />;
+            default:
+                return null;
+        }
+    };
+
     return (
-        <div
+        <Paper
             ref={ref}
-            style={{ opacity: isDragging ? 0 : 1 }}
-            className="p-4 mb-4 bg-gray-700 rounded-lg shadow-md flex items-center group"
+            elevation={3}
+            sx={{
+                p: 2,
+                mb: 2,
+                opacity: isDragging ? 0.5 : 1,
+                display: 'flex',
+                alignItems: 'center',
+            }}
         >
-            <i className="ri-drag-move-2-line mr-4 cursor-move text-gray-400"></i>
-            <div className="flex-grow">
-                {type === 'text' && (
-                    <textarea
-                        value={content}
-                        onChange={(e) => updateContent(id, e.target.value)}
-                        className="w-full h-24 p-2 bg-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Start writing your story..."
-                    />
-                )}
-                {type === 'image' && (
-                    <input
-                        type="text"
-                        value={content}
-                        onChange={(e) => updateContent(id, e.target.value)}
-                        className="w-full p-2 bg-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Enter image URL"
-                    />
-                )}
-                {type === 'video' && (
-                    <input
-                        type="text"
-                        value={content}
-                        onChange={(e) => updateContent(id, e.target.value)}
-                        className="w-full p-2 bg-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Enter video URL (e.g., YouTube)"
-                    />
-                )}
-                {type === 'code' && (
-                    <textarea
-                        value={content}
-                        onChange={(e) => updateContent(id, e.target.value)}
-                        className="w-full h-48 p-2 bg-gray-900 text-white rounded-md font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Write your code here..."
-                    />
-                )}
-                {type === 'quote' && (
-                    <textarea
-                        value={content}
-                        onChange={(e) => updateContent(id, e.target.value)}
-                        className="w-full h-20 p-2 bg-gray-600 text-white rounded-md italic border-l-4 border-blue-400 pl-4"
-                        placeholder="Enter a quote..."
-                    />
-                )}
-            </div>
-            <button
-                type="button"
-                onClick={() => deleteBlock(id)}
-                className="ml-4 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-                <i className="ri-delete-bin-line"></i>
-            </button>
-        </div>
+            <Box sx={{ cursor: 'move' }}>
+                <DragIndicator />
+            </Box>
+            <Box sx={{ flexGrow: 1, mx: 2 }}>
+                {renderContent()}
+            </Box>
+            <IconButton onClick={() => deleteBlock(id)} color="error">
+                <Delete />
+            </IconButton>
+        </Paper>
     );
 };
 
@@ -153,31 +158,39 @@ const CreateBlogForm = () => {
         }
     };
 
+    const addBlockButtons = [
+        { type: 'text', icon: <Add />, label: 'Text' },
+        { type: 'image', icon: <Image />, label: 'Image' },
+        { type: 'video', icon: <Videocam />, label: 'Video' },
+        { type: 'code', icon: <Code />, label: 'Code' },
+        { type: 'quote', icon: <FormatQuote />, label: 'Quote' },
+    ];
+
     return (
         <DndProvider backend={HTML5Backend}>
-            <div className="min-h-screen bg-gray-900 text-white">
-                <div className="container px-4 py-8 mx-auto">
-                    <div className="text-center mb-12">
-                        <h1 className="text-5xl font-extrabold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-teal-400">Create Your Masterpiece</h1>
-                    </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <form onSubmit={handleSubmit} className="p-8 bg-gray-800 rounded-lg shadow-lg">
-                            <div className="mb-8">
-                                <label className="block mb-2 text-2xl font-bold text-gray-300" htmlFor="title">
-                                    Blog Title
-                                </label>
-                                <input
-                                    id="title"
-                                    type="text"
+            <Container sx={{ py: 4 }}>
+                <Typography variant="h3" component="h1" align="center" gutterBottom sx={{
+                    fontWeight: 'bold',
+                    background: (theme) => `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                }}>
+                    Create Your Masterpiece
+                </Typography>
+                <Grid container spacing={4}>
+                    <Grid item xs={12} lg={6}>
+                        <Paper elevation={3} sx={{ p: 3 }}>
+                            <form onSubmit={handleSubmit}>
+                                <TextField
+                                    label="Blog Title"
+                                    variant="outlined"
+                                    fullWidth
+                                    required
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
-                                    className="w-full px-4 py-3 text-xl text-white bg-gray-700 border-2 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-                                    placeholder="Your Awesome Title"
-                                    required
+                                    sx={{ mb: 4 }}
                                 />
-                            </div>
 
-                            <div className="mb-8">
                                 {blocks.map((block, index) => (
                                     <Block
                                         key={block.id}
@@ -190,37 +203,57 @@ const CreateBlogForm = () => {
                                         deleteBlock={deleteBlock}
                                     />
                                 ))}
-                            </div>
 
-                            <div className="grid grid-cols-2 gap-4 mb-8">
-                                <button type="button" onClick={() => addBlock('text')} className="px-6 py-3 font-bold text-white bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-300 transform hover:scale-105"><i className="ri-text mr-2"></i> Add Text</button>
-                                <button type="button" onClick={() => addBlock('image')} className="px-6 py-3 font-bold text-white bg-gradient-to-r from-purple-500 to-indigo-500 rounded-lg hover:from-purple-600 hover:to-indigo-600 transition-all duration-300 transform hover:scale-105"><i className="ri-image-add-line mr-2"></i> Add Image</button>
-                                <button type="button" onClick={() => addBlock('video')} className="px-6 py-3 font-bold text-white bg-gradient-to-r from-red-500 to-orange-500 rounded-lg hover:from-red-600 hover:to-orange-600 transition-all duration-300 transform hover:scale-105"><i className="ri-film-line mr-2"></i> Add Video</button>
-                                <button type="button" onClick={() => addBlock('code')} className="px-6 py-3 font-bold text-white bg-gradient-to-r from-gray-500 to-gray-600 rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all duration-300 transform hover:scale-105"><i className="ri-code-s-slash-line mr-2"></i> Add Code</button>
-                                <button type="button" onClick={() => addBlock('quote')} className="px-6 py-3 font-bold text-white bg-gradient-to-r from-yellow-500 to-amber-500 rounded-lg hover:from-yellow-600 hover:to-amber-600 transition-all duration-300 transform hover:scale-105"><i className="ri-double-quotes-l mr-2"></i> Add Quote</button>
-                            </div>
+                                <Grid container spacing={2} sx={{ my: 2 }}>
+                                    {addBlockButtons.map(({ type, icon, label }) => (
+                                        <Grid item key={type}>
+                                            <Button
+                                                variant="outlined"
+                                                startIcon={icon}
+                                                onClick={() => addBlock(type)}
+                                            >
+                                                {label}
+                                            </Button>
+                                        </Grid>
+                                    ))}
+                                </Grid>
 
-                            <div className="flex items-center justify-end">
-                                <button type="submit" className="px-8 py-4 font-bold text-white bg-gradient-to-r from-blue-500 to-teal-500 rounded-lg hover:from-blue-600 hover:to-teal-600 transition-all duration-300 transform hover:scale-105">Publish Post</button>
-                            </div>
-                        </form>
-                        <div className="p-8 bg-gray-800 rounded-lg shadow-lg">
-                            <h2 className="text-3xl font-bold mb-4">Live Preview</h2>
-                            <div className="prose prose-invert max-w-none">
-                                <h1>{title}</h1>
+                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
+                                    <Button type="submit" variant="contained" size="large">
+                                        Publish Post
+                                    </Button>
+                                </Box>
+                            </form>
+                        </Paper>
+                    </Grid>
+                    <Grid item xs={12} lg={6}>
+                        <Paper elevation={3} sx={{ p: 3 }}>
+                            <Typography variant="h4" component="h2" gutterBottom>
+                                Live Preview
+                            </Typography>
+                            <Box sx={{
+                                '& .prose': {
+                                    color: (theme) => theme.palette.text.primary,
+                                    'h1, h2, h3, h4, h5, h6': {
+                                        color: (theme) => theme.palette.text.primary,
+                                    },
+                                },
+                            }}>
+                                <Typography variant="h4">{title}</Typography>
                                 {blocks.map(block => {
-                                    if (block.type === 'text') return <p key={block.id}>{block.content}</p>;
-                                    if (block.type === 'image') return <img key={block.id} src={block.content} alt="preview" className="rounded-lg" />;
-                                    if (block.type === 'video') return <iframe key={block.id} src={block.content.replace("watch?v=", "embed/")} title="preview" className="w-full aspect-video rounded-lg" />;
-                                    if (block.type === 'code') return <pre key={block.id}><code className="language-javascript">{block.content}</code></pre>;
-                                    if (block.type === 'quote') return <blockquote key={block.id}>{block.content}</blockquote>;
+                                    if (!block.content) return null;
+                                    if (block.type === 'text') return <Typography key={block.id} paragraph>{block.content}</Typography>;
+                                    if (block.type === 'image') return <img key={block.id} src={block.content} alt="preview" style={{ maxWidth: '100%', borderRadius: '8px' }} />;
+                                    if (block.type === 'video') return <iframe key={block.id} src={block.content.replace("watch?v=", "embed/")} title="preview" style={{ width: '100%', aspectRatio: '16/9', borderRadius: '8px', border: 'none' }} />;
+                                    if (block.type === 'code') return <Paper key={block.id} component="pre" sx={{ p: 2, overflowX: 'auto', backgroundColor: 'grey.900', color: 'white' }}><code>{block.content}</code></Paper>;
+                                    if (block.type === 'quote') return <Typography key={block.id} component="blockquote" sx={{ m: 0, p: 2, borderLeft: '4px solid', borderColor: 'primary.main' }}>{block.content}</Typography>;
                                     return null;
                                 })}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                            </Box>
+                        </Paper>
+                    </Grid>
+                </Grid>
+            </Container>
         </DndProvider>
     );
 };
