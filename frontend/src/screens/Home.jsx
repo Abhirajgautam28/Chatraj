@@ -135,7 +135,7 @@ const Home = () => {
   const { isDarkMode, setIsDarkMode } = useContext(ThemeContext);
   const navigate = useNavigate();
 
-  const [, setIsNavVisible] = useState(true);
+  const [isNavVisible, setIsNavVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showFabMenu, setShowFabMenu] = useState(false);
 
