@@ -33,7 +33,7 @@ const AppRoutes = () => {
                     </ChatRajThemeProvider>
                 </UserAuth>
             } />
-            <Route path="/blogs" element={<UserAuth><Blogs /></UserAuth>} />
+                <Route path="/blogs" element={<Blogs />} />
             <Route path="/blogs/create" element={<UserAuth><CreateBlogForm /></UserAuth>} />
             <Route path="/blogs/:id" element={<UserAuth><SingleBlogPage /></UserAuth>} />
         </Routes>
