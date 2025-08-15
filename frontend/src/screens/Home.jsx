@@ -476,49 +476,60 @@ function greet(name) {
         </div>
       </section>
 
-      {/* Floating Action Button (Rocket) */}
+      {/* Floating Action Button (Rocket) with air and cloud effects */}
       <div className="fixed z-50 bottom-8 right-8">
-        <div className="relative">
+        <div className="relative flex items-end justify-end" style={{ minHeight: 120, minWidth: 120 }}>
+          {/* Animated clouds */}
+          <motion.div
+            className="absolute left-0 bottom-2"
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 0.7, x: [30, 0, 10, 0] }}
+            transition={{ duration: 6, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' }}
+            style={{ zIndex: 0 }}
+          >
+            <svg width="48" height="24" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="12" cy="18" rx="12" ry="6" fill="#e0e7ef" fillOpacity="0.7"/>
+              <ellipse cx="32" cy="12" rx="16" ry="8" fill="#e0e7ef" fillOpacity="0.5"/>
+            </svg>
+          </motion.div>
+          <motion.div
+            className="absolute right-0 bottom-8"
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 0.6, x: [-30, 0, -10, 0] }}
+            transition={{ duration: 7, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut', delay: 2 }}
+            style={{ zIndex: 0 }}
+          >
+            <svg width="36" height="18" viewBox="0 0 36 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="10" cy="14" rx="10" ry="4" fill="#e0e7ef" fillOpacity="0.6"/>
+              <ellipse cx="26" cy="8" rx="8" ry="6" fill="#e0e7ef" fillOpacity="0.4"/>
+            </svg>
+          </motion.div>
+          {/* Air stream lines */}
+          <motion.div
+            className="absolute left-1/2 bottom-10"
+            style={{ transform: 'translateX(-50%)', zIndex: 1 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: [0.2, 0.5, 0.2], y: [10, 0, 10] }}
+            transition={{ duration: 2.5, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' }}
+          >
+            <svg width="18" height="32" viewBox="0 0 18 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 0 Q7 16 9 32" stroke="#bae6fd" strokeWidth="2" strokeLinecap="round" fill="none"/>
+              <path d="M13 4 Q11 16 13 28" stroke="#bae6fd" strokeWidth="1.2" strokeLinecap="round" fill="none"/>
+              <path d="M5 8 Q3 16 5 24" stroke="#bae6fd" strokeWidth="1" strokeLinecap="round" fill="none"/>
+            </svg>
+          </motion.div>
           <motion.button
             whileTap={{ scale: 0.96 }}
             onClick={() => setShowFabMenu((v) => !v)}
             className="flex items-center justify-center w-12 h-12 text-2xl text-white bg-blue-600 rounded-full shadow-lg hover:bg-blue-700 focus:outline-none"
             aria-label="Quick Actions"
+            style={{ zIndex: 2 }}
           >
             <span style={{ display: 'inline-block', position: 'relative' }}>
               <motion.i
                 className="ri-rocket-2-line"
                 style={{ display: 'inline-block', zIndex: 2, position: 'relative' }}
                 animate={{
-                  y: [0, 2, 0, -2, 0]
-                }}
-                transition={{
-                  duration: 2.2,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                  repeatType: 'loop'
-                }}
-                whileHover={{
-                  rotate: -10,
-                  transition: { type: 'spring', stiffness: 250, damping: 18 }
-                }}
-              />
-              {/* Minimal animated smoke at the tail */}
-              <motion.span
-                style={{
-                  position: 'absolute',
-                  left: '50%',
-                  bottom: '-8px',
-                  transform: 'translateX(-50%)',
-                  zIndex: 1,
-                  pointerEvents: 'none',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '2px',
-                }}
-                animate={{
-                  opacity: [0.7, 0.4, 0.7],
                   y: [0, 3, 0, -3, 0]
                 }}
                 transition={{
@@ -527,10 +538,44 @@ function greet(name) {
                   ease: 'easeInOut',
                   repeatType: 'loop'
                 }}
+                whileHover={{
+                  scale: 1.08,
+                  rotate: -8,
+                  transition: { type: 'spring', stiffness: 250, damping: 18 }
+                }}
+              />
+              {/* Minimal animated smoke at the tail */}
+              <motion.span
+                initial={{ opacity: 0.5, scale: 0.7, y: 0 }}
+                animate={{
+                  opacity: [0.5, 0.3, 0.5],
+                  scale: [0.7, 1, 0.7],
+                  y: [0, 6, 0]
+                }}
+                transition={{
+                  duration: 1.6,
+                  repeat: Infinity,
+                  repeatType: 'loop',
+                  ease: 'easeInOut',
+                  delay: 0.2
+                }}
+                style={{
+                  position: 'absolute',
+                  left: '50%',
+                  bottom: '-10px',
+                  transform: 'translateX(-50%)',
+                  width: '14px',
+                  height: '14px',
+                  zIndex: 1,
+                  pointerEvents: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
               >
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(203,213,225,0.7)', marginBottom: 1, display: 'block' }} />
-                <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(203,213,225,0.5)', marginBottom: 1, display: 'block' }} />
-                <span style={{ width: 2, height: 2, borderRadius: '50%', background: 'rgba(203,213,225,0.3)', display: 'block' }} />
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <ellipse cx="7" cy="7" rx="6" ry="4" fill="#e0e7ef" fillOpacity="0.7"/>
+                </svg>
               </motion.span>
             </span>
           </motion.button>
