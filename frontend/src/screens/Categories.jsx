@@ -113,7 +113,7 @@ const Categories = () => {
   }, []);
 
   const handleCategoryClick = (categoryTitle) => {
-    navigate(`/dashboard/${categoryTitle}`);
+  navigate(`/dashboard/${encodeURIComponent(categoryTitle)}`);
   };
 
   return (

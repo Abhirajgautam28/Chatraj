@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const commentSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'user',
         required: true
     },
     text: {
@@ -27,12 +27,12 @@ const blogSchema = new mongoose.Schema({
     },
     author: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'user',
         required: true
     },
     likes: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'user'
     }],
     comments: [commentSchema],
     createdAt: {
