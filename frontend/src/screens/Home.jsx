@@ -485,24 +485,54 @@ function greet(name) {
             className="flex items-center justify-center w-12 h-12 text-2xl text-white bg-blue-600 rounded-full shadow-lg hover:bg-blue-700 focus:outline-none"
             aria-label="Quick Actions"
           >
-            <motion.i
-              className="ri-rocket-2-line"
-              style={{ display: 'inline-block' }}
-              animate={{
-                y: [0, -6, 0, 6, 0]
-              }}
-              transition={{
-                duration: 2.2,
-                repeat: Infinity,
-                ease: 'easeInOut',
-                repeatType: 'loop'
-              }}
-              whileHover={{
-                scale: 1.13,
-                rotate: -10,
-                transition: { type: 'spring', stiffness: 250, damping: 18 }
-              }}
-            />
+            <span style={{ display: 'inline-block', position: 'relative' }}>
+              <motion.i
+                className="ri-rocket-2-line"
+                style={{ display: 'inline-block', zIndex: 2, position: 'relative' }}
+                animate={{
+                  y: [0, 2, 0, -2, 0]
+                }}
+                transition={{
+                  duration: 2.2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                  repeatType: 'loop'
+                }}
+                whileHover={{
+                  rotate: -10,
+                  transition: { type: 'spring', stiffness: 250, damping: 18 }
+                }}
+              />
+              {/* Minimal animated smoke at the tail */}
+              <motion.span
+                style={{
+                  position: 'absolute',
+                  left: '50%',
+                  bottom: '-8px',
+                  transform: 'translateX(-50%)',
+                  zIndex: 1,
+                  pointerEvents: 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '2px',
+                }}
+                animate={{
+                  opacity: [0.7, 0.4, 0.7],
+                  y: [0, 3, 0, -3, 0]
+                }}
+                transition={{
+                  duration: 2.2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                  repeatType: 'loop'
+                }}
+              >
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(203,213,225,0.7)', marginBottom: 1, display: 'block' }} />
+                <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(203,213,225,0.5)', marginBottom: 1, display: 'block' }} />
+                <span style={{ width: 2, height: 2, borderRadius: '50%', background: 'rgba(203,213,225,0.3)', display: 'block' }} />
+              </motion.span>
+            </span>
           </motion.button>
           <AnimatePresence>
             {showFabMenu && (
