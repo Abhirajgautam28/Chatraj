@@ -19,7 +19,9 @@ const Categories = () => {
     { key: 'minimal', label: 'Minimal', icon: 'ri-layout-line' },
     { key: 'detailed', label: 'Detailed', icon: 'ri-layout-masonry-line' },
   ];
-  const [showViewMenu, setShowViewMenu] = useState(false);
+  // Dropdown state: only one open at a time
+  // 'view', 'sort', 'theme', 'tileSize', or null
+  const [openDropdown, setOpenDropdown] = useState(null);
   // Sort dropdown
   const [sort, setSort] = useState('alphabetical');
   const sortOptions = [
@@ -28,18 +30,11 @@ const Categories = () => {
     { key: 'projects', label: 'Most Projects', icon: 'ri-bar-chart-grouped-line' },
     { key: 'recent', label: 'Recently Accessed', icon: 'ri-time-line' },
   ];
-  const [showSortMenu, setShowSortMenu] = useState(false);
-  // Theme dropdown
-  // Theme dropdown: sync with context and system
-  const getSystemTheme = () => {
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
-    return 'light';
-  };
+  // Theme dropdown for Categories page only
+  // System mode: follow Home page's isDarkMode value
   // themeMode: 'system', 'dark', 'light'
   const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem('themeMode');
+    const saved = localStorage.getItem('categoriesThemeMode');
     if (saved === 'dark' || saved === 'light') return saved;
     return 'system';
   });
@@ -48,7 +43,35 @@ const Categories = () => {
     { key: 'dark', label: 'Dark', icon: 'ri-moon-line' },
     { key: 'light', label: 'Light', icon: 'ri-sun-line' },
   ];
-  const [showThemeMenu, setShowThemeMenu] = useState(false);
+
+  // Sync theme dropdown with context and system
+  useEffect(() => {
+    if (theme === 'system') {
+      // Use Home page's isDarkMode value (from ThemeContext)
+      // Do nothing, ThemeContext already provides the value
+    } else if (theme === 'dark') {
+      setIsDarkMode(true);
+    } else {
+      setIsDarkMode(false);
+    }
+    localStorage.setItem('categoriesThemeMode', theme);
+  }, [theme, setIsDarkMode]);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    if (!openDropdown) return;
+    const handleClick = (e) => {
+      // Only close if click is outside any dropdown menu or button
+      if (!e.target.closest('.dropdown-menu-btn') && !e.target.closest('.dropdown-menu-list')) {
+        setOpenDropdown(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [openDropdown]);
+
+  // Listen for system theme changes if 'system' is selected
+  // No need to listen for system theme changes, just follow ThemeContext
   // Tile size dropdown
   const [tileSize, setTileSize] = useState('md');
   const tileSizeOptions = [
@@ -56,7 +79,7 @@ const Categories = () => {
     { key: 'md', label: 'Medium', icon: 'ri-arrow-left-right-line' },
     { key: 'lg', label: 'Large', icon: 'ri-arrow-up-s-line' },
   ];
-  const [showTileSizeMenu, setShowTileSizeMenu] = useState(false);
+  // Removed showTileSizeMenu, now handled by openDropdown
 
 
   const categories = [
@@ -81,29 +104,7 @@ const Categories = () => {
   const [projectCounts, setProjectCounts] = useState({});
 
 
-  // Sync theme dropdown with context and system
-  useEffect(() => {
-    if (theme === 'system') {
-      const sys = getSystemTheme();
-      setIsDarkMode(sys === 'dark');
-    } else if (theme === 'dark') {
-      setIsDarkMode(true);
-    } else {
-      setIsDarkMode(false);
-    }
-    localStorage.setItem('themeMode', theme);
-  }, [theme, setIsDarkMode]);
 
-  // Listen for system theme changes if 'system' is selected
-  useEffect(() => {
-    if (theme !== 'system') return;
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = (e) => {
-      setIsDarkMode(e.matches);
-    };
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, [theme, setIsDarkMode]);
 
   useEffect(() => {
     axios.get('/api/projects/category-counts')
@@ -117,7 +118,10 @@ const Categories = () => {
 
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-r from-blue-800 to-gray-900"
+      className={`min-h-screen transition-colors duration-300 ${isDarkMode
+        ? 'bg-gradient-to-r from-blue-900 via-gray-900 to-blue-900'
+        : 'bg-gradient-to-r from-blue-100 via-white to-blue-100'}
+      `}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -155,7 +159,7 @@ const Categories = () => {
 
         <div className="w-full max-w-7xl p-6">
           <motion.h1
-            className="mb-8 text-4xl font-bold text-center text-white"
+            className={`mb-8 text-4xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-blue-900'}`}
             initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
@@ -171,28 +175,28 @@ const Categories = () => {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search categories..."
-              className="w-full md:w-80 px-4 py-2 rounded-lg border border-blue-200 bg-gray-900 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full md:w-80 px-4 py-2 rounded-lg border ${isDarkMode ? 'border-blue-200 bg-gray-900 text-white placeholder-gray-400' : 'border-blue-200 bg-white text-blue-900 placeholder-blue-400'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
             />
             <div className="flex flex-wrap gap-2 items-center justify-end">
               {/* View Dropdown */}
-              <div className="relative">
+              <motion.div className="relative z-[10000]" whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.97 }}>
                 <button
-                  className={`px-3 py-1 rounded-lg text-sm font-medium bg-gray-800 text-blue-200 flex items-center gap-2 transition select-none`}
-                  onClick={() => setShowViewMenu(v => !v)}
+                  className={`dropdown-menu-btn px-3 py-1 rounded-lg text-sm font-medium ${isDarkMode ? 'bg-gray-800 text-blue-200' : 'bg-white text-blue-900 border border-blue-200'} flex items-center gap-2 transition select-none`}
+                  onClick={() => setOpenDropdown(openDropdown === 'view' ? null : 'view')}
                   aria-haspopup="listbox"
-                  aria-expanded={showViewMenu}
+                  aria-expanded={openDropdown === 'view'}
                 >
                   <i className={`${viewOptions.find(opt => opt.key === view)?.icon || ''} mr-1`}></i>
                   {viewOptions.find(opt => opt.key === view)?.label || 'View'}
                   <i className={`ri-arrow-down-s-line ml-1`}></i>
                 </button>
-                {showViewMenu && (
-                  <div className="absolute right-0 mt-2 w-44 bg-gray-900 border border-blue-700 rounded-lg shadow-lg z-50">
+                {openDropdown === 'view' && (
+                  <div className={`dropdown-menu-list absolute right-0 mt-2 w-44 ${isDarkMode ? 'bg-gray-900 border-blue-700' : 'bg-white border-blue-200'} border rounded-lg shadow-lg z-[10010]' style={{zIndex:10010}}`}>
                     {viewOptions.map(opt => (
                       <button
                         key={opt.key}
-                        className={`w-full flex items-center gap-2 px-4 py-2 text-left text-sm rounded-lg transition-colors ${view === opt.key ? 'bg-blue-600 text-white' : 'text-blue-200 hover:bg-gray-800'} select-none`}
-                        onClick={() => { setView(opt.key); setShowViewMenu(false); }}
+                        className={`w-full flex items-center gap-2 px-4 py-2 text-left text-sm rounded-lg transition-colors ${view === opt.key ? (isDarkMode ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-900') : (isDarkMode ? 'text-blue-200 hover:bg-gray-800' : 'text-blue-900 hover:bg-blue-50')} select-none`}
+                        onClick={() => { setView(opt.key); setOpenDropdown(null); }}
                         aria-selected={view === opt.key}
                       >
                         <i className={`${opt.icon}`}></i> {opt.label}
@@ -200,26 +204,26 @@ const Categories = () => {
                     ))}
                   </div>
                 )}
-              </div>
+              </motion.div>
               {/* Sort Dropdown */}
-              <div className="relative">
+              <motion.div className="relative z-[10000]" whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.97 }}>
                 <button
-                  className={`px-3 py-1 rounded-lg text-sm font-medium bg-gray-800 text-blue-200 flex items-center gap-2 transition select-none`}
-                  onClick={() => setShowSortMenu(v => !v)}
+                  className={`dropdown-menu-btn px-3 py-1 rounded-lg text-sm font-medium ${isDarkMode ? 'bg-gray-800 text-blue-200' : 'bg-white text-blue-900 border border-blue-200'} flex items-center gap-2 transition select-none`}
+                  onClick={() => setOpenDropdown(openDropdown === 'sort' ? null : 'sort')}
                   aria-haspopup="listbox"
-                  aria-expanded={showSortMenu}
+                  aria-expanded={openDropdown === 'sort'}
                 >
                   <i className={`${sortOptions.find(opt => opt.key === sort)?.icon || ''} mr-1`}></i>
                   {sortOptions.find(opt => opt.key === sort)?.label || 'Sort'}
                   <i className={`ri-arrow-down-s-line ml-1`}></i>
                 </button>
-                {showSortMenu && (
-                  <div className="absolute right-0 mt-2 w-44 bg-gray-900 border border-blue-700 rounded-lg shadow-lg z-50">
+                {openDropdown === 'sort' && (
+                  <div className={`dropdown-menu-list absolute right-0 mt-2 w-44 ${isDarkMode ? 'bg-gray-900 border-blue-700' : 'bg-white border-blue-200'} border rounded-lg shadow-lg z-[10010]' style={{zIndex:10010}}`}>
                     {sortOptions.map(opt => (
                       <button
                         key={opt.key}
-                        className={`w-full flex items-center gap-2 px-4 py-2 text-left text-sm rounded-lg transition-colors ${sort === opt.key ? 'bg-blue-600 text-white' : 'text-blue-200 hover:bg-gray-800'} select-none`}
-                        onClick={() => { setSort(opt.key); setShowSortMenu(false); }}
+                        className={`w-full flex items-center gap-2 px-4 py-2 text-left text-sm rounded-lg transition-colors ${sort === opt.key ? (isDarkMode ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-900') : (isDarkMode ? 'text-blue-200 hover:bg-gray-800' : 'text-blue-900 hover:bg-blue-50')} select-none`}
+                        onClick={() => { setSort(opt.key); setOpenDropdown(null); }}
                         aria-selected={sort === opt.key}
                       >
                         <i className={`${opt.icon}`}></i> {opt.label}
@@ -227,29 +231,26 @@ const Categories = () => {
                     ))}
                   </div>
                 )}
-              </div>
-              {/* Theme Dropdown */}
-              <div className="relative">
+              </motion.div>
+              {/* Theme Dropdown (moved here) */}
+              <motion.div className="relative z-[10000]" whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.97 }}>
                 <button
-                  className={`px-3 py-1 rounded-lg text-sm font-medium bg-gray-800 text-blue-200 flex items-center gap-2 transition select-none`}
-                  onClick={() => setShowThemeMenu(v => !v)}
+                  className={`dropdown-menu-btn px-3 py-1 rounded-lg text-sm font-medium ${isDarkMode ? 'bg-gray-800 text-blue-200' : 'bg-white text-blue-900 border border-blue-200'} flex items-center gap-2 transition select-none`}
+                  onClick={() => setOpenDropdown(openDropdown === 'theme' ? null : 'theme')}
                   aria-haspopup="listbox"
-                  aria-expanded={showThemeMenu}
+                  aria-expanded={openDropdown === 'theme'}
                 >
                   <i className={`${themeOptions.find(opt => opt.key === theme)?.icon || ''} mr-1`}></i>
                   {themeOptions.find(opt => opt.key === theme)?.label || 'Theme'}
                   <i className={`ri-arrow-down-s-line ml-1`}></i>
                 </button>
-                {showThemeMenu && (
-                  <div className="absolute right-0 mt-2 w-44 bg-gray-900 border border-blue-700 rounded-lg shadow-lg z-50">
+                {openDropdown === 'theme' && (
+                  <div className={`dropdown-menu-list absolute right-0 mt-2 w-44 ${isDarkMode ? 'bg-gray-900 border-blue-700' : 'bg-white border-blue-200'} border rounded-lg shadow-lg z-[10010]' style={{zIndex:10010}}`}>
                     {themeOptions.map(opt => (
                       <button
                         key={opt.key}
-                        className={`w-full flex items-center gap-2 px-4 py-2 text-left text-sm rounded-lg transition-colors ${theme === opt.key ? 'bg-blue-600 text-white' : 'text-blue-200 hover:bg-gray-800'} select-none`}
-                        onClick={() => {
-                          setTheme(opt.key);
-                          setShowThemeMenu(false);
-                        }}
+                        className={`w-full flex items-center gap-2 px-4 py-2 text-left text-sm rounded-lg transition-colors ${theme === opt.key ? (isDarkMode ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-900') : (isDarkMode ? 'text-blue-200 hover:bg-gray-800' : 'text-blue-900 hover:bg-blue-50')} select-none`}
+                        onClick={() => { setTheme(opt.key); setOpenDropdown(null); }}
                         aria-selected={theme === opt.key}
                       >
                         <i className={`${opt.icon}`}></i> {opt.label}
@@ -257,26 +258,26 @@ const Categories = () => {
                     ))}
                   </div>
                 )}
-              </div>
+              </motion.div>
               {/* Tile Size Dropdown */}
-              <div className="relative">
+              <motion.div className="relative z-[10000]" whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.97 }}>
                 <button
-                  className={`px-3 py-1 rounded-lg text-sm font-medium bg-gray-800 text-blue-200 flex items-center gap-2 transition select-none`}
-                  onClick={() => setShowTileSizeMenu(v => !v)}
+                  className={`dropdown-menu-btn px-3 py-1 rounded-lg text-sm font-medium ${isDarkMode ? 'bg-gray-800 text-blue-200' : 'bg-white text-blue-900 border border-blue-200'} flex items-center gap-2 transition select-none`}
+                  onClick={() => setOpenDropdown(openDropdown === 'tileSize' ? null : 'tileSize')}
                   aria-haspopup="listbox"
-                  aria-expanded={showTileSizeMenu}
+                  aria-expanded={openDropdown === 'tileSize'}
                 >
                   <i className={`${tileSizeOptions.find(opt => opt.key === tileSize)?.icon || ''} mr-1`}></i>
                   {tileSizeOptions.find(opt => opt.key === tileSize)?.label || 'Tile Size'}
                   <i className={`ri-arrow-down-s-line ml-1`}></i>
                 </button>
-                {showTileSizeMenu && (
-                  <div className="absolute right-0 mt-2 w-44 bg-gray-900 border border-blue-700 rounded-lg shadow-lg z-50">
+                {openDropdown === 'tileSize' && (
+                  <div className={`dropdown-menu-list absolute right-0 mt-2 w-44 ${isDarkMode ? 'bg-gray-900 border-blue-700' : 'bg-white border-blue-200'} border rounded-lg shadow-lg z-[10010]' style={{zIndex:10010}}`}>
                     {tileSizeOptions.map(opt => (
                       <button
                         key={opt.key}
-                        className={`w-full flex items-center gap-2 px-4 py-2 text-left text-sm rounded-lg transition-colors ${tileSize === opt.key ? 'bg-blue-600 text-white' : 'text-blue-200 hover:bg-gray-800'} select-none`}
-                        onClick={() => { setTileSize(opt.key); setShowTileSizeMenu(false); }}
+                        className={`w-full flex items-center gap-2 px-4 py-2 text-left text-sm rounded-lg transition-colors ${tileSize === opt.key ? (isDarkMode ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-900') : (isDarkMode ? 'text-blue-200 hover:bg-gray-800' : 'text-blue-900 hover:bg-blue-50')} select-none`}
+                        onClick={() => { setTileSize(opt.key); setOpenDropdown(null); }}
                         aria-selected={tileSize === opt.key}
                       >
                         <i className={`${opt.icon}`}></i> {opt.label}
@@ -284,7 +285,7 @@ const Categories = () => {
                     ))}
                   </div>
                 )}
-              </div>
+              </motion.div>
             </div>
           </div>
           {/* Recently Accessed removed as per request */}
