@@ -1,8 +1,8 @@
 import { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
-import { motion, AnimatePresence } from 'framer-motion';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
 import UserLeaderboard from '../components/UserLeaderboard.jsx';
 import ProjectShowcase from '../components/ProjectShowcase.jsx';
@@ -166,7 +166,6 @@ const Home = () => {
       navigate('/login', { replace: true });
     }
   };
-
 
   // For animated background shapes
   const AnimatedBg = () => (
