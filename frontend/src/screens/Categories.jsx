@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import axios from '../config/axios.js';
 
@@ -54,7 +55,13 @@ const Categories = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-800 to-gray-900">
+    <motion.div
+      className="min-h-screen bg-gradient-to-r from-blue-800 to-gray-900"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.6 }}
+    >
       <main className="relative z-10 flex flex-col items-center min-h-screen">
         <button
           onClick={() => {
@@ -73,9 +80,16 @@ const Categories = () => {
         </button>
 
         <div className="w-full max-w-7xl p-6">
-          <h1 className="mb-8 text-4xl font-bold text-center text-white animate__animated animate__fadeInDown">
+          <motion.h1
+            className="mb-8 text-4xl font-bold text-center text-white"
+            initial={{ opacity: 0, y: -30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+          >
             Explore Categories
-          </h1>
+          </motion.h1>
+
+          {/* ...removed duplicate search bar and button design switch... */}
           {/* Search and view toggle */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <input
@@ -102,7 +116,11 @@ const Categories = () => {
           </div>
           {/* Recently Accessed */}
           {recent.length > 0 && (
-            <div className="mb-8">
+            <motion.div className="mb-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+            >
               <h2 className="text-lg font-semibold text-blue-200 mb-2">Recently Accessed</h2>
               <div className="flex flex-wrap gap-3">
                 {recent.map((catTitle, i) => {
@@ -110,76 +128,117 @@ const Categories = () => {
                   if (!cat) return null;
                   const count = projectCounts[cat.title] ?? 0;
                   return (
-                    <button
+                    <motion.button
                       key={cat.title}
                       onClick={() => handleCategoryClick(cat.title)}
                       className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 border border-blue-700 text-white hover:bg-blue-700 hover:text-white transition shadow-md"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.4, delay: i * 0.08 }}
+                      whileHover={{ scale: 1.08, boxShadow: '0 4px 24px 0 rgba(59,130,246,0.15)', backgroundColor: '#1e293b' }}
+                      whileTap={{ scale: 0.97 }}
                     >
                       <i className={`${cat.icon} text-xl`}></i>
                       <span>{cat.title}</span>
                       {count > 0 && <span className="ml-2 px-2 py-0.5 text-xs font-bold bg-blue-600 rounded-full">{count}</span>}
-                    </button>
+                    </motion.button>
                   );
                 })}
               </div>
-            </div>
+            </motion.div>
           )}
           {/* Category grid/list */}
           {view === 'grid' ? (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
-              {categories.filter(cat => cat.title.toLowerCase().includes(search.toLowerCase()) || cat.description.toLowerCase().includes(search.toLowerCase())).map((cat, index) => {
-                const count = projectCounts[cat.title] ?? 0;
-                return (
-                  <div
-                    key={index}
-                    onClick={() => handleCategoryClick(cat.title)}
-                    className="relative p-4 transition-all duration-300 transform bg-gray-800 border border-gray-700 rounded-lg shadow-md cursor-pointer hover:shadow-lg hover:-translate-y-1 hover:border-blue-600"
-                    style={{ minHeight: 160 }}
-                  >
-                    {count > 0 && (
-                      <span className="absolute top-2 right-2 px-2 py-1 text-xs font-bold text-white bg-blue-600 rounded-full">
-                        {count}
-                      </span>
-                    )}
-                    <div className="flex items-center justify-center w-12 h-12 mb-3 text-white bg-gray-700 rounded-lg">
-                      <i className={`${cat.icon} text-2xl`}></i>
-                    </div>
-                    <h2 className="mb-1 text-lg font-semibold text-white">{cat.title}</h2>
-                    <p className="text-xs text-gray-400">{cat.description}</p>
-                  </div>
-                );
-              })}
-            </div>
+            <motion.div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+              <AnimatePresence>
+                {categories.filter(cat => cat.title.toLowerCase().includes(search.toLowerCase()) || cat.description.toLowerCase().includes(search.toLowerCase())).map((cat, index) => {
+                  const count = projectCounts[cat.title] ?? 0;
+                  return (
+                    <motion.div
+                      key={index}
+                      onClick={() => handleCategoryClick(cat.title)}
+                      className="relative p-4 transition-all duration-300 transform bg-gray-800 border border-gray-700 rounded-xl shadow-md cursor-pointer group"
+                      style={{ minHeight: 160 }}
+                      initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 30, scale: 0.95 }}
+                      transition={{ duration: 0.4, delay: index * 0.06 }}
+                      whileHover={{
+                        scale: 1.06,
+                        boxShadow: '0 8px 32px 0 rgba(59,130,246,0.18)',
+                        backgroundColor: '#172554',
+                        borderColor: '#2563eb',
+                      }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      {count > 0 && (
+                        <span className="absolute top-2 right-2 px-2 py-1 text-xs font-bold text-white bg-blue-600 rounded-full">
+                          {count}
+                        </span>
+                      )}
+                      <motion.div
+                        className="flex items-center justify-center w-12 h-12 mb-3 text-white bg-gray-700 rounded-lg group-hover:bg-blue-700 transition-colors duration-300"
+                        initial={{ rotate: 0 }}
+                        whileHover={{ rotate: 12, scale: 1.12 }}
+                        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                      >
+                        <i className={`${cat.icon} text-2xl group-hover:text-blue-200 transition-colors duration-300`}></i>
+                      </motion.div>
+                      <h2 className="mb-1 text-lg font-semibold text-white group-hover:text-blue-300 transition-colors duration-300">{cat.title}</h2>
+                      <p className="text-xs text-gray-400 group-hover:text-blue-200 transition-colors duration-300">{cat.description}</p>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </motion.div>
           ) : (
-            <div className="flex flex-col gap-4">
-              {categories.filter(cat => cat.title.toLowerCase().includes(search.toLowerCase()) || cat.description.toLowerCase().includes(search.toLowerCase())).map((cat, index) => {
-                const count = projectCounts[cat.title] ?? 0;
-                return (
-                  <div
-                    key={index}
-                    onClick={() => handleCategoryClick(cat.title)}
-                    className="flex items-center gap-4 p-4 bg-gray-800 border border-gray-700 rounded-lg shadow-md cursor-pointer hover:shadow-lg hover:border-blue-600 transition-all"
-                  >
-                    <div className="flex items-center justify-center w-12 h-12 text-white bg-gray-700 rounded-lg">
-                      <i className={`${cat.icon} text-2xl`}></i>
-                    </div>
-                    <div className="flex-1">
-                      <h2 className="text-lg font-semibold text-white">{cat.title}</h2>
-                      <p className="text-xs text-gray-400">{cat.description}</p>
-                    </div>
-                    {count > 0 && (
-                      <span className="px-2 py-1 text-xs font-bold text-white bg-blue-600 rounded-full">
-                        {count}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            <motion.div className="flex flex-col gap-4">
+              <AnimatePresence>
+                {categories.filter(cat => cat.title.toLowerCase().includes(search.toLowerCase()) || cat.description.toLowerCase().includes(search.toLowerCase())).map((cat, index) => {
+                  const count = projectCounts[cat.title] ?? 0;
+                  return (
+                    <motion.div
+                      key={index}
+                      onClick={() => handleCategoryClick(cat.title)}
+                      className="flex items-center gap-4 p-4 bg-gray-800 border border-gray-700 rounded-xl shadow-md cursor-pointer group transition-all"
+                      initial={{ opacity: 0, x: -30 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -30 }}
+                      transition={{ duration: 0.4, delay: index * 0.06 }}
+                      whileHover={{
+                        scale: 1.06,
+                        boxShadow: '0 8px 32px 0 rgba(59,130,246,0.18)',
+                        backgroundColor: '#172554',
+                        borderColor: '#2563eb',
+                      }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <motion.div
+                        className="flex items-center justify-center w-12 h-12 text-white bg-gray-700 rounded-lg group-hover:bg-blue-700 transition-colors duration-300"
+                        initial={{ rotate: 0 }}
+                        whileHover={{ rotate: 12, scale: 1.12 }}
+                        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                      >
+                        <i className={`${cat.icon} text-2xl group-hover:text-blue-200 transition-colors duration-300`}></i>
+                      </motion.div>
+                      <div className="flex-1">
+                        <h2 className="text-lg font-semibold text-white group-hover:text-blue-300 transition-colors duration-300">{cat.title}</h2>
+                        <p className="text-xs text-gray-400 group-hover:text-blue-200 transition-colors duration-300">{cat.description}</p>
+                      </div>
+                      {count > 0 && (
+                        <span className="px-2 py-1 text-xs font-bold text-white bg-blue-600 rounded-full">
+                          {count}
+                        </span>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </motion.div>
           )}
         </div>
       </main>
-    </div>
+  </motion.div>
   );
 };
 
