@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/user.context';
 import axios from '../config/axios';
 import anime from 'animejs';
-import 'animate.css';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -221,7 +220,7 @@ const Login = () => {
                 </form>
 
                 <p className="mt-6 text-center text-gray-400">
-                    Don't have an account?{' '}
+                    Don&apos;t have an account?{' '}
                     <Link to="/register" className="text-blue-400 font-semibold hover:underline">
                         Sign up
                     </Link>

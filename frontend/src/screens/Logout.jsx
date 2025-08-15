@@ -2,7 +2,6 @@ import { useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/user.context';
 import axios from '../config/axios';
-import 'animate.css';
 
 const Logout = () => {
   const { setUser } = useContext(UserContext);

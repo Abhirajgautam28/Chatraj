@@ -2,7 +2,6 @@ import { useContext, useState, useEffect } from 'react';
 import { UserContext } from '../context/user.context';
 import axios from "../config/axios";
 import { useNavigate, useParams } from 'react-router-dom';
-import 'animate.css';
 
 const Dashboard = () => {
   useContext(UserContext);
