@@ -480,16 +480,16 @@ function greet(name) {
       <div className="fixed z-50 bottom-8 right-8">
         <div className="relative">
           <motion.button
-            whileTap={{ scale: 0.95 }}
+            whileTap={{ scale: 0.96 }}
             onClick={() => setShowFabMenu((v) => !v)}
             className="flex items-center justify-center w-12 h-12 text-2xl text-white bg-blue-600 rounded-full shadow-lg hover:bg-blue-700 focus:outline-none"
             aria-label="Quick Actions"
           >
-            <motion.span
-              style={{ display: 'inline-block', position: 'relative' }}
+            <motion.i
+              className="ri-rocket-2-line"
+              style={{ display: 'inline-block' }}
               animate={{
-                y: [0, -8, 0, 8, 0],
-                rotate: [0, 2, 0, -2, 0]
+                y: [0, -6, 0, 6, 0]
               }}
               transition={{
                 duration: 2.2,
@@ -498,45 +498,11 @@ function greet(name) {
                 repeatType: 'loop'
               }}
               whileHover={{
-                y: -18,
-                rotate: -18,
-                scale: 1.18,
-                transition: { type: 'spring', stiffness: 300, damping: 15 }
+                scale: 1.13,
+                rotate: -10,
+                transition: { type: 'spring', stiffness: 250, damping: 18 }
               }}
-            >
-              <i className="ri-rocket-2-line" />
-              {/* Rocket flame on hover */}
-              <motion.span
-                initial={{ opacity: 0, scale: 0.7 }}
-                whileHover={{
-                  opacity: 1,
-                  scale: [1, 1.2, 0.9, 1.1, 1],
-                  y: [0, 8, 0, 10, 0],
-                  filter: 'drop-shadow(0 0 8px #fbbf24)'
-                }}
-                transition={{
-                  duration: 0.6,
-                  repeat: Infinity,
-                  repeatType: 'loop',
-                  ease: 'easeInOut'
-                }}
-                style={{
-                  position: 'absolute',
-                  left: '50%',
-                  bottom: '-10px',
-                  transform: 'translateX(-50%)',
-                  width: '10px',
-                  height: '18px',
-                  zIndex: 1,
-                  pointerEvents: 'none'
-                }}
-              >
-                <svg width="10" height="18" viewBox="0 0 10 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <ellipse cx="5" cy="12" rx="4" ry="6" fill="#fbbf24" fillOpacity="0.8"/>
-                  <ellipse cx="5" cy="15" rx="2" ry="3" fill="#f59e42" fillOpacity="0.7"/>
-                </svg>
-              </motion.span>
-            </motion.span>
+            />
           </motion.button>
           <AnimatePresence>
             {showFabMenu && (
