@@ -149,6 +149,7 @@ const Blogs = () => {
                                         </div>
                                     </CardFooter>
                                 </Card>
+                                </div>
                             ))}
                         </div>
                     )}

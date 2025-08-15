@@ -2,7 +2,7 @@ import { useState, useContext, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/user.context';
 import axios from '../config/axios';
-import { animate, stagger } from 'animejs';
+import anime from 'animejs';
 
 const Register = () => {
     const [email, setEmail] = useState('');
@@ -22,7 +22,7 @@ const Register = () => {
 
     useEffect(() => {
         if (containerRef.current) {
-            animate({
+            anime({
                 targets: '.form-container',
                 opacity: [0, 1],
                 translateY: [50, 0],
@@ -30,7 +30,7 @@ const Register = () => {
                 easing: 'easeOutExpo'
             });
 
-            animate({
+            anime({
                 targets: '.background-shape',
                 scale: [0, 1],
                 rotate: '1turn',
@@ -38,7 +38,7 @@ const Register = () => {
                 easing: 'easeInOutSine',
                 loop: true,
                 direction: 'alternate',
-                delay: stagger(100)
+                delay: anime.stagger(100)
             });
         }
     }, []);
