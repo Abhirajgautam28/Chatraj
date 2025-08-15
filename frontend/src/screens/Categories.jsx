@@ -63,21 +63,34 @@ const Categories = () => {
       transition={{ duration: 0.6 }}
     >
       <main className="relative z-10 flex flex-col items-center min-h-screen">
-        <button
-          onClick={() => {
-            localStorage.removeItem('token');
-            navigate('/logout', { replace: true });
-          }}
-          className="fixed z-50 flex items-center justify-center px-4 py-2 text-white transition-all transform bg-blue-600 rounded-full shadow-lg cursor-pointer hover:bg-blue-700 top-4 right-4 hover:scale-110 animate__animated animate__bounceIn"
-        >
-          <i className="text-2xl ri-logout-box-r-line"></i>
-        </button>
-        <button
-          onClick={() => navigate('/welcome-chatraj')}
-          className="fixed flex items-center gap-2 px-4 py-2 text-white transition-all transform bg-blue-600 rounded-full shadow-lg cursor-pointer hover:bg-blue-700 top-4 right-24 hover:scale-110 animate__animated animate__bounceIn"
-        >
-          <i className="text-2xl ri-robot-2-line"></i>
-        </button>
+        {/* Floating action buttons for ChatRaj and Logout */}
+        <div className="fixed z-50 flex flex-col items-end gap-4 top-6 right-6">
+          {/* ChatRaj Button */}
+          <motion.button
+            onClick={() => navigate('/welcome-chatraj')}
+            className="relative flex items-center justify-center w-12 h-12 text-2xl text-white bg-blue-600 rounded-full shadow-xl hover:scale-110 hover:shadow-2xl focus:outline-none transition-all"
+            whileHover={{ scale: 1.12, rotate: -8 }}
+            whileTap={{ scale: 0.97 }}
+            aria-label="Welcome ChatRaj"
+          >
+            <i className="ri-robot-2-line"></i>
+            <span className="absolute left-1/2 -bottom-7 -translate-x-1/2 px-2 py-1 text-xs rounded bg-gray-900 text-white opacity-0 group-hover:opacity-100 transition pointer-events-none select-none shadow-lg">Welcome ChatRaj</span>
+          </motion.button>
+          {/* Logout Button */}
+          <motion.button
+            onClick={() => {
+              localStorage.removeItem('token');
+              navigate('/logout', { replace: true });
+            }}
+            className="relative flex items-center justify-center w-12 h-12 text-2xl text-white bg-blue-600 rounded-full shadow-xl hover:scale-110 hover:shadow-2xl focus:outline-none transition-all"
+            whileHover={{ scale: 1.12, rotate: 8 }}
+            whileTap={{ scale: 0.97 }}
+            aria-label="Logout"
+          >
+            <i className="ri-logout-box-r-line"></i>
+            <span className="absolute left-1/2 -bottom-7 -translate-x-1/2 px-2 py-1 text-xs rounded bg-gray-900 text-white opacity-0 group-hover:opacity-100 transition pointer-events-none select-none shadow-lg">Logout</span>
+          </motion.button>
+        </div>
 
         <div className="w-full max-w-7xl p-6">
           <motion.h1
