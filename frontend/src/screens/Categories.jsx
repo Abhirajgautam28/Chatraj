@@ -37,9 +37,10 @@ const Categories = () => {
     }
     return 'light';
   };
+  // themeMode: 'system', 'dark', 'light'
   const [theme, setTheme] = useState(() => {
-    // On mount, reflect context and system
-    if (localStorage.getItem('themeMode')) return localStorage.getItem('themeMode');
+    const saved = localStorage.getItem('themeMode');
+    if (saved === 'dark' || saved === 'light') return saved;
     return 'system';
   });
   const themeOptions = [
@@ -56,7 +57,7 @@ const Categories = () => {
     { key: 'lg', label: 'Large', icon: 'ri-arrow-up-s-line' },
   ];
   const [showTileSizeMenu, setShowTileSizeMenu] = useState(false);
-  const [recent, setRecent] = useState([]);
+
 
   const categories = [
     { title: 'DSA', description: 'Data Structures & Algorithms', icon: 'ri-bar-chart-fill' },
@@ -85,13 +86,10 @@ const Categories = () => {
     if (theme === 'system') {
       const sys = getSystemTheme();
       setIsDarkMode(sys === 'dark');
-      document.documentElement.classList.toggle('dark', sys === 'dark');
     } else if (theme === 'dark') {
       setIsDarkMode(true);
-      document.documentElement.classList.add('dark');
     } else {
       setIsDarkMode(false);
-      document.documentElement.classList.remove('dark');
     }
     localStorage.setItem('themeMode', theme);
   }, [theme, setIsDarkMode]);
@@ -102,7 +100,6 @@ const Categories = () => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const handler = (e) => {
       setIsDarkMode(e.matches);
-      document.documentElement.classList.toggle('dark', e.matches);
     };
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
@@ -115,20 +112,8 @@ const Categories = () => {
   }, []);
 
   const handleCategoryClick = (categoryTitle) => {
-    // Save to recent (max 5)
-    setRecent((prev) => {
-      const updated = [categoryTitle, ...prev.filter((c) => c !== categoryTitle)];
-      localStorage.setItem('recentCategories', JSON.stringify(updated.slice(0, 5)));
-      return updated.slice(0, 5);
-    });
     navigate(`/dashboard/${categoryTitle}`);
   };
-
-  // Load recent from localStorage on mount
-  useEffect(() => {
-    const stored = localStorage.getItem('recentCategories');
-    if (stored) setRecent(JSON.parse(stored));
-  }, []);
 
   return (
     <motion.div
@@ -313,16 +298,7 @@ const Categories = () => {
               cats = [...cats].sort((a, b) => b.title.localeCompare(a.title));
             } else if (sort === 'projects') {
               cats = [...cats].sort((a, b) => (projectCounts[b.title] ?? 0) - (projectCounts[a.title] ?? 0));
-            } else if (sort === 'recent') {
-              cats = [...cats].sort((a, b) => {
-                const aIdx = recent.indexOf(a.title);
-                const bIdx = recent.indexOf(b.title);
-                if (aIdx === -1 && bIdx === -1) return 0;
-                if (aIdx === -1) return 1;
-                if (bIdx === -1) return -1;
-                return aIdx - bIdx;
-              });
-            }
+            } // 'recent' does nothing
             return (
               view === 'grid' ? (
                 <motion.div className={`grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 ${tileSize === 'sm' ? 'gap-3' : tileSize === 'lg' ? 'gap-8' : ''}`}>
