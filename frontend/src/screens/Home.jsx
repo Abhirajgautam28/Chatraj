@@ -1,3 +1,20 @@
+
+import { useContext, useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { UserContext } from '../context/user.context';
+import { ThemeContext } from '../context/theme.context';
+import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
+import UserLeaderboard from '../components/UserLeaderboard.jsx';
+import ProjectShowcase from '../components/ProjectShowcase.jsx';
+import Blog from '../components/Blog.jsx';
+import ContactUs from '../components/ContactUs.jsx';
+import 'animate.css';
+
+// Newsletter API endpoint for subscription
+const NEWSLETTER_API_URL =
+  import.meta.env.VITE_NEWSLETTER_API_URL ||
+  'https://chatraj-backend.onrender.com/api/newsletter/subscribe';
+
 // 9 Key Features for a balanced grid
 const features = [
   {
@@ -113,25 +130,6 @@ const faqs = [
     a: "Yes, you can code and collaborate in multiple languages with AI-powered assistance."
   }
 ];
-import { useContext, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { UserContext } from '../context/user.context';
-import { ThemeContext } from '../context/theme.context';
-import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
-import UserLeaderboard from '../components/UserLeaderboard.jsx';
-import ProjectShowcase from '../components/ProjectShowcase.jsx';
-import Blog from '../components/Blog.jsx';
-import ContactUs from '../components/ContactUs.jsx';
-import 'animate.css';
-
-
-
-const NEWSLETTER_API_URL =
-  import.meta.env.VITE_NEWSLETTER_API_URL ||
-  'https://chatraj-backend.onrender.com/api/newsletter/subscribe';
-
-// ...existing code...
 
 
 
@@ -144,15 +142,12 @@ const Home = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showFabMenu, setShowFabMenu] = useState(false);
 
+
   useEffect(() => {
     if (user) {
       navigate('/categories', { replace: true });
     }
   }, [user, navigate]);
-  // Newsletter API endpoint for subscription
-  const NEWSLETTER_API_URL =
-    import.meta.env.VITE_NEWSLETTER_API_URL ||
-    'https://chatraj-backend.onrender.com/api/newsletter/subscribe';
 
   useEffect(() => {
     const handleScroll = () => {
