@@ -1,9 +1,8 @@
 
-import { useEffect, useState, useRef } from 'react';
+
+import { useEffect, useState } from 'react';
 import axios from '../config/axios';
 import { useParams } from 'react-router-dom';
-import anime from 'animejs';
-import * as THREE from 'three';
 import 'remixicon/fonts/remixicon.css';
 
 
@@ -11,11 +10,8 @@ const SingleBlogPage = () => {
     const [blog, setBlog] = useState(null);
     const [loading, setLoading] = useState(true);
     const [comment, setComment] = useState('');
-    const [progress] = useState(0);
     const { id } = useParams();
-    const contentRef = useRef(null);
-    const heroRef = useRef(null);
-    const threeRef = useRef(null);
+
 
     // Fetch blog data
     useEffect(() => {
@@ -32,93 +28,13 @@ const SingleBlogPage = () => {
         fetchBlog();
     }, [id]);
 
-    // Animate hero and content
-    useEffect(() => {
-        if (!loading && heroRef.current) {
-            anime({
-                targets: heroRef.current,
-                opacity: [0, 1],
-                translateY: [80, 0],
-                duration: 1200,
-                easing: 'easeOutExpo',
-            });
-        }
-        if (!loading && contentRef.current) {
-            anime({
-                targets: contentRef.current.querySelectorAll('.prose > *'),
-                opacity: [0, 1],
-                translateY: [60, 0],
-                delay: anime.stagger(120),
-                duration: 900,
-                easing: 'easeOutExpo',
-            });
-        }
-    }, [blog, loading]);
 
-    // Three.js animated background for hero
-    useEffect(() => {
-        if (!loading && threeRef.current) {
-            const localRef = threeRef.current;
-            while (localRef.firstChild) {
-                localRef.removeChild(localRef.firstChild);
-            }
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(75, localRef.offsetWidth / 400, 0.1, 1000);
-            camera.position.z = 4;
-            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-            renderer.setSize(localRef.offsetWidth, 400);
-            localRef.appendChild(renderer.domElement);
-            const spheres = [];
-            for (let i = 0; i < 8; i++) {
-                const geometry = new THREE.SphereGeometry(Math.random() * 0.3 + 0.15, 32, 32);
-                const material = new THREE.MeshStandardMaterial({
-                    color: new THREE.Color(`hsl(${Math.random() * 360}, 80%, 60%)`),
-                    roughness: 0.3,
-                    metalness: 0.7,
-                    transparent: true,
-                    opacity: 0.85,
-                });
-                const sphere = new THREE.Mesh(geometry, material);
-                sphere.position.set(Math.random() * 6 - 3, Math.random() * 2 - 1, Math.random() * 2 - 1);
-                scene.add(sphere);
-                spheres.push(sphere);
-            }
-            const light = new THREE.PointLight(0xffffff, 1.2, 100);
-            light.position.set(0, 2, 6);
-            scene.add(light);
-            let frameId;
-            const animate = () => {
-                spheres.forEach((sphere, i) => {
-                    sphere.position.y += Math.sin(Date.now() * 0.001 + i) * 0.002;
-                    sphere.position.x += Math.cos(Date.now() * 0.0012 + i) * 0.0015;
-                    sphere.rotation.x += 0.005;
-                    sphere.rotation.y += 0.007;
-                });
-                renderer.render(scene, camera);
-                frameId = requestAnimationFrame(animate);
-            };
-            animate();
-            return () => {
-                cancelAnimationFrame(frameId);
-                renderer.dispose();
-                while (localRef.firstChild) {
-                    localRef.removeChild(localRef.firstChild);
-                }
-            };
-        }
-    }, [loading, blog]);
 
 
     const handleLike = async () => {
         try {
             const response = await axios.post(`/api/blogs/like/${id}`);
             setBlog(response.data);
-            anime({
-                targets: '.like-btn',
-                scale: [1, 1.25, 1],
-                duration: 500,
-                easing: 'easeInOutQuad',
-            });
         } catch (error) {
             console.error('Error liking blog:', error);
         }
@@ -160,66 +76,57 @@ const SingleBlogPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white overflow-x-hidden">
-            {/* Animated progress bar */}
-            <div className="fixed top-0 left-0 w-full h-1 bg-gray-700 z-50">
-                <div className="h-full bg-gradient-to-r from-blue-400 to-teal-400 transition-all duration-300" style={{ width: `${progress}%` }}></div>
-            </div>
-            {/* Hero Section with Three.js Canvas */}
-            <section ref={heroRef} className="relative flex items-center justify-center h-[420px] md:h-[480px] bg-gradient-to-br from-blue-900 via-gray-900 to-blue-800 overflow-hidden">
-                <div ref={threeRef} className="absolute inset-0 w-full h-full z-0 pointer-events-none" />
-                <div className="relative z-10 flex flex-col items-center justify-center h-full text-center">
-                    <h1 className="text-5xl md:text-7xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-teal-400 drop-shadow-lg animate__animated animate__fadeInDown">{blog.title}</h1>
-                    <p className="text-lg md:text-2xl text-blue-200 font-medium mb-2 animate__animated animate__fadeInUp">
-                        By {blog.author.firstName} {blog.author.lastName}
-                    </p>
-                </div>
+        <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+            {/* Hero Section */}
+            <section className="w-full flex flex-col items-center justify-center py-12 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+                <h1 className="text-3xl md:text-4xl font-bold mb-2 text-center text-blue-700 dark:text-blue-300">{blog.title}</h1>
+                <p className="text-base md:text-lg text-gray-600 dark:text-gray-300 mb-2 text-center">By {blog.author.firstName} {blog.author.lastName}</p>
             </section>
             {/* Blog Content */}
-            <main className="container px-4 py-12 mx-auto" ref={contentRef}>
-                <div className="max-w-4xl mx-auto">
-                    <div className="prose prose-invert max-w-none text-lg leading-relaxed">
+            <main className="container px-4 py-8 mx-auto">
+                <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow p-6 md:p-10 mt-8">
+                    <div className="prose prose-blue dark:prose-invert max-w-none text-lg leading-relaxed">
                         {renderContent(blog.content)}
                     </div>
-                    <div className="flex flex-col md:flex-row items-center justify-between mt-16 border-t border-gray-700 pt-8 gap-6">
+                    <div className="flex flex-col md:flex-row items-center justify-between mt-10 border-t border-gray-200 dark:border-gray-700 pt-6 gap-6">
                         <button
                             onClick={handleLike}
-                            className="like-btn flex items-center gap-2 px-8 py-3 font-bold text-white bg-gradient-to-r from-pink-500 to-red-500 rounded-full shadow-lg hover:from-pink-600 hover:to-red-600 transition-all duration-300 text-xl"
+                            className="like-btn flex items-center gap-2 px-6 py-2 font-semibold text-white bg-blue-600 rounded-lg shadow hover:bg-blue-700 transition-all duration-200 text-base"
                         >
-                            <i className="ri-heart-fill text-2xl"></i> {blog.likes.length} <span className="hidden md:inline">Likes</span>
+                            <i className="ri-heart-fill text-xl"></i> {blog.likes.length} <span className="hidden md:inline">Likes</span>
                         </button>
                         <div className="flex gap-4">
-                            <a href={`https://twitter.com/intent/tweet?text=${blog.title}`} target="_blank" rel="noreferrer" className="text-3xl hover:text-blue-400 transition-colors duration-300"><i className="ri-twitter-fill"></i></a>
-                            <a href={`https://www.facebook.com/sharer/sharer.php?u=${window.location.href}`} target="_blank" rel="noreferrer" className="text-3xl hover:text-blue-600 transition-colors duration-300"><i className="ri-facebook-box-fill"></i></a>
-                            <a href={`https://www.linkedin.com/shareArticle?mini=true&url=${window.location.href}`} target="_blank" rel="noreferrer" className="text-3xl hover:text-blue-500 transition-colors duration-300"><i className="ri-linkedin-box-fill"></i></a>
+                            <a href={`https://twitter.com/intent/tweet?text=${blog.title}`} target="_blank" rel="noreferrer" className="text-2xl hover:text-blue-400 transition-colors duration-200"><i className="ri-twitter-fill"></i></a>
+                            <a href={`https://www.facebook.com/sharer/sharer.php?u=${window.location.href}`} target="_blank" rel="noreferrer" className="text-2xl hover:text-blue-600 transition-colors duration-200"><i className="ri-facebook-box-fill"></i></a>
+                            <a href={`https://www.linkedin.com/shareArticle?mini=true&url=${window.location.href}`} target="_blank" rel="noreferrer" className="text-2xl hover:text-blue-500 transition-colors duration-200"><i className="ri-linkedin-box-fill"></i></a>
                         </div>
                     </div>
                 </div>
             </main>
             {/* Comments Section */}
-            <section className="py-16 bg-gradient-to-br from-gray-800 via-gray-900 to-blue-900">
+            <section className="py-10 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
                 <div className="container px-4 mx-auto">
-                    <div className="max-w-4xl mx-auto">
-                        <h2 className="text-3xl font-bold mb-8 text-blue-200 animate__animated animate__fadeIn">Comments</h2>
-                        <form onSubmit={handleComment} className="mb-12 animate__animated animate__fadeInUp">
+                    <div className="max-w-3xl mx-auto">
+                        <h2 className="text-2xl font-bold mb-6 text-blue-700 dark:text-blue-300">Comments</h2>
+                        <form onSubmit={handleComment} className="mb-8">
                             <textarea
                                 value={comment}
                                 onChange={(e) => setComment(e.target.value)}
-                                className="w-full h-32 p-4 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full h-24 p-3 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="Join the discussion..."
                                 required
                             ></textarea>
-                            <button type="submit" className="px-8 py-3 mt-4 font-bold text-white bg-gradient-to-r from-blue-500 to-teal-500 rounded-full shadow-lg hover:from-blue-600 hover:to-teal-600 transition-all duration-300 transform hover:scale-105">Post Comment</button>
+                            <button type="submit" className="px-6 py-2 mt-3 font-semibold text-white bg-blue-600 rounded-lg shadow hover:bg-blue-700 transition-all duration-200">Post Comment</button>
                         </form>
-                        <div className="space-y-8 animate__animated animate__fadeInUp">
+                        <div className="space-y-6">
                             {blog.comments.map((comment) => (
                                 <div key={comment._id} className="flex gap-4 items-center">
-                                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center font-bold text-2xl text-white shadow-lg">
+                                    <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-lg text-white shadow">
                                         {comment.user.firstName[0]}
                                     </div>
                                     <div>
-                                        <p className="font-bold text-lg text-blue-100">{comment.user.firstName} {comment.user.lastName}</p>
-                                        <p className="text-gray-300 text-base">{comment.text}</p>
+                                        <p className="font-bold text-base text-blue-700 dark:text-blue-200">{comment.user.firstName} {comment.user.lastName}</p>
+                                        <p className="text-gray-700 dark:text-gray-300 text-sm">{comment.text}</p>
                                     </div>
                                 </div>
                             ))}
@@ -228,17 +135,15 @@ const SingleBlogPage = () => {
                 </div>
             </section>
             {/* Related Posts Section (placeholder) */}
-            <section className="py-16 bg-gradient-to-br from-blue-900 via-gray-900 to-gray-800">
+            <section className="py-10 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
                 <div className="container px-4 mx-auto">
-                    <div className="max-w-4xl mx-auto">
-                        <h2 className="text-3xl font-bold mb-8 text-blue-200 animate__animated animate__fadeIn">Related Posts</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate__animated animate__fadeInUp">
+                    <div className="max-w-3xl mx-auto">
+                        <h2 className="text-2xl font-bold mb-6 text-blue-700 dark:text-blue-300">Related Posts</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {[1, 2].map(i => (
-                                <div key={i} className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-                                    <div className="p-6">
-                                        <h3 className="text-xl font-bold mb-2 text-white">Related Post {i}</h3>
-                                        <p className="text-gray-400">This is a placeholder for a related blog post.</p>
-                                    </div>
+                                <div key={i} className="bg-gray-100 dark:bg-gray-700 rounded-lg shadow p-4">
+                                    <h3 className="text-lg font-bold mb-1 text-blue-700 dark:text-blue-200">Related Post {i}</h3>
+                                    <p className="text-gray-600 dark:text-gray-300 text-sm">This is a placeholder for a related blog post.</p>
                                 </div>
                             ))}
                         </div>
