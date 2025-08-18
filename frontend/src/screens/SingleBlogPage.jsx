@@ -35,6 +35,11 @@ Comment.propTypes = {
     }),
 };
 
+
+// --- Begin Merge: Add any unique logic from the previous file here (if any) ---
+// (No unique logic found in the previous file that is not already present in the provided code)
+// --- End Merge ---
+
 const SingleBlogPage = () => {
     const [blog, setBlog] = useState(null);
     const [loading, setLoading] = useState(true);
