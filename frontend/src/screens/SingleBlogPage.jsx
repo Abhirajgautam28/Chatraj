@@ -1,11 +1,43 @@
+export default SingleBlogPage;
+
 
 
 import { useEffect, useState, useRef } from 'react';
+import PropTypes from 'prop-types';
 import axios from '../config/axios';
 import { useParams } from 'react-router-dom';
 import 'remixicon/fonts/remixicon.css';
 import anime from 'animejs';
 import ThreeHero from '../components/ThreeHero';
+
+// --- Comment subcomponent for rendering a single comment ---
+function Comment({ comment }) {
+    if (!comment) return null;
+    const user = comment.user || {};
+    const firstName = user.firstName || '';
+    const lastName = user.lastName || '';
+    const avatar = firstName && typeof firstName === 'string' ? firstName[0] : '?';
+    return (
+        <div className="flex gap-4 items-center">
+            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-lg text-white shadow">
+                {avatar}
+            </div>
+            <div>
+                <p className="font-bold text-base text-blue-700 dark:text-blue-200">{firstName} {lastName}</p>
+                <p className="text-gray-700 dark:text-gray-300 text-sm">{comment.text || ''}</p>
+            </div>
+        </div>
+    );
+}
+Comment.propTypes = {
+    comment: PropTypes.shape({
+        user: PropTypes.shape({
+            firstName: PropTypes.string,
+            lastName: PropTypes.string,
+        }),
+        text: PropTypes.string,
+    }),
+};
 
 
 const SingleBlogPage = () => {
@@ -182,34 +214,4 @@ const SingleBlogPage = () => {
 };
 
 
-export default SingleBlogPage;
 
-// --- Comment subcomponent for rendering a single comment ---
-import PropTypes from 'prop-types';
-function Comment({ comment }) {
-    if (!comment) return null;
-    const user = comment.user || {};
-    const firstName = user.firstName || '';
-    const lastName = user.lastName || '';
-    const avatar = firstName && typeof firstName === 'string' ? firstName[0] : '?';
-    return (
-        <div className="flex gap-4 items-center">
-            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-lg text-white shadow">
-                {avatar}
-            </div>
-            <div>
-                <p className="font-bold text-base text-blue-700 dark:text-blue-200">{firstName} {lastName}</p>
-                <p className="text-gray-700 dark:text-gray-300 text-sm">{comment.text || ''}</p>
-            </div>
-        </div>
-    );
-}
-Comment.propTypes = {
-    comment: PropTypes.shape({
-        user: PropTypes.shape({
-            firstName: PropTypes.string,
-            lastName: PropTypes.string,
-        }),
-        text: PropTypes.string,
-    }),
-};
