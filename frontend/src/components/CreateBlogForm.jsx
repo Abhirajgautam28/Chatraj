@@ -187,16 +187,16 @@ const CreateBlogForm = () => {
 
     return (
         <DndProvider backend={HTML5Backend}>
-            <div className="min-h-screen bg-gradient-to-br from-blue-900 via-gray-900 to-blue-800 text-white overflow-x-hidden">
+            <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
                 <div className="container px-4 py-8 mx-auto">
-                    <div className="text-center mb-12 blog-form-hero">
-                        <h1 className="text-5xl md:text-6xl font-extrabold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-teal-400 animate__animated animate__fadeInDown">Create Your Masterpiece</h1>
-                        <p className="text-xl text-blue-200 animate__animated animate__fadeInUp">Share your journey, code, and creativity with the world.</p>
+                    <div className="text-center mb-10">
+                        <h1 className="text-3xl md:text-4xl font-bold mb-2 text-blue-700 dark:text-blue-300">Create a New Blog Post</h1>
+                        <p className="text-base md:text-lg text-gray-600 dark:text-gray-300">Share your journey, code, and creativity with the world.</p>
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 blog-form-section">
-                        <form onSubmit={handleSubmit} className="p-8 bg-gray-800 rounded-3xl shadow-2xl">
-                            <div className="mb-8">
-                                <label className="block mb-2 text-2xl font-bold text-blue-200" htmlFor="title">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <form onSubmit={handleSubmit} className="p-8 bg-white dark:bg-gray-800 rounded-xl shadow-md">
+                            <div className="mb-6">
+                                <label className="block mb-2 text-lg font-semibold text-blue-700 dark:text-blue-300" htmlFor="title">
                                     Blog Title
                                 </label>
                                 <input
@@ -204,13 +204,13 @@ const CreateBlogForm = () => {
                                     type="text"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
-                                    className="w-full px-4 py-3 text-xl text-white bg-gray-700 border-2 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                                    className="w-full px-4 py-2 text-base text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
                                     placeholder="Your Awesome Title"
                                     required
                                 />
                             </div>
 
-                            <div className="mb-8">
+                            <div className="mb-6">
                                 {blocks.map((block, index) => (
                                     <Block
                                         key={block.id}
@@ -225,21 +225,21 @@ const CreateBlogForm = () => {
                                 ))}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4 mb-8">
-                                <button type="button" onClick={() => addBlock('text')} className="px-6 py-3 font-bold text-white bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-300 transform hover:scale-105"><i className="ri-text mr-2"></i> Add Text</button>
-                                <button type="button" onClick={() => addBlock('image')} className="px-6 py-3 font-bold text-white bg-gradient-to-r from-purple-500 to-indigo-500 rounded-lg hover:from-purple-600 hover:to-indigo-600 transition-all duration-300 transform hover:scale-105"><i className="ri-image-add-line mr-2"></i> Add Image</button>
-                                <button type="button" onClick={() => addBlock('video')} className="px-6 py-3 font-bold text-white bg-gradient-to-r from-red-500 to-orange-500 rounded-lg hover:from-red-600 hover:to-orange-600 transition-all duration-300 transform hover:scale-105"><i className="ri-film-line mr-2"></i> Add Video</button>
-                                <button type="button" onClick={() => addBlock('code')} className="px-6 py-3 font-bold text-white bg-gradient-to-r from-gray-500 to-gray-600 rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all duration-300 transform hover:scale-105"><i className="ri-code-s-slash-line mr-2"></i> Add Code</button>
-                                <button type="button" onClick={() => addBlock('quote')} className="px-6 py-3 font-bold text-white bg-gradient-to-r from-yellow-500 to-amber-500 rounded-lg hover:from-yellow-600 hover:to-amber-600 transition-all duration-300 transform hover:scale-105"><i className="ri-double-quotes-l mr-2"></i> Add Quote</button>
+                            <div className="grid grid-cols-2 gap-3 mb-6">
+                                <button type="button" onClick={() => addBlock('text')} className="px-4 py-2 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all duration-200"><i className="ri-text mr-2"></i> Add Text</button>
+                                <button type="button" onClick={() => addBlock('image')} className="px-4 py-2 font-semibold text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-all duration-200"><i className="ri-image-add-line mr-2"></i> Add Image</button>
+                                <button type="button" onClick={() => addBlock('video')} className="px-4 py-2 font-semibold text-white bg-red-500 rounded-lg hover:bg-red-600 transition-all duration-200"><i className="ri-film-line mr-2"></i> Add Video</button>
+                                <button type="button" onClick={() => addBlock('code')} className="px-4 py-2 font-semibold text-white bg-gray-700 rounded-lg hover:bg-gray-800 transition-all duration-200"><i className="ri-code-s-slash-line mr-2"></i> Add Code</button>
+                                <button type="button" onClick={() => addBlock('quote')} className="px-4 py-2 font-semibold text-white bg-yellow-500 rounded-lg hover:bg-yellow-600 transition-all duration-200"><i className="ri-double-quotes-l mr-2"></i> Add Quote</button>
                             </div>
 
                             <div className="flex items-center justify-end">
-                                <button type="submit" className="px-8 py-4 font-bold text-white bg-gradient-to-r from-blue-500 to-teal-500 rounded-lg hover:from-blue-600 hover:to-teal-600 transition-all duration-300 transform hover:scale-105">Publish Post</button>
+                                <button type="submit" className="px-6 py-2 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all duration-200">Publish Post</button>
                             </div>
                         </form>
-                        <div className="p-8 bg-gray-800 rounded-3xl shadow-2xl">
-                            <h2 className="text-3xl font-bold mb-4 text-blue-200">Live Preview</h2>
-                            <div className="prose prose-invert max-w-none">
+                        <div className="p-8 bg-white dark:bg-gray-800 rounded-xl shadow-md">
+                            <h2 className="text-2xl font-bold mb-4 text-blue-700 dark:text-blue-300">Live Preview</h2>
+                            <div className="prose prose-blue dark:prose-invert max-w-none">
                                 <h1>{title}</h1>
                                 {blocks.map(block => {
                                     if (block.type === 'text') return <p key={block.id}>{block.content}</p>;
