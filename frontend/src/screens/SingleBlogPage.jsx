@@ -1,16 +1,56 @@
 
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import axios from '../config/axios';
 import { useParams } from 'react-router-dom';
 import 'remixicon/fonts/remixicon.css';
+import * as THREE from 'three';
 
 
 const SingleBlogPage = () => {
     const [blog, setBlog] = useState(null);
     const [loading, setLoading] = useState(true);
     const [comment, setComment] = useState('');
+
     const { id } = useParams();
+    const threeRef = useRef(null);
+    // 3D animated asset in hero
+    useEffect(() => {
+        if (!threeRef.current) return;
+        const localRef = threeRef.current;
+        while (localRef.firstChild) localRef.removeChild(localRef.firstChild);
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
+        camera.position.z = 3.5;
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(120, 120);
+        localRef.appendChild(renderer.domElement);
+        // Lighting
+        const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambient);
+        const point = new THREE.PointLight(0x2196f3, 1, 100);
+        point.position.set(2, 2, 5);
+        scene.add(point);
+        // 3D Asset: animated icosahedron
+        const geometry = new THREE.IcosahedronGeometry(1, 0);
+        const material = new THREE.MeshStandardMaterial({ color: 0x2196f3, metalness: 0.6, roughness: 0.3, flatShading: true });
+        const mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+        // Animation
+        let frameId;
+        const animate = () => {
+            mesh.rotation.x += 0.012;
+            mesh.rotation.y += 0.018;
+            renderer.render(scene, camera);
+            frameId = requestAnimationFrame(animate);
+        };
+        animate();
+        return () => {
+            cancelAnimationFrame(frameId);
+            renderer.dispose();
+            while (localRef.firstChild) localRef.removeChild(localRef.firstChild);
+        };
+    }, []);
 
 
     // Fetch blog data
@@ -77,8 +117,9 @@ const SingleBlogPage = () => {
 
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
-            {/* Hero Section */}
-            <section className="w-full flex flex-col items-center justify-center py-12 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+            {/* Hero Section with 3D asset */}
+            <section className="w-full flex flex-col items-center justify-center py-12 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 relative">
+                <div className="absolute left-8 top-8 md:left-16 md:top-10" ref={threeRef} style={{ width: 120, height: 120, zIndex: 1 }} />
                 <h1 className="text-3xl md:text-4xl font-bold mb-2 text-center text-blue-700 dark:text-blue-300">{blog.title}</h1>
                 <p className="text-base md:text-lg text-gray-600 dark:text-gray-300 mb-2 text-center">By {blog.author.firstName} {blog.author.lastName}</p>
             </section>
