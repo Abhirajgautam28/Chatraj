@@ -3,13 +3,8 @@ import * as THREE from 'three';
 
 import PropTypes from 'prop-types';
 
-ThreeHero.propTypes = {
-  width: PropTypes.number,
-  height: PropTypes.number,
-  className: PropTypes.string,
-};
 
-export default function ThreeHero({ width = 180, height = 180, className = '' }) {
+function ThreeHero({ width = 180, height = 180, className = '' }) {
   const threeRef = useRef(null);
   useEffect(() => {
     if (!threeRef.current) return;
@@ -19,56 +14,58 @@ export default function ThreeHero({ width = 180, height = 180, className = '' })
     const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
     camera.position.z = 5;
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setClearColor(0x000000, 0); // transparent
     renderer.setSize(width, height);
     localRef.appendChild(renderer.domElement);
     // Lighting
-    const ambient = new THREE.AmbientLight(0xffffff, 0.8);
+    const ambient = new THREE.AmbientLight(0xffffff, 0.9);
     scene.add(ambient);
-    const point = new THREE.PointLight(0xff00ff, 1.5, 100);
-    point.position.set(2, 2, 5);
-    scene.add(point);
-    // New 3D: Spinning torus knot with color animation
-    const geometry = new THREE.TorusKnotGeometry(1, 0.35, 120, 16);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.25);
+    dirLight.position.set(0, 2, 4);
+    scene.add(dirLight);
+    // Minimal glass ring (torus)
+    const geometry = new THREE.TorusGeometry(1.1, 0.28, 48, 120);
     const material = new THREE.MeshPhysicalMaterial({
-      color: 0x8e44ad,
-      metalness: 0.8,
-      roughness: 0.2,
-      transmission: 0.6,
-      thickness: 0.7,
+      color: 0xffffff,
+      metalness: 0.15,
+      roughness: 0.08,
+      transmission: 0.92,
+      thickness: 1.2,
       transparent: true,
-      opacity: 0.9,
+      opacity: 0.7,
       clearcoat: 1,
-      clearcoatRoughness: 0.05,
-      emissive: 0x8e44ad,
-      emissiveIntensity: 0.8,
+      clearcoatRoughness: 0.04,
+      ior: 1.45,
+      reflectivity: 0.18,
+      sheen: 0.2,
     });
     const mesh = new THREE.Mesh(geometry, material);
+    mesh.castShadow = false;
+    mesh.receiveShadow = false;
     scene.add(mesh);
-    // Glow effect (fake bloom)
-    const glowMaterial = new THREE.MeshBasicMaterial({
-      color: 0xff00ff,
-      transparent: true,
-      opacity: 0.18,
-      blending: THREE.AdditiveBlending,
-      side: THREE.BackSide,
-    });
-    const glowMesh = new THREE.Mesh(new THREE.TorusKnotGeometry(1.13, 0.45, 120, 16), glowMaterial);
-    scene.add(glowMesh);
-    // Animation: rotate, color shift
+    // Soft shadow (fake, blurred ellipse)
+    const shadowCanvas = document.createElement('canvas');
+    shadowCanvas.width = 128;
+    shadowCanvas.height = 32;
+    const ctx = shadowCanvas.getContext('2d');
+    ctx.filter = 'blur(6px)';
+    ctx.globalAlpha = 0.18;
+    ctx.beginPath();
+    ctx.ellipse(64, 16, 48, 10, 0, 0, 2 * Math.PI);
+    ctx.fillStyle = '#222';
+    ctx.fill();
+    const shadowTexture = new THREE.CanvasTexture(shadowCanvas);
+    const shadowMaterial = new THREE.MeshBasicMaterial({ map: shadowTexture, transparent: true });
+    const shadowGeo = new THREE.PlaneGeometry(2.2, 0.5);
+    const shadowMesh = new THREE.Mesh(shadowGeo, shadowMaterial);
+    shadowMesh.position.y = -1.25;
+    shadowMesh.rotation.x = -Math.PI / 2;
+    scene.add(shadowMesh);
+    // Animation: slow, elegant rotation
     let frameId;
-    let t = 0;
     const animate = () => {
-      t += 0.012;
-      mesh.rotation.x += 0.013;
-      mesh.rotation.y += 0.017;
-      glowMesh.rotation.x = mesh.rotation.x * 1.1;
-      glowMesh.rotation.y = mesh.rotation.y * 1.1;
-      // Color shift
-      const hue = (Math.sin(t) * 0.5 + 0.5) * 0.7 + 0.2;
-      const color = new THREE.Color().setHSL(hue, 0.85, 0.55);
-      material.color = color;
-      material.emissive = color;
-      glowMaterial.color = color;
+      mesh.rotation.x += 0.007;
+      mesh.rotation.y += 0.012;
       renderer.render(scene, camera);
       frameId = requestAnimationFrame(animate);
     };
@@ -83,3 +80,11 @@ export default function ThreeHero({ width = 180, height = 180, className = '' })
     <div ref={threeRef} className={className} style={{ width, height, zIndex: 1 }} />
   );
 }
+
+ThreeHero.propTypes = {
+  width: PropTypes.number,
+  height: PropTypes.number,
+  className: PropTypes.string,
+};
+
+export default ThreeHero;
