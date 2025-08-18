@@ -204,4 +204,13 @@ function ThreeHero({
   );
 }
 
-ThreeHero.propTypes
+ThreeHero.propTypes = {
+  width: PropTypes.number,
+  height: PropTypes.number,
+  className: PropTypes.string,
+  geometryConfig: PropTypes.object,
+  materialConfig: PropTypes.object,
+  lightingConfig: PropTypes.object,
+};
+
+export default ThreeHero;
