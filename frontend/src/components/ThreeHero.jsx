@@ -3,12 +3,13 @@ import * as THREE from 'three';
 
 import PropTypes from 'prop-types';
 
-export default function ThreeHero({ width = 180, height = 180, className = '' }) {
 ThreeHero.propTypes = {
   width: PropTypes.number,
   height: PropTypes.number,
   className: PropTypes.string,
 };
+
+export default function ThreeHero({ width = 180, height = 180, className = '' }) {
   const threeRef = useRef(null);
   useEffect(() => {
     if (!threeRef.current) return;
@@ -16,50 +17,50 @@ ThreeHero.propTypes = {
     while (localRef.firstChild) localRef.removeChild(localRef.firstChild);
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
-    camera.position.z = 4;
+    camera.position.z = 5;
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(width, height);
     localRef.appendChild(renderer.domElement);
     // Lighting
-    const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+    const ambient = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambient);
-    const point = new THREE.PointLight(0xffffff, 1.2, 100);
+    const point = new THREE.PointLight(0xff00ff, 1.5, 100);
     point.position.set(2, 2, 5);
     scene.add(point);
-    // Glowing, color-shifting icosahedron
-    const geometry = new THREE.IcosahedronGeometry(1.2, 1);
+    // New 3D: Spinning torus knot with color animation
+    const geometry = new THREE.TorusKnotGeometry(1, 0.35, 120, 16);
     const material = new THREE.MeshPhysicalMaterial({
-      color: 0x00eaff,
-      metalness: 0.7,
-      roughness: 0.15,
-      transmission: 0.7,
+      color: 0x8e44ad,
+      metalness: 0.8,
+      roughness: 0.2,
+      transmission: 0.6,
       thickness: 0.7,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.9,
       clearcoat: 1,
       clearcoatRoughness: 0.05,
-      emissive: 0x00eaff,
-      emissiveIntensity: 0.7,
+      emissive: 0x8e44ad,
+      emissiveIntensity: 0.8,
     });
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
     // Glow effect (fake bloom)
     const glowMaterial = new THREE.MeshBasicMaterial({
-      color: 0x00eaff,
+      color: 0xff00ff,
       transparent: true,
-      opacity: 0.25,
+      opacity: 0.18,
       blending: THREE.AdditiveBlending,
       side: THREE.BackSide,
     });
-    const glowMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(1.45, 1), glowMaterial);
+    const glowMesh = new THREE.Mesh(new THREE.TorusKnotGeometry(1.13, 0.45, 120, 16), glowMaterial);
     scene.add(glowMesh);
-    // Animation: rotate, pulse, color shift
+    // Animation: rotate, color shift
     let frameId;
     let t = 0;
     const animate = () => {
-      t += 0.015;
-      mesh.rotation.x += 0.012;
-      mesh.rotation.y += 0.018;
+      t += 0.012;
+      mesh.rotation.x += 0.013;
+      mesh.rotation.y += 0.017;
       glowMesh.rotation.x = mesh.rotation.x * 1.1;
       glowMesh.rotation.y = mesh.rotation.y * 1.1;
       // Color shift
@@ -68,10 +69,6 @@ ThreeHero.propTypes = {
       material.color = color;
       material.emissive = color;
       glowMaterial.color = color;
-      // Pulse
-      const scale = 1 + Math.sin(t * 2) * 0.08;
-      mesh.scale.set(scale, scale, scale);
-      glowMesh.scale.set(scale * 1.1, scale * 1.1, scale * 1.1);
       renderer.render(scene, camera);
       frameId = requestAnimationFrame(animate);
     };
