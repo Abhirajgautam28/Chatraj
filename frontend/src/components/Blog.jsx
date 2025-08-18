@@ -49,22 +49,18 @@ const Blog = () => {
             <div className="max-w-6xl mx-auto">
                 <h2 className="mb-12 text-4xl font-extrabold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400 dark:from-blue-300 dark:to-teal-200">From Our Blog</h2>
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-                    {Array.isArray(blogs) && blogs.map((blog, index) => (
+                    {Array.isArray(blogs) && blogs.map((blog) => (
                         <div
-                            key={index}
-                            className={`blog-preview-card overflow-hidden rounded-3xl shadow-2xl group transition-transform duration-300 cursor-pointer hover:shadow-blue-500/30 ${
-                                document.body.classList.contains('dark')
-                                    ? 'bg-gradient-to-br from-gray-800 via-gray-900 to-blue-900'
-                                    : 'bg-white border border-blue-100'
-                            }`}
+                            key={blog._id}
+                            className="blog-preview-card overflow-hidden rounded-3xl shadow-2xl group transition-transform duration-300 cursor-pointer hover:shadow-blue-500/30 bg-white border border-blue-100 dark:bg-gradient-to-br dark:from-gray-800 dark:via-gray-900 dark:to-blue-900 dark:border-0"
                             onClick={() => handleBlogClick(blog._id)}
                             onMouseEnter={e => anime({ targets: e.currentTarget, scale: 1.04, boxShadow: '0 8px 32px 0 rgba(59,130,246,0.18)', duration: 350, easing: 'easeOutExpo' })}
                             onMouseLeave={e => anime({ targets: e.currentTarget, scale: 1, boxShadow: '0 4px 16px 0 rgba(59,130,246,0.13)', duration: 350, easing: 'easeOutExpo' })}
                         >
                             <div className="p-8 flex flex-col gap-4">
-                                <p className={`mb-2 text-sm ${document.body.classList.contains('dark') ? 'text-blue-200' : 'text-blue-700'}`}>{new Date(blog.createdAt).toLocaleDateString()}</p>
-                                <h3 className={`mb-2 text-2xl font-extrabold group-hover:text-blue-400 transition-colors duration-300 ${document.body.classList.contains('dark') ? 'text-white' : 'text-blue-900'}`}>{blog.title}</h3>
-                                <p className={`text-lg ${document.body.classList.contains('dark') ? 'text-gray-300' : 'text-gray-700'}`}>{blog.content.substring(0, 100)}...</p>
+                                <p className="mb-2 text-sm text-blue-700 dark:text-blue-200">{new Date(blog.createdAt).toLocaleDateString()}</p>
+                                <h3 className="mb-2 text-2xl font-extrabold text-blue-900 dark:text-white group-hover:text-blue-400 transition-colors duration-300">{blog.title}</h3>
+                                <p className="text-lg text-gray-700 dark:text-gray-300">{blog.content.substring(0, 100)}...</p>
                             </div>
                         </div>
                     ))}
