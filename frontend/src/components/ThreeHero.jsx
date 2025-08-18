@@ -1,6 +1,28 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import * as THREE from 'three';
 import PropTypes from 'prop-types';
+
+// Geometry type map and validation (for future extensibility)
+const GEOMETRY_TYPES = {
+  box: THREE.BoxGeometry,
+  sphere: THREE.SphereGeometry,
+  torus: THREE.TorusGeometry,
+  cylinder: THREE.CylinderGeometry,
+  cone: THREE.ConeGeometry,
+  plane: THREE.PlaneGeometry,
+};
+
+function validateGeometryConfig(config) {
+  if (!config || typeof config.type !== 'string' || !(config.type in GEOMETRY_TYPES)) {
+    console.error(`Invalid geometryConfig.type: ${config?.type}`);
+    return false;
+  }
+  if (!Array.isArray(config.args)) {
+    console.error('geometryConfig.args must be an array');
+    return false;
+  }
+  return true;
+}
 
 function ThreeHero({
   width = 180,
@@ -27,6 +49,8 @@ function ThreeHero({
   },
 }) {
   const threeRef = useRef(null);
+  const memoGeometryConfig = useMemo(() => geometryConfig, [geometryConfig]);
+
   useEffect(() => {
     if (!threeRef.current) return;
     const localRef = threeRef.current;
@@ -64,7 +88,6 @@ function ThreeHero({
     });
     const nucleus = new THREE.Mesh(new THREE.SphereGeometry(0.55, 48, 48), nucleusMaterial);
     scene.add(nucleus);
-
     // Orbiting rings
     const ringMaterial = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
@@ -91,7 +114,6 @@ function ThreeHero({
       scene.add(ring);
       rings.push(ring);
     }
-
     // Electrons (small spheres on each ring)
     const electronMaterial = new THREE.MeshPhysicalMaterial({
       color: 0xffeb3b,
@@ -175,19 +197,11 @@ function ThreeHero({
       shadowTexture.dispose && shadowTexture.dispose();
       while (localRef.firstChild) localRef.removeChild(localRef.firstChild);
     };
-  }, [width, height, geometryConfig, materialConfig, lightingConfig]);
+  }, [width, height, className, memoGeometryConfig, materialConfig, lightingConfig]);
+
   return (
     <div ref={threeRef} className={className} style={{ width, height, zIndex: 1 }} />
   );
 }
 
-ThreeHero.propTypes = {
-  width: PropTypes.number,
-  height: PropTypes.number,
-  className: PropTypes.string,
-  geometryConfig: PropTypes.object,
-  materialConfig: PropTypes.object,
-  lightingConfig: PropTypes.object,
-};
-
-export default ThreeHero;
+ThreeHero.propTypes
