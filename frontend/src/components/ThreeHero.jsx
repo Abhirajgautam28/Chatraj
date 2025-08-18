@@ -53,6 +53,10 @@ function ThreeHero({
 
   useEffect(() => {
     if (!threeRef.current) return;
+    // Validate geometry config before using
+    if (!validateGeometryConfig(memoGeometryConfig)) {
+      return;
+    }
     const localRef = threeRef.current;
     while (localRef.firstChild) localRef.removeChild(localRef.firstChild);
     const scene = new THREE.Scene();

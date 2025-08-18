@@ -45,13 +45,15 @@ const SingleBlogPage = () => {
     const contentRef = useRef(null);
 
     useEffect(() => {
-        anime({
-            targets: heroRef.current,
-            opacity: [0, 1],
-            translateY: [40, 0],
-            duration: 900,
-            easing: 'easeOutExpo',
-        });
+        if (heroRef.current) {
+            anime({
+                targets: heroRef.current,
+                opacity: [0, 1],
+                translateY: [40, 0],
+                duration: 900,
+                easing: 'easeOutExpo',
+            });
+        }
         if (contentRef.current) {
             anime({
                 targets: contentRef.current.querySelectorAll('.prose > *'),
@@ -65,17 +67,29 @@ const SingleBlogPage = () => {
     }, []);
 
     useEffect(() => {
+        const controller = new AbortController();
+        let isMounted = true;
         const fetchBlog = async () => {
             try {
-                const response = await axios.get(`/api/blogs/${id}`);
-                setBlog(response.data);
-                setLoading(false);
+                const response = await axios.get(`/api/blogs/${id}`, { signal: controller.signal });
+                if (isMounted) {
+                    setBlog(response.data);
+                    setLoading(false);
+                }
             } catch (error) {
-                console.error('Error fetching blog:', error);
-                setLoading(false);
+                if (isMounted) {
+                    if (error.name !== 'CanceledError' && error.name !== 'AbortError') {
+                        console.error('Error fetching blog:', error);
+                    }
+                    setLoading(false);
+                }
             }
         };
         fetchBlog();
+        return () => {
+            isMounted = false;
+            controller.abort();
+        };
     }, [id]);
 
     const handleLike = async () => {

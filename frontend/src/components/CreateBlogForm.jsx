@@ -248,7 +248,18 @@ const CreateBlogForm = () => {
                                 {blocks.map(block => {
                                     if (block.type === 'text') return <p key={block.id} className="text-lg leading-relaxed mb-3">{block.content}</p>;
                                     if (block.type === 'image') return <img key={block.id} src={block.content} alt="preview" className="rounded-xl shadow mb-3" />;
-                                    if (block.type === 'video') return <iframe key={block.id} src={block.content.replace('watch?v=', 'embed/')} title="preview" className="w-full aspect-video rounded-xl shadow mb-3" allowFullScreen />;
+                                    if (block.type === 'video') {
+                                        // Robust YouTube embed logic
+                                        const getYouTubeEmbedUrl = (url) => {
+                                            if (!url) return '';
+                                            const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/))([\w-]{11})/);
+                                            if (ytMatch && ytMatch[1]) {
+                                                return `https://www.youtube.com/embed/${ytMatch[1]}`;
+                                            }
+                                            return url;
+                                        };
+                                        return <iframe key={block.id} src={getYouTubeEmbedUrl(block.content)} title="preview" className="w-full aspect-video rounded-xl shadow mb-3" allowFullScreen />;
+                                    }
                                     if (block.type === 'code') return <pre key={block.id} className="bg-gray-900/90 text-white rounded-xl p-4 mb-3 overflow-x-auto"><code className="language-javascript">{block.content}</code></pre>;
                                     if (block.type === 'quote') return <blockquote key={block.id} className="border-l-4 border-blue-400 pl-4 italic text-lg text-blue-700 dark:text-blue-300 mb-3">{block.content}</blockquote>;
                                     return null;
