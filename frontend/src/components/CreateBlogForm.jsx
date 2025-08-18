@@ -256,9 +256,14 @@ const CreateBlogForm = () => {
                                             if (ytMatch && ytMatch[1]) {
                                                 return `https://www.youtube.com/embed/${ytMatch[1]}`;
                                             }
-                                            return url;
+                                            // Not a valid YouTube URL, return empty string to avoid broken iframe
+                                            return '';
                                         };
-                                        return <iframe key={block.id} src={getYouTubeEmbedUrl(block.content)} title="preview" className="w-full aspect-video rounded-xl shadow mb-3" allowFullScreen />;
+                                        const embedUrl = getYouTubeEmbedUrl(block.content);
+                                        if (!embedUrl) {
+                                            return <div key={block.id} className="w-full aspect-video rounded-xl shadow mb-3 flex items-center justify-center bg-gray-200 dark:bg-gray-800 text-gray-500 text-center">Invalid or unsupported video URL</div>;
+                                        }
+                                        return <iframe key={block.id} src={embedUrl} title="preview" className="w-full aspect-video rounded-xl shadow mb-3" allowFullScreen />;
                                     }
                                     if (block.type === 'code') return <pre key={block.id} className="bg-gray-900/90 text-white rounded-xl p-4 mb-3 overflow-x-auto"><code className="language-javascript">{block.content}</code></pre>;
                                     if (block.type === 'quote') return <blockquote key={block.id} className="border-l-4 border-blue-400 pl-4 italic text-lg text-blue-700 dark:text-blue-300 mb-3">{block.content}</blockquote>;
