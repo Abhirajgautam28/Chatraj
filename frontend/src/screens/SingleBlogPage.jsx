@@ -1,7 +1,3 @@
-export default SingleBlogPage;
-
-
-
 import { useEffect, useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 import axios from '../config/axios';
@@ -10,7 +6,7 @@ import 'remixicon/fonts/remixicon.css';
 import anime from 'animejs';
 import ThreeHero from '../components/ThreeHero';
 
-// --- Comment subcomponent for rendering a single comment ---
+// Comment subcomponent
 function Comment({ comment }) {
     if (!comment) return null;
     const user = comment.user || {};
@@ -39,7 +35,6 @@ Comment.propTypes = {
     }),
 };
 
-
 const SingleBlogPage = () => {
     const [blog, setBlog] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -48,38 +43,27 @@ const SingleBlogPage = () => {
     const { id } = useParams();
     const heroRef = useRef(null);
     const contentRef = useRef(null);
-    // ...removed Three.js setup, now using <ThreeHero />
 
-    // Smooth fade/slide-in for hero and content
-    // Only run fade-in animation on mount
     useEffect(() => {
-        let ranOnce = false;
-        if (!ranOnce) {
-            ranOnce = true;
-            if (heroRef.current) {
-                anime({
-                    targets: heroRef.current,
-                    opacity: [0, 1],
-                    translateY: [40, 0],
-                    duration: 900,
-                    easing: 'easeOutExpo',
-                });
-            }
-            if (contentRef.current) {
-                anime({
-                    targets: contentRef.current.querySelectorAll('.prose > *'),
-                    opacity: [0, 1],
-                    translateY: [40, 0],
-                    delay: anime.stagger(120),
-                    duration: 800,
-                    easing: 'easeOutExpo',
-                });
-            }
+        anime({
+            targets: heroRef.current,
+            opacity: [0, 1],
+            translateY: [40, 0],
+            duration: 900,
+            easing: 'easeOutExpo',
+        });
+        if (contentRef.current) {
+            anime({
+                targets: contentRef.current.querySelectorAll('.prose > *'),
+                opacity: [0, 1],
+                translateY: [40, 0],
+                delay: anime.stagger(120),
+                duration: 800,
+                easing: 'easeOutExpo',
+            });
         }
     }, []);
 
-
-    // Fetch blog data
     useEffect(() => {
         const fetchBlog = async () => {
             try {
@@ -93,9 +77,6 @@ const SingleBlogPage = () => {
         };
         fetchBlog();
     }, [id]);
-
-
-
 
     const handleLike = async () => {
         try {
@@ -213,5 +194,4 @@ const SingleBlogPage = () => {
     );
 };
 
-
-
+export default SingleBlogPage;
