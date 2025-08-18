@@ -1,14 +1,17 @@
-import { useState, useCallback, useRef } from 'react';
+
+import { useState, useCallback, useRef, useEffect } from 'react';
 import axios from '../config/axios';
 import { useNavigate } from 'react-router-dom';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import anime from 'animejs';
 import 'remixicon/fonts/remixicon.css';
 
 const ItemTypes = {
     BLOCK: 'block',
 };
 
+import PropTypes from 'prop-types';
 const Block = ({ id, type, content, index, moveBlock, updateContent, deleteBlock }) => {
     const ref = useRef(null);
     const [, drop] = useDrop({
@@ -109,6 +112,16 @@ const Block = ({ id, type, content, index, moveBlock, updateContent, deleteBlock
     );
 };
 
+Block.propTypes = {
+    id: PropTypes.any.isRequired,
+    type: PropTypes.string.isRequired,
+    content: PropTypes.any,
+    index: PropTypes.number.isRequired,
+    moveBlock: PropTypes.func.isRequired,
+    updateContent: PropTypes.func.isRequired,
+    deleteBlock: PropTypes.func.isRequired,
+};
+
 const CreateBlogForm = () => {
     const [title, setTitle] = useState('');
     const [blocks, setBlocks] = useState([{ id: 1, type: 'text', content: '' }]);
@@ -153,17 +166,37 @@ const CreateBlogForm = () => {
         }
     };
 
+    // Animate entrance
+    useEffect(() => {
+        anime({
+            targets: '.blog-form-hero',
+            opacity: [0, 1],
+            translateY: [80, 0],
+            duration: 1200,
+            easing: 'easeOutExpo',
+        });
+        anime({
+            targets: '.blog-form-section',
+            opacity: [0, 1],
+            translateY: [60, 0],
+            delay: anime.stagger(120),
+            duration: 900,
+            easing: 'easeOutExpo',
+        });
+    }, []);
+
     return (
         <DndProvider backend={HTML5Backend}>
-            <div className="min-h-screen bg-gray-900 text-white">
+            <div className="min-h-screen bg-gradient-to-br from-blue-900 via-gray-900 to-blue-800 text-white overflow-x-hidden">
                 <div className="container px-4 py-8 mx-auto">
-                    <div className="text-center mb-12">
-                        <h1 className="text-5xl font-extrabold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-teal-400">Create Your Masterpiece</h1>
+                    <div className="text-center mb-12 blog-form-hero">
+                        <h1 className="text-5xl md:text-6xl font-extrabold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-teal-400 animate__animated animate__fadeInDown">Create Your Masterpiece</h1>
+                        <p className="text-xl text-blue-200 animate__animated animate__fadeInUp">Share your journey, code, and creativity with the world.</p>
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <form onSubmit={handleSubmit} className="p-8 bg-gray-800 rounded-lg shadow-lg">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 blog-form-section">
+                        <form onSubmit={handleSubmit} className="p-8 bg-gray-800 rounded-3xl shadow-2xl">
                             <div className="mb-8">
-                                <label className="block mb-2 text-2xl font-bold text-gray-300" htmlFor="title">
+                                <label className="block mb-2 text-2xl font-bold text-blue-200" htmlFor="title">
                                     Blog Title
                                 </label>
                                 <input
@@ -204,8 +237,8 @@ const CreateBlogForm = () => {
                                 <button type="submit" className="px-8 py-4 font-bold text-white bg-gradient-to-r from-blue-500 to-teal-500 rounded-lg hover:from-blue-600 hover:to-teal-600 transition-all duration-300 transform hover:scale-105">Publish Post</button>
                             </div>
                         </form>
-                        <div className="p-8 bg-gray-800 rounded-lg shadow-lg">
-                            <h2 className="text-3xl font-bold mb-4">Live Preview</h2>
+                        <div className="p-8 bg-gray-800 rounded-3xl shadow-2xl">
+                            <h2 className="text-3xl font-bold mb-4 text-blue-200">Live Preview</h2>
                             <div className="prose prose-invert max-w-none">
                                 <h1>{title}</h1>
                                 {blocks.map(block => {
