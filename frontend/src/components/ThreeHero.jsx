@@ -1,10 +1,31 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
-
 import PropTypes from 'prop-types';
 
-
-function ThreeHero({ width = 180, height = 180, className = '' }) {
+function ThreeHero({
+  width = 180,
+  height = 180,
+  className = '',
+  geometryConfig = { type: 'torus', args: [1.1, 0.28, 48, 120] },
+  materialConfig = {
+    color: 0xffffff,
+    metalness: 0.15,
+    roughness: 0.08,
+    transmission: 0.92,
+    thickness: 1.2,
+    transparent: true,
+    opacity: 0.7,
+    clearcoat: 1,
+    clearcoatRoughness: 0.04,
+    ior: 1.45,
+    reflectivity: 0.18,
+    sheen: 0.2,
+  },
+  lightingConfig = {
+    ambient: { color: 0xffffff, intensity: 0.9 },
+    directional: { color: 0xffffff, intensity: 0.25, position: [0, 2, 4] },
+  },
+}) {
   const threeRef = useRef(null);
   useEffect(() => {
     if (!threeRef.current) return;
@@ -18,27 +39,23 @@ function ThreeHero({ width = 180, height = 180, className = '' }) {
     renderer.setSize(width, height);
     localRef.appendChild(renderer.domElement);
     // Lighting
-    const ambient = new THREE.AmbientLight(0xffffff, 0.9);
+    const ambient = new THREE.AmbientLight(lightingConfig.ambient.color, lightingConfig.ambient.intensity);
     scene.add(ambient);
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.25);
-    dirLight.position.set(0, 2, 4);
+    const dirLight = new THREE.DirectionalLight(lightingConfig.directional.color, lightingConfig.directional.intensity);
+    dirLight.position.set(...lightingConfig.directional.position);
     scene.add(dirLight);
-    // Minimal glass ring (torus)
-    const geometry = new THREE.TorusGeometry(1.1, 0.28, 48, 120);
-    const material = new THREE.MeshPhysicalMaterial({
-      color: 0xffffff,
-      metalness: 0.15,
-      roughness: 0.08,
-      transmission: 0.92,
-      thickness: 1.2,
-      transparent: true,
-      opacity: 0.7,
-      clearcoat: 1,
-      clearcoatRoughness: 0.04,
-      ior: 1.45,
-      reflectivity: 0.18,
-      sheen: 0.2,
-    });
+    // Geometry
+    let geometry;
+    if (geometryConfig.type === 'torus') {
+      geometry = new THREE.TorusGeometry(...geometryConfig.args);
+    } else if (geometryConfig.type === 'box') {
+      geometry = new THREE.BoxGeometry(...geometryConfig.args);
+    } else if (geometryConfig.type === 'sphere') {
+      geometry = new THREE.SphereGeometry(...geometryConfig.args);
+    } else {
+      geometry = new THREE.TorusGeometry(1.1, 0.28, 48, 120);
+    }
+    const material = new THREE.MeshPhysicalMaterial(materialConfig);
     const mesh = new THREE.Mesh(geometry, material);
     mesh.castShadow = false;
     mesh.receiveShadow = false;
@@ -70,12 +87,18 @@ function ThreeHero({ width = 180, height = 180, className = '' }) {
       frameId = requestAnimationFrame(animate);
     };
     animate();
+    // Cleanup
     return () => {
       cancelAnimationFrame(frameId);
       renderer.dispose();
+      geometry.dispose && geometry.dispose();
+      material.dispose && material.dispose();
+      shadowMaterial.dispose && shadowMaterial.dispose();
+      shadowGeo.dispose && shadowGeo.dispose();
+      shadowTexture.dispose && shadowTexture.dispose();
       while (localRef.firstChild) localRef.removeChild(localRef.firstChild);
     };
-  }, [width, height]);
+  }, [width, height, geometryConfig, materialConfig, lightingConfig]);
   return (
     <div ref={threeRef} className={className} style={{ width, height, zIndex: 1 }} />
   );
@@ -85,6 +108,9 @@ ThreeHero.propTypes = {
   width: PropTypes.number,
   height: PropTypes.number,
   className: PropTypes.string,
+  geometryConfig: PropTypes.object,
+  materialConfig: PropTypes.object,
+  lightingConfig: PropTypes.object,
 };
 
 export default ThreeHero;

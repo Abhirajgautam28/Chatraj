@@ -154,23 +154,9 @@ const SingleBlogPage = () => {
                             <button type="submit" className="px-6 py-2 mt-3 font-semibold text-white bg-blue-600 rounded-lg shadow hover:bg-blue-700 transition-all duration-200">Post Comment</button>
                         </form>
                         <div className="space-y-6">
-                            {blog.comments.map((comment) => {
-                                const user = comment.user || {};
-                                const firstName = user.firstName || '';
-                                const lastName = user.lastName || '';
-                                const avatar = firstName && typeof firstName === 'string' ? firstName[0] : '?';
-                                return (
-                                    <div key={comment._id} className="flex gap-4 items-center">
-                                        <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-lg text-white shadow">
-                                            {avatar}
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-base text-blue-700 dark:text-blue-200">{firstName} {lastName}</p>
-                                            <p className="text-gray-700 dark:text-gray-300 text-sm">{comment.text}</p>
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                            {blog.comments.map((comment) => (
+                                <Comment key={comment._id} comment={comment} />
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -195,4 +181,35 @@ const SingleBlogPage = () => {
     );
 };
 
+
 export default SingleBlogPage;
+
+// --- Comment subcomponent for rendering a single comment ---
+import PropTypes from 'prop-types';
+function Comment({ comment }) {
+    if (!comment) return null;
+    const user = comment.user || {};
+    const firstName = user.firstName || '';
+    const lastName = user.lastName || '';
+    const avatar = firstName && typeof firstName === 'string' ? firstName[0] : '?';
+    return (
+        <div className="flex gap-4 items-center">
+            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-lg text-white shadow">
+                {avatar}
+            </div>
+            <div>
+                <p className="font-bold text-base text-blue-700 dark:text-blue-200">{firstName} {lastName}</p>
+                <p className="text-gray-700 dark:text-gray-300 text-sm">{comment.text || ''}</p>
+            </div>
+        </div>
+    );
+}
+Comment.propTypes = {
+    comment: PropTypes.shape({
+        user: PropTypes.shape({
+            firstName: PropTypes.string,
+            lastName: PropTypes.string,
+        }),
+        text: PropTypes.string,
+    }),
+};
