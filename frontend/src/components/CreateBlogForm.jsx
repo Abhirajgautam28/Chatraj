@@ -250,11 +250,49 @@ const CreateBlogForm = () => {
                                     if (block.type === 'image') return <img key={block.id} src={block.content} alt="preview" className="rounded-xl shadow mb-3" />;
                                     if (block.type === 'video') {
                                         // Robust YouTube embed logic
-                                        const getYouTubeEmbedUrl = (url) => {
-                                            if (!url) return '';
-                                            const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/))([\w-]{11})/);
-                                            if (ytMatch && ytMatch[1]) {
-                                                return `https://www.youtube.com/embed/${ytMatch[1]}`;
+                                        const getYouTubeEmbedUrl = (urlString) => {
+                                            if (!urlString) return '';
+                                            // Enhanced YouTube URL parser to handle multiple formats
+                                            // Accepts: https://www.youtube.com/watch?v=VIDEO_ID
+                                            //          https://youtu.be/VIDEO_ID
+                                            //          https://www.youtube.com/embed/VIDEO_ID
+                                            //          URLs with extra parameters
+                                            try {
+                                                const url = new URL(urlString);
+                                                let videoId = '';
+                                                // Handle youtu.be short links
+                                                if (url.hostname === 'youtu.be') {
+                                                    videoId = url.pathname.slice(1);
+                                                }
+                                                // Handle youtube.com URLs
+                                                else if (
+                                                    url.hostname.includes('youtube.com')
+                                                ) {
+                                                    // /watch?v=VIDEO_ID
+                                                    if (url.pathname === '/watch' && url.searchParams.has('v')) {
+                                                        videoId = url.searchParams.get('v');
+                                                    }
+                                                    // /embed/VIDEO_ID
+                                                    else if (url.pathname.startsWith('/embed/')) {
+                                                        videoId = url.pathname.split('/embed/')[1].split(/[/?]/)[0];
+                                                    }
+                                                    // /v/VIDEO_ID
+                                                    else if (url.pathname.startsWith('/v/')) {
+                                                        videoId = url.pathname.split('/v/')[1].split(/[/?]/)[0];
+                                                    }
+                                                }
+                                                // Fallback: Try to extract video ID from common patterns
+                                                if (!videoId) {
+                                                    const match = urlString.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+                                                    if (match && match[1]) {
+                                                        videoId = match[1];
+                                                    }
+                                                }
+                                                if (videoId) {
+                                                    return `https://www.youtube.com/embed/${videoId}`;
+                                                }
+                                            } catch {
+                                                // Not a valid URL
                                             }
                                             // Not a valid YouTube URL, return empty string to avoid broken iframe
                                             return '';
