@@ -44,22 +44,77 @@ function ThreeHero({
     const dirLight = new THREE.DirectionalLight(lightingConfig.directional.color, lightingConfig.directional.intensity);
     dirLight.position.set(...lightingConfig.directional.position);
     scene.add(dirLight);
-    // Geometry
-    let geometry;
-    if (geometryConfig.type === 'torus') {
-      geometry = new THREE.TorusGeometry(...geometryConfig.args);
-    } else if (geometryConfig.type === 'box') {
-      geometry = new THREE.BoxGeometry(...geometryConfig.args);
-    } else if (geometryConfig.type === 'sphere') {
-      geometry = new THREE.SphereGeometry(...geometryConfig.args);
-    } else {
-      geometry = new THREE.TorusGeometry(1.1, 0.28, 48, 120);
+    // Atom-like 3D logo: central sphere + 3 orbiting rings (torus) + 3 small electron spheres
+    // Central nucleus
+    const nucleusMaterial = new THREE.MeshPhysicalMaterial({
+      color: 0x2196f3,
+      metalness: 0.5,
+      roughness: 0.2,
+      transmission: 0.7,
+      thickness: 1.2,
+      transparent: true,
+      opacity: 0.85,
+      clearcoat: 1,
+      clearcoatRoughness: 0.04,
+      ior: 1.45,
+      reflectivity: 0.25,
+      sheen: 0.3,
+      emissive: 0x1565c0,
+      emissiveIntensity: 0.15,
+    });
+    const nucleus = new THREE.Mesh(new THREE.SphereGeometry(0.55, 48, 48), nucleusMaterial);
+    scene.add(nucleus);
+
+    // Orbiting rings
+    const ringMaterial = new THREE.MeshPhysicalMaterial({
+      color: 0xffffff,
+      metalness: 0.2,
+      roughness: 0.1,
+      transparent: true,
+      opacity: 0.45,
+      clearcoat: 1,
+      clearcoatRoughness: 0.04,
+      ior: 1.45,
+      reflectivity: 0.18,
+      sheen: 0.2,
+      emissive: 0x2196f3,
+      emissiveIntensity: 0.08,
+    });
+    const rings = [];
+    for (let i = 0; i < 3; i++) {
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(1.1, 0.07, 32, 120),
+        ringMaterial
+      );
+      ring.rotation.x = Math.PI / 2 * (i + 1) / 2;
+      ring.rotation.y = Math.PI / 3 * i;
+      scene.add(ring);
+      rings.push(ring);
     }
-    const material = new THREE.MeshPhysicalMaterial(materialConfig);
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.castShadow = false;
-    mesh.receiveShadow = false;
-    scene.add(mesh);
+
+    // Electrons (small spheres on each ring)
+    const electronMaterial = new THREE.MeshPhysicalMaterial({
+      color: 0xffeb3b,
+      metalness: 0.6,
+      roughness: 0.15,
+      transmission: 0.8,
+      thickness: 1.1,
+      transparent: true,
+      opacity: 0.95,
+      clearcoat: 1,
+      clearcoatRoughness: 0.04,
+      ior: 1.45,
+      reflectivity: 0.22,
+      sheen: 0.25,
+      emissive: 0xffc107,
+      emissiveIntensity: 0.18,
+    });
+    const electrons = [];
+    for (let i = 0; i < 3; i++) {
+      const electron = new THREE.Mesh(new THREE.SphereGeometry(0.13, 32, 32), electronMaterial);
+      scene.add(electron);
+      electrons.push(electron);
+    }
     // Soft shadow (fake, blurred ellipse)
     const shadowCanvas = document.createElement('canvas');
     shadowCanvas.width = 128;
@@ -78,11 +133,25 @@ function ThreeHero({
     shadowMesh.position.y = -1.25;
     shadowMesh.rotation.x = -Math.PI / 2;
     scene.add(shadowMesh);
-    // Animation: slow, elegant rotation
+    // Animation: rotate nucleus and rings, animate electrons
     let frameId;
+    let t = 0;
     const animate = () => {
-      mesh.rotation.x += 0.007;
-      mesh.rotation.y += 0.012;
+      t += 0.012;
+      nucleus.rotation.x += 0.007;
+      nucleus.rotation.y += 0.012;
+      rings.forEach((ring, i) => {
+        ring.rotation.z += 0.008 + i * 0.003;
+      });
+      // Move electrons along their rings
+      electrons.forEach((electron, i) => {
+        const angle = t + i * (2 * Math.PI / 3);
+        const r = 1.1;
+        const y = Math.sin(angle + i) * 0.25;
+        electron.position.x = Math.cos(angle) * r;
+        electron.position.y = y;
+        electron.position.z = Math.sin(angle) * r;
+      });
       renderer.render(scene, camera);
       frameId = requestAnimationFrame(animate);
     };
@@ -91,8 +160,16 @@ function ThreeHero({
     return () => {
       cancelAnimationFrame(frameId);
       renderer.dispose();
-      geometry.dispose && geometry.dispose();
-      material.dispose && material.dispose();
+      nucleus.geometry.dispose && nucleus.geometry.dispose();
+      nucleus.material.dispose && nucleus.material.dispose();
+      rings.forEach(ring => {
+        ring.geometry.dispose && ring.geometry.dispose();
+        ring.material.dispose && ring.material.dispose();
+      });
+      electrons.forEach(electron => {
+        electron.geometry.dispose && electron.geometry.dispose();
+        electron.material.dispose && electron.material.dispose();
+      });
       shadowMaterial.dispose && shadowMaterial.dispose();
       shadowGeo.dispose && shadowGeo.dispose();
       shadowTexture.dispose && shadowTexture.dispose();
