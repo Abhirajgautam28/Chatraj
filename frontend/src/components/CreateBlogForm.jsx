@@ -1,6 +1,6 @@
-
-
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { BlogThemeProvider } from '../context/blogTheme.context';
+import useBlogTheme from '../context/useBlogTheme';
 import axios from '../config/axios';
 import { useNavigate } from 'react-router-dom';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
@@ -119,7 +119,7 @@ Block.propTypes = {
     deleteBlock: PropTypes.func.isRequired,
 };
 
-const CreateBlogForm = () => {
+const CreateBlogFormContent = () => {
     const [title, setTitle] = useState('');
     const [blocks, setBlocks] = useState([{ id: 1, type: 'text', content: '' }]);
     const navigate = useNavigate();
@@ -152,6 +152,7 @@ const CreateBlogForm = () => {
         setBlocks((prevBlocks) => prevBlocks.filter(block => block.id !== id));
     };
 
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         const content = JSON.stringify(blocks);
@@ -163,55 +164,13 @@ const CreateBlogForm = () => {
         }
     };
 
-    // Animate entrance
-    useEffect(() => {
-        anime({
-            targets: '.blog-form-hero',
-            opacity: [0, 1],
-            translateY: [80, 0],
-            duration: 1200,
-            easing: 'easeOutExpo',
-        });
-        anime({
-            targets: '.blog-form-section',
-            opacity: [0, 1],
-            translateY: [60, 0],
-            delay: anime.stagger(120),
-            duration: 900,
-            easing: 'easeOutExpo',
-        });
-        anime({
-            targets: '.glass-card',
-            scale: [0.96, 1],
-            opacity: [0, 1],
-            delay: anime.stagger(100, {start: 400}),
-            duration: 900,
-            easing: 'easeOutBack',
-        });
-    }, []);
+        const CreateBlogForm = (props) => (
+            <BlogThemeProvider>
+                <CreateBlogFormContent {...props} />
+            </BlogThemeProvider>
+        );
 
-    return (
-        <DndProvider backend={HTML5Backend}>
-            <div className="min-h-screen bg-gradient-to-br from-blue-50/80 via-white/80 to-purple-100/80 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-gray-900 dark:text-white flex items-center justify-center py-8">
-                <div className="container px-2 md:px-6 mx-auto">
-                    <div className="text-center mb-10 blog-form-hero">
-                        <h1 className="text-4xl md:text-5xl font-extrabold mb-2 text-blue-700 dark:text-blue-300 drop-shadow-lg">Create a New Blog Post</h1>
-                        <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 font-medium">Share your journey, code, and creativity with the world.</p>
-                    </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 blog-form-section">
-                        <form onSubmit={handleSubmit} className="glass-card p-8 md:p-10 bg-white/60 dark:bg-gray-800/60 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 backdrop-blur-xl relative overflow-hidden">
-                            <div className="absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br from-blue-400/30 via-purple-400/20 to-transparent rounded-full blur-2xl pointer-events-none"></div>
-                            <div className="mb-8">
-                                <label className="block mb-2 text-xl font-bold text-blue-700 dark:text-blue-300" htmlFor="title">
-                                    Blog Title
-                                </label>
-                                <input
-                                    id="title"
-                                    type="text"
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
-                                    className="w-full px-5 py-3 text-lg text-gray-900 dark:text-white bg-white/70 dark:bg-gray-700/70 border border-gray-200 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-inner transition"
-                                    placeholder="Your Awesome Title"
+        export default CreateBlogForm;
                                     required
                                 />
                             </div>
