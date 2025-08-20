@@ -62,7 +62,7 @@ const Login = () => {
                     navigate('/welcome-chatraj', { replace: true });
                 } else if (location.state && location.state.from) {
                     // If user came from a blog tile click and wants to go to main blog page
-                    if (localStorage.getItem('redirectToBlogPage') === 'true') {
+                    if (localStorage.getItem('redirectToBlogPage') === 'true' && location.state.from === 'homepage-blog-tile') {
                         localStorage.removeItem('redirectToBlogPage');
                         navigate('/blogs', { replace: true });
                     } else {
