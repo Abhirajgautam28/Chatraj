@@ -51,6 +51,7 @@ ChatRaj is a comprehensive, AI-powered platform designed to streamline software 
 
 ### Real-time Collaboration
 
+- **Enhanced Blog Experience:** A redesigned blog section with 3D animations, Material-UI components, and a modern, engaging design.
 - **Live Chat:** Instant messaging with typing indicators and emoji reactions.
 - **Multi-user Code Editing:** Edit code together with real-time updates.
 - **Project Categories:** Organize projects for better workflow.
@@ -67,10 +68,12 @@ ChatRaj is a comprehensive, AI-powered platform designed to streamline software 
 
 ### User Experience
 
+- **Modern UI:** Redesigned Login, Register, and Blog pages for a clean and modern user experience.
 - **Dark/Light Mode:** Switch themes for comfortable coding.
 - **Responsive Design:** Works seamlessly on all devices.
 - **Animated Transitions:** Smooth UI animations for a modern feel.
 - **Customizable Interface:** Adjust chat bubbles, theme colors, font sizes, and more.
+- **New Icon:** Replaced the default Vite icon with the official ChatRaj icon.
 - **Multilingual Support:** Use the platform in English, Hindi, Spanish, French, German, or Japanese.
 
 ### Privacy & Security
@@ -79,10 +82,11 @@ ChatRaj is a comprehensive, AI-powered platform designed to streamline software 
 - **Data Retention Controls:** Set auto-delete intervals and manage local storage.
 - **Role-based Access Control:** Secure project collaboration with roles and permissions.
 - **JWT Authentication:** Secure user sessions.
+- **Two-Factor Authentication:** Added 2FA for password resets and user registration to enhance security.
 
 ### Project Management
 
-- **Category-based Organization:** 15+ predefined categories for efficient project sorting.
+- **Advanced Category Management:** Organize projects with 15+ predefined categories, grid/list views, search, and quick access to recent projects.
 - **Invite System:** Collaborate by inviting team members.
 - **File System Management:** Real-time updates and file operations.
 
