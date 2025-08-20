@@ -466,7 +466,7 @@ function greet(name) {
       <section className="py-20">
         <div className="max-w-6xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Blogs</h2>
-          <Blog />
+          <Blog user={user} />
         </div>
       </section>
       <ContactUs />
