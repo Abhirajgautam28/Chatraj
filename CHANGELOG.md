@@ -6,10 +6,118 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## Latest Features
 
+### 2025-08-20
+**Fixes & Improvements**
+- Improved overall user experience by fixing various known bugs.
+- Fixed a routing issue when navigating to the main blog page from a blog tile after login.
+- Corrected the behavior of the light and dark mode toggle.
+- Addressed a blog rendering issue in the `Blog.jsx` component.
+**UI Enhancements**
+- Removed the dark mode toggle from the blog section on the home page.
+- Replaced the old Vite icon with the new ChatRaj branding icon.
+
+### 2025-08-18
+**Fixes & Improvements**
+- Fixed an issue in the `CreateBlogForm` component where not selecting a file for the blog image would cause an error.
+- Resolved a blog rendering issue on the home page.
+- Ensured unique keys for each blog item to fix a rendering bug.
+- Validated geometry configuration in the `ThreeHero` component to prevent errors.
+- Corrected YouTube embed URL validation in the `CreateBlogForm.jsx`.
+- Fixed multiple issues in the `SingleBlogPage` component, including content display and deployment problems.
+- Addressed rendering issues in the `blog.jsx` component and fixed comment rendering on blog cards.
+- Corrected the import of the `ThreeHero` component in `Blogs.jsx` and `SingleBlogPage.jsx`.
+- Fixed the 3D effect on blog cards.
+**Features & UI Enhancements**
+- Added support for light and dark modes in the blog section.
+- Modified the 3D hero component to use a new Three.js setup.
+- Introduced 3D animations to the blog page using Three.js and anime.js.
+- Upgraded the blog section UI with Material-UI components for a more modern look.
+- Redesigned the Blogs section UI with modern design elements and improved responsiveness.
+
+### 2025-08-16
+**Fixes & Improvements**
+- Fixed navigation issues in the Categories and Dashboard screens.
+- Resolved backend and frontend routing issues.
+
+### 2025-08-15
+**Fixes & Improvements**
+- Fixed an issue with the dropdown menu in the categories screen.
+- Corrected a dark mode issue in `Categories.jsx`.
+- Fixed category selection functionality.
+- Addressed multiple animation rendering issues in the home screen chat bubble, logout screen, and other components.
+- Resolved UI and styling issues on the homepage.
+- Fixed animation problems in the Home, Login, and Register screens.
+**Features & UI Enhancements**
+- Added more customization options and a compact view to the categories screen.
+- Introduced new animations to the categories page and the ChatRaj welcome screen.
+- Added an animation to the rocket icon on the home page.
+
+### 2025-08-14
+**Fixes & Improvements**
+- Fixed an icon rendering issue on the Project Page.
+- Corrected API endpoints in the Logout components.
+- Addressed various warnings in `Project.jsx` and the home page.
+- Fixed the logout functionality to ensure proper session clearing.
+- Resolved general rendering issues in several components.
+**Features & UI Enhancements**
+- Implemented visual changes and redesigned the Login, Register, and Blog pages.
+- Added grid/list view switch, search button, and recent projects access to the category page.
+
+### 2025-08-11
+**Fixes & Improvements**
+- Corrected API endpoints in the Blog and ProjectShowcase components.
+- Fixed rendering issues in `Project.jsx` and `Login.jsx`.
+- Resolved a bug preventing projects from rendering correctly in the `ProjectShowcase` component.
+- Corrected the API endpoint for the user login function.
+- Fixed a bug in `Home.jsx` that caused incorrect component rendering.
+
+### 2025-08-10
+**Fixes & Improvements**
+- Fixed rendering issues on the Home Page.
+- Addressed a category navigation bug in the Dashboard.
+- Corrected issues in the user model and related UI components.
+- Fixed bugs in the ChatRaj and Home screens.
+
+### 2025-08-09
+**Fixes & Improvements**
+- Fixed a bug in the Blog component rendering.
+
+### 2025-08-06
+**Fixes & Improvements**
+- Addressed an issue in the UserLeaderboard component.
+- Fixed rendering issues in `Home.jsx` related to the user leaderboard.
+- Corrected the project count display in `UserLeaderboard.jsx`.
+
+### 2025-08-04
+**Fixes & Improvements**
+- Fixed known issues in project routes and the home screen.
+- Resolved rendering issues on the homepage.
+
+### 2025-08-03
+**Features & UI Enhancements**
+- Modified the home page to include a dark mode toggle button.
+
+### 2025-08-02
+**Fixes & Improvements**
+- Fixed the OTP link in the email template to point to the correct login URL.
+- Addressed several issues in user routes and controllers.
+- Corrected the reset password functionality by adding an OTP sending endpoint.
+**Features & UI Enhancements**
+- Added 2-Factor Authentication to the password reset option for enhanced security.
+
+### 2025-07-31
+**Features & UI Enhancements**
+- Added a Logout button to the Categories screen.
+
 ### 2025-07-30
 **Email & Newsletter Improvements**
 - Switched newsletter and OTP email delivery from Brevo/Sendinblue to Gmail SMTP for reliability.
 - Improved newsletter email template with a professional design, upcoming release highlights, and community benefits.
+**Features & UI Enhancements**
+- Added 2FA email verification to the user registration flow.
+- Added project count functionality.
+**Fixes & Improvements**
+- Fixed bugs in the `Categories.jsx` component.
 
 ### 2025-07-29
 **Project Settings & Collaboration**
