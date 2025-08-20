@@ -8,7 +8,7 @@ import anime from 'animejs';
 const Blog = () => {
     const [blogs, setBlogs] = useState([]);
     const navigate = useNavigate();
-    const { isBlogDarkMode, setIsBlogDarkMode } = useBlogTheme();
+    const { isBlogDarkMode } = useBlogTheme();
 
     useEffect(() => {
         const fetchBlogs = async () => {
@@ -48,19 +48,7 @@ const Blog = () => {
 
     return (
         <div className={isBlogDarkMode ? 'bg-gray-900 text-white transition-colors duration-300' : 'bg-white text-gray-900 transition-colors duration-300'}>
-            <div className="flex justify-end px-4 pt-4">
-                <button
-                    onClick={() => setIsBlogDarkMode((prev) => !prev)}
-                    className="rounded-full p-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 shadow hover:shadow-md transition"
-                    aria-label="Toggle blog theme"
-                >
-                    {isBlogDarkMode ? (
-                        <i className="ri-sun-line text-xl" />
-                    ) : (
-                        <i className="ri-moon-line text-xl" />
-                    )}
-                </button>
-            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {blogs.map((blog) => (
                     <div key={blog._id} className="blog-preview-card">
