@@ -1,8 +1,21 @@
 import { useContext, useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { UserContext } from '../context/user.context';
 import axios from "../config/axios";
 import { useNavigate, useParams } from 'react-router-dom';
+import {
+    Container,
+    Box,
+    Typography,
+    Button,
+    Grid,
+    Card,
+    CardContent,
+    CardActionArea,
+    Modal,
+    TextField,
+    IconButton
+} from '@mui/material';
+import { Add, Logout, Group } from '@mui/icons-material';
 
 const Dashboard = () => {
   useContext(UserContext);
@@ -31,13 +44,11 @@ const Dashboard = () => {
   };
 
   const handleLogout = () => {
-    // Remove token and user, then redirect to logout screen
     localStorage.removeItem('token');
     navigate('/logout', { replace: true });
   };
 
   useEffect(() => {
-    // Always fetch all projects for the user, then filter by category on the frontend
     axios.get('/api/projects/all')
       .then((res) => {
         if (Array.isArray(res.data.projects)) {
@@ -57,130 +68,97 @@ const Dashboard = () => {
   }, [categoryName]);
 
   return (
-    <main className="relative min-h-screen p-4 bg-gradient-to-r from-blue-800 to-gray-900">
-      <div className="container relative mx-auto">
-        <motion.button
-          onClick={handleLogout}
-          className="absolute z-50 flex items-center gap-2 px-3 py-2 text-white transition bg-gray-700 rounded-md top-4 right-4 hover:bg-gray-600"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <i className="ri-logout-box-r-line"></i>
-          <span>Logout</span>
-        </motion.button>
-        <motion.div
-          className="w-full max-w-4xl p-8 transition duration-500 transform bg-gray-800 rounded-lg shadow-2xl"
-          initial={{ opacity: 0, scale: 0.97, y: 30 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-        >
-          <motion.h1
-            className="mb-6 text-2xl font-bold text-center text-white"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-          >
-            {categoryName ? `${categoryName} Projects` : 'Your Projects'}
-          </motion.h1>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
-            <motion.button
-              onClick={() => setIsModalOpen(true)}
-              className="flex flex-col items-center justify-center p-6 transition duration-300 transform bg-gray-700 rounded-md shadow-lg hover:bg-gray-600 group"
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.05 }}
-              whileHover={{ scale: 1.06, boxShadow: '0 4px 24px 0 rgba(59,130,246,0.15)', backgroundColor: '#374151' }}
-              whileTap={{ scale: 0.97 }}
+    <Box sx={{ minHeight: '100vh', p: 4, bgcolor: 'background.default' }}>
+      <Container maxWidth="lg">
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+            <Typography variant="h4" component="h1">
+                {categoryName ? `${categoryName} Projects` : 'Your Projects'}
+            </Typography>
+            <Button
+                variant="contained"
+                startIcon={<Logout />}
+                onClick={handleLogout}
             >
-              <span className="font-medium text-white">New Project</span>
-              <i className="ml-2 text-white ri-link"></i>
-            </motion.button>
-
-            <AnimatePresence>
-              {projects.map((project, idx) => (
-                <motion.div
-                  key={project._id}
-                  onClick={() => {
-                    navigate(`/project`, {
-                      state: { project }
-                    });
-                  }}
-                  className="flex flex-col gap-2 p-6 transition duration-300 transform bg-gray-700 rounded-md shadow-sm cursor-pointer group"
-                  initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 30, scale: 0.95 }}
-                  transition={{ duration: 0.4, delay: idx * 0.06 }}
-                  whileHover={{ scale: 1.045, boxShadow: '0 4px 24px 0 rgba(59,130,246,0.15)', backgroundColor: '#374151' }}
-                  whileTap={{ scale: 0.98 }}
+                Logout
+            </Button>
+        </Box>
+        <Grid container spacing={3}>
+          <Grid item xs={12} sm={6} md={4}>
+            <Card sx={{ height: '100%' }}>
+                <CardActionArea
+                    onClick={() => setIsModalOpen(true)}
+                    sx={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
                 >
-                  <h2 className="text-lg font-semibold text-white group-hover:text-blue-300 transition-colors duration-300">{project.name}</h2>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm text-gray-300">
-                      <i className="ri-user-line"></i> Collaborators:
-                    </p>
-                    <span className="font-bold text-white">{project.users.length}</span>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        </motion.div>
-
-        <AnimatePresence>
-          {isModalOpen && (
-            <motion.div
-              className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <motion.div
-                className="w-full max-w-md p-8 transition duration-300 transform bg-gray-800 rounded-lg shadow-2xl"
-                initial={{ opacity: 0, scale: 0.95, y: 30 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 30 }}
-                transition={{ duration: 0.4 }}
-              >
-                <h2 className="mb-6 text-2xl font-bold text-center text-white">
-                  Create New Project
-                </h2>
-                <form onSubmit={createProject}>
-                  <div className="mb-6">
-                    <label className="block mb-2 text-sm font-medium text-gray-400">
-                      Project Name
-                    </label>
-                    <input
-                      onChange={(e) => setProjectName(e.target.value)}
-                      value={projectName}
-                      type="text"
-                      className="w-full p-3 text-white transition duration-300 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      className="px-5 py-2 mr-3 text-white transition duration-300 bg-gray-600 rounded hover:bg-gray-500"
-                      onClick={() => setIsModalOpen(false)}
+                    <Add sx={{ fontSize: 40 }} />
+                    <Typography>New Project</Typography>
+                </CardActionArea>
+            </Card>
+          </Grid>
+          {projects.map((project) => (
+            <Grid item xs={12} sm={6} md={4} key={project._id}>
+                <Card>
+                    <CardActionArea
+                        onClick={() => {
+                            navigate(`/project`, {
+                            state: { project }
+                            });
+                        }}
                     >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-5 py-2 text-white transition duration-300 bg-blue-500 rounded hover:bg-blue-600"
-                    >
-                      Create
-                    </button>
-                  </div>
-                </form>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </main>
+                        <CardContent>
+                            <Typography variant="h6" component="h2">{project.name}</Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                                <Group />
+                                <Typography sx={{ ml: 1 }}>
+                                    Collaborators: {project.users.length}
+                                </Typography>
+                            </Box>
+                        </CardContent>
+                    </CardActionArea>
+                </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+      <Modal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        aria-labelledby="create-project-modal-title"
+        aria-describedby="create-project-modal-description"
+      >
+        <Box sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 400,
+            bgcolor: 'background.paper',
+            border: '2px solid #000',
+            boxShadow: 24,
+            p: 4,
+        }}>
+            <Typography id="create-project-modal-title" variant="h6" component="h2">
+                Create New Project
+            </Typography>
+            <Box component="form" onSubmit={createProject} sx={{ mt: 2 }}>
+                <TextField
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="projectName"
+                    label="Project Name"
+                    name="projectName"
+                    autoFocus
+                    value={projectName}
+                    onChange={(e) => setProjectName(e.target.value)}
+                />
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                    <Button onClick={() => setIsModalOpen(false)} sx={{ mr: 1 }}>Cancel</Button>
+                    <Button type="submit" variant="contained">Create</Button>
+                </Box>
+            </Box>
+        </Box>
+      </Modal>
+    </Box>
   );
 };
 

@@ -1,18 +1,31 @@
-
-
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import axios from '../config/axios';
 import { useNavigate } from 'react-router-dom';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import anime from 'animejs';
-import 'remixicon/fonts/remixicon.css';
+import {
+    Box,
+    Container,
+    Typography,
+    Button,
+    Grid,
+    TextField,
+    Paper,
+    IconButton,
+} from '@mui/material';
+import {
+    DragHandle,
+    Delete,
+    TextFields,
+    Image,
+    Videocam,
+    Code,
+    FormatQuote,
+} from '@mui/icons-material';
 
 const ItemTypes = {
     BLOCK: 'block',
 };
-
-import PropTypes from 'prop-types';
 
 const Block = ({ id, type, content, index, moveBlock, updateContent, deleteBlock }) => {
     const ref = useRef(null);
@@ -23,12 +36,6 @@ const Block = ({ id, type, content, index, moveBlock, updateContent, deleteBlock
             const dragIndex = item.index;
             const hoverIndex = index;
             if (dragIndex === hoverIndex) return;
-            const hoverBoundingRect = ref.current?.getBoundingClientRect();
-            const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-            const clientOffset = monitor.getClientOffset();
-            const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-            if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) return;
-            if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) return;
             moveBlock(dragIndex, hoverIndex);
             item.index = hoverIndex;
         },
@@ -39,84 +46,44 @@ const Block = ({ id, type, content, index, moveBlock, updateContent, deleteBlock
         collect: (monitor) => ({ isDragging: monitor.isDragging() }),
     });
     drag(drop(ref));
-    return (
-        <div
-            ref={ref}
-            style={{ opacity: isDragging ? 0.5 : 1, boxShadow: isDragging ? '0 8px 32px 0 rgba(31, 38, 135, 0.15)' : '0 4px 24px 0 rgba(31, 38, 135, 0.10)' }}
-            className="relative p-4 mb-6 bg-white/70 dark:bg-gray-800/70 rounded-2xl backdrop-blur-md border border-gray-200 dark:border-gray-700 flex items-center group transition-all duration-300"
-        >
-            <button
-                type="button"
-                title="Drag to reorder"
-                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/80 dark:bg-gray-700/80 shadow hover:scale-110 transition"
-                style={{ cursor: 'grab' }}
-            >
-                <i className="ri-drag-move-2-line text-xl text-blue-400"></i>
-            </button>
-            <div className="flex-grow ml-12">
-                {type === 'text' && (
-                    <textarea
-                        value={content}
-                        onChange={(e) => updateContent(id, e.target.value)}
-                        className="w-full h-24 p-3 bg-white/60 dark:bg-gray-700/60 text-gray-900 dark:text-white rounded-xl border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-inner transition"
-                        placeholder="Start writing your story..."
-                    />
-                )}
-                {type === 'image' && (
-                    <input
-                        type="text"
-                        value={content}
-                        onChange={(e) => updateContent(id, e.target.value)}
-                        className="w-full p-3 bg-white/60 dark:bg-gray-700/60 text-gray-900 dark:text-white rounded-xl border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 shadow-inner transition"
-                        placeholder="Enter image URL"
-                    />
-                )}
-                {type === 'video' && (
-                    <input
-                        type="text"
-                        value={content}
-                        onChange={(e) => updateContent(id, e.target.value)}
-                        className="w-full p-3 bg-white/60 dark:bg-gray-700/60 text-gray-900 dark:text-white rounded-xl border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-400 shadow-inner transition"
-                        placeholder="Enter video URL (e.g., YouTube)"
-                    />
-                )}
-                {type === 'code' && (
-                    <textarea
-                        value={content}
-                        onChange={(e) => updateContent(id, e.target.value)}
-                        className="w-full h-48 p-3 bg-gray-900/80 text-white rounded-xl font-mono border border-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 shadow-inner transition"
-                        placeholder="Write your code here..."
-                    />
-                )}
-                {type === 'quote' && (
-                    <textarea
-                        value={content}
-                        onChange={(e) => updateContent(id, e.target.value)}
-                        className="w-full h-20 p-3 bg-white/60 dark:bg-gray-700/60 text-gray-900 dark:text-white rounded-xl italic border-l-4 border-blue-400 pl-4 focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-inner transition"
-                        placeholder="Enter a quote..."
-                    />
-                )}
-            </div>
-            <button
-                type="button"
-                onClick={() => deleteBlock(id)}
-                title="Delete block"
-                className="ml-4 p-2 rounded-full bg-red-50 dark:bg-red-900/40 text-red-500 hover:bg-red-100 dark:hover:bg-red-800/80 shadow transition-opacity opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none"
-            >
-                <i className="ri-delete-bin-line text-lg"></i>
-            </button>
-        </div>
-    );
-};
 
-Block.propTypes = {
-    id: PropTypes.any.isRequired,
-    type: PropTypes.string.isRequired,
-    content: PropTypes.any,
-    index: PropTypes.number.isRequired,
-    moveBlock: PropTypes.func.isRequired,
-    updateContent: PropTypes.func.isRequired,
-    deleteBlock: PropTypes.func.isRequired,
+    return (
+        <Paper
+            ref={ref}
+            elevation={3}
+            sx={{
+                p: 2,
+                mb: 2,
+                display: 'flex',
+                alignItems: 'center',
+                opacity: isDragging ? 0.5 : 1,
+            }}
+        >
+            <IconButton sx={{ cursor: 'grab' }}>
+                <DragHandle />
+            </IconButton>
+            <Box sx={{ flexGrow: 1, ml: 2 }}>
+                <TextField
+                    fullWidth
+                    multiline
+                    variant="outlined"
+                    value={content}
+                    onChange={(e) => updateContent(id, e.target.value)}
+                    placeholder={
+                        type === 'text' ? 'Start writing your story...' :
+                        type === 'image' ? 'Enter image URL' :
+                        type === 'video' ? 'Enter video URL (e.g., YouTube)' :
+                        type === 'code' ? 'Write your code here...' :
+                        type === 'quote' ? 'Enter a quote...' : ''
+                    }
+                    rows={type === 'code' ? 6 : 3}
+                />
+            </Box>
+            <IconButton onClick={() => deleteBlock(id)} color="error">
+                <Delete />
+            </IconButton>
+        </Paper>
+    );
 };
 
 const CreateBlogForm = () => {
@@ -163,59 +130,28 @@ const CreateBlogForm = () => {
         }
     };
 
-    // Animate entrance
-    useEffect(() => {
-        anime({
-            targets: '.blog-form-hero',
-            opacity: [0, 1],
-            translateY: [80, 0],
-            duration: 1200,
-            easing: 'easeOutExpo',
-        });
-        anime({
-            targets: '.blog-form-section',
-            opacity: [0, 1],
-            translateY: [60, 0],
-            delay: anime.stagger(120),
-            duration: 900,
-            easing: 'easeOutExpo',
-        });
-        anime({
-            targets: '.glass-card',
-            scale: [0.96, 1],
-            opacity: [0, 1],
-            delay: anime.stagger(100, {start: 400}),
-            duration: 900,
-            easing: 'easeOutBack',
-        });
-    }, []);
-
     return (
         <DndProvider backend={HTML5Backend}>
-            <div className="min-h-screen bg-gradient-to-br from-blue-50/80 via-white/80 to-purple-100/80 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-gray-900 dark:text-white flex items-center justify-center py-8">
-                <div className="container px-2 md:px-6 mx-auto">
-                    <div className="text-center mb-10 blog-form-hero">
-                        <h1 className="text-4xl md:text-5xl font-extrabold mb-2 text-blue-700 dark:text-blue-300 drop-shadow-lg">Create a New Blog Post</h1>
-                        <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 font-medium">Share your journey, code, and creativity with the world.</p>
-                    </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 blog-form-section">
-                        <form onSubmit={handleSubmit} className="glass-card p-8 md:p-10 bg-white/60 dark:bg-gray-800/60 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 backdrop-blur-xl relative overflow-hidden">
-                            <div className="absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br from-blue-400/30 via-purple-400/20 to-transparent rounded-full blur-2xl pointer-events-none"></div>
-                            <div className="mb-8">
-                                <label className="block mb-2 text-xl font-bold text-blue-700 dark:text-blue-300" htmlFor="title">
-                                    Blog Title
-                                </label>
-                                <input
-                                    id="title"
-                                    type="text"
+            <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', py: 4 }}>
+                <Container maxWidth="lg">
+                    <Typography variant="h3" component="h1" gutterBottom align="center">
+                        Create a New Blog Post
+                    </Typography>
+                    <Typography variant="h6" color="text.secondary" align="center" paragraph>
+                        Share your journey, code, and creativity with the world.
+                    </Typography>
+                    <Grid container spacing={4}>
+                        <Grid item xs={12} md={6}>
+                            <Paper component="form" onSubmit={handleSubmit} sx={{ p: 4 }}>
+                                <TextField
+                                    fullWidth
+                                    label="Blog Title"
+                                    variant="outlined"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
-                                    className="w-full px-5 py-3 text-lg text-gray-900 dark:text-white bg-white/70 dark:bg-gray-700/70 border border-gray-200 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-inner transition"
-                                    placeholder="Your Awesome Title"
                                     required
+                                    sx={{ mb: 4 }}
                                 />
-                            </div>
-                            <div className="mb-8">
                                 {blocks.map((block, index) => (
                                     <Block
                                         key={block.id}
@@ -228,36 +164,39 @@ const CreateBlogForm = () => {
                                         deleteBlock={deleteBlock}
                                     />
                                 ))}
-                            </div>
-                            <div className="flex flex-wrap gap-3 mb-8">
-                                <button type="button" onClick={() => addBlock('text')} className="flex items-center gap-2 px-4 py-2 font-semibold text-white bg-blue-500 rounded-xl shadow hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"><i className="ri-text"></i>Text</button>
-                                <button type="button" onClick={() => addBlock('image')} className="flex items-center gap-2 px-4 py-2 font-semibold text-white bg-purple-500 rounded-xl shadow hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-400 transition"><i className="ri-image-add-line"></i>Image</button>
-                                <button type="button" onClick={() => addBlock('video')} className="flex items-center gap-2 px-4 py-2 font-semibold text-white bg-red-500 rounded-xl shadow hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 transition"><i className="ri-film-line"></i>Video</button>
-                                <button type="button" onClick={() => addBlock('code')} className="flex items-center gap-2 px-4 py-2 font-semibold text-white bg-gray-700 rounded-xl shadow hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400 transition"><i className="ri-code-s-slash-line"></i>Code</button>
-                                <button type="button" onClick={() => addBlock('quote')} className="flex items-center gap-2 px-4 py-2 font-semibold text-white bg-yellow-500 rounded-xl shadow hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition"><i className="ri-double-quotes-l"></i>Quote</button>
-                            </div>
-                            <div className="flex items-center justify-end">
-                                <button type="submit" className="px-8 py-3 font-bold text-lg text-white bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl shadow-lg hover:from-blue-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-blue-400 transition">Publish Post</button>
-                            </div>
-                        </form>
-                        <div className="glass-card p-8 md:p-10 bg-white/60 dark:bg-gray-800/60 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 backdrop-blur-xl relative overflow-hidden">
-                            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-gradient-to-tr from-purple-400/30 via-blue-400/20 to-transparent rounded-full blur-2xl pointer-events-none"></div>
-                            <h2 className="text-2xl font-bold mb-6 text-blue-700 dark:text-blue-300">Live Preview</h2>
-                            <div className="prose prose-blue dark:prose-invert max-w-none">
-                                <h1 className="text-3xl font-extrabold mb-4 text-blue-700 dark:text-blue-300 drop-shadow">{title}</h1>
+                                <Box sx={{ display: 'flex', gap: 1, mb: 4 }}>
+                                    <Button startIcon={<TextFields />} onClick={() => addBlock('text')}>Text</Button>
+                                    <Button startIcon={<Image />} onClick={() => addBlock('image')}>Image</Button>
+                                    <Button startIcon={<Videocam />} onClick={() => addBlock('video')}>Video</Button>
+                                    <Button startIcon={<Code />} onClick={() => addBlock('code')}>Code</Button>
+                                    <Button startIcon={<FormatQuote />} onClick={() => addBlock('quote')}>Quote</Button>
+                                </Box>
+                                <Button type="submit" variant="contained" size="large">
+                                    Publish Post
+                                </Button>
+                            </Paper>
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <Paper sx={{ p: 4 }}>
+                                <Typography variant="h5" component="h2" gutterBottom>
+                                    Live Preview
+                                </Typography>
+                                <Typography variant="h4" component="h1" gutterBottom>
+                                    {title}
+                                </Typography>
                                 {blocks.map(block => {
-                                    if (block.type === 'text') return <p key={block.id} className="text-lg leading-relaxed mb-3">{block.content}</p>;
-                                    if (block.type === 'image') return <img key={block.id} src={block.content} alt="preview" className="rounded-xl shadow mb-3" />;
-                                    if (block.type === 'video') return <iframe key={block.id} src={block.content.replace('watch?v=', 'embed/')} title="preview" className="w-full aspect-video rounded-xl shadow mb-3" allowFullScreen />;
-                                    if (block.type === 'code') return <pre key={block.id} className="bg-gray-900/90 text-white rounded-xl p-4 mb-3 overflow-x-auto"><code className="language-javascript">{block.content}</code></pre>;
-                                    if (block.type === 'quote') return <blockquote key={block.id} className="border-l-4 border-blue-400 pl-4 italic text-lg text-blue-700 dark:text-blue-300 mb-3">{block.content}</blockquote>;
+                                    if (block.type === 'text') return <Typography key={block.id} paragraph>{block.content}</Typography>;
+                                    if (block.type === 'image') return <img key={block.id} src={block.content} alt="preview" style={{ maxWidth: '100%', borderRadius: '8px' }} />;
+                                    if (block.type === 'video') return <iframe key={block.id} src={block.content.replace('watch?v=', 'embed/')} title="preview" style={{ width: '100%', aspectRatio: '16/9', borderRadius: '8px', border: 'none' }} allowFullScreen />;
+                                    if (block.type === 'code') return <Paper key={block.id} component="pre" sx={{ p: 2, bgcolor: 'grey.900', color: 'white', overflowX: 'auto' }}><code>{block.content}</code></Paper>;
+                                    if (block.type === 'quote') return <Typography key={block.id} component="blockquote" sx={{ borderLeft: 4, borderColor: 'primary.main', pl: 2, fontStyle: 'italic' }}>{block.content}</Typography>;
                                     return null;
                                 })}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                            </Paper>
+                        </Grid>
+                    </Grid>
+                </Container>
+            </Box>
         </DndProvider>
     );
 };

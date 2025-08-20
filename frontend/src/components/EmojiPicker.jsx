@@ -1,40 +1,45 @@
 import PropTypes from 'prop-types';
+import { Popover, IconButton, Box } from '@mui/material';
+import { InsertEmoticon, Close } from '@mui/icons-material';
 
-const EmojiPicker = ({ onSelect, isOpen, setIsOpen, isCurrentUser = false }) => {
+const EmojiPicker = ({ onSelect, isOpen, setIsOpen, anchorEl }) => {
   const emojis = ['👍', '❤️', '😂', '🎉', '🚀', '💯', '👀', '🔥'];
   
-  if (!isOpen) return null;
-
   const handleEmojiClick = (emoji) => {
     onSelect(emoji);
     setIsOpen(false);
   };
 
   return (
-    <div 
-      className={`absolute z-20 flex items-center px-3 py-1 rounded-full shadow-md ${
-        isCurrentUser ? 'right-2' : 'left-2'
-      } bottom-full mb-2 bg-gradient-to-r from-blue-500 to-purple-500`}
+    <Popover
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        anchorEl={anchorEl}
+        anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'center',
+        }}
+        transformOrigin={{
+            vertical: 'top',
+            horizontal: 'center',
+        }}
     >
-      <i className="text-xs text-white ri-emotion-line" />
-      <div className="flex gap-1 mx-2">
-        {emojis.map(emoji => (
-          <button
-            key={emoji}
-            onClick={() => handleEmojiClick(emoji)}
-            className="p-1 text-sm transition-transform hover:scale-125"
-          >
-            {emoji}
-          </button>
-        ))}
-      </div>
-      <button
-        className="ml-1 focus:outline-none"
-        onClick={() => setIsOpen(false)}
-      >
-        <i className="text-xs text-white ri-close-line"></i>
-      </button>
-    </div>
+        <Box sx={{ p: 1, display: 'flex', alignItems: 'center' }}>
+            <InsertEmoticon sx={{ mr: 1 }} />
+            {emojis.map(emoji => (
+                <IconButton
+                    key={emoji}
+                    onClick={() => handleEmojiClick(emoji)}
+                    size="small"
+                >
+                    {emoji}
+                </IconButton>
+            ))}
+            <IconButton onClick={() => setIsOpen(false)} size="small">
+                <Close />
+            </IconButton>
+        </Box>
+    </Popover>
   );
 };
 
@@ -42,7 +47,7 @@ EmojiPicker.propTypes = {
     onSelect: PropTypes.func.isRequired,
     isOpen: PropTypes.bool.isRequired,
     setIsOpen: PropTypes.func.isRequired,
-    isCurrentUser: PropTypes.bool,
+    anchorEl: PropTypes.object,
 };
 
 export default EmojiPicker;
