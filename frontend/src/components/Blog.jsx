@@ -41,6 +41,8 @@ const Blog = () => {
         if (token) {
             navigate(`/blogs/${blogId}`);
         } else {
+            // Set a flag to indicate user wants to go to main blog page after login
+            localStorage.setItem('redirectToBlogPage', 'true');
             navigate('/login', { state: { from: `/blogs/${blogId}` } });
         }
     };
