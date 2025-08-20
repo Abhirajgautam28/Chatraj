@@ -71,7 +71,26 @@ const Blog = () => {
                             <div className="p-6 flex flex-col gap-2 flex-grow">
                                 <h2 className="mb-1 text-2xl font-bold text-blue-700 dark:text-blue-300 truncate">{blog.title}</h2>
                                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">By {blog.author.firstName} {blog.author.lastName}</p>
-                                <p className="text-gray-700 dark:text-gray-200 text-base line-clamp-3 flex-grow">{blog.content.substring(0, 150)}...</p>
+                                <p className="text-gray-700 dark:text-gray-200 text-base line-clamp-3 flex-grow">
+                                    {(() => {
+                                        try {
+                                            const parsed = JSON.parse(blog.content);
+                                            if (Array.isArray(parsed)) {
+                                                // Join all text content fields if array of objects
+                                                return parsed.map(item => item.content).filter(Boolean).join(' ').substring(0, 150) + '...';
+                                            }
+                                            // If parsed is string, just show it
+                                            if (typeof parsed === 'string') {
+                                                return parsed.substring(0, 150) + '...';
+                                            }
+                                            // Fallback: show as string
+                                            return blog.content.substring(0, 150) + '...';
+                                        } catch {
+                                            // Not JSON, show as plain text
+                                            return blog.content.substring(0, 150) + '...';
+                                        }
+                                    })()}
+                                </p>
                             </div>
                             <div className="flex items-center justify-between px-6 pb-4">
                                 <span className="font-medium text-blue-600 dark:text-blue-400 text-base cursor-pointer">Read More &rarr;</span>
