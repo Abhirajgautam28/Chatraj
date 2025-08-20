@@ -10,10 +10,12 @@ ChatRaj is a comprehensive, AI-powered platform designed to streamline software 
   - [Table of Contents](#table-of-contents)
   - [Features](#features)
     - [Real-time Collaboration](#real-time-collaboration)
+      - [Enhanced Blog Experience](#enhanced-blog-experience)
     - [AI-Powered Assistance](#ai-powered-assistance)
     - [User Experience](#user-experience)
     - [Privacy \& Security](#privacy--security)
     - [Project Management](#project-management)
+      - [Advanced Category Management](#advanced-category-management)
     - [Code Editor \& Execution](#code-editor--execution)
   - [Tech Stack](#tech-stack)
   - [Architecture Overview](#architecture-overview)
@@ -51,14 +53,15 @@ ChatRaj is a comprehensive, AI-powered platform designed to streamline software 
 
 ### Real-time Collaboration
 
-- **Enhanced Blog Experience:** A redesigned blog section with 3D animations, Material-UI components, and a modern, engaging design.
 - **Live Chat:** Instant messaging with typing indicators and emoji reactions.
 - **Multi-user Code Editing:** Edit code together with real-time updates.
-- **Project Categories:** Organize projects for better workflow.
 - **File Tree Visualization:** View and manage project files with syntax highlighting.
 - **Code Execution Environment:** Run code in isolated sandboxes (WebContainers).
 - **User Presence Indicators:** See who is online and collaborating.
 - **Voice Input:** Real-time speech recognition for hands-free collaboration.
+
+#### Enhanced Blog Experience
+A redesigned blog section with 3D animations, Material-UI components, and a modern, engaging design. The blog now also supports light and dark modes.
 
 ### AI-Powered Assistance
 
@@ -78,17 +81,19 @@ ChatRaj is a comprehensive, AI-powered platform designed to streamline software 
 
 ### Privacy & Security
 
+- **Two-Factor Authentication:** Added 2FA for password resets and user registration to enhance security.
 - **Local Chat History:** Manage, clear, or auto-delete chat history.
 - **Data Retention Controls:** Set auto-delete intervals and manage local storage.
 - **Role-based Access Control:** Secure project collaboration with roles and permissions.
 - **JWT Authentication:** Secure user sessions.
-- **Two-Factor Authentication:** Added 2FA for password resets and user registration to enhance security.
 
 ### Project Management
 
-- **Advanced Category Management:** Organize projects with 15+ predefined categories, grid/list views, search, and quick access to recent projects.
 - **Invite System:** Collaborate by inviting team members.
 - **File System Management:** Real-time updates and file operations.
+
+#### Advanced Category Management
+Organize projects with 15+ predefined categories, grid/list views, search functionality, and quick access to recent projects. The category page also features new animations and a compact view.
 
 ### Code Editor & Execution
 
