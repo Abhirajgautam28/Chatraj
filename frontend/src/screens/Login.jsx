@@ -1,4 +1,5 @@
 import { useState, useContext, useEffect, useRef } from 'react';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { UserContext } from '../context/user.context';
 import axios from '../config/axios';
@@ -49,33 +50,45 @@ const Login = () => {
         }
     }, []);
 
+    const [showRecaptcha, setShowRecaptcha] = useState(false);
+    const [recaptchaToken, setRecaptchaToken] = useState(null);
+
     function submitHandler(e) {
         e.preventDefault();
-        axios.post('/api/users/login', { email, password })
-            .then((res) => {
-                localStorage.setItem('token', res.data.token);
-                setUser(res.data.user);
+        setShowRecaptcha(true);
+    }
 
-                const fromTryChatRaj = localStorage.getItem('fromTryChatRaj');
-                if (fromTryChatRaj === 'true') {
-                    localStorage.removeItem('fromTryChatRaj');
-                    navigate('/welcome-chatraj', { replace: true });
-                } else if (location.state && location.state.from) {
-                    // If user came from a blog tile click and wants to go to main blog page
-                    if (localStorage.getItem('redirectToBlogPage') === 'true' && location.state.from === 'homepage-blog-tile') {
-                        localStorage.removeItem('redirectToBlogPage');
-                        navigate('/blogs', { replace: true });
+    function handleRecaptcha(token) {
+        setRecaptchaToken(token);
+        if (token) {
+            axios.post('/api/users/login', { email, password })
+                .then((res) => {
+                    localStorage.setItem('token', res.data.token);
+                    setUser(res.data.user);
+
+                    const fromTryChatRaj = localStorage.getItem('fromTryChatRaj');
+                    if (fromTryChatRaj === 'true') {
+                        localStorage.removeItem('fromTryChatRaj');
+                        navigate('/welcome-chatraj', { replace: true });
+                    } else if (location.state && location.state.from) {
+                        // If user came from a blog tile click and wants to go to main blog page
+                        if (localStorage.getItem('redirectToBlogPage') === 'true' && location.state.from === 'homepage-blog-tile') {
+                            localStorage.removeItem('redirectToBlogPage');
+                            navigate('/blogs', { replace: true });
+                        } else {
+                            navigate(location.state.from, { replace: true });
+                        }
                     } else {
-                        navigate(location.state.from, { replace: true });
+                        navigate('/categories', { replace: true });
                     }
-                } else {
-                    navigate('/categories', { replace: true });
-                }
-            })
-            .catch((error) => {
-                console.error('Login error:', error.response?.data || error);
-                alert('Login failed. Please check your credentials.');
-            });
+                    setShowRecaptcha(false);
+                })
+                .catch((error) => {
+                    console.error('Login error:', error.response?.data || error);
+                    alert('Login failed. Please check your credentials.');
+                    setShowRecaptcha(false);
+                });
+        }
     }
 
     const handleSendOtp = async (e) => {
@@ -227,6 +240,17 @@ const Login = () => {
                         Login
                     </button>
                 </form>
+                {showRecaptcha && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+                        <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-sm flex flex-col items-center">
+                            <ReCAPTCHA
+                                sitekey="6LfRga0rAAAAAPL_6Sb-2QObtlgdX_OPLFULAgga"
+                                onChange={handleRecaptcha}
+                            />
+                            <button className="mt-4 px-4 py-2 bg-gray-700 text-white rounded" onClick={() => setShowRecaptcha(false)} type="button">Cancel</button>
+                        </div>
+                    </div>
+                )}
 
                 <p className="mt-6 text-center text-gray-400">
                     Don&apos;t have an account?{' '}
