@@ -1,5 +1,13 @@
 import { useState, useContext, useEffect, useRef } from 'react';
 import ReCAPTCHA from 'react-google-recaptcha';
+
+// Use environment variable for reCAPTCHA site key
+const getRecaptchaSiteKey = () => {
+    if (window.location.hostname === 'localhost') {
+        return import.meta.env.VITE_RECAPTCHA_SITE_KEY_LOCAL;
+    }
+    return import.meta.env.VITE_RECAPTCHA_SITE_KEY_PROD;
+};
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { UserContext } from '../context/user.context';
 import axios from '../config/axios';
@@ -244,7 +252,7 @@ const Login = () => {
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
                         <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-sm flex flex-col items-center">
                             <ReCAPTCHA
-                                sitekey="6LcVl60rAAAAAGl5URMburpNvzKvQwcGGTYMXmJw"
+                                sitekey={getRecaptchaSiteKey()}
                                 onChange={handleRecaptcha}
                             />
                             <button className="mt-4 px-4 py-2 bg-gray-700 text-white rounded" onClick={() => setShowRecaptcha(false)} type="button">Cancel</button>
