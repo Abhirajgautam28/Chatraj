@@ -1,4 +1,5 @@
 import { useState, useContext, useEffect, useRef } from 'react';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/user.context';
 import axios from '../config/axios';
@@ -18,6 +19,8 @@ const Register = () => {
     const navigate = useNavigate();
 
     const [errorMsg, setErrorMsg] = useState('');
+    const [showRecaptcha, setShowRecaptcha] = useState(false);
+    const [recaptchaToken, setRecaptchaToken] = useState(null);
     const containerRef = useRef(null);
 
     useEffect(() => {
@@ -58,18 +61,28 @@ const Register = () => {
             setErrorMsg('Google API Key must be at least 10 characters long.');
             return;
         }
-        axios.post('/users/register', { firstName, lastName, email, password, googleApiKey })
-            .then((res) => {
-                setUserId(res.data.userId);
-                setShowOtpModal(true);
-            })
-            .catch((error) => {
-                if (error.response?.data?.errors) {
-                    setErrorMsg(error.response.data.errors.map(e => e.msg).join(' '));
-                } else {
-                    setErrorMsg('Registration failed. Please try again.');
-                }
-            });
+        setShowRecaptcha(true);
+    }
+
+    function handleRecaptcha(token) {
+        setRecaptchaToken(token);
+        if (token) {
+            // Proceed with registration after reCAPTCHA
+            axios.post('/users/register', { firstName, lastName, email, password, googleApiKey })
+                .then((res) => {
+                    setUserId(res.data.userId);
+                    setShowOtpModal(true);
+                    setShowRecaptcha(false);
+                })
+                .catch((error) => {
+                    if (error.response?.data?.errors) {
+                        setErrorMsg(error.response.data.errors.map(e => e.msg).join(' '));
+                    } else {
+                        setErrorMsg('Registration failed. Please try again.');
+                    }
+                    setShowRecaptcha(false);
+                });
+        }
     }
 
     function handleOtpSubmit(e) {
@@ -229,6 +242,17 @@ const Register = () => {
                     >
                         Register
                     </button>
+                    {showRecaptcha && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+                            <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-sm flex flex-col items-center">
+                                <ReCAPTCHA
+                                    sitekey="6LfRga0rAAAAAPL_6Sb-2QObtlgdX_OPLFULAgga"
+                                    onChange={handleRecaptcha}
+                                />
+                                <button className="mt-4 px-4 py-2 bg-gray-700 text-white rounded" onClick={() => setShowRecaptcha(false)} type="button">Cancel</button>
+                            </div>
+                        </div>
+                    )}
                 </form>
 
                 <p className="mt-6 text-center text-gray-400">
