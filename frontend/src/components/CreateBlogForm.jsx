@@ -1,9 +1,10 @@
-// Block component for rendering and drag-and-drop of each block
-//
+
 import { useDrag, useDrop } from 'react-dnd';
+import { useRef } from 'react';
 
 const ItemType = 'BLOCK';
 
+const inputBaseClass = "w-full p-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2";
 const Block = ({ id, index, type, content, moveBlock, updateContent, deleteBlock }) => {
     const ref = useRef(null);
     const [, drop] = useDrop({
@@ -31,7 +32,7 @@ const Block = ({ id, index, type, content, moveBlock, updateContent, deleteBlock
             <span className="cursor-move text-gray-400 mr-2"><i className="ri-drag-move-2-line"></i></span>
             {type === 'text' && (
                 <textarea
-                    className="w-full p-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className={`${inputBaseClass} resize-none focus:ring-blue-400`}
                     value={content}
                     onChange={e => updateContent(id, e.target.value)}
                     placeholder="Write text..."
@@ -40,7 +41,7 @@ const Block = ({ id, index, type, content, moveBlock, updateContent, deleteBlock
             )}
             {type === 'image' && (
                 <input
-                    className="w-full p-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-400"
+                    className={`${inputBaseClass} focus:ring-purple-400`}
                     value={content}
                     onChange={e => updateContent(id, e.target.value)}
                     placeholder="Paste image URL..."
@@ -48,7 +49,7 @@ const Block = ({ id, index, type, content, moveBlock, updateContent, deleteBlock
             )}
             {type === 'video' && (
                 <input
-                    className="w-full p-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-400"
+                    className={`${inputBaseClass} focus:ring-red-400`}
                     value={content}
                     onChange={e => updateContent(id, e.target.value)}
                     placeholder="Paste YouTube video URL..."
@@ -56,7 +57,7 @@ const Block = ({ id, index, type, content, moveBlock, updateContent, deleteBlock
             )}
             {type === 'code' && (
                 <textarea
-                    className="w-full p-2 rounded border border-gray-300 dark:border-gray-700 bg-gray-900 text-white font-mono resize-none focus:outline-none focus:ring-2 focus:ring-gray-400"
+                    className={`${inputBaseClass} bg-gray-900 text-white font-mono resize-none focus:ring-gray-400`}
                     value={content}
                     onChange={e => updateContent(id, e.target.value)}
                     placeholder="Paste code..."
@@ -65,7 +66,7 @@ const Block = ({ id, index, type, content, moveBlock, updateContent, deleteBlock
             )}
             {type === 'quote' && (
                 <textarea
-                    className="w-full p-2 rounded border border-gray-300 dark:border-gray-700 bg-yellow-50 dark:bg-gray-700 text-blue-700 dark:text-blue-300 italic resize-none focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    className={`${inputBaseClass} bg-yellow-50 dark:bg-gray-700 text-blue-700 dark:text-blue-300 italic resize-none focus:ring-yellow-400`}
                     value={content}
                     onChange={e => updateContent(id, e.target.value)}
                     placeholder="Write a quote..."
@@ -77,7 +78,7 @@ const Block = ({ id, index, type, content, moveBlock, updateContent, deleteBlock
     );
 };
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { BlogThemeProvider } from '../context/blogTheme.context';
 //
 import axios from '../config/axios';
@@ -124,6 +125,10 @@ const CreateBlogFormContent = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!title.trim()) {
+            alert('Blog title cannot be empty.');
+            return;
+        }
         const content = JSON.stringify(blocks);
         try {
             await axios.post('/api/blogs', { title, content });
