@@ -64,7 +64,7 @@ const Login = () => {
         setLoginError('');
         if (token) {
             console.log('reCAPTCHA token:', token);
-            axios.post('/api/users/login', { email, password })
+            axios.post('/api/users/login', { email, password, recaptchaToken: token })
                 .then((res) => {
                     localStorage.setItem('token', res.data.token);
                     setUser(res.data.user);
