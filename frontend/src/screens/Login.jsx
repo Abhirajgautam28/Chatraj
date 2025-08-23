@@ -52,6 +52,7 @@ const Login = () => {
 
     const [showRecaptcha, setShowRecaptcha] = useState(false);
     const [recaptchaToken, setRecaptchaToken] = useState(null);
+    const [loginError, setLoginError] = useState('');
 
     function submitHandler(e) {
         e.preventDefault();
@@ -60,7 +61,9 @@ const Login = () => {
 
     function handleRecaptcha(token) {
         setRecaptchaToken(token);
+        setLoginError('');
         if (token) {
+            console.log('reCAPTCHA token:', token);
             axios.post('/api/users/login', { email, password })
                 .then((res) => {
                     localStorage.setItem('token', res.data.token);
@@ -85,9 +88,11 @@ const Login = () => {
                 })
                 .catch((error) => {
                     console.error('Login error:', error.response?.data || error);
-                    alert('Login failed. Please check your credentials.');
+                    setLoginError('Login failed. Please check your credentials.');
                     setShowRecaptcha(false);
                 });
+        } else {
+            setLoginError('reCAPTCHA verification failed. Please try again.');
         }
     }
 
@@ -256,6 +261,9 @@ const Login = () => {
                     </div>
                 )}
 
+                {loginError && (
+                    <div className="mt-4 text-center text-red-500 font-semibold">{loginError}</div>
+                )}
                 <p className="mt-6 text-center text-gray-400">
                     Don&apos;t have an account?{' '}
                     <Link to="/register" className="text-blue-400 font-semibold hover:underline">
