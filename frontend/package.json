@@ -15,7 +15,7 @@
     "@codemirror/lang-javascript": "^6.2.4",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@mantine/core": "^8.2.5",
+    "@mantine/core": "^8.2.7",
     "@mantine/hooks": "^8.2.2",
     "@monaco-editor/react": "^4.7.0",
     "@mui/material": "^7.3.1",
@@ -43,7 +43,7 @@
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.3.1",
     "react-modal": "^3.16.3",
-    "react-router-dom": "^7.8.1",
+    "react-router-dom": "^7.8.2",
     "remixicon": "^4.6.0",
     "socket.io-client": "^4.8.1",
     "three": "^0.179.1"
@@ -51,7 +51,7 @@
   "devDependencies": {
     "@vitejs/plugin-react": "5.0.1",
     "autoprefixer": "10.4.21",
-    "eslint": "^9.33.0",
+    "eslint": "^9.34.0",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.16",
