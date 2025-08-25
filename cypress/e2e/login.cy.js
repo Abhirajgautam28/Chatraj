@@ -4,6 +4,6 @@ describe('Login Flow', () => {
 		cy.get('input[type=email]').type('fake@example.com');
 		cy.get('input[type=password]').type('wrongpass');
 		cy.contains('Login').click();
-		cy.contains(/login failed|invalid/i);
+		cy.contains('Login failed. Please check your credentials.');
 	});
 });
