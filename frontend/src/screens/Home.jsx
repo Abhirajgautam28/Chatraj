@@ -1,6 +1,6 @@
 import ProjectShowcase from '../components/ProjectShowcase.jsx';
 import UserLeaderboard from '../components/UserLeaderboard.jsx';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, lazy, Suspense } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserContext } from '../context/user.context';
@@ -9,6 +9,7 @@ import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
 // ...existing code...
 import Blog from '../components/Blog.jsx';
 import ContactUs from '../components/ContactUs.jsx';
+const AskChatRajModal = lazy(() => import('../components/AskChatRajModal.jsx'));
 
 // Newsletter API endpoint for subscription
 const NEWSLETTER_API_URL =
@@ -141,6 +142,7 @@ const Home = () => {
   const [isNavVisible, setIsNavVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showFabMenu, setShowFabMenu] = useState(false);
+  const [showAskChatRajModal, setShowAskChatRajModal] = useState(false);
 
 
   useEffect(() => {
@@ -462,7 +464,6 @@ function greet(name) {
           </div>
         </div>
       </section>
-
       <section className="py-20">
         <div className="max-w-6xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Blogs</h2>
@@ -615,6 +616,15 @@ function greet(name) {
                 >
                   <i className="ri-login-box-line"></i> Login
                 </Link>
+                <button
+                  onClick={() => {
+                    setShowFabMenu(false);
+                    setShowAskChatRajModal(true);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 text-blue-600 transition rounded hover:bg-blue-50"
+                >
+                  <i className="ri-question-answer-line"></i> Ask ChatRaj
+                </button>
                 <a
                   href="https://github.com/Abhirajgautam28/Chatraj"
                   target="_blank"
@@ -634,6 +644,15 @@ function greet(name) {
       <footer className={`px-8 py-6 mt-0 text-center ${isDarkMode ? 'bg-gray-900' : 'bg-gray-200'}`}>
         <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>© 2025 ChatRaj All rights reserved.</p>
       </footer>
+
+      <Suspense fallback={<div>Loading...</div>}>
+        {showAskChatRajModal && (
+          <AskChatRajModal
+            isOpen={showAskChatRajModal}
+            onRequestClose={() => setShowAskChatRajModal(false)}
+          />
+        )}
+      </Suspense>
     </div>
   );
 };

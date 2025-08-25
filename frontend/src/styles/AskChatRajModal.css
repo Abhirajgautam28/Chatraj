@@ -1,0 +1,44 @@
+.ask-chat-raj-modal-overlay {
+  background-color: rgba(0, 0, 0, 0.75);
+}
+
+.ask-chat-raj-modal-content {
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  margin-right: -50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  height: 600px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+}
+
+.ask-chat-raj-modal-header {
+  padding: 10px;
+  background-color: #f1f1f1;
+  border-bottom: 1px solid #ccc;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.ask-chat-raj-modal-header h2 {
+  margin: 0;
+}
+
+.ask-chat-raj-modal-close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.ask-chat-raj-modal-body {
+  flex: 1;
+  padding: 20px;
+}
