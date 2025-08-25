@@ -1,0 +1,57 @@
+.ask-chat-raj-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  z-index: 1000;
+}
+
+.ask-chat-raj-modal-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  margin-right: -50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  height: 600px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: white;
+  overflow: auto;
+  outline: none;
+}
+
+.ask-chat-raj-modal-header {
+  padding: 10px;
+  background-color: #f1f1f1;
+  border-bottom: 1px solid #ccc;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.ask-chat-raj-modal-header h2 {
+  margin: 0;
+}
+
+.ask-chat-raj-modal-close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  margin-left: auto;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.ask-chat-raj-modal-body {
+  flex: 1;
+  padding: 20px;
+}

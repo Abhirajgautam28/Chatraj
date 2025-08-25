@@ -59,7 +59,6 @@ const Login = () => {
         e.preventDefault();
         setShowRecaptcha(true);
     }
-
     function handleRecaptcha(token) {
         setLoginError('');
         if (token) {

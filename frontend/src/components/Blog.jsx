@@ -41,9 +41,7 @@ function Blog({ user }) {
         if (user) {
             navigate(`/blogs/${blogId}`);
         } else {
-            // Always redirect to login with a special flag, and after login go to /blogs
-            localStorage.setItem('redirectToBlogPage', 'true');
-            navigate('/login', { state: { from: 'homepage-blog-tile' } });
+            navigate('/login', { state: { from: `/blogs/${blogId}` } });
         }
     };
 
