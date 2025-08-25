@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
 
+## [1.5.0] - 2025-08-25
+
+### Added
+- **Security:** Implemented reCAPTCHA on the login and register screens to enhance security.
+- **Performance:** Added a speed-insights script to collect performance metrics.
+
+### Changed
+- **Configuration:** Modified the `.gitignore` file to exclude unnecessary files.
+
+### Fixed
+- **Blog:**
+  - Fixed a crash issue related to dark mode on the Blogs page.
+  - Corrected an import issue in the `CreateBlogForm.jsx` component.
+  - Fixed a bug that allowed creating blog posts with an empty title.
+- **Login & Registration:**
+  - Fixed multiple issues with the reCAPTCHA site key on the Login and Register screens.
+  - Resolved a navigation issue to the blogs page from the `Login.jsx` component.
+
 ## [1.4.0] - 2025-08-20
 
 ### Added

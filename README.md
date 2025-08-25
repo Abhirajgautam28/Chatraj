@@ -81,6 +81,7 @@ A redesigned blog section with 3D animations, Material-UI components, and a mode
 
 ### Privacy & Security
 
+- **reCAPTCHA:** Implemented reCAPTCHA on login and register screens to prevent bots and enhance security.
 - **Two-Factor Authentication:** Added 2FA for password resets and user registration to enhance security.
 - **Local Chat History:** Manage, clear, or auto-delete chat history.
 - **Data Retention Controls:** Set auto-delete intervals and manage local storage.
