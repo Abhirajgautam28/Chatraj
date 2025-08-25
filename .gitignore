@@ -9,3 +9,5 @@ dist/
 build/
 .vscode/
 frontend/.env
+cypress/cypress/screenshots
+cypress/screenshots
