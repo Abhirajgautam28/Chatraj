@@ -33,7 +33,6 @@
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
 }
 
@@ -45,7 +44,11 @@
   background: none;
   border: none;
   font-size: 1.5rem;
+  margin-left: auto;
+  padding: 0.25rem 0.5rem;
   cursor: pointer;
+  display: flex;
+  align-items: center;
 }
 
 .ask-chat-raj-modal-body {
