@@ -1,13 +1,92 @@
 
-import { useState, useCallback, useRef } from 'react';
+import { useDrag, useDrop } from 'react-dnd';
+import { useRef } from 'react';
+
+const ItemType = 'BLOCK';
+
+const inputBaseClass = "w-full p-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2";
+const Block = ({ id, index, type, content, moveBlock, updateContent, deleteBlock }) => {
+    const ref = useRef(null);
+    const [, drop] = useDrop({
+        accept: ItemType,
+        hover(item, monitor) {
+            if (!ref.current) return;
+            const dragIndex = item.index;
+            const hoverIndex = index;
+            if (dragIndex === hoverIndex) return;
+            moveBlock(dragIndex, hoverIndex);
+            item.index = hoverIndex;
+        },
+    });
+    const [{ isDragging }, drag] = useDrag({
+        type: ItemType,
+        item: { id, index },
+        collect: (monitor) => ({
+            isDragging: monitor.isDragging(),
+        }),
+    });
+    drag(drop(ref));
+
+    return (
+        <div ref={ref} style={{ opacity: isDragging ? 0.5 : 1 }} className="mb-4 bg-white dark:bg-gray-800 rounded-xl shadow p-4 flex items-start gap-3 relative">
+            <span className="cursor-move text-gray-400 mr-2"><i className="ri-drag-move-2-line"></i></span>
+            {type === 'text' && (
+                <textarea
+                    className={`${inputBaseClass} resize-none focus:ring-blue-400`}
+                    value={content}
+                    onChange={e => updateContent(id, e.target.value)}
+                    placeholder="Write text..."
+                    rows={3}
+                />
+            )}
+            {type === 'image' && (
+                <input
+                    className={`${inputBaseClass} focus:ring-purple-400`}
+                    value={content}
+                    onChange={e => updateContent(id, e.target.value)}
+                    placeholder="Paste image URL..."
+                />
+            )}
+            {type === 'video' && (
+                <input
+                    className={`${inputBaseClass} focus:ring-red-400`}
+                    value={content}
+                    onChange={e => updateContent(id, e.target.value)}
+                    placeholder="Paste YouTube video URL..."
+                />
+            )}
+            {type === 'code' && (
+                <textarea
+                    className={`${inputBaseClass} bg-gray-900 text-white font-mono resize-none focus:ring-gray-400`}
+                    value={content}
+                    onChange={e => updateContent(id, e.target.value)}
+                    placeholder="Paste code..."
+                    rows={4}
+                />
+            )}
+            {type === 'quote' && (
+                <textarea
+                    className={`${inputBaseClass} bg-yellow-50 dark:bg-gray-700 text-blue-700 dark:text-blue-300 italic resize-none focus:ring-yellow-400`}
+                    value={content}
+                    onChange={e => updateContent(id, e.target.value)}
+                    placeholder="Write a quote..."
+                    rows={2}
+                />
+            )}
+            <button type="button" onClick={() => deleteBlock(id)} className="absolute top-2 right-2 text-red-500 hover:text-red-700"><i className="ri-delete-bin-6-line"></i></button>
+        </div>
+    );
+};
+
+import { useState, useCallback } from 'react';
 import { BlogThemeProvider } from '../context/blogTheme.context';
-import useBlogTheme from '../context/useBlogTheme';
+//
 import axios from '../config/axios';
 import { useNavigate } from 'react-router-dom';
-import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import 'remixicon/fonts/remixicon.css';
-import PropTypes from 'prop-types';
+//
 
 
 const CreateBlogFormContent = () => {
@@ -46,6 +125,10 @@ const CreateBlogFormContent = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!title.trim()) {
+            alert('Blog title cannot be empty.');
+            return;
+        }
         const content = JSON.stringify(blocks);
         try {
             await axios.post('/api/blogs', { title, content });
