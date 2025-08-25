@@ -1,3 +1,4 @@
+// ...existing code...
 import { useState, useContext, useEffect, useRef } from 'react';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Link, useNavigate } from 'react-router-dom';
@@ -20,7 +21,7 @@ const Register = () => {
 
     const [errorMsg, setErrorMsg] = useState('');
     const [showRecaptcha, setShowRecaptcha] = useState(false);
-    const [recaptchaToken, setRecaptchaToken] = useState(null);
+    // ...removed unused recaptchaToken
     const containerRef = useRef(null);
 
     useEffect(() => {
@@ -65,7 +66,6 @@ const Register = () => {
     }
 
     function handleRecaptcha(token) {
-        setRecaptchaToken(token);
         if (token) {
             // Proceed with registration after reCAPTCHA
             axios.post('/users/register', { firstName, lastName, email, password, googleApiKey })

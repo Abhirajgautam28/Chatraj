@@ -1,8 +1,20 @@
+
 import { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import MonacoEditor from '@monaco-editor/react';
-import { initVimMode } from 'monaco-vim';
 import ReactModal from 'react-modal';
+
+// Only import Monaco in non-test environments
+let MonacoEditor = () => null;
+let initVimMode = () => ({ dispose: () => {} });
+if (!(import.meta.env && import.meta.env.TEST)) {
+  // Not in test: dynamically import Monaco and monaco-vim
+  import('@monaco-editor/react').then(mod => {
+    MonacoEditor = mod.default;
+  });
+  import('monaco-vim').then(mod => {
+    initVimMode = mod.initVimMode;
+  });
+}
 
 // Additional themes
 const THEMES = [

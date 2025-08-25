@@ -1,3 +1,4 @@
+import React from 'react';
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import useTheme from '../context/useTheme';
