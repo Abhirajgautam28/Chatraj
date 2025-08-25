@@ -9,6 +9,7 @@ import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
 // ...existing code...
 import Blog from '../components/Blog.jsx';
 import ContactUs from '../components/ContactUs.jsx';
+import AskChatRajModal from '../components/AskChatRajModal.jsx';
 
 // Newsletter API endpoint for subscription
 const NEWSLETTER_API_URL =
@@ -141,6 +142,7 @@ const Home = () => {
   const [isNavVisible, setIsNavVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showFabMenu, setShowFabMenu] = useState(false);
+  const [showAskChatRajModal, setShowAskChatRajModal] = useState(false);
 
 
   useEffect(() => {
@@ -614,6 +616,15 @@ function greet(name) {
                 >
                   <i className="ri-login-box-line"></i> Login
                 </Link>
+                <button
+                  onClick={() => {
+                    setShowFabMenu(false);
+                    setShowAskChatRajModal(true);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 text-blue-600 transition rounded hover:bg-blue-50"
+                >
+                  <i className="ri-question-answer-line"></i> Ask ChatRaj
+                </button>
                 <a
                   href="https://github.com/Abhirajgautam28/Chatraj"
                   target="_blank"
@@ -633,6 +644,11 @@ function greet(name) {
       <footer className={`px-8 py-6 mt-0 text-center ${isDarkMode ? 'bg-gray-900' : 'bg-gray-200'}`}>
         <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>© 2025 ChatRaj All rights reserved.</p>
       </footer>
+
+      <AskChatRajModal
+        isOpen={showAskChatRajModal}
+        onRequestClose={() => setShowAskChatRajModal(false)}
+      />
     </div>
   );
 };
