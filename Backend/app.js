@@ -18,7 +18,6 @@ const allowedOrigins = [
   'https://chatraj-fpo1pa3bz-abhiraj-gautams-projects.vercel.app'
 ];
 
-connect().catch(console.error);
 
 const app = express();
 

@@ -78,7 +78,7 @@ export const addUsersToProject = async ({ projectId, users, userId }) => {
         users: userId
     })
 
-    console.log(project)
+    // ...removed console.log for production cleanliness
 
     if (!project) {
         throw new Error("User not belong to this project")

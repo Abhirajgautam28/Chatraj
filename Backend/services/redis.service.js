@@ -5,7 +5,7 @@ dotenv.config();
 const redisClient = new Redis(process.env.REDIS_URL);
 
 redisClient.on('connect', () => {
-    console.log('Redis connected');
+    // ...removed console.log for production cleanliness
 });
 
 redisClient.on('error', (err) => {

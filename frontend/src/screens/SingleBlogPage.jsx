@@ -1,3 +1,4 @@
+// ...existing code...
 import { useEffect, useState, useRef } from 'react';
 import { BlogThemeProvider } from '../context/blogTheme.context';
 import useBlogTheme from '../context/useBlogTheme';
@@ -41,7 +42,7 @@ Comment.propTypes = {
 const SingleBlogPageContent = () => {
     const [blog, setBlog] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [comment, setComment] = useState('');
+    // ...removed unused comment and setComment
     const { id } = useParams();
     const heroRef = useRef(null);
     const contentRef = useRef(null);
@@ -79,7 +80,7 @@ const SingleBlogPageContent = () => {
                     setBlog(response.data);
                     setLoading(false);
                 }
-            } catch (error) {
+            } catch {
                 if (isMounted) setLoading(false);
             }
         };
