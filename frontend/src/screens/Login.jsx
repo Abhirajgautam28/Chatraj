@@ -52,16 +52,28 @@ const Login = () => {
     }, []);
 
     const [showRecaptcha, setShowRecaptcha] = useState(false);
+    // Determine if recaptcha should be disabled (local/dev)
+    const isRecaptchaDisabled = (
+        import.meta.env.VITE_DISABLE_RECAPTCHA === 'true' ||
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1'
+    );
     // ...removed unused recaptchaToken
     const [loginError, setLoginError] = useState('');
 
     function submitHandler(e) {
         e.preventDefault();
-        setShowRecaptcha(true);
+        if (isRecaptchaDisabled) {
+            // Bypass recaptcha in local/dev
+            handleRecaptcha('test-bypass-token');
+        } else {
+            setShowRecaptcha(true);
+        }
     }
     function handleRecaptcha(token) {
         setLoginError('');
-        if (token) {
+        // If recaptcha is disabled, skip token check
+        if (isRecaptchaDisabled || token) {
             axios.post('/api/users/login', { email, password, recaptchaToken: token })
                 .then((res) => {
                     localStorage.setItem('token', res.data.token);
@@ -243,7 +255,8 @@ const Login = () => {
                         Login
                     </button>
                 </form>
-                {showRecaptcha && (
+                {/* Only show recaptcha modal if not disabled */}
+                {showRecaptcha && !isRecaptchaDisabled && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
                         <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-sm flex flex-col items-center">
                             {import.meta.env.VITE_RECAPTCHA_SITE_KEY ? (
