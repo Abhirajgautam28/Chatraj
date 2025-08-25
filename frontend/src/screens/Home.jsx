@@ -1,6 +1,6 @@
 import ProjectShowcase from '../components/ProjectShowcase.jsx';
 import UserLeaderboard from '../components/UserLeaderboard.jsx';
-import { useContext, useEffect, useState, lazy, Suspense } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserContext } from '../context/user.context';
@@ -9,7 +9,7 @@ import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
 // ...existing code...
 import Blog from '../components/Blog.jsx';
 import ContactUs from '../components/ContactUs.jsx';
-const AskChatRajModal = lazy(() => import('../components/AskChatRajModal.jsx'));
+import AskChatRajModal from '../components/AskChatRajModal.jsx';
 
 // Newsletter API endpoint for subscription
 const NEWSLETTER_API_URL =
@@ -645,14 +645,10 @@ function greet(name) {
         <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>© 2025 ChatRaj All rights reserved.</p>
       </footer>
 
-      <Suspense fallback={<div>Loading...</div>}>
-        {showAskChatRajModal && (
-          <AskChatRajModal
-            isOpen={showAskChatRajModal}
-            onRequestClose={() => setShowAskChatRajModal(false)}
-          />
-        )}
-      </Suspense>
+      <AskChatRajModal
+        isOpen={showAskChatRajModal}
+        onRequestClose={() => setShowAskChatRajModal(false)}
+      />
     </div>
   );
 };
