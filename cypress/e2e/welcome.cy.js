@@ -13,7 +13,6 @@ describe('Welcome ChatRaj Flow', () => {
         cy.visit('/welcome-chatraj');
       }
     });
-  cy.wait(4500);
   expect(true).to.be.true;
   });
 });
