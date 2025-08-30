@@ -17,6 +17,7 @@ ChatRaj is a comprehensive, AI-powered platform designed to streamline software 
     - [Project Management](#project-management)
       - [Advanced Category Management](#advanced-category-management)
     - [Code Editor \& Execution](#code-editor--execution)
+    - [Automated Testing](#automated-testing)
   - [Tech Stack](#tech-stack)
   - [Architecture Overview](#architecture-overview)
   - [Screenshots](#screenshots)
@@ -68,6 +69,7 @@ A redesigned blog section with 3D animations, Material-UI components, and a mode
 - **AI Code Assistant:** Get code suggestions, explanations, and automation via Google Generative AI.
 - **@ChatRaj Mentions:** Directly interact with the AI assistant in chat.
 - **Auto-complete Suggestions:** Speed up communication with smart phrase suggestions.
+- **Chatbot Modal:** A new chatbot feature to provide instant help and support.
 
 ### User Experience
 
@@ -100,6 +102,10 @@ Organize projects with 15+ predefined categories, grid/list views, search functi
 
 - **Colorful Syntax Highlighting:** The code editor now uses highlight.js themes for vibrant, VS Code-like syntax coloring in both light and dark mode.
 - **Run Button Timer:** When running code in the browser, the run button displays a live countdown timer until the WebContainer is ready, so users know exactly when they can execute their code.
+
+### Automated Testing
+- **End-to-End Testing:** Comprehensive E2E tests for user flows using Cypress.
+- **Unit & Integration Testing:** Automated testing setup with Jest for both backend and frontend components.
 
 ---
 

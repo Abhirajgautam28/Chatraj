@@ -6,6 +6,22 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## Latest Features
 
+### 2025-08-26
+**Fixes & Improvements**
+- Modified Cypress tests to be more reliable and pass consistently.
+- Fixed Cypress configuration and added a sample test file.
+
+### 2025-08-25
+**Features & UI Enhancements**
+- Added a comprehensive automated testing setup with Jest for backend/frontend and Cypress for E2E testing.
+- Added new E2E tests for user flows.
+- Introduced a new chatbot modal feature.
+**Fixes & Improvements**
+- Fixed numerous Cypress test failures and crashing issues.
+- Addressed rendering and positioning issues with the new chatbot modal.
+- Fixed tests for category navigation and blog post verification.
+- Removed an unnecessary screenshot from a failed test.
+
 ### 2025-08-24
 **Features & UI Enhancements**
 - Added a speed-insights script to collect performance metrics.

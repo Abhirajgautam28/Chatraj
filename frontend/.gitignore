@@ -1,9 +1,3 @@
-# Ignore environment variables
-.env
-# Ignore environment files
-.env
-frontend/.env
-
 # Logs
 logs
 *.log

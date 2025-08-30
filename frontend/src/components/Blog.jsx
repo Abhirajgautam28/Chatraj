@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
 import useTheme from '../context/useTheme';
 import axios from '../config/axios';
 import { useNavigate } from 'react-router-dom';
 import anime from 'animejs';
 
-function Blog({ user }) {
+const Blog = () => {
     const [blogs, setBlogs] = useState([]);
     const navigate = useNavigate();
     const { isDarkMode } = useTheme();
+
     useEffect(() => {
         const fetchBlogs = async () => {
             try {
@@ -37,7 +37,8 @@ function Blog({ user }) {
     }, [blogs]);
 
     const handleBlogClick = (blogId) => {
-        if (user) {
+        const token = localStorage.getItem('token');
+        if (token) {
             navigate(`/blogs/${blogId}`);
         } else {
             navigate('/login', { state: { from: `/blogs/${blogId}` } });
@@ -46,6 +47,7 @@ function Blog({ user }) {
 
     return (
         <div className={isDarkMode ? 'bg-gray-900 text-white transition-colors duration-300' : 'bg-white text-gray-900 transition-colors duration-300'}>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {blogs.map((blog) => (
                     <div key={blog._id} className="blog-preview-card">
@@ -89,15 +91,6 @@ function Blog({ user }) {
             </div>
         </div>
     );
-}
-
-Blog.propTypes = {
-    user: PropTypes.object,
 };
 
 export default Blog;
-
-
-Blog.propTypes = {
-    user: PropTypes.object,
-};
