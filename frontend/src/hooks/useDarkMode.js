@@ -18,6 +18,19 @@ const useDarkMode = (key = 'blog_dark_mode', defaultValue = false) => {
         document.documentElement.classList.remove('dark');
       }
       localStorage.setItem(key, darkMode);
+
+      // Subscribe to system theme changes
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handleChange = (e) => {
+        // Only update if user hasn't set a preference
+        if (localStorage.getItem(key) === null) {
+          setDarkMode(e.matches);
+        }
+      };
+      mediaQuery.addEventListener('change', handleChange);
+      return () => {
+        mediaQuery.removeEventListener('change', handleChange);
+      };
     }
   }, [darkMode, key]);
 

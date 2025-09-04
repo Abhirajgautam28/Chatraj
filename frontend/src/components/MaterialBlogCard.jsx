@@ -2,14 +2,14 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import 'remixicon/fonts/remixicon.css';
 
-const MaterialBlogCard = ({ blog, darkMode }) => (
+const MaterialBlogCard = ({ blog }) => (
   <div
     className={`rounded-xl shadow-md bg-white dark:bg-gray-900 hover:shadow-lg transition-shadow duration-200 flex flex-col h-full border border-gray-200 dark:border-gray-800 max-w-md mx-auto`}
     style={{ minWidth: 0 }}
   >
     <div className="p-0">
       {blog.coverImage && (
-        <img src={blog.coverImage} alt={blog.title} className="rounded-t-xl w-full h-48 object-cover" />
+        <img src={blog.coverImage} alt={`Cover image for ${blog.title}`} className="rounded-t-xl w-full h-48 object-cover" />
       )}
     </div>
     <div className="flex-1 flex flex-col p-5">
