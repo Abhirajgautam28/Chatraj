@@ -78,7 +78,8 @@ const Block = ({ id, index, type, content, moveBlock, updateContent, deleteBlock
     );
 };
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
+import useDarkMode from '../hooks/useDarkMode';
 import { BlogThemeProvider } from '../context/blogTheme.context';
 //
 import axios from '../config/axios';
@@ -89,29 +90,95 @@ import 'remixicon/fonts/remixicon.css';
 //
 
 
+const getYouTubeEmbedUrl = (urlString) => {
+    if (!urlString) return '';
+    try {
+        const url = new URL(urlString);
+        let videoId = '';
+        if (url.hostname === 'youtu.be') {
+            videoId = url.pathname.slice(1);
+        } else if (url.hostname.includes('youtube.com')) {
+            if (url.pathname === '/watch' && url.searchParams.has('v')) {
+                videoId = url.searchParams.get('v');
+            } else if (url.pathname.startsWith('/embed/')) {
+                videoId = url.pathname.split('/embed/')[1].split(/[/?]/)[0];
+            } else if (url.pathname.startsWith('/v/')) {
+                videoId = url.pathname.split('/v/')[1].split(/[/?]/)[0];
+            }
+        }
+        if (!videoId) {
+            const match = urlString.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+            if (match && match[1]) {
+                videoId = match[1];
+            }
+        }
+        if (videoId) {
+            return `https://www.youtube.com/embed/${videoId}`;
+        }
+    } catch {}
+    return '';
+};
+
+const DarkModeToggle = ({ darkMode, setDarkMode }) => (
+    <button
+        aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+        className="absolute top-2 right-2 z-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full p-2 shadow hover:shadow-md transition-all duration-200 flex items-center justify-center"
+        onClick={() => setDarkMode((d) => !d)}
+    >
+        {darkMode ? (
+            <i className="ri-sun-line text-2xl text-yellow-400" />
+        ) : (
+            <i className="ri-moon-line text-2xl text-blue-700" />
+        )}
+    </button>
+);
+
+const BlockList = ({ blocks, moveBlock, updateContent, deleteBlock }) => (
+    <div className="mb-8">
+        {blocks.map((block, index) => (
+            <Block
+                key={block.id}
+                index={index}
+                id={block.id}
+                type={block.type}
+                content={block.content}
+                moveBlock={moveBlock}
+                updateContent={updateContent}
+                deleteBlock={deleteBlock}
+            />
+        ))}
+    </div>
+);
+
+const LivePreview = ({ title, blocks }) => (
+    <div className="glass-card p-8 md:p-10 bg-white/60 dark:bg-gray-800/60 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 backdrop-blur-xl relative overflow-hidden">
+        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-gradient-to-tr from-purple-400/30 via-blue-400/20 to-transparent rounded-full blur-2xl pointer-events-none"></div>
+        <h2 className="text-2xl font-bold mb-6 text-blue-700 dark:text-blue-300">Live Preview</h2>
+        <div className="prose prose-blue dark:prose-invert max-w-none">
+            <h1 className="text-3xl font-extrabold mb-4 text-blue-700 dark:text-blue-300 drop-shadow">{title}</h1>
+            {blocks.map(block => {
+                if (block.type === 'text') return <p key={block.id} className="text-lg leading-relaxed mb-3">{block.content}</p>;
+                if (block.type === 'image') return <img key={block.id} src={block.content} alt="preview" className="rounded-xl shadow mb-3" />;
+                if (block.type === 'video') {
+                    const embedUrl = getYouTubeEmbedUrl(block.content);
+                    if (!embedUrl) {
+                        return <div key={block.id} className="w-full aspect-video rounded-xl shadow mb-3 flex items-center justify-center bg-gray-200 dark:bg-gray-800 text-gray-500 text-center">Invalid or unsupported video URL</div>;
+                    }
+                    return <iframe key={block.id} src={embedUrl} title="preview" className="w-full aspect-video rounded-xl shadow mb-3" allowFullScreen />;
+                }
+                if (block.type === 'code') return <pre key={block.id} className="bg-gray-900/90 text-white rounded-xl p-4 mb-3 overflow-x-auto"><code className="language-javascript">{block.content}</code></pre>;
+                if (block.type === 'quote') return <blockquote key={block.id} className="border-l-4 border-blue-400 pl-4 italic text-lg text-blue-700 dark:text-blue-300 mb-3">{block.content}</blockquote>;
+                return null;
+            })}
+        </div>
+    </div>
+);
+
 const CreateBlogFormContent = () => {
     const [title, setTitle] = useState('');
     const [blocks, setBlocks] = useState([{ id: 1, type: 'text', content: '' }]);
-    const [darkMode, setDarkMode] = useState(() => {
-        if (typeof window !== 'undefined') {
-            const stored = localStorage.getItem('create_blog_dark_mode');
-            if (stored) return stored === 'true';
-            return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        }
-        return false;
-    });
+    const [darkMode, setDarkMode] = useDarkMode('create_blog_dark_mode', false);
     const navigate = useNavigate();
-
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            if (darkMode) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-            localStorage.setItem('create_blog_dark_mode', darkMode);
-        }
-    }, [darkMode]);
 
     const moveBlock = useCallback((dragIndex, hoverIndex) => {
         setBlocks((prevBlocks) => {

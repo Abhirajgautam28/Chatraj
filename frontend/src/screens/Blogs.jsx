@@ -1,51 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BlogThemeProvider } from '../context/blogTheme.context';
 import axios from '../config/axios';
 import { Link } from 'react-router-dom';
 import 'remixicon/fonts/remixicon.css';
+import MaterialBlogCard from '../components/MaterialBlogCard';
+import useDarkMode from '../hooks/useDarkMode';
 
-// Material-inspired Blog Card with max width and dark mode support
-const MaterialBlogCard = ({ blog, darkMode }) => (
-    <div
-        className={`rounded-xl shadow-md bg-white dark:bg-gray-900 hover:shadow-lg transition-shadow duration-200 flex flex-col h-full border border-gray-200 dark:border-gray-800 max-w-md mx-auto`}
-        style={{ minWidth: 0 }}
-    >
-        <div className="p-0">
-            {blog.coverImage && (
-                <img src={blog.coverImage} alt={blog.title} className="rounded-t-xl w-full h-48 object-cover" />
-            )}
-        </div>
-        <div className="flex-1 flex flex-col p-5">
-            <h2 className="text-xl font-semibold mb-2 text-blue-800 dark:text-blue-300 line-clamp-2">{blog.title}</h2>
-            <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-3">{blog.summary || blog.content?.slice(0, 120) + '...'}</p>
-            <div className="flex items-center gap-2 mt-auto">
-                <i className="ri-user-3-line text-lg text-blue-400 dark:text-blue-300" />
-                <span className="text-gray-500 dark:text-gray-300 text-xs">{blog.authorName || 'Unknown Author'}</span>
-                <span className="mx-2 text-gray-300 dark:text-gray-600">|</span>
-                <i className="ri-calendar-line text-lg text-blue-400 dark:text-blue-300" />
-                <span className="text-gray-500 dark:text-gray-300 text-xs">{blog.createdAt ? new Date(blog.createdAt).toLocaleDateString() : ''}</span>
-            </div>
-            <Link to={`/blogs/${blog._id}`} className="mt-4">
-                <button className="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-medium shadow transition-all duration-150">
-                    Read More <i className="ri-arrow-right-line ml-1"></i>
-                </button>
-            </Link>
-        </div>
-    </div>
-);
 
 const BlogsContent = () => {
     const [blogs, setBlogs] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [darkMode, setDarkMode] = useState(() => {
-        // Try to use system preference or localStorage
-        if (typeof window !== 'undefined') {
-            const stored = localStorage.getItem('blog_dark_mode');
-            if (stored) return stored === 'true';
-            return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        }
-        return false;
-    });
+    const [darkMode, setDarkMode] = useDarkMode('blog_dark_mode', false);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -64,8 +29,9 @@ const BlogsContent = () => {
                 const response = await axios.get('/api/blogs');
                 setBlogs(response.data);
                 setLoading(false);
-            } catch {
+            } catch (error) {
                 setLoading(false);
+                console.error('Error fetching blogs:', error);
             }
         };
         fetchBlogs();
