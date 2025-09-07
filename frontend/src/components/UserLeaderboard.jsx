@@ -25,7 +25,7 @@ const UserLeaderboard = () => {
     }
 
     return (
-        <div className="p-6 bg-white rounded-lg shadow-md dark:bg-gray-700">
+    <div className="p-6 bg-white rounded-lg shadow-md dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
             <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white">User Leaderboard</h3>
             <ul className="space-y-4">
                 {Array.isArray(users) && users.map((user, index) => (
