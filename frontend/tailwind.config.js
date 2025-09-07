@@ -11,7 +11,10 @@ export default {
         gray: {
           850: '#1f2937',
         }
-      }
+      },
+      backgroundImage: {
+        'dark-gradient': 'linear-gradient(135deg, #111827 0%, #1f2937 50%, #111827 100%)',
+      },
     },
   },
   plugins: [],
