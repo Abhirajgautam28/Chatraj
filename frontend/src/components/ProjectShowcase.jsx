@@ -1,6 +1,7 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import axios from '../config/axios';
+import Card from './Card';
 
 const ProjectShowcase = () => {
     const [projects, setProjects] = useState([]);
@@ -25,17 +26,17 @@ const ProjectShowcase = () => {
     }
 
     return (
-    <div className="p-6 rounded-lg shadow-md bg-white dark:bg-transparent dark:bg-dark-gradient">
-            <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Project Showcase</h3>
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                {Array.isArray(projects) && projects.map(project => (
-                    <div key={project._id} className="p-4 bg-gray-100 rounded-lg dark:bg-gray-900/80">
-                        <h4 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white">{project.name}</h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">{project.category}</p>
-                    </div>
-                ))}
-            </div>
+    <Card>
+        <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Project Showcase</h3>
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+            {Array.isArray(projects) && projects.map(project => (
+                <div key={project._id} className="p-4 bg-gray-100 rounded-lg dark:bg-gray-900/80">
+                    <h4 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white">{project.name}</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">{project.category}</p>
+                </div>
+            ))}
         </div>
+    </Card>
     );
 };
 
