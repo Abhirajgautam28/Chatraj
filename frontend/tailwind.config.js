@@ -13,7 +13,7 @@ export default {
         }
       },
       backgroundImage: {
-        'dark-gradient': 'linear-gradient(135deg, #111827 0%, #1f2937 50%, #111827 100%)',
+  'card-dark-mode-gradient': 'linear-gradient(135deg, #111827 0%, #1f2937 50%, #111827 100%)',
       },
     },
   },
