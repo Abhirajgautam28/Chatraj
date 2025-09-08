@@ -26,7 +26,7 @@ const UserLeaderboard = () => {
     }
 
     return (
-    <Card>
+    <Card className="bg-white dark:bg-card-dark-mode-gradient">
         <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white">User Leaderboard</h3>
         <ul className="space-y-4">
             {Array.isArray(users) && users.map((user, index) => (
