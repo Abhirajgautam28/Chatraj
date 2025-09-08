@@ -26,7 +26,7 @@ const ProjectShowcase = () => {
     }
 
     return (
-    <Card>
+    <Card className="bg-white dark:bg-card-dark-mode-gradient">
         <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Project Showcase</h3>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             {Array.isArray(projects) && projects.map(project => (
