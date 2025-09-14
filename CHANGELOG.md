@@ -6,6 +6,23 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## Latest Features
 
+### 2025-09-08
+**Fixes & Improvements**
+- Fixed an issue with the user leaderboard and updated the styling for the project showcase.
+
+### 2025-09-07
+**Fixes & Improvements**
+- Fixed the background gradient for dark mode.
+- Corrected rendering issues for cards in dark mode.
+- Addressed UI rendering problems in the ProjectShowcase and UserLeaderboard components.
+
+### 2025-09-04
+**Fixes & Improvements**
+- Fixed a dark mode issue affecting blog cards.
+- Corrected the usage of the `darkMode` prop in the `MaterialBlogCard` component.
+- Resolved a UI issue on the Blogs screen.
+- Improved the `CreateBlogForm.jsx` component by adding `useEffect`.
+
 ### 2025-08-26
 **Fixes & Improvements**
 - Modified Cypress tests to be more reliable and pass consistently.
