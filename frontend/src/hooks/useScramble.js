@@ -13,10 +13,13 @@ export function useScramble({
   useEffect(() => {
     let iv;
     let iter = 0;
+    let mounted = true;
     if (!isHovering) {
-      setDisplayText(text);
-      setRevealedSet(new Set());
-      setIsScrambling(false);
+      if (mounted) {
+        setDisplayText(text);
+        setRevealedSet(new Set());
+        setIsScrambling(false);
+      }
       return;
     }
     setIsScrambling(true);
@@ -27,15 +30,20 @@ export function useScramble({
           next.add(getNextIndex(text.length, prev, revealDirection));
         }
         const newText = shuffleText(text, next, { useOriginalCharsOnly, characters });
-        setDisplayText(sequential ? newText : (iter++ < maxIterations ? newText : text));
+        if (mounted) {
+          setDisplayText(sequential ? newText : (iter++ < maxIterations ? newText : text));
+        }
         if ((!sequential && iter >= maxIterations) || (sequential && next.size >= text.length)) {
           clearInterval(iv);
-          setIsScrambling(false);
+          if (mounted) setIsScrambling(false);
         }
         return next;
       });
     }, speed);
-    return () => clearInterval(iv);
+    return () => {
+      mounted = false;
+      clearInterval(iv);
+    };
   }, [
     isHovering, text, speed, maxIterations,
     sequential, revealDirection, useOriginalCharsOnly, characters
