@@ -33,7 +33,7 @@ export default function DecryptedText({
   parentClassName = '',
   encryptedClassName = '',
   animateOn = 'hover',
-  as = 'h1',
+  as = 'span',
   ...props
 }) {
   const [isHovering, setIsHovering] = useState(false);
@@ -76,8 +76,8 @@ export default function DecryptedText({
         }
       : {};
 
-  // Render as h1 for accessibility/SEO, fallback to span if as is set
-  const Tag = as || 'h1';
+  // Render as span by default; use 'as' prop for heading tags if explicitly set
+  const Tag = as || 'span';
 
   return (
     <motion.span className={parentClassName} ref={containerRef} style={styles.wrapper} {...hoverProps} {...props}>

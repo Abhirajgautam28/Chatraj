@@ -1,14 +1,17 @@
 // hooks/useIntersection.js
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 
 export function useIntersection(ref, onIntersect, options) {
+  const memoizedCallback = useCallback(onIntersect, [onIntersect]);
+
   useEffect(() => {
     if (!ref.current) return;
-    const obs = new window.IntersectionObserver(onIntersect, options);
-    obs.observe(ref.current);
+    const node = ref.current;
+    const obs = new window.IntersectionObserver(memoizedCallback, options);
+    obs.observe(node);
     return () => {
-      if (ref.current) obs.unobserve(ref.current);
+      if (node) obs.unobserve(node);
       obs.disconnect();
     };
-  }, [ref, onIntersect, JSON.stringify(options)]);
+  }, [ref, memoizedCallback, options]);
 }
