@@ -36,7 +36,7 @@
     "axios": "^1.12.2",
     "bootstrap": "^5.3.8",
     "framer-motion": "^12.23.12",
-    "gsap": "^3.12.5",
+    "gsap": "^3.13.0",
     "highlight.js": "^11.11.1",
     "imagesloaded": "^5.0.0",
     "markdown-to-jsx": "^7.7.13",
