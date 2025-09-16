@@ -1,5 +1,4 @@
 import React from 'react';
-// ...existing code...
 import ProjectShowcase from '../components/ProjectShowcase.jsx';
 import UserLeaderboard from '../components/UserLeaderboard.jsx';
 import { useContext, useEffect, useState, lazy, Suspense } from 'react';
@@ -8,9 +7,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
-// ...existing code...
 import Blog from '../components/Blog.jsx';
 import ContactUs from '../components/ContactUs.jsx';
+import DecryptedText from '../components/DecryptedText.jsx';
 const AskChatRajModal = lazy(() => import('../components/AskChatRajModal.jsx'));
 
 // Newsletter API endpoint for subscription
@@ -256,14 +255,15 @@ const Home = () => {
 
       {/* Hero */}
       <section className="relative flex flex-col items-center justify-center min-h-screen text-center">
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className={`max-w-4xl mb-6 text-5xl font-bold leading-tight ${isDarkMode ? 'text-white' : 'text-gray-800'} md:text-6xl`}
-        >
-          Your Intelligent Software Engineering Assistant
-        </motion.h1>
+        <DecryptedText
+          text="Your Intelligent Software Engineering Assistant"
+          speed={50}
+          maxIterations={12}
+          className="text-4xl md:text-5xl font-bold text-center text-blue-900 dark:text-blue-200"
+          parentClassName="block w-full mb-6"
+          encryptedClassName="text-blue-400 dark:text-blue-600"
+          animateOn="hover"
+        />
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
