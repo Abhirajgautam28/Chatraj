@@ -10,6 +10,8 @@ COPY . .
 
 RUN npm run build
 
+RUN npm prune --production
+
 EXPOSE 3080
 
 RUN chown -R node /usr/src/app
