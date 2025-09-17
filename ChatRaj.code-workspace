@@ -16,6 +16,9 @@
 			"typescript",
 			"typescriptreact"
 		],
+		"eslint.workingDirectories": [
+			{ "pattern": "!*.mongodb.js" }
+		],
 		"prettier.requireConfig": true,
 					"editor.codeActionsOnSave": {
 						"source.fixAll": "always"

@@ -1,3 +1,4 @@
+## Ignore MongoDB Playground files
 *.mongodb.js
 .codegpt
 .fake
