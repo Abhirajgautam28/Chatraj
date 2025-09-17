@@ -9,7 +9,7 @@ services:
     environment:
       NODE_ENV: production
     ports:
-      - 8080:8080
+      - 8081:8080
     depends_on:
       - mongo
       - redis
@@ -32,16 +32,12 @@ services:
   mongo:
     image: mongo:7
     restart: always
-    ports:
-      - 27017:27017
     networks:
       - chatraj-net
 
   redis:
     image: redis:7
     restart: always
-    ports:
-      - 6379:6379
     networks:
       - chatraj-net
 
