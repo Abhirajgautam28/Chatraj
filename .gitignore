@@ -1,3 +1,4 @@
+*.mongodb.js
 .codegpt
 .fake
 .env

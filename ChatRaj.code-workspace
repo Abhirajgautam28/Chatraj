@@ -1,8 +1,74 @@
 {
 	"folders": [
-		{
-			"path": "."
-		}
+		{ "path": "." }
 	],
-	"settings": {}
+	"settings": {
+		"editor.formatOnSave": true,
+		"files.exclude": {
+			"**/.env": true,
+			"**/node_modules": true,
+			"**/.vscode": false
+		},
+		"eslint.enable": true,
+		"eslint.validate": [
+			"javascript",
+			"javascriptreact",
+			"typescript",
+			"typescriptreact"
+		],
+		"eslint.workingDirectories": [
+			{ "pattern": "!*.mongodb.js" }
+		],
+		"prettier.requireConfig": true,
+					"editor.codeActionsOnSave": {
+						"source.fixAll": "always"
+					},
+		"search.exclude": {
+			"**/node_modules": true,
+			"**/dist": true,
+			"**/.next": true
+		}
+	},
+	"extensions": {
+		"recommendations": [
+			"dbaeumer.vscode-eslint",
+			"esbenp.prettier-vscode",
+			"formulahendry.auto-close-tag",
+			"formulahendry.auto-rename-tag",
+			"bradlc.vscode-tailwindcss",
+			"mongodb.mongodb-vscode",
+			"ms-azuretools.vscode-docker",
+			"streetsidesoftware.code-spell-checker",
+			"ms-vsliveshare.vsliveshare"
+		]
+	},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "Start Backend",
+				"type": "shell",
+				"command": "cd Backend && npm run dev",
+				"problemMatcher": []
+			},
+			{
+				"label": "Start Frontend",
+				"type": "shell",
+				"command": "cd frontend && npm run dev",
+				"problemMatcher": []
+			},
+			{
+				"label": "Test Backend",
+				"type": "shell",
+				"command": "cd Backend && npm test",
+				"problemMatcher": []
+			},
+			{
+				"label": "Test Frontend",
+				"type": "shell",
+				"command": "cd frontend && npm test",
+				"problemMatcher": []
+			}
+		]
+	}
 }
