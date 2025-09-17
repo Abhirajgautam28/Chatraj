@@ -1,0 +1,29 @@
+services:
+  backend:
+    image: backend
+    build:
+      context: Backend
+      dockerfile: ./Dockerfile
+    environment:
+      NODE_ENV: production
+    ports:
+      - 8080:8080
+    networks:
+      - chatraj-net
+
+  frontend:
+    image: frontend
+    build:
+      context: frontend
+      dockerfile: ./Dockerfile
+    environment:
+      NODE_ENV: production
+      VITE_BACKEND_URL: http://backend:8080
+    ports:
+      - 3080:3080
+    networks:
+      - chatraj-net
+
+networks:
+  chatraj-net:
+    driver: bridge
