@@ -9,7 +9,7 @@ import { ThemeContext } from '../context/theme.context';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
 import Blog from '../components/Blog.jsx';
 import ContactUs from '../components/ContactUs.jsx';
-import DecryptedText from '../components/DecryptedText.jsx';
+
 const AskChatRajModal = lazy(() => import('../components/AskChatRajModal.jsx'));
 
 // Newsletter API endpoint for subscription
@@ -255,15 +255,9 @@ const Home = () => {
 
       {/* Hero */}
       <section className="relative flex flex-col items-center justify-center min-h-screen text-center">
-        <DecryptedText
-          text="Your Intelligent Software Engineering Assistant"
-          speed={50}
-          maxIterations={12}
-          className="text-4xl md:text-5xl font-bold text-center text-blue-900 dark:text-blue-200"
-          parentClassName="block w-full mb-6"
-          encryptedClassName="text-blue-400 dark:text-blue-600"
-          animateOn="hover"
-        />
+        <h1 className="text-4xl md:text-5xl font-bold text-center text-blue-900 dark:text-blue-200 block w-full mb-6">
+          Your Intelligent Software Engineering Assistant
+        </h1>
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -299,7 +293,7 @@ const Home = () => {
           className={`max-w-2xl p-6 mx-auto mt-16 transition-all duration-300 border shadow-xl rounded-xl group hover:scale-105 hover:shadow-2xl hover:border-blue-400 ${isDarkMode ? 'bg-gray-900/80 border-blue-900/30 hover:bg-gray-800' : 'bg-gray-50 border-blue-100 hover:bg-white'}`}
         >
           <pre className={`font-mono text-base leading-relaxed text-left ${isDarkMode ? 'text-blue-200' : 'text-black'}`}>
-{`// AI-powered code suggestion
+            {`// AI-powered code suggestion
 function greet(name) {
   return \`Hello, \${name} 👋\`;
 }
@@ -334,26 +328,26 @@ function greet(name) {
 
       <section className={`py-20 ${isDarkMode ? 'bg-gray-900/80' : 'bg-white'}`}>
         <div className="max-w-6xl mx-auto">
-            <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Popular Use Cases</h2>
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-              {useCases.map((useCase, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className={`p-6 transition-all duration-300 rounded-lg shadow ${isDarkMode ? 'bg-gray-800/40' : 'bg-white'} hover:scale-105 hover:shadow-2xl`}
-                >
-                  <i className={`text-3xl ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} ${useCase.icon}`}></i>
-                  <h3 className={`mt-4 mb-2 text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{useCase.title}</h3>
-                  <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{useCase.description}</p>
-                </motion.div>
-              ))}
-            </div>
+          <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Popular Use Cases</h2>
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            {useCases.map((useCase, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className={`p-6 transition-all duration-300 rounded-lg shadow ${isDarkMode ? 'bg-gray-800/40' : 'bg-white'} hover:scale-105 hover:shadow-2xl`}
+              >
+                <i className={`text-3xl ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} ${useCase.icon}`}></i>
+                <h3 className={`mt-4 mb-2 text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{useCase.title}</h3>
+                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{useCase.description}</p>
+              </motion.div>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className={`px-4 py-20 ${isDarkMode ? 'bg-gray-900/50' : 'bg-white'}`}>
+      <section className={`px-4 py-20 ${isDarkMode ? 'bg-gray-900/50' : 'bg-white'}`}>
         <div className="max-w-6xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Why Choose ChatRaj</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
@@ -423,15 +417,15 @@ function greet(name) {
           <div className="flex items-center justify-center flex-1 min-w-0">
             {/* 3D-like SVG illustration */}
             <svg className="w-full h-auto max-w-xs" viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <ellipse cx="160" cy="200" rx="120" ry="18" fill="#1e293b" opacity="0.5"/>
-              <rect x="60" y="40" width="200" height="120" rx="20" fill="#334155" stroke="#60a5fa" strokeWidth="3"/>
-              <rect x="90" y="70" width="140" height="60" rx="12" fill="#1e293b" stroke="#818cf8" strokeWidth="2"/>
-              <rect x="120" y="90" width="80" height="20" rx="6" fill="#38bdf8" opacity="0.7"/>
-              <circle cx="100" cy="60" r="8" fill="#38bdf8"/>
-              <circle cx="220" cy="60" r="8" fill="#818cf8"/>
-              <circle cx="160" cy="170" r="12" fill="#f472b6"/>
-              <rect x="140" y="120" width="40" height="10" rx="3" fill="#fbbf24" opacity="0.7"/>
-              <rect x="110" y="110" width="100" height="6" rx="2" fill="#64748b" opacity="0.5"/>
+              <ellipse cx="160" cy="200" rx="120" ry="18" fill="#1e293b" opacity="0.5" />
+              <rect x="60" y="40" width="200" height="120" rx="20" fill="#334155" stroke="#60a5fa" strokeWidth="3" />
+              <rect x="90" y="70" width="140" height="60" rx="12" fill="#1e293b" stroke="#818cf8" strokeWidth="2" />
+              <rect x="120" y="90" width="80" height="20" rx="6" fill="#38bdf8" opacity="0.7" />
+              <circle cx="100" cy="60" r="8" fill="#38bdf8" />
+              <circle cx="220" cy="60" r="8" fill="#818cf8" />
+              <circle cx="160" cy="170" r="12" fill="#f472b6" />
+              <rect x="140" y="120" width="40" height="10" rx="3" fill="#fbbf24" opacity="0.7" />
+              <rect x="110" y="110" width="100" height="6" rx="2" fill="#64748b" opacity="0.5" />
             </svg>
           </div>
         </div>
@@ -503,8 +497,8 @@ function greet(name) {
                 transition={{ duration: 5, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' }}
               >
                 <svg width="18" height="10" viewBox="0 0 18 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <ellipse cx="5" cy="8" rx="5" ry="2" fill="#e0e7ef" fillOpacity="0.7"/>
-                  <ellipse cx="13" cy="5" rx="5" ry="3" fill="#e0e7ef" fillOpacity="0.5"/>
+                  <ellipse cx="5" cy="8" rx="5" ry="2" fill="#e0e7ef" fillOpacity="0.7" />
+                  <ellipse cx="13" cy="5" rx="5" ry="3" fill="#e0e7ef" fillOpacity="0.5" />
                 </svg>
               </motion.span>
               <motion.span
@@ -514,8 +508,8 @@ function greet(name) {
                 transition={{ duration: 6, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut', delay: 1.5 }}
               >
                 <svg width="14" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <ellipse cx="4" cy="6" rx="4" ry="2" fill="#e0e7ef" fillOpacity="0.6"/>
-                  <ellipse cx="10" cy="3" rx="4" ry="3" fill="#e0e7ef" fillOpacity="0.4"/>
+                  <ellipse cx="4" cy="6" rx="4" ry="2" fill="#e0e7ef" fillOpacity="0.6" />
+                  <ellipse cx="10" cy="3" rx="4" ry="3" fill="#e0e7ef" fillOpacity="0.4" />
                 </svg>
               </motion.span>
               {/* Air stream lines inside the button */}
@@ -526,9 +520,9 @@ function greet(name) {
                 transition={{ duration: 2.5, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' }}
               >
                 <svg width="12" height="20" viewBox="0 0 12 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6 0 Q5 10 6 20" stroke="#bae6fd" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
-                  <path d="M9 2 Q8 10 9 18" stroke="#bae6fd" strokeWidth="1" strokeLinecap="round" fill="none"/>
-                  <path d="M3 4 Q2 10 3 16" stroke="#bae6fd" strokeWidth="0.8" strokeLinecap="round" fill="none"/>
+                  <path d="M6 0 Q5 10 6 20" stroke="#bae6fd" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+                  <path d="M9 2 Q8 10 9 18" stroke="#bae6fd" strokeWidth="1" strokeLinecap="round" fill="none" />
+                  <path d="M3 4 Q2 10 3 16" stroke="#bae6fd" strokeWidth="0.8" strokeLinecap="round" fill="none" />
                 </svg>
               </motion.span>
               {/* Rocket icon */}
@@ -580,7 +574,7 @@ function greet(name) {
                 }}
               >
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <ellipse cx="7" cy="7" rx="6" ry="4" fill="#e0e7ef" fillOpacity="0.7"/>
+                  <ellipse cx="7" cy="7" rx="6" ry="4" fill="#e0e7ef" fillOpacity="0.7" />
                 </svg>
               </motion.span>
             </span>
