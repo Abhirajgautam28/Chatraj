@@ -1,0 +1,5 @@
+@keyframes blink { to { opacity: 0 } }
+.cursor {
+  display: inline-block;
+  animation: blink var(--cursor-blink-duration, 0.5s) step-start infinite;
+}
