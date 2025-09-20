@@ -1,4 +1,5 @@
 import React from 'react';
+import TextType from '../components/TextType.jsx';
 import ProjectShowcase from '../components/ProjectShowcase.jsx';
 import UserLeaderboard from '../components/UserLeaderboard.jsx';
 import { useContext, useEffect, useState, lazy, Suspense } from 'react';
@@ -255,9 +256,14 @@ const Home = () => {
 
       {/* Hero */}
       <section className="relative flex flex-col items-center justify-center min-h-screen text-center">
-        <h1 className="text-4xl md:text-5xl font-bold text-center text-blue-900 dark:text-blue-200 block w-full mb-6">
-          Your Intelligent Software Engineering Assistant
-        </h1>
+        <TextType
+          text={["Your Intelligent Software Engineering Assistant"]}
+          typingSpeed={75}
+          pauseDuration={1500}
+          showCursor={true}
+          cursorCharacter="|"
+          className="text-4xl md:text-5xl font-bold text-center text-blue-900 dark:text-blue-200 block w-full mb-6"
+        />
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -323,6 +329,7 @@ function greet(name) {
               </motion.div>
             ))}
           </div>
+
         </div>
       </section>
 
