@@ -1,6 +1,12 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://chatraj-backend.onrender.com/api';
+let API_URL = import.meta.env.VITE_API_URL;
+
+if (!API_URL || API_URL === '' || API_URL === window.location.origin) {
+  API_URL = 'http://localhost:8080';
+}
+
+API_URL = API_URL.replace(/\/$/, '');
 
 const axiosInstance = axios.create({
   baseURL: API_URL

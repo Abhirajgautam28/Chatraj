@@ -1,4 +1,3 @@
-import React from 'react';
 // ...existing code...
 import { useContext, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,7 +16,7 @@ const Dashboard = () => {
 
   const createProject = (e) => {
     e.preventDefault();
-  axios.post('/api/projects/create', {
+    axios.post('/api/projects/create', {
       name: projectName,
       category: categoryName
     })

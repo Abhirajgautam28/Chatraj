@@ -1,5 +1,13 @@
 {
+  "name": "chatraj-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "npx concurrently \"cd Backend && node server.js\" \"cd frontend && npm run dev\"",
+    "smoke-test": "node Backend/scripts/smoke-test.js"
+  },
   "devDependencies": {
+    "concurrently": "^8.2.0",
     "cypress": "^15.0.0"
   }
 }

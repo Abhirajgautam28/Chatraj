@@ -113,7 +113,7 @@ const Categories = () => {
   }, []);
 
   const handleCategoryClick = (categoryTitle) => {
-  navigate(`/dashboard/${encodeURIComponent(categoryTitle)}`);
+    navigate(`/dashboard/${encodeURIComponent(categoryTitle)}`);
   };
 
   return (
@@ -522,7 +522,7 @@ const Categories = () => {
               ) : null
             );
           })()}
-        {/* End of main content */}
+          {/* End of main content */}
         </div>
       </main>
     </motion.div>
