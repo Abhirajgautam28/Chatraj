@@ -17,7 +17,7 @@ const Dashboard = () => {
 
   const createProject = (e) => {
     e.preventDefault();
-  axios.post('/api/projects/create', {
+    axios.post('/projects/create', {
       name: projectName,
       category: categoryName
     })
@@ -40,7 +40,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     // Always fetch all projects for the user, then filter by category on the frontend
-    axios.get('/api/projects/all')
+    axios.get('/projects/all')
       .then((res) => {
         if (Array.isArray(res.data.projects)) {
           if (categoryName) {

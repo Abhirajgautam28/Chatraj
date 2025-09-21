@@ -320,9 +320,9 @@ const Project = () => {
       reactions: newReactions
     });
 
-    setMessages(prevMessages => 
-      prevMessages.map(msg => 
-        msg._id === messageId 
+    setMessages(prevMessages =>
+      prevMessages.map(msg =>
+        msg._id === messageId
           ? { ...msg, reactions: newReactions }
           : msg
       )
@@ -421,7 +421,7 @@ const Project = () => {
         console.log("container started")
       })
     }
-  axios.get(`/api/projects/get-project/${location.state.project._id}`).then((res) => {
+    axios.get(`/projects/get-project/${location.state.project._id}`).then((res) => {
       console.log(res.data.project)
       setProject(res.data.project)
       setFileTree(res.data.project.fileTree || {})
@@ -511,8 +511,8 @@ const Project = () => {
 
   useEffect(() => {
     const handleReactionUpdate = (updatedMessage) => {
-      setMessages(prevMessages => 
-        prevMessages.map(msg => 
+      setMessages(prevMessages =>
+        prevMessages.map(msg =>
           msg._id === updatedMessage._id ? updatedMessage : msg
         )
       );
@@ -665,14 +665,14 @@ const Project = () => {
             <div className={`whitespace-pre-wrap ${messageFontSizeClass}`}>
               {msg.sender && msg.sender._id === "Chatraj" ? (
                 <div className={`p-2 rounded ${settings.display.syntaxHighlighting === false
-  ? (isDarkMode ? "bg-gray-900 text-white" : "bg-slate-200 text-black")
-  : "text-white bg-slate-950"} ${messageFontSizeClass}`}>
+                  ? (isDarkMode ? "bg-gray-900 text-white" : "bg-slate-200 text-black")
+                  : "text-white bg-slate-950"} ${messageFontSizeClass}`}>
                   <Markdown options={{
                     overrides: {
                       code: settings.display.syntaxHighlighting === false
                         ? {
-                            component: (props) => <code style={{whiteSpace:'pre-wrap',wordBreak:'break-word',overflowWrap:'break-word',display:'block',background:'none',color:'inherit'}}>{props.children}</code>
-                          }
+                          component: (props) => <code style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word', display: 'block', background: 'none', color: 'inherit' }}>{props.children}</code>
+                        }
                         : SyntaxHighlightedCode
                     }
                   }}>
@@ -692,7 +692,7 @@ const Project = () => {
             </div>
           </div>
           {isCurrentUser && (
-            <Avatar 
+            <Avatar
               firstName={user.firstName}
               className="w-8 h-8 text-sm"
               style={getUserBubbleStyle()}
@@ -759,11 +759,10 @@ const Project = () => {
               return (
                 <button
                   key={emoji}
-                  className={`text-xs px-2 py-1 rounded-full ${
-                    users.includes(user._id) 
-                      ? 'bg-blue-100 dark:bg-blue-900' 
-                      : 'bg-gray-100 dark:bg-gray-700'
-                  }`}
+                  className={`text-xs px-2 py-1 rounded-full ${users.includes(user._id)
+                    ? 'bg-blue-100 dark:bg-blue-900'
+                    : 'bg-gray-100 dark:bg-gray-700'
+                    }`}
                   title={users.map(userId => {
                     const reactingUser = project.users.find(u => u._id === userId);
                     return reactingUser ? reactingUser.firstName : 'Unknown';
@@ -806,7 +805,7 @@ const Project = () => {
   useEffect(() => {
     // Load settings from backend on mount
     if (projectId) {
-  axios.get(`/api/projects/settings/${projectId}`)
+      axios.get(`/projects/settings/${projectId}`)
         .then(res => {
           if (res.data && res.data.settings) {
             setSettings(prev => ({ ...prev, ...res.data.settings }));
@@ -815,15 +814,15 @@ const Project = () => {
             }
           }
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [projectId, project, setIsDarkMode]);
 
   // Save settings to backend whenever they change
   useEffect(() => {
     if (projectId) {
-  axios.put(`/api/projects/settings/${projectId}`, { settings })
-        .catch(() => {});
+      axios.put(`/projects/settings/${projectId}`, { settings })
+        .catch(() => { });
     }
     localStorage.setItem('projectSettings', JSON.stringify(settings));
   }, [settings, projectId, project]);
@@ -844,7 +843,7 @@ const Project = () => {
 
       // If updating sidebar, sync with backend
       if (category === 'sidebar' && project?._id) {
-  axios.put(`/api/projects/sidebar-settings/${project._id}`,
+        axios.put(`/api/projects/sidebar-settings/${project._id}`,
           { sidebar: { ...updated.sidebar } })
           .then(res => {
             if (res.data && res.data.sidebar) {
@@ -889,9 +888,9 @@ const Project = () => {
   return (
     <main className="flex w-screen h-screen overflow-hidden bg-white dark:bg-gray-900">
       <section className="relative flex flex-col h-screen left min-w-96 bg-slate-100 dark:bg-gray-800">
-  <header className="absolute top-0 z-10 flex items-center justify-between w-full p-2 px-4 bg-slate-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow">
+        <header className="absolute top-0 z-10 flex items-center justify-between w-full p-2 px-4 bg-slate-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow">
           <div className="flex items-center gap-4">
-            <button 
+            <button
               onClick={() => setIsModalOpen(true)}
               className="flex items-center gap-2 text-gray-800 dark:text-white transition-colors hover:bg-gray-200 dark:hover:bg-gray-800 px-3 py-1.5 rounded-lg focus:outline-none"
               style={{ background: 'transparent', border: 'none' }}
@@ -906,7 +905,7 @@ const Project = () => {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <button 
+            <button
               onClick={() => setIsSettingsOpen(true)}
               className="p-2 transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
               title={t('settings')}
@@ -914,8 +913,8 @@ const Project = () => {
               <i className="text-xl ri-settings-3-line" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
             </button>
             {!showSearch ? (
-              <button 
-                onClick={() => setShowSearch(true)} 
+              <button
+                onClick={() => setShowSearch(true)}
                 className="p-2 transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
               >
                 <i className="ri-search-eye-fill" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
@@ -929,24 +928,24 @@ const Project = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-48 p-2 text-sm text-gray-800 transition-all duration-300 bg-white border rounded dark:text-white dark:bg-gray-700"
                 />
-                <button 
-                  onClick={() => setShowSearch(false)} 
+                <button
+                  onClick={() => setShowSearch(false)}
                   className="absolute right-2 top-2"
                 >
                   <i className="ri-close-line" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
                 </button>
               </div>
             )}
-            <button 
-              onClick={() => setIsSidePanelOpen(!isSidePanelOpen)} 
+            <button
+              onClick={() => setIsSidePanelOpen(!isSidePanelOpen)}
               className="p-2 transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
             >
               <i className="ri-user-community-line" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
             </button>
           </div>
         </header>
-        <div 
-          ref={messageBox} 
+        <div
+          ref={messageBox}
           className="flex flex-col flex-grow gap-1 p-1 pb-20 overflow-auto pt-14 message-box scrollbar-hide bg-slate-50 dark:bg-gray-800"
         >
           {Object.keys(groupedMessages)
@@ -1016,19 +1015,18 @@ const Project = () => {
             type="text"
             placeholder="Enter message"
           />
-              <button 
-                onClick={send} 
-                style={{ backgroundColor: settings.display.themeColor || '#3B82F6' }}
-                className="px-5 text-white hover:brightness-90"
-                title={t('send')}
-              >
-                <i className="ri-send-plane-fill"></i>
-              </button>
+          <button
+            onClick={send}
+            style={{ backgroundColor: settings.display.themeColor || '#3B82F6' }}
+            className="px-5 text-white hover:brightness-90"
+            title={t('send')}
+          >
+            <i className="ri-send-plane-fill"></i>
+          </button>
         </div>
         <div
-          className={`sidePanel w-full h-full flex flex-col gap-2 bg-slate-50 dark:bg-gray-800 absolute transition-all ${
-            isSidePanelOpen ? "translate-x-0" : "-translate-x-full"
-          } top-0`}
+          className={`sidePanel w-full h-full flex flex-col gap-2 bg-slate-50 dark:bg-gray-800 absolute transition-all ${isSidePanelOpen ? "translate-x-0" : "-translate-x-full"
+            } top-0`}
         >
           <header className="flex items-center justify-between p-2 px-4 bg-slate-200 dark:bg-gray-700">
             <h1 className="text-lg font-semibold dark:text-white">Collaborators</h1>
@@ -1040,7 +1038,7 @@ const Project = () => {
             {project.users &&
               project.users.map((u) => (
                 <div key={u._id} className="flex items-center gap-2 p-2 cursor-pointer user hover:bg-slate-200 dark:hover:bg-gray-700">
-                  <Avatar 
+                  <Avatar
                     firstName={u.firstName}
                     className="w-12 h-12 text-base"
                   />
@@ -1070,7 +1068,7 @@ const Project = () => {
             <button
               onClick={() => setShowOptionsModal(true)}
               className="flex items-center gap-2 p-2 px-4 mb-2 font-semibold text-white transition-all duration-200 bg-blue-600 rounded shadow hover:bg-blue-700"
-              style={{marginTop: '10px', marginBottom: '10px'}}
+              style={{ marginTop: '10px', marginBottom: '10px' }}
             >
               <i className="text-lg ri-settings-3-line"></i>
               {t('options')}
@@ -1108,7 +1106,7 @@ const Project = () => {
                   {project.users.map((u) => (
                     <div key={u._id} className="flex items-center gap-3 p-2 rounded cursor-pointer user hover:bg-slate-200 dark:hover:bg-gray-600 transition-colors">
                       <Avatar firstName={u.firstName} className="w-8 h-8 text-base" />
-                      <span className="text-base font-medium" style={{color: isDarkMode ? '#fff' : '#222'}}>{u.firstName}</span>
+                      <span className="text-base font-medium" style={{ color: isDarkMode ? '#fff' : '#222' }}>{u.firstName}</span>
                     </div>
                   ))}
                 </div>
@@ -1123,9 +1121,8 @@ const Project = () => {
                 <button
                   key={file}
                   onClick={() => setCurrentFile(file)}
-                  className={`open-file cursor-pointer p-2 px-4 flex items-center gap-2 bg-slate-300 dark:bg-gray-700 dark:text-white ${
-                    currentFile === file ? "bg-slate-400 dark:bg-gray-600" : ""
-                  }`}
+                  className={`open-file cursor-pointer p-2 px-4 flex items-center gap-2 bg-slate-300 dark:bg-gray-700 dark:text-white ${currentFile === file ? "bg-slate-400 dark:bg-gray-600" : ""
+                    }`}
                 >
                   <p className="text-lg font-semibold dark:text-white">{file}</p>
                 </button>
@@ -1192,7 +1189,7 @@ const Project = () => {
                     }
 
                     const tempRunProcess = await webContainer.spawn('npm', ['start']);
-                    
+
                     tempRunProcess.output.pipeTo(new WritableStream({
                       write(chunk) {
                         console.log('Server output:', chunk);
@@ -1224,11 +1221,11 @@ const Project = () => {
               </button>
             </div>
           </div>
-          <div className="flex flex-grow max-w-full bottom shrink" style={{overflow:'hidden', minHeight: 0}}>
-            <div className="flex-grow h-full code-editor-area bg-slate-50 dark:bg-gray-900 min-h-[200px] border border-blue-200 relative flex flex-col" style={{minWidth:'0',maxWidth:'100vw',overflow:'hidden',display:'flex',flexDirection:'column', minHeight:0, flex:1}}>
+          <div className="flex flex-grow max-w-full bottom shrink" style={{ overflow: 'hidden', minHeight: 0 }}>
+            <div className="flex-grow h-full code-editor-area bg-slate-50 dark:bg-gray-900 min-h-[200px] border border-blue-200 relative flex flex-col" style={{ minWidth: '0', maxWidth: '100vw', overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
               {/* Debug info for production troubleshooting (remove after fix) */}
               {typeof window !== 'undefined' && window.location && window.location.hostname !== 'localhost' && (
-                <div style={{position:'absolute',top:0,right:0,zIndex:10,background:'#fff8',color:'#333',fontSize:'10px',padding:'2px 4px',borderRadius:'0 0 0 4px'}}>
+                <div style={{ position: 'absolute', top: 0, right: 0, zIndex: 10, background: '#fff8', color: '#333', fontSize: '10px', padding: '2px 4px', borderRadius: '0 0 0 4px' }}>
                   <div>currentFile: {String(currentFile)}</div>
                   <div>fileTree keys: {Object.keys(fileTree).join(', ')}</div>
                   <div>fileTree[currentFile]?.file?.contents length: {fileTree[currentFile]?.file?.contents?.length ?? 'N/A'}</div>
@@ -1283,8 +1280,8 @@ const Project = () => {
                         background: settings.display.syntaxHighlighting === false && isDarkMode
                           ? '#181e29'
                           : isDarkMode
-                          ? '#111827'
-                          : 'white',
+                            ? '#111827'
+                            : 'white',
                         color: settings.display.syntaxHighlighting === false && isDarkMode ? '#fff' : undefined,
                         height: '100%',
                         minHeight: 0,
@@ -1293,7 +1290,7 @@ const Project = () => {
                   )}
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-full min-h-[200px] text-gray-400 italic select-none" style={{padding:'2rem'}}>
+                <div className="flex items-center justify-center h-full min-h-[200px] text-gray-400 italic select-none" style={{ padding: '2rem' }}>
                   {(!currentFile || !fileTree[currentFile]) ? t('noFileSelected') : t('noCode')}
                 </div>
               )}
@@ -1310,8 +1307,8 @@ const Project = () => {
                 className="w-full p-2 px-4 bg-slate-200 dark:bg-gray-700 dark:text-white"
               />
             </div>
-            <iframe 
-              src={iframeUrl} 
+            <iframe
+              src={iframeUrl}
               className="w-full h-full bg-white"
               style={{
                 backgroundColor: "white"
@@ -1373,338 +1370,337 @@ const Project = () => {
       )}
 
       {/* Settings Modal (centered dialog) */}
-        {isSettingsOpen && (
-          <>
-            <div 
-              className="fixed inset-0 z-50 bg-black bg-opacity-50"
-              onClick={() => setIsSettingsOpen(false)}
-            />
+      {isSettingsOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-50 bg-black bg-opacity-50"
+            onClick={() => setIsSettingsOpen(false)}
+          />
+          <div
+            ref={settingsModalRef}
+            className="fixed z-50 w-full max-w-md bg-white border border-gray-200 shadow-2xl dark:bg-gray-800 rounded-xl dark:border-gray-700"
+            style={modalPosition ? {
+              left: modalPosition.x,
+              top: modalPosition.y,
+              transform: 'none',
+              maxHeight: 'calc(100vh - 80px)',
+              overflow: 'hidden',
+              cursor: isDragging ? 'grabbing' : 'default',
+            } : {
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              maxHeight: 'calc(100vh - 80px)',
+              overflow: 'hidden',
+            }}
+            onMouseUp={() => setIsDragging(false)}
+            onMouseMove={e => {
+              if (isDragging) {
+                setModalPosition({
+                  x: e.clientX - dragOffset.x,
+                  y: e.clientY - dragOffset.y
+                });
+              }
+            }}
+          >
             <div
-              ref={settingsModalRef}
-              className="fixed z-50 w-full max-w-md bg-white border border-gray-200 shadow-2xl dark:bg-gray-800 rounded-xl dark:border-gray-700"
-              style={modalPosition ? {
-                left: modalPosition.x,
-                top: modalPosition.y,
-                transform: 'none',
-                maxHeight: 'calc(100vh - 80px)',
-                overflow: 'hidden',
-                cursor: isDragging ? 'grabbing' : 'default',
-              } : {
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                maxHeight: 'calc(100vh - 80px)',
-                overflow: 'hidden',
-              }}
-              onMouseUp={() => setIsDragging(false)}
-              onMouseMove={e => {
-                if (isDragging) {
+              className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-white border-b cursor-move select-none dark:bg-gray-800 dark:border-gray-700"
+              style={{ userSelect: 'none' }}
+              onMouseDown={e => {
+                // Only start drag on left click
+                if (e.button !== 0) return;
+                const rect = settingsModalRef.current.getBoundingClientRect();
+                setIsDragging(true);
+                setDragOffset({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+                // If modal is centered, set its position to current center
+                if (!modalPosition) {
                   setModalPosition({
-                    x: e.clientX - dragOffset.x,
-                    y: e.clientY - dragOffset.y
+                    x: rect.left,
+                    y: rect.top
                   });
                 }
               }}
+              onMouseUp={() => setIsDragging(false)}
             >
-              <div
-                className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-white border-b cursor-move select-none dark:bg-gray-800 dark:border-gray-700"
-                style={{ userSelect: 'none' }}
-                onMouseDown={e => {
-                  // Only start drag on left click
-                  if (e.button !== 0) return;
-                  const rect = settingsModalRef.current.getBoundingClientRect();
-                  setIsDragging(true);
-                  setDragOffset({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-                  // If modal is centered, set its position to current center
-                  if (!modalPosition) {
-                    setModalPosition({
-                      x: rect.left,
-                      y: rect.top
-                    });
-                  }
-                }}
-                onMouseUp={() => setIsDragging(false)}
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('settings')}</h2>
+              <button
+                onClick={() => setIsSettingsOpen(false)}
+                className="p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
               >
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('settings')}</h2>
-                <button 
-                  onClick={() => setIsSettingsOpen(false)}
-                  className="p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-                >
-                  <i className="text-2xl ri-close-line"></i>
-                </button>
-              </div>
-              <div className="flex px-6 bg-gray-100 border-b dark:border-gray-700 dark:bg-gray-700">
-                {['display', 'behavior', 'accessibility', 'sidebar'].map(tab => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveSettingsTab(tab)}
-                    className={`px-4 py-2 text-base font-semibold border-b-4 transition-colors duration-150 focus:outline-none ${
-                      activeSettingsTab === tab 
-                        ? 'border-blue-600 text-blue-600 bg-white dark:bg-gray-800 dark:text-blue-400' 
-                        : 'border-transparent text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 bg-transparent'
+                <i className="text-2xl ri-close-line"></i>
+              </button>
+            </div>
+            <div className="flex px-6 bg-gray-100 border-b dark:border-gray-700 dark:bg-gray-700">
+              {['display', 'behavior', 'accessibility', 'sidebar'].map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveSettingsTab(tab)}
+                  className={`px-4 py-2 text-base font-semibold border-b-4 transition-colors duration-150 focus:outline-none ${activeSettingsTab === tab
+                    ? 'border-blue-600 text-blue-600 bg-white dark:bg-gray-800 dark:text-blue-400'
+                    : 'border-transparent text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 bg-transparent'
                     }`}
-                    style={{ marginBottom: '-1px', borderRadius: '10px 10px 0 0' }}
-                  >
-                    {tab === 'accessibility' ? t('language') : tab.charAt(0).toUpperCase() + tab.slice(1)}
-                  </button>
-                ))}
-              </div>
-              {/* Make this area scrollable! */}
-              <div className="flex-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 220px)' }}>
-                <div className="p-6 space-y-7">
-                  {/* Display Settings */}
-                  {activeSettingsTab === 'display' && (
-                    <div className="space-y-4">
-                      {/* Vim Mode (Editor) - moved to top for visibility */}
-                      <div className="flex items-center justify-between" title="Enable or disable Vim keybindings in the code editor.">
-                        <span className="font-semibold text-gray-900 dark:text-white">Vim Mode (Editor)</span>
-                        <button
-                          onClick={() => setVimMode(v => !v)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${vimMode ? 'bg-blue-600' : 'bg-gray-300'}`}
-                        >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${vimMode ? 'translate-x-6' : 'translate-x-1'}`} />
-                        </button>
-                      </div>
-                      {/* Dark Mode */}
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-gray-900 dark:text-white">Dark Mode</span>
-                        <button
-                          onClick={() => updateSettings('display', 'darkMode', !settings.display.darkMode)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.darkMode ? 'bg-blue-600' : 'bg-gray-300'}`}
-                        >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.darkMode ? 'translate-x-6' : 'translate-x-1'}`} />
-                        </button>
-                      </div>
-                      {/* Theme Color */}
-                      <div>
-                        <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Theme Color</span>
-                        <input
-                          type="color"
-                          value={settings.display.themeColor || '#3B82F6'}
-                          onChange={e => updateSettings('display', 'themeColor', e.target.value)}
-                          className="w-12 h-8 p-0 bg-transparent border-0"
-                        />
-                      </div>
-                      {/* Chat Bubble Roundness */}
-                      <div>
-                        <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Chat Bubble Roundness</span>
-                        <select
-                          value={settings.display.bubbleRoundness || 'large'}
-                          onChange={e => updateSettings('display', 'bubbleRoundness', e.target.value)}
-                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                        >
-                          <option value="small">Small</option>
-                          <option value="medium">Medium</option>
-                          <option value="large">Large</option>
-                          <option value="extra-large">Extra Large</option>
-                        </select>
-                      </div>
-                      {/* Message Font Size */}
-                      <div>
-                        <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Message Font Size</span>
-                        <select
-                          value={settings.display.messageFontSize || 'medium'}
-                          onChange={e => updateSettings('display', 'messageFontSize', e.target.value)}
-                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                        >
-                          <option value="small">Small</option>
-                          <option value="medium">Medium</option>
-                          <option value="large">Large</option>
-                        </select>
-                      </div>
-                      {/* Enable Syntax Highlighting */}
-                      <div>
-                        <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Enable Syntax Highlighting</span>
-                        <button
-                          onClick={() => updateSettings('display', 'syntaxHighlighting', !settings.display.syntaxHighlighting)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.syntaxHighlighting ? 'bg-blue-600' : 'bg-gray-300'}`}
-                        >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.syntaxHighlighting ? 'translate-x-6' : 'translate-x-1'}`} />
-                        </button>
-                      </div>
-                      {/* Show Avatars */}
-                      <div>
-                        <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Show Avatars</span>
-                        <button
-                          onClick={() => updateSettings('display', 'showAvatars', !settings.display.showAvatars)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.showAvatars ? 'bg-blue-600' : 'bg-gray-300'}`}
-                        >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.showAvatars ? 'translate-x-6' : 'translate-x-1'}`} />
-                        </button>
-                      </div>
-                      {/* Show Timestamps */}
-                      <div>
-                        <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Show Timestamps</span>
-                        <button
-                          onClick={() => updateSettings('display', 'showTimestamps', !settings.display.showTimestamps)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.showTimestamps ? 'bg-blue-600' : 'bg-gray-300'}`}
-                        >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.showTimestamps ? 'translate-x-6' : 'translate-x-1'}`} />
-                        </button>
-                      </div>
-                      {/* Enable AI Assistant */}
-                      <div>
-                        <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Enable AI Assistant</span>
-                        <button
-                          onClick={() => updateSettings('display', 'aiAssistant', !settings.display.aiAssistant)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.aiAssistant ? 'bg-blue-600' : 'bg-gray-300'}`}
-                        >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.aiAssistant ? 'translate-x-6' : 'translate-x-1'}`} />
-                        </button>
-                      </div>
+                  style={{ marginBottom: '-1px', borderRadius: '10px 10px 0 0' }}
+                >
+                  {tab === 'accessibility' ? t('language') : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </div>
+            {/* Make this area scrollable! */}
+            <div className="flex-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 220px)' }}>
+              <div className="p-6 space-y-7">
+                {/* Display Settings */}
+                {activeSettingsTab === 'display' && (
+                  <div className="space-y-4">
+                    {/* Vim Mode (Editor) - moved to top for visibility */}
+                    <div className="flex items-center justify-between" title="Enable or disable Vim keybindings in the code editor.">
+                      <span className="font-semibold text-gray-900 dark:text-white">Vim Mode (Editor)</span>
+                      <button
+                        onClick={() => setVimMode(v => !v)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${vimMode ? 'bg-blue-600' : 'bg-gray-300'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${vimMode ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
                     </div>
-                  )}
-                  {/* Behavior Tab */}
-                  {activeSettingsTab === 'behavior' && (
-                    <div className="space-y-4">
-                      {/* Auto Scroll toggle */}
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold text-gray-900 dark:text-white">Auto Scroll</span>
-                        <button
-                          onClick={() => setSettings(prev => {
-                            const updated = { ...prev, behavior: { ...prev.behavior, autoScroll: !prev.behavior.autoScroll } };
-                            localStorage.setItem('projectSettings', JSON.stringify(updated));
-                            return updated;
-                          })}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.autoScroll ? 'bg-blue-600' : 'bg-gray-300'}`}
-                        >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.autoScroll ? 'translate-x-6' : 'translate-x-1'}`} />
-                        </button>
-                      </div>
-                      {/* Show System Messages toggle */}
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold text-gray-900 dark:text-white">Show System Messages</span>
-                        <button
-                          onClick={() => setSettings(prev => {
-                            const updated = { ...prev, behavior: { ...prev.behavior, showSystemMessages: !prev.behavior.showSystemMessages } };
-                            localStorage.setItem('projectSettings', JSON.stringify(updated));
-                            return updated;
-                          })}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.showSystemMessages ? 'bg-blue-600' : 'bg-gray-300'}`}
-                        >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.showSystemMessages ? 'translate-x-6' : 'translate-x-1'}`} />
-                        </button>
-                      </div>
-                      {/* Collapse Replies by Default toggle */}
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold text-gray-900 dark:text-white">Collapse Replies by Default</span>
-                        <button
-                          onClick={() => setSettings(prev => {
-                            const updated = { ...prev, behavior: { ...prev.behavior, collapseReplies: !prev.behavior.collapseReplies } };
-                            localStorage.setItem('projectSettings', JSON.stringify(updated));
-                            return updated;
-                          })}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.collapseReplies ? 'bg-blue-600' : 'bg-gray-300'}`}
-                        >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.collapseReplies ? 'translate-x-6' : 'translate-x-1'}`} />
-                        </button>
-                      </div>
-                      {/* Show Message Read Receipts toggle */}
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold text-gray-900 dark:text-white">Show Message Read Receipts</span>
-                        <button
-                          onClick={() => setSettings(prev => {
-                            const updated = { ...prev, behavior: { ...prev.behavior, showReadReceipts: !prev.behavior.showReadReceipts } };
-                            localStorage.setItem('projectSettings', JSON.stringify(updated));
-                            return updated;
-                          })}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.showReadReceipts ? 'bg-blue-600' : 'bg-gray-300'}`}
-                        >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.showReadReceipts ? 'translate-x-6' : 'translate-x-1'}`} />
-                        </button>
-                      </div>
-                      {/* Enter to Send toggle */}
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold text-gray-900 dark:text-white">Enter to Send</span>
-                        <button
-                          onClick={() => setSettings(prev => {
-                            const updated = { ...prev, behavior: { ...prev.behavior, enterToSend: !prev.behavior.enterToSend } };
-                            localStorage.setItem('projectSettings', JSON.stringify(updated));
-                            return updated;
-                          })}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.enterToSend ? 'bg-blue-600' : 'bg-gray-300'}`}
-                        >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.enterToSend ? 'translate-x-6' : 'translate-x-1'}`} />
-                        </button>
-                      </div>
+                    {/* Dark Mode */}
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-gray-900 dark:text-white">Dark Mode</span>
+                      <button
+                        onClick={() => updateSettings('display', 'darkMode', !settings.display.darkMode)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.darkMode ? 'bg-blue-600' : 'bg-gray-300'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.darkMode ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
                     </div>
-                  )}
-                  {/* Accessibility Tab */}
-                  {activeSettingsTab === 'accessibility' && (
-                    <div className="space-y-4">
-                      <div>
-                        <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Language</span>
-                        <select
-                          value={settings.accessibility?.language || 'en-US'}
-                          onChange={e => updateSettings('accessibility', 'language', e.target.value)}
-                          className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                        >
-                          <option value="en-US">English (US)</option>
-                          <option value="hi-IN">हिंदी (Hindi)</option>
-                          <option value="es-ES">Español (Spanish)</option>
-                          <option value="fr-FR">Français (French)</option>
-                          <option value="de-DE">Deutsch (German)</option>
-                          <option value="ja-JP">日本語 (Japanese)</option>
-                        </select>
-                      </div>
+                    {/* Theme Color */}
+                    <div>
+                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Theme Color</span>
+                      <input
+                        type="color"
+                        value={settings.display.themeColor || '#3B82F6'}
+                        onChange={e => updateSettings('display', 'themeColor', e.target.value)}
+                        className="w-12 h-8 p-0 bg-transparent border-0"
+                      />
                     </div>
-                  )}
-                  {/* Sidebar Tab */}
-                  {activeSettingsTab === 'sidebar' && (
-                    <div className="space-y-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-inner border dark:border-gray-700">
-                      {/* Show File Tree */}
-                      <div className="flex items-center justify-between py-2 border-b dark:border-gray-700">
-                        <span className="font-medium text-gray-900 dark:text-white">Show File Tree</span>
-                        <button
-                          onClick={() => updateSettings('sidebar', 'showFileTree', !settings.sidebar?.showFileTree)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${settings.sidebar?.showFileTree ? 'bg-blue-600' : 'bg-gray-300'}`}
-                          aria-pressed={settings.sidebar?.showFileTree}
-                        >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${settings.sidebar?.showFileTree ? 'translate-x-6' : 'translate-x-1'}`}/>
-                        </button>
-                      </div>
-                      {/* Show Collaborators List */}
-                      <div className="flex items-center justify-between py-2 border-b dark:border-gray-700">
-                        <span className="font-medium text-gray-900 dark:text-white">Show Collaborators List</span>
-                        <button
-                          onClick={() => updateSettings('sidebar', 'showCollaborators', !settings.sidebar?.showCollaborators)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${settings.sidebar?.showCollaborators ? 'bg-blue-600' : 'bg-gray-300'}`}
-                          aria-pressed={settings.sidebar?.showCollaborators}
-                        >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${settings.sidebar?.showCollaborators ? 'translate-x-6' : 'translate-x-1'}`}/>
-                        </button>
-                      </div>
-                      {/* Pin Sidebar */}
-                      <div className="flex items-center justify-between py-2 border-b dark:border-gray-700">
-                        <span className="font-medium text-gray-900 dark:text-white">Pin Sidebar</span>
-                        <button
-                          onClick={() => updateSettings('sidebar', 'pinSidebar', !settings.sidebar?.pinSidebar)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${settings.sidebar?.pinSidebar ? 'bg-blue-600' : 'bg-gray-300'}`}
-                          aria-pressed={settings.sidebar?.pinSidebar}
-                        >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${settings.sidebar?.pinSidebar ? 'translate-x-6' : 'translate-x-1'}`}/>
-                        </button>
-                      </div>
-                      {/* Sidebar Width */}
-                      <div className="py-2">
-                        <span className="block mb-2 font-medium text-gray-900 dark:text-white">Sidebar Width</span>
-                        <input
-                          type="range"
-                          min={180}
-                          max={400}
-                          value={settings.sidebar?.sidebarWidth || 240}
-                          onChange={e => updateSettings('sidebar', 'sidebarWidth', Number(e.target.value))}
-                          className="w-full accent-blue-600"
-                        />
-                        <span className="text-xs text-gray-600 dark:text-gray-300">{settings.sidebar?.sidebarWidth || 240}px</span>
-                      </div>
+                    {/* Chat Bubble Roundness */}
+                    <div>
+                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Chat Bubble Roundness</span>
+                      <select
+                        value={settings.display.bubbleRoundness || 'large'}
+                        onChange={e => updateSettings('display', 'bubbleRoundness', e.target.value)}
+                        className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                      >
+                        <option value="small">Small</option>
+                        <option value="medium">Medium</option>
+                        <option value="large">Large</option>
+                        <option value="extra-large">Extra Large</option>
+                      </select>
                     </div>
-                  )}
-                </div>
+                    {/* Message Font Size */}
+                    <div>
+                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Message Font Size</span>
+                      <select
+                        value={settings.display.messageFontSize || 'medium'}
+                        onChange={e => updateSettings('display', 'messageFontSize', e.target.value)}
+                        className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                      >
+                        <option value="small">Small</option>
+                        <option value="medium">Medium</option>
+                        <option value="large">Large</option>
+                      </select>
+                    </div>
+                    {/* Enable Syntax Highlighting */}
+                    <div>
+                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Enable Syntax Highlighting</span>
+                      <button
+                        onClick={() => updateSettings('display', 'syntaxHighlighting', !settings.display.syntaxHighlighting)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.syntaxHighlighting ? 'bg-blue-600' : 'bg-gray-300'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.syntaxHighlighting ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                    {/* Show Avatars */}
+                    <div>
+                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Show Avatars</span>
+                      <button
+                        onClick={() => updateSettings('display', 'showAvatars', !settings.display.showAvatars)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.showAvatars ? 'bg-blue-600' : 'bg-gray-300'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.showAvatars ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                    {/* Show Timestamps */}
+                    <div>
+                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Show Timestamps</span>
+                      <button
+                        onClick={() => updateSettings('display', 'showTimestamps', !settings.display.showTimestamps)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.showTimestamps ? 'bg-blue-600' : 'bg-gray-300'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.showTimestamps ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                    {/* Enable AI Assistant */}
+                    <div>
+                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Enable AI Assistant</span>
+                      <button
+                        onClick={() => updateSettings('display', 'aiAssistant', !settings.display.aiAssistant)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.aiAssistant ? 'bg-blue-600' : 'bg-gray-300'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.aiAssistant ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {/* Behavior Tab */}
+                {activeSettingsTab === 'behavior' && (
+                  <div className="space-y-4">
+                    {/* Auto Scroll toggle */}
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">Auto Scroll</span>
+                      <button
+                        onClick={() => setSettings(prev => {
+                          const updated = { ...prev, behavior: { ...prev.behavior, autoScroll: !prev.behavior.autoScroll } };
+                          localStorage.setItem('projectSettings', JSON.stringify(updated));
+                          return updated;
+                        })}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.autoScroll ? 'bg-blue-600' : 'bg-gray-300'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.autoScroll ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                    {/* Show System Messages toggle */}
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">Show System Messages</span>
+                      <button
+                        onClick={() => setSettings(prev => {
+                          const updated = { ...prev, behavior: { ...prev.behavior, showSystemMessages: !prev.behavior.showSystemMessages } };
+                          localStorage.setItem('projectSettings', JSON.stringify(updated));
+                          return updated;
+                        })}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.showSystemMessages ? 'bg-blue-600' : 'bg-gray-300'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.showSystemMessages ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                    {/* Collapse Replies by Default toggle */}
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">Collapse Replies by Default</span>
+                      <button
+                        onClick={() => setSettings(prev => {
+                          const updated = { ...prev, behavior: { ...prev.behavior, collapseReplies: !prev.behavior.collapseReplies } };
+                          localStorage.setItem('projectSettings', JSON.stringify(updated));
+                          return updated;
+                        })}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.collapseReplies ? 'bg-blue-600' : 'bg-gray-300'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.collapseReplies ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                    {/* Show Message Read Receipts toggle */}
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">Show Message Read Receipts</span>
+                      <button
+                        onClick={() => setSettings(prev => {
+                          const updated = { ...prev, behavior: { ...prev.behavior, showReadReceipts: !prev.behavior.showReadReceipts } };
+                          localStorage.setItem('projectSettings', JSON.stringify(updated));
+                          return updated;
+                        })}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.showReadReceipts ? 'bg-blue-600' : 'bg-gray-300'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.showReadReceipts ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                    {/* Enter to Send toggle */}
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">Enter to Send</span>
+                      <button
+                        onClick={() => setSettings(prev => {
+                          const updated = { ...prev, behavior: { ...prev.behavior, enterToSend: !prev.behavior.enterToSend } };
+                          localStorage.setItem('projectSettings', JSON.stringify(updated));
+                          return updated;
+                        })}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.enterToSend ? 'bg-blue-600' : 'bg-gray-300'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.enterToSend ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {/* Accessibility Tab */}
+                {activeSettingsTab === 'accessibility' && (
+                  <div className="space-y-4">
+                    <div>
+                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Language</span>
+                      <select
+                        value={settings.accessibility?.language || 'en-US'}
+                        onChange={e => updateSettings('accessibility', 'language', e.target.value)}
+                        className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                      >
+                        <option value="en-US">English (US)</option>
+                        <option value="hi-IN">हिंदी (Hindi)</option>
+                        <option value="es-ES">Español (Spanish)</option>
+                        <option value="fr-FR">Français (French)</option>
+                        <option value="de-DE">Deutsch (German)</option>
+                        <option value="ja-JP">日本語 (Japanese)</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+                {/* Sidebar Tab */}
+                {activeSettingsTab === 'sidebar' && (
+                  <div className="space-y-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-inner border dark:border-gray-700">
+                    {/* Show File Tree */}
+                    <div className="flex items-center justify-between py-2 border-b dark:border-gray-700">
+                      <span className="font-medium text-gray-900 dark:text-white">Show File Tree</span>
+                      <button
+                        onClick={() => updateSettings('sidebar', 'showFileTree', !settings.sidebar?.showFileTree)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${settings.sidebar?.showFileTree ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        aria-pressed={settings.sidebar?.showFileTree}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${settings.sidebar?.showFileTree ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                    {/* Show Collaborators List */}
+                    <div className="flex items-center justify-between py-2 border-b dark:border-gray-700">
+                      <span className="font-medium text-gray-900 dark:text-white">Show Collaborators List</span>
+                      <button
+                        onClick={() => updateSettings('sidebar', 'showCollaborators', !settings.sidebar?.showCollaborators)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${settings.sidebar?.showCollaborators ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        aria-pressed={settings.sidebar?.showCollaborators}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${settings.sidebar?.showCollaborators ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                    {/* Pin Sidebar */}
+                    <div className="flex items-center justify-between py-2 border-b dark:border-gray-700">
+                      <span className="font-medium text-gray-900 dark:text-white">Pin Sidebar</span>
+                      <button
+                        onClick={() => updateSettings('sidebar', 'pinSidebar', !settings.sidebar?.pinSidebar)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${settings.sidebar?.pinSidebar ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        aria-pressed={settings.sidebar?.pinSidebar}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${settings.sidebar?.pinSidebar ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                    {/* Sidebar Width */}
+                    <div className="py-2">
+                      <span className="block mb-2 font-medium text-gray-900 dark:text-white">Sidebar Width</span>
+                      <input
+                        type="range"
+                        min={180}
+                        max={400}
+                        value={settings.sidebar?.sidebarWidth || 240}
+                        onChange={e => updateSettings('sidebar', 'sidebarWidth', Number(e.target.value))}
+                        className="w-full accent-blue-600"
+                      />
+                      <span className="text-xs text-gray-600 dark:text-gray-300">{settings.sidebar?.sidebarWidth || 240}px</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          </>
-        )}
+          </div>
+        </>
+      )}
       {isAIModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="relative w-full max-w-md p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
@@ -1753,7 +1749,7 @@ const Project = () => {
 }
 
 Project.propTypes = {
-    children: PropTypes.node,
+  children: PropTypes.node,
 };
 
 export default Project

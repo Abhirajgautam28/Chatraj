@@ -26,7 +26,7 @@ const BlogsContent = () => {
     useEffect(() => {
         const fetchBlogs = async () => {
             try {
-                const response = await axios.get('/api/blogs');
+                const response = await axios.get('/blogs');
                 setBlogs(response.data);
                 setLoading(false);
             } catch (error) {
@@ -40,7 +40,7 @@ const BlogsContent = () => {
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-300">
             {/* Material UI Hero Section */}
-            <section className="w-full flex flex-col items-center justify-center py-16 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 border-b border-gray-200 dark:border-gray-800 relative overflow-hidden" style={{minHeight:'340px'}}>
+            <section className="w-full flex flex-col items-center justify-center py-16 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 border-b border-gray-200 dark:border-gray-800 relative overflow-hidden" style={{ minHeight: '340px' }}>
                 {/* Dark mode switch button */}
                 <button
                     aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}

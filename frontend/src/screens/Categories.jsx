@@ -107,13 +107,13 @@ const Categories = () => {
 
 
   useEffect(() => {
-    axios.get('/api/projects/category-counts')
+    axios.get('/projects/category-counts')
       .then(res => setProjectCounts(res.data || {}))
       .catch(() => setProjectCounts({}));
   }, []);
 
   const handleCategoryClick = (categoryTitle) => {
-  navigate(`/dashboard/${encodeURIComponent(categoryTitle)}`);
+    navigate(`/dashboard/${encodeURIComponent(categoryTitle)}`);
   };
 
   return (
@@ -522,7 +522,7 @@ const Categories = () => {
               ) : null
             );
           })()}
-        {/* End of main content */}
+          {/* End of main content */}
         </div>
       </main>
     </motion.div>

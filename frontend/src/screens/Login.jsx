@@ -74,7 +74,7 @@ const Login = () => {
         setLoginError('');
         // If recaptcha is disabled, skip token check
         if (isRecaptchaDisabled || token) {
-            axios.post('/api/users/login', { email, password, recaptchaToken: token })
+            axios.post('/users/login', { email, password, recaptchaToken: token })
                 .then((res) => {
                     localStorage.setItem('token', res.data.token);
                     setUser(res.data.user);
