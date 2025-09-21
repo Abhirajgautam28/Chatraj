@@ -17,6 +17,8 @@ jobs:
 
       - name: Install root dev dependencies
         run: npm ci
+        env:
+          CI: true
 
       - name: Install backend dependencies
         run: npm ci --prefix Backend
@@ -24,10 +26,14 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci --prefix frontend
 
+      - name: Export secrets (set these in repository Settings -> Secrets)
+        run: |
+          echo "Ensure the following secrets exist: MONGODB_URI, JWT_SECRET, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS"
       - name: Start backend
         run: |
           cd Backend
-          nohup node server.js &
+          # export secrets to process (runner already has them in environment if configured)
+          node server.js &
         # Allow server to warm up
 
       - name: Wait for backend
@@ -42,3 +48,6 @@ jobs:
 
       - name: Run smoke-test
         run: node Backend/scripts/smoke-test.js
+
+      - name: Run e2e light checks
+        run: node Backend/scripts/e2e-test.js
