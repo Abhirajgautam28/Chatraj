@@ -1,6 +1,6 @@
-// ...existing code...
+import React from 'react';
 import { useState, useEffect } from 'react';
-import { axiosInstance } from '../config/axios';
+import axios from '../config/axios';
 import Card from './Card';
 
 const ProjectShowcase = () => {
@@ -8,7 +8,7 @@ const ProjectShowcase = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        axiosInstance.get('/projects/showcase')
+        axios.get('/projects/showcase')
             .then(res => {
                 if (Array.isArray(res.data.projects)) {
                     setProjects(res.data.projects);

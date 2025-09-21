@@ -1,9 +1,9 @@
-// ...existing code...
+import React from 'react';
 // ...existing code...
 import { useContext, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserContext } from '../context/user.context';
-import { axiosInstance } from "../config/axios";
+import axios from "../config/axios";
 import { useNavigate, useParams } from 'react-router-dom';
 
 const Dashboard = () => {
@@ -17,7 +17,7 @@ const Dashboard = () => {
 
   const createProject = (e) => {
     e.preventDefault();
-    axiosInstance.post('/projects/create', {
+    axios.post('/projects/create', {
       name: projectName,
       category: categoryName
     })
@@ -40,7 +40,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     // Always fetch all projects for the user, then filter by category on the frontend
-    axiosInstance.get('/projects/all')
+    axios.get('/projects/all')
       .then((res) => {
         if (Array.isArray(res.data.projects)) {
           if (categoryName) {
