@@ -17,3 +17,5 @@ Testing:
 Notes for reviewers:
 - If CI requires access to MongoDB/SMS, add the required Secrets: `MONGODB_URI`, `JWT_SECRET`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`.
 - This PR intentionally avoids touching unrelated app logic; frontend changes to fix `/api` usage and axios fallback are assumed to be applied in previous commits in this branch.
+
+How to add the required repository Secrets: Go to `Settings` → `Secrets and variables` → `Actions` in your GitHub repository and add each secret (see `README_DEV.md` for step-by-step instructions). Do NOT commit secrets into source control.

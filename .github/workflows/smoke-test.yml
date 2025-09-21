@@ -29,9 +29,20 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci --prefix frontend
 
-      - name: Export secrets (set these in repository Settings -> Secrets)
+      - name: Validate required secrets (fail fast with instructions)
         run: |
-          echo "Ensure the following secrets exist: MONGODB_URI, JWT_SECRET, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS"
+          missing=()
+          for s in MONGODB_URI JWT_SECRET SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASS; do
+            if [ -z "${!s}" ]; then
+              missing+=("$s")
+            fi
+          done
+          if [ ${#missing[@]} -ne 0 ]; then
+            echo "The following required repository secrets are missing: ${missing[*]}"
+            echo "Add them in your repository Settings → Secrets (Repository) before re-running this workflow."
+            echo "See README_DEV.md for step-by-step instructions."
+            exit 1
+          fi
       - name: Start backend
         run: |
           cd Backend
@@ -85,9 +96,16 @@ jobs:
   deploy-staging:
     needs: tests
     runs-on: ubuntu-latest
-    if: ${{ secrets.VERCEL_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+      - name: Check for VERCEL_TOKEN secret (skip if not provided)
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "VERCEL_TOKEN not found. Skipping deploy-staging job. To enable, add VERCEL_TOKEN as a repository secret.";
+            exit 0
+          fi
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       - name: Deploy to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}

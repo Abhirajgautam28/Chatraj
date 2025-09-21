@@ -33,6 +33,23 @@ node Backend/scripts/e2e-test.js
 
 A GitHub Actions workflow `.github/workflows/smoke-test.yml` runs the smoke-test on pull requests against `main`. If your app requires secrets (e.g. `MONGODB_URI`, `JWT_SECRET`, `SMTP_*`) set them in the repository Secrets and update the workflow to export them before starting the backend.
 
+## How to add repository secrets via the GitHub UI (no secrets will be stored in the repo)
+
+1. Go to your repository on GitHub (for example: `https://github.com/<owner>/<repo>`).
+2. Click on `Settings` in the repository menu (you must have admin access).
+3. In the left sidebar choose `Secrets and variables` → `Actions`.
+4. Click `New repository secret`.
+5. Enter the secret name exactly (for example `MONGODB_URI`) and paste the secret value.
+6. Click `Add secret`.
+7. Repeat for `JWT_SECRET`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, and any other environment variables your real environment requires.
+
+Important security notes:
+- Never commit secrets (API keys, passwords, tokens) to the repository. Git history is permanent and can leak secrets.
+- Use repository Secrets (or organization Secrets) to keep sensitive values out of code.
+- CI jobs will have secrets injected as environment variables only at runtime; they are not visible in plain text in the repo.
+
+If you prefer, create a dedicated CI service account (with limited permissions) and provide that account's credentials to CI via secrets so you avoid using personal tokens.
+
 ## Root cause and fixes applied
 
 Root cause summary:
