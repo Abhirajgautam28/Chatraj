@@ -1,18 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
-
 export function useTypingEffect(
   textArray,
   {
-    typingSpeed,
-    deletingSpeed,
-    pauseDuration,
-    loop,
-    reverseMode,
-    initialDelay,
+    typingSpeed = 75,
+    initialDelay = 0,
+    pauseDuration = 1500,
+    deletingSpeed = 30,
+    loop = true,
+    reverseMode = false,
     variableSpeed,
     onSentenceComplete,
-    startOnVisible,
-    isVisible,
+    startOnVisible = false,
+    isVisible = true,
   }
 ) {
   const [displayed, setDisplayed] = useState('');
@@ -67,6 +66,7 @@ export function useTypingEffect(
     onSentenceComplete,
     isVisible,
     startOnVisible,
+    displayed
   ]);
 
   return displayed;
