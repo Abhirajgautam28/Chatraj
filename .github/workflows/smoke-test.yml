@@ -11,7 +11,7 @@ jobs:
       matrix:
         node-version: ['20']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Use Node.js
         uses: actions/setup-node@v5
@@ -70,7 +70,7 @@ jobs:
     needs: smoke-test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Use Node.js
         uses: actions/setup-node@v5
         with:
@@ -97,7 +97,7 @@ jobs:
     needs: tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Check for VERCEL_TOKEN secret (skip if not provided)
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then
