@@ -1,6 +1,6 @@
-import React from 'react';
+// ...existing code...
 import { useState, useEffect } from 'react';
-import axios from '../config/axios';
+import { axiosInstance } from '../config/axios';
 import Card from './Card';
 
 const UserLeaderboard = () => {
@@ -8,7 +8,7 @@ const UserLeaderboard = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        axios.get('/users/leaderboard')
+        axiosInstance.get('/users/leaderboard')
             .then(res => {
                 if (Array.isArray(res.data.users)) {
                     setUsers(res.data.users);

@@ -1,8 +1,8 @@
-import React from 'react';
+// ...existing code...
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import useTheme from '../context/useTheme';
-import axios from '../config/axios';
+import { axiosInstance } from '../config/axios';
 import { useNavigate } from 'react-router-dom';
 import anime from 'animejs';
 
@@ -13,7 +13,7 @@ function Blog({ user }) {
     useEffect(() => {
         const fetchBlogs = async () => {
             try {
-                const response = await axios.get('/blogs');
+                const response = await axiosInstance.get('/blogs');
                 if (Array.isArray(response.data)) {
                     setBlogs(response.data.slice(0, 3));
                 }
