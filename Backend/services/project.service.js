@@ -78,7 +78,7 @@ export const addUsersToProject = async ({ projectId, users, userId }) => {
         users: userId
     })
 
-    console.log(project)
+    // ...removed console.log for production cleanliness
 
     if (!project) {
         throw new Error("User not belong to this project")
@@ -115,6 +115,11 @@ export const getProjectById = async ({ projectId }) => {
     const project = await projectModel.findOne({
         _id: projectId
     }).populate('users', '_id firstName lastName')
+
+    // Always return a valid fileTree object
+    if (project && (!project.fileTree || typeof project.fileTree !== 'object')) {
+        project.fileTree = {};
+    }
 
     return project;
 }

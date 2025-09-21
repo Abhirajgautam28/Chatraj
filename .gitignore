@@ -1,10 +1,14 @@
+*.mongodb.js
 .codegpt
 .fake
 .env
 .env.local
 .DS_Store
 node_modules/
+Backend/node_modules/
 dist/
 build/
-prompt.txt
 .vscode/
+frontend/.env
+cypress/cypress/screenshots
+cypress/screenshots

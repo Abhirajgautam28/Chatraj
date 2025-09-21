@@ -1,5 +1,6 @@
 import http from 'http';
 import app from './app.js';
+import connect from './db/db.js';
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
@@ -8,7 +9,10 @@ import { generateResult } from './services/ai.service.js';
 import Message from './models/message.model.js';
 import pingService from './services/ping.service.js';
 
+
 const port = process.env.PORT || 8080;
+
+connect().catch(console.error);
 
 const server = http.createServer(app);
 const io = new Server(server, {

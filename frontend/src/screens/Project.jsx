@@ -6,7 +6,6 @@ import axios from '../config/axios'
 import { initializeSocket, receiveMessage, sendMessage } from '../config/socket'
 import Markdown from 'markdown-to-jsx'
 import { getWebContainer } from '../config/webContainer'
-import { motion, AnimatePresence } from 'framer-motion'
 import Avatar from '../components/Avatar';
 import EmojiPicker from '../components/EmojiPicker';
 import FileIcon from '../components/FileIcon';
@@ -422,7 +421,7 @@ const Project = () => {
         console.log("container started")
       })
     }
-    axios.get(`/projects/get-project/${location.state.project._id}`).then((res) => {
+  axios.get(`/api/projects/get-project/${location.state.project._id}`).then((res) => {
       console.log(res.data.project)
       setProject(res.data.project)
       setFileTree(res.data.project.fileTree || {})
@@ -450,7 +449,7 @@ const Project = () => {
             const normalizedTree = normalizeFileTree(aiResponse.fileTree);
             setFileTree(normalizedTree);
             // Optionally, update the backend as well:
-            axios.put('/projects/update-file-tree', {
+            axios.put('/api/projects/update-file-tree', {
               projectId: project._id,
               fileTree: normalizedTree
             });
@@ -632,11 +631,8 @@ const Project = () => {
     const isReplyCollapsed = settings.behavior.collapseReplies && isReply && !expandedReplies[msg._id];
 
     return (
-      <motion.div
+      <div
         key={msg._id}
-        initial={{ opacity: 0, x: isCurrentUser ? 20 : -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3 }}
         className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"} mb-2`}
       >
         {isReply && !isReplyCollapsed && (
@@ -785,7 +781,7 @@ const Project = () => {
             </button>
           </div>
         </div>
-      </motion.div>
+      </div>
     )
   }
 
@@ -810,7 +806,7 @@ const Project = () => {
   useEffect(() => {
     // Load settings from backend on mount
     if (projectId) {
-      axios.get(`/projects/settings/${projectId}`)
+  axios.get(`/api/projects/settings/${projectId}`)
         .then(res => {
           if (res.data && res.data.settings) {
             setSettings(prev => ({ ...prev, ...res.data.settings }));
@@ -826,7 +822,7 @@ const Project = () => {
   // Save settings to backend whenever they change
   useEffect(() => {
     if (projectId) {
-      axios.put(`/projects/settings/${projectId}`, { settings })
+  axios.put(`/api/projects/settings/${projectId}`, { settings })
         .catch(() => {});
     }
     localStorage.setItem('projectSettings', JSON.stringify(settings));
@@ -848,7 +844,7 @@ const Project = () => {
 
       // If updating sidebar, sync with backend
       if (category === 'sidebar' && project?._id) {
-        axios.put(`/projects/sidebar-settings/${project._id}`,
+  axios.put(`/api/projects/sidebar-settings/${project._id}`,
           { sidebar: { ...updated.sidebar } })
           .then(res => {
             if (res.data && res.data.sidebar) {
@@ -893,35 +889,36 @@ const Project = () => {
   return (
     <main className="flex w-screen h-screen overflow-hidden bg-white dark:bg-gray-900">
       <section className="relative flex flex-col h-screen left min-w-96 bg-slate-100 dark:bg-gray-800">
-        <header className="absolute top-0 z-10 flex items-center justify-between w-full p-2 px-4 bg-slate-100 dark:bg-gray-800">
+  <header className="absolute top-0 z-10 flex items-center justify-between w-full p-2 px-4 bg-slate-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 text-gray-800 dark:text-white transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 px-3 py-1.5 rounded-lg"
+              className="flex items-center gap-2 text-gray-800 dark:text-white transition-colors hover:bg-gray-200 dark:hover:bg-gray-800 px-3 py-1.5 rounded-lg focus:outline-none"
+              style={{ background: 'transparent', border: 'none' }}
             >
-              <i className="text-gray-800 ri-user-add-fill dark:text-white"></i>
-              <span className="text-gray-800 dark:text-white">{t('addUsers')}</span>
+              <i className="ri-user-add-fill" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
+              <span style={{ color: isDarkMode ? '#fff' : '#1f2937' }}>{t('addUsers')}</span>
             </button>
             {settings.display?.aiAssistant && (
-              <button className="p-2 text-gray-800 dark:text-white" title={t('aiAssistant')} onClick={() => setIsAIModalOpen(true)}>
-                <i className="ri-robot-2-line"></i>
+              <button className="p-2" title={t('aiAssistant')} onClick={() => setIsAIModalOpen(true)}>
+                <i className="ri-robot-2-line" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
               </button>
             )}
           </div>
           <div className="flex items-center gap-2">
             <button 
               onClick={() => setIsSettingsOpen(true)}
-              className="p-2 text-gray-800 transition-colors rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
+              className="p-2 transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
               title={t('settings')}
             >
-              <i className="text-xl ri-settings-3-line"></i>
+              <i className="text-xl ri-settings-3-line" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
             </button>
             {!showSearch ? (
               <button 
                 onClick={() => setShowSearch(true)} 
-                className="p-2 text-gray-800 transition-colors rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
+                className="p-2 transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
               >
-                <i className="text-gray-800 ri-search-eye-fill dark:text-white"></i>
+                <i className="ri-search-eye-fill" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
               </button>
             ) : (
               <div className="relative">
@@ -934,17 +931,17 @@ const Project = () => {
                 />
                 <button 
                   onClick={() => setShowSearch(false)} 
-                  className="absolute text-gray-800 right-2 top-2 dark:text-white"
+                  className="absolute right-2 top-2"
                 >
-                  <i className="ri-close-line"></i>
+                  <i className="ri-close-line" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
                 </button>
               </div>
             )}
             <button 
               onClick={() => setIsSidePanelOpen(!isSidePanelOpen)} 
-              className="p-2 text-gray-800 transition-colors rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
+              className="p-2 transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
             >
-              <i className="text-gray-800 ri-user-community-line dark:text-white"></i>
+              <i className="ri-user-community-line" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
             </button>
           </div>
         </header>
@@ -957,8 +954,8 @@ const Project = () => {
             .map((groupLabel) => (
               <div key={groupLabel}>
                 <div className="py-2 text-sm text-center text-gray-500 dark:text-gray-400">{groupLabel}</div>
-                {groupedMessages[groupLabel].map((msg) => (
-                  <React.Fragment key={msg._id}>{renderMessage(msg)}</React.Fragment>
+                {groupedMessages[groupLabel].map((msg, idx) => (
+                  <React.Fragment key={msg._id ? `${groupLabel}-${msg._id}` : `${groupLabel}-idx-${idx}`}>{renderMessage(msg)}</React.Fragment>
                 ))}
               </div>
             ))}
@@ -978,10 +975,7 @@ const Project = () => {
           </div>
         )}
         {typingUsers.size > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
+          <div
             className="absolute text-sm text-gray-500 bottom-14 left-4 dark:text-gray-400"
           >
             <div className="flex items-center gap-2">
@@ -995,7 +989,7 @@ const Project = () => {
                 return typingUser?.firstName || 'Unknown';
               }).join(', ')} {typingUsers.size === 1 ? 'is' : 'are'} typing...
             </div>
-          </motion.div>
+          </div>
         )}
         <div className="absolute bottom-0 flex w-full bg-white inputField dark:bg-gray-800">
           <input
@@ -1084,19 +1078,23 @@ const Project = () => {
             {/* Show File Tree Option */}
             {settings.sidebar?.showFileTree !== false && (
               <div className="file-tree">
-                {Object.keys(fileTree).map((file) => (
-                  <button
-                    key={file}
-                    onClick={() => {
-                      setCurrentFile(file);
-                      setOpenFiles([...new Set([...openFiles, file])]);
-                    }}
-                    className="flex items-center w-full gap-2 p-2 px-4 cursor-pointer tree-element hover:bg-slate-400 dark:hover:bg-gray-600 bg-slate-300 dark:bg-gray-700 dark:text-white"
-                  >
-                    <FileIcon fileName={file} />
-                    <p className="text-lg font-semibold">{file}</p>
-                  </button>
-                ))}
+                {fileTree && Object.keys(fileTree).length > 0 ? (
+                  Object.keys(fileTree).map((file) => (
+                    <button
+                      key={file}
+                      onClick={() => {
+                        setCurrentFile(file);
+                        setOpenFiles([...new Set([...openFiles, file])]);
+                      }}
+                      className="flex items-center w-full gap-2 p-2 px-4 cursor-pointer tree-element hover:bg-slate-400 dark:hover:bg-gray-600 bg-slate-300 dark:bg-gray-700 dark:text-white"
+                    >
+                      <FileIcon fileName={file} />
+                      <p className="text-lg font-semibold">{file}</p>
+                    </button>
+                  ))
+                ) : (
+                  <div className="text-gray-500 dark:text-gray-300 p-4">No files found in this project.</div>
+                )}
               </div>
             )}
             {/* Show Collaborators Option */}
@@ -1375,18 +1373,14 @@ const Project = () => {
       )}
 
       {/* Settings Modal (centered dialog) */}
-      <AnimatePresence>
         {isSettingsOpen && (
           <>
             <div 
               className="fixed inset-0 z-50 bg-black bg-opacity-50"
               onClick={() => setIsSettingsOpen(false)}
             />
-            <motion.div
+            <div
               ref={settingsModalRef}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
               className="fixed z-50 w-full max-w-md bg-white border border-gray-200 shadow-2xl dark:bg-gray-800 rounded-xl dark:border-gray-700"
               style={modalPosition ? {
                 left: modalPosition.x,
@@ -1708,10 +1702,9 @@ const Project = () => {
                   )}
                 </div>
               </div>
-            </motion.div>
+            </div>
           </>
         )}
-      </AnimatePresence>
       {isAIModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="relative w-full max-w-md p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">

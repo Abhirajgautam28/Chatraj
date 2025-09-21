@@ -1,6 +1,4 @@
 import { useState, useRef, useEffect, useContext, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import 'animate.css';
 import PropTypes from 'prop-types';
 import { ChatRajThemeContext } from '../context/chatraj-theme.context';
 import { UserContext } from '../context/user.context';
@@ -217,6 +215,81 @@ const ChatRaj = () => {
     return languages[lang]?.translations[key] || languages['en-US'].translations[key];
   };
 
+  // Duplicate speakResponse removed
+
+  // Move speakResponse above handleSubmit to avoid ReferenceError
+  const speakResponse = useCallback((text) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(true);
+
+      const utterance = new SpeechSynthesisUtterance(text);
+
+      const loadVoices = () => {
+        const voices = window.speechSynthesis.getVoices();
+        const femaleVoice = voices.find(voice =>
+          voice.name.toLowerCase().includes('female') ||
+          voice.name.includes('Samantha') ||
+          voice.name.includes('Victoria') ||
+          voice.name.includes('Karen') ||
+          voice.name.includes('Tessa')
+        );
+
+        if (femaleVoice) {
+          utterance.voice = femaleVoice;
+          utterance.pitch = 1.2;
+          utterance.rate = 0.9;
+        }
+      };
+
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+      }
+      loadVoices();
+
+      utterance.onstart = () => {
+        setIsSpeaking(true);
+      };
+
+      utterance.onend = () => {
+        setIsSpeaking(false);
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+  }, [setIsSpeaking]);
+
+  const handleSubmit = useCallback(async (e, voiceInput = null) => {
+    e?.preventDefault();
+
+    const messageToSend = voiceInput || inputMessage;
+    if (!messageToSend.trim()) return;
+
+    const userMessage = {
+      type: 'user',
+      content: messageToSend,
+      timestamp: new Date().toISOString()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputMessage('');
+    setIsThinking(true);
+
+    setTimeout(() => {
+      const aiMessage = {
+        type: 'ai',
+        content: "I understand and I'm here to help you! 🌟",
+        timestamp: new Date().toISOString()
+      };
+
+      setMessages(prev => [...prev, aiMessage]);
+      setIsThinking(false);
+
+      if (voiceInput) {
+        speakResponse(aiMessage.content);
+      }
+    }, 1500);
+  }, [inputMessage, speakResponse]);
   useEffect(() => {
     if ('webkitSpeechRecognition' in window) {
       const recognition = new window.webkitSpeechRecognition();
@@ -236,7 +309,7 @@ const ChatRaj = () => {
 
       recognitionRef.current = recognition;
     }
-  }, [handleSubmit]);
+  }, [handleSubmit, inputMessage, speakResponse]);
 
   useEffect(() => {
     const sidebar = document.querySelector('.sidebar');
@@ -329,79 +402,6 @@ const ChatRaj = () => {
       recognitionRef.current.start();
     }
   };
-
-  const speakResponse = useCallback((text) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(true);
-
-      const utterance = new SpeechSynthesisUtterance(text);
-
-      const loadVoices = () => {
-        const voices = window.speechSynthesis.getVoices();
-        const femaleVoice = voices.find(voice =>
-          voice.name.toLowerCase().includes('female') ||
-          voice.name.includes('Samantha') ||
-          voice.name.includes('Victoria') ||
-          voice.name.includes('Karen') ||
-          voice.name.includes('Tessa')
-        );
-
-        if (femaleVoice) {
-          utterance.voice = femaleVoice;
-          utterance.pitch = 1.2;
-          utterance.rate = 0.9;
-        }
-      };
-
-      if (window.speechSynthesis.onvoiceschanged !== undefined) {
-        window.speechSynthesis.onvoiceschanged = loadVoices;
-      }
-      loadVoices();
-
-      utterance.onstart = () => {
-        setIsSpeaking(true);
-      };
-
-      utterance.onend = () => {
-        setIsSpeaking(false);
-      };
-
-      window.speechSynthesis.speak(utterance);
-    }
-  }, [setIsSpeaking]);
-
-  const handleSubmit = useCallback(async (e, voiceInput = null) => {
-    e?.preventDefault();
-    
-    const messageToSend = voiceInput || inputMessage;
-    if (!messageToSend.trim()) return;
-    
-    const userMessage = {
-      type: 'user',
-      content: messageToSend,
-      timestamp: new Date().toISOString()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
-    setIsThinking(true);
-
-    setTimeout(() => {
-      const aiMessage = {
-        type: 'ai',
-        content: "I understand and I'm here to help you! 🌟",
-        timestamp: new Date().toISOString()
-      };
-      
-      setMessages(prev => [...prev, aiMessage]);
-      setIsThinking(false);
-
-      if (voiceInput) {
-        speakResponse(aiMessage.content);
-      }
-    }, 1500);
-  }, [inputMessage, speakResponse]);
 
   const handleNewChat = () => {
     setMessages([]);
@@ -562,6 +562,13 @@ const ChatRaj = () => {
                 <i className="text-xl ri-settings-3-line"></i>
                 <span className="text-sm font-medium">{t('settings')}</span>
               </button>
+              <button
+                onClick={() => navigate('/blogs')}
+                className="flex items-center w-full gap-3 p-2 mb-2 text-black transition-colors rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <i className="ri-newspaper-line"></i>
+                <span className="text-sm font-medium">Blogs</span>
+              </button>
             </div>
           </div>
         </div>
@@ -592,14 +599,8 @@ const ChatRaj = () => {
                     )
                   : messages
                 ).map((message, index) => (
-                  <motion.div
+                  <div
                     key={index}
-                    initial={settings.behavior.animations.messageTransition ? { 
-                      opacity: 0, 
-                      x: message.type === 'user' ? 20 : -20 
-                    } : false}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3 }}
                     className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div className={`max-w-[80%] px-4 py-3 ${settings.display.chatBubbles.roundness} ${
@@ -624,18 +625,16 @@ const ChatRaj = () => {
                         </p>
                       )}
                     </div>
-                  </motion.div>
+                  </div>
                 ))
               )}
               {isThinking && (
                 <div className="flex items-center gap-2 text-sm text-black dark:text-white">
                   <div className="flex space-x-1">
                     {[...Array(3)].map((_, i) => (
-                      <motion.div
+                      <div
                         key={i}
                         className="w-1.5 h-1.5 bg-current rounded-full"
-                        animate={{ scale: [1, 1.3, 1] }}
-                        transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.2 }}
                       />
                     ))}
                   </div>
@@ -740,17 +739,13 @@ const ChatRaj = () => {
         </div>
       </div>
 
-      <AnimatePresence>
-        {isSettingsOpen && (
+      {isSettingsOpen && (
           <>
             <div 
               className="fixed inset-0 z-50 bg-black bg-opacity-50"
               onClick={() => setIsSettingsOpen(false)}
             />
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 40 }}
+            <div
               className="fixed bottom-24 left-8 z-50 w-[480px] max-w-full bg-white rounded-xl shadow-2xl dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
               style={{ 
                 maxHeight: 'calc(100vh - 180px)',
@@ -1054,10 +1049,9 @@ const ChatRaj = () => {
                   )}
                 </div>
               </div>
-            </motion.div>
+            </div>
           </>
         )}
-      </AnimatePresence>
     </div>
   );
 };

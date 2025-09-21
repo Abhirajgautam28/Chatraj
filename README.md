@@ -10,11 +10,14 @@ ChatRaj is a comprehensive, AI-powered platform designed to streamline software 
   - [Table of Contents](#table-of-contents)
   - [Features](#features)
     - [Real-time Collaboration](#real-time-collaboration)
+      - [Enhanced Blog Experience](#enhanced-blog-experience)
     - [AI-Powered Assistance](#ai-powered-assistance)
     - [User Experience](#user-experience)
     - [Privacy \& Security](#privacy--security)
     - [Project Management](#project-management)
+      - [Advanced Category Management](#advanced-category-management)
     - [Code Editor \& Execution](#code-editor--execution)
+    - [Automated Testing](#automated-testing)
   - [Tech Stack](#tech-stack)
   - [Architecture Overview](#architecture-overview)
   - [Screenshots](#screenshots)
@@ -53,28 +56,35 @@ ChatRaj is a comprehensive, AI-powered platform designed to streamline software 
 
 - **Live Chat:** Instant messaging with typing indicators and emoji reactions.
 - **Multi-user Code Editing:** Edit code together with real-time updates.
-- **Project Categories:** Organize projects for better workflow.
 - **File Tree Visualization:** View and manage project files with syntax highlighting.
 - **Code Execution Environment:** Run code in isolated sandboxes (WebContainers).
 - **User Presence Indicators:** See who is online and collaborating.
 - **Voice Input:** Real-time speech recognition for hands-free collaboration.
+
+#### Enhanced Blog Experience
+A redesigned blog section with 3D animations, Material-UI components, and a modern, engaging design. The blog now also supports light and dark modes.
 
 ### AI-Powered Assistance
 
 - **AI Code Assistant:** Get code suggestions, explanations, and automation via Google Generative AI.
 - **@ChatRaj Mentions:** Directly interact with the AI assistant in chat.
 - **Auto-complete Suggestions:** Speed up communication with smart phrase suggestions.
+- **Chatbot Modal:** A new chatbot feature to provide instant help and support.
 
 ### User Experience
 
+- **Modern UI:** Redesigned Login, Register, and Blog pages for a clean and modern user experience.
 - **Dark/Light Mode:** Switch themes for comfortable coding.
 - **Responsive Design:** Works seamlessly on all devices.
 - **Animated Transitions:** Smooth UI animations for a modern feel.
 - **Customizable Interface:** Adjust chat bubbles, theme colors, font sizes, and more.
+- **New Icon:** Replaced the default Vite icon with the official ChatRaj icon.
 - **Multilingual Support:** Use the platform in English, Hindi, Spanish, French, German, or Japanese.
 
 ### Privacy & Security
 
+- **reCAPTCHA:** Implemented reCAPTCHA on login and register screens to prevent bots and enhance security.
+- **Two-Factor Authentication:** Added 2FA for password resets and user registration to enhance security.
 - **Local Chat History:** Manage, clear, or auto-delete chat history.
 - **Data Retention Controls:** Set auto-delete intervals and manage local storage.
 - **Role-based Access Control:** Secure project collaboration with roles and permissions.
@@ -82,14 +92,20 @@ ChatRaj is a comprehensive, AI-powered platform designed to streamline software 
 
 ### Project Management
 
-- **Category-based Organization:** 15+ predefined categories for efficient project sorting.
 - **Invite System:** Collaborate by inviting team members.
 - **File System Management:** Real-time updates and file operations.
+
+#### Advanced Category Management
+Organize projects with 15+ predefined categories, grid/list views, search functionality, and quick access to recent projects. The category page also features new animations and a compact view.
 
 ### Code Editor & Execution
 
 - **Colorful Syntax Highlighting:** The code editor now uses highlight.js themes for vibrant, VS Code-like syntax coloring in both light and dark mode.
 - **Run Button Timer:** When running code in the browser, the run button displays a live countdown timer until the WebContainer is ready, so users know exactly when they can execute their code.
+
+### Automated Testing
+- **End-to-End Testing:** Comprehensive E2E tests for user flows using Cypress.
+- **Unit & Integration Testing:** Automated testing setup with Jest for both backend and frontend components.
 
 ---
 
@@ -110,7 +126,7 @@ ChatRaj is a comprehensive, AI-powered platform designed to streamline software 
 
 **AI Integration:**
 - Google Generative AI (`@google/generative-ai`)
-- Google Jules
+- Google Jules (Bug Fixes)
 - Speech Recognition API
 - Text-to-Speech
 
@@ -301,7 +317,7 @@ Please follow our [Code of Conduct](CODE_OF_CONDUCT.md) and ensure your code adh
 - [ ] **AI Model Training:** Task-specific AI enhancements.
 - [ ] **Advanced Debugging:** Real-time error detection and suggestions.
 - [ ] **Expanded Language Support:** More languages for global teams.
-- [ ] **Visual Studio Code Support:** Provide support for Visual Studio Code in Project Page.
+- [ ] **Visual Studio Code Support:** Provide support for Visual Studio Code in the Project Page.
 - [ ] **Enhanced Privacy:** Advanced data protection and compliance.
 - [ ] **Mobile App:** Native mobile experience.
 - [ ] **Plugin System:** Extend ChatRaj with custom plugins.
@@ -324,4 +340,3 @@ For questions, support, or feedback:
 ---
 
 _Thank you for using ChatRaj! If you like this project, please star the repository and share your feedback._
-

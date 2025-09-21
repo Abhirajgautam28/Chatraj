@@ -1,3 +1,6 @@
+import React from 'react';
+
+// ...existing code...
 import { Route, BrowserRouter, Routes } from 'react-router-dom'
 import Login from '../screens/Login'
 import Register from '../screens/Register'
@@ -10,6 +13,9 @@ import Logout from '../screens/Logout'
 import WelcomeChatRaj from '../screens/WelcomeChatRaj';
 import ChatRaj from '../screens/ChatRaj';
 import { ChatRajThemeProvider } from '../context/chatraj-theme.context';
+import Blogs from '../screens/Blogs';
+import CreateBlogForm from '../components/CreateBlogForm';
+import SingleBlogPage from '../screens/SingleBlogPage';
 
 const AppRoutes = () => {
     return (
@@ -17,6 +23,7 @@ const AppRoutes = () => {
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/dashboard" element={<UserAuth><Dashboard /></UserAuth>} />
+                <Route path="/dashboard/:categoryName" element={<UserAuth><Dashboard /></UserAuth>} />
                 <Route path="/categories" element={<UserAuth><Categories /></UserAuth>} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
@@ -30,6 +37,9 @@ const AppRoutes = () => {
                         </ChatRajThemeProvider>
                     </UserAuth>
                 } />
+                <Route path="/blogs" element={<UserAuth><Blogs /></UserAuth>} />
+                <Route path="/blogs/create" element={<UserAuth><CreateBlogForm /></UserAuth>} />
+                <Route path="/blogs/:id" element={<UserAuth><SingleBlogPage /></UserAuth>} />
             </Routes>
         </BrowserRouter>
     )

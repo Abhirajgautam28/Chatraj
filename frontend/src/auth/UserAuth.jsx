@@ -11,24 +11,20 @@ const UserAuth = ({ children }) => {
     const navigate = useNavigate()
 
     useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                if (!token || !user) {
-                    navigate('/login', { replace: true });
-                    return;
-                }
-                setLoading(false);
-            } catch (error) {
-                console.error('Auth error:', error);
-                navigate('/', { replace: true });
-            }
-        };
-
-        checkAuth();
-    }, [user, navigate, token]);
+        // If there's no token in localStorage, the user is definitely not logged in.
+        if (!token) {
+            navigate('/login', { replace: true });
+            return;
+        }
+        if (user) {
+            setLoading(false);
+        }
+    }, [user, token, navigate]);
 
     if (loading) {
-        return <div>Loading...</div>
+        // While loading, we can show a spinner or a blank screen.
+        // This prevents the child components from rendering prematurely.
+        return <div className="flex items-center justify-center h-screen bg-gray-900 text-white">Loading...</div>;
     }
 
     return (
