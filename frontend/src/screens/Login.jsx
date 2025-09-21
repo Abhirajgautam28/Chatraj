@@ -74,7 +74,7 @@ const Login = () => {
         setLoginError('');
         // If recaptcha is disabled, skip token check
         if (isRecaptchaDisabled || token) {
-            axios.post('/users/login', { email, password, recaptchaToken: token })
+            axios.post('/api/users/login', { email, password, recaptchaToken: token })
                 .then((res) => {
                     localStorage.setItem('token', res.data.token);
                     setUser(res.data.user);
@@ -117,7 +117,7 @@ const Login = () => {
         setOtpResendTimer(30);
         setOtpResendActive(false);
         try {
-            await axios.post('/users/send-otp', { email: resetEmail });
+            await axios.post('/api/users/send-otp', { email: resetEmail });
             setResetOtpSent(true);
             let timer = 30;
             const interval = setInterval(() => {
@@ -143,7 +143,7 @@ const Login = () => {
             return;
         }
         try {
-            await axios.post('/users/verify-otp', { email: resetEmail, otp: resetOtp });
+            await axios.post('/api/users/verify-otp', { email: resetEmail, otp: resetOtp });
             setResetOtpVerified(true);
         } catch {
             setResetError('Invalid OTP. Please check your email and try again.');
@@ -166,7 +166,7 @@ const Login = () => {
         }
         setResetInProgress(true);
         try {
-            await axios.post('/users/update-password', {
+            await axios.post('/api/users/update-password', {
                 email: resetEmail,
                 newPassword: resetNewPassword
             });
@@ -350,7 +350,7 @@ const Login = () => {
                                                     setResetError('');
                                                     // Show instant feedback
                                                     setResetError('Sending OTP...');
-                                                    axios.post('/users/send-otp', { email: resetEmail })
+                                                    axios.post('/api/users/send-otp', { email: resetEmail })
                                                         .then(() => {
                                                             setResetError('OTP sent!');
                                                         })

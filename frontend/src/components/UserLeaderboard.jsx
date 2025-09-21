@@ -1,4 +1,3 @@
-import React from 'react';
 import { useState, useEffect } from 'react';
 import axios from '../config/axios';
 import Card from './Card';
@@ -8,7 +7,7 @@ const UserLeaderboard = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        axios.get('/users/leaderboard')
+        axios.get('/api/users/leaderboard')
             .then(res => {
                 if (Array.isArray(res.data.users)) {
                     setUsers(res.data.users);

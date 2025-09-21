@@ -394,7 +394,7 @@ const Project = () => {
     setAiResponse("");
     try {
       // Send user's googleApiKey for Gemini API access
-      const res = await axios.post("/ai", { prompt: aiInput, userApiKey: user.googleApiKey });
+      const res = await axios.post("/api/ai", { prompt: aiInput, userApiKey: user.googleApiKey });
       setAiResponse(res.data?.response || "No response from AI.");
     } catch (err) {
       setAiResponse("Error: " + (err.response?.data?.error || err.message));
@@ -421,7 +421,7 @@ const Project = () => {
         console.log("container started")
       })
     }
-    axios.get(`/projects/get-project/${location.state.project._id}`).then((res) => {
+    axios.get(`/api/projects/get-project/${location.state.project._id}`).then((res) => {
       console.log(res.data.project)
       setProject(res.data.project)
       setFileTree(res.data.project.fileTree || {})
@@ -805,7 +805,7 @@ const Project = () => {
   useEffect(() => {
     // Load settings from backend on mount
     if (projectId) {
-      axios.get(`/projects/settings/${projectId}`)
+      axios.get(`/api/projects/settings/${projectId}`)
         .then(res => {
           if (res.data && res.data.settings) {
             setSettings(prev => ({ ...prev, ...res.data.settings }));
@@ -821,7 +821,7 @@ const Project = () => {
   // Save settings to backend whenever they change
   useEffect(() => {
     if (projectId) {
-      axios.put(`/projects/settings/${projectId}`, { settings })
+      axios.put(`/api/projects/settings/${projectId}`, { settings })
         .catch(() => { });
     }
     localStorage.setItem('projectSettings', JSON.stringify(settings));
