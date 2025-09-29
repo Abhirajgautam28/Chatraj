@@ -1,4 +1,3 @@
-import React from 'react';
 // ...existing code...
 import { useContext, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,7 +16,7 @@ const Dashboard = () => {
 
   const createProject = (e) => {
     e.preventDefault();
-    axios.post('/projects/create', {
+    axios.post('/api/projects/create', {
       name: projectName,
       category: categoryName
     })
@@ -40,7 +39,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     // Always fetch all projects for the user, then filter by category on the frontend
-    axios.get('/projects/all')
+    axios.get('/api/projects/all')
       .then((res) => {
         if (Array.isArray(res.data.projects)) {
           if (categoryName) {

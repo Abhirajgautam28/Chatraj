@@ -1,4 +1,3 @@
-import React from 'react';
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import useTheme from '../context/useTheme';
@@ -13,7 +12,7 @@ function Blog({ user }) {
     useEffect(() => {
         const fetchBlogs = async () => {
             try {
-                const response = await axios.get('/blogs');
+                const response = await axios.get('/api/blogs');
                 if (Array.isArray(response.data)) {
                     setBlogs(response.data.slice(0, 3));
                 }

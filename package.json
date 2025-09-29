@@ -1,5 +1,18 @@
 {
+  "name": "chatraj-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "npx concurrently \"cd Backend && node server.js\" \"cd frontend && npm run dev\"",
+    "dev:win": "npx concurrently \"cd Backend && node server.js\" \"cd frontend && npm run dev\"",
+    "dev:unix": "npx concurrently \"cd Backend && node server.js\" \"cd frontend && npm run dev -- --host\"",
+    "start:backend": "node Backend/server.js",
+    "start:frontend": "cd frontend && npm run dev",
+    "smoke-test": "node Backend/scripts/smoke-test.js",
+    "smoke-test:e2e": "node Backend/scripts/e2e-test.js"
+  },
   "devDependencies": {
+    "concurrently": "^8.2.0",
     "cypress": "^15.0.0"
   }
 }

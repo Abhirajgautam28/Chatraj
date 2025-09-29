@@ -68,7 +68,7 @@ const Register = () => {
     function handleRecaptcha(token) {
         if (token) {
             // Proceed with registration after reCAPTCHA
-            axios.post('/users/register', { firstName, lastName, email, password, googleApiKey })
+            axios.post('/api/users/register', { firstName, lastName, email, password, googleApiKey })
                 .then((res) => {
                     setUserId(res.data.userId);
                     setShowOtpModal(true);
@@ -87,7 +87,7 @@ const Register = () => {
 
     function handleOtpSubmit(e) {
         e.preventDefault();
-        axios.post('/users/verify-otp', { userId, otp })
+        axios.post('/api/users/verify-otp', { userId, otp })
             .then((res) => {
                 localStorage.setItem('token', res.data.token);
                 setUser(res.data.user);

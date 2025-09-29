@@ -1,0 +1,116 @@
+name: Smoke Tests
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['20']
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Use Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install root dev dependencies
+        run: npm ci
+        env:
+          CI: true
+
+      - name: Install backend dependencies
+        run: npm ci --prefix Backend
+
+      - name: Install frontend dependencies
+        run: npm ci --prefix frontend
+
+      - name: Validate required secrets (fail fast with instructions)
+        run: |
+          missing=()
+          for s in MONGODB_URI JWT_SECRET SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASS; do
+            if [ -z "${!s}" ]; then
+              missing+=("$s")
+            fi
+          done
+          if [ ${#missing[@]} -ne 0 ]; then
+            echo "The following required repository secrets are missing: ${missing[*]}"
+            echo "Add them in your repository Settings → Secrets (Repository) before re-running this workflow."
+            echo "See README_DEV.md for step-by-step instructions."
+            exit 1
+          fi
+      - name: Start backend
+        run: |
+          cd Backend
+          # export secrets to process (runner already has them in environment if configured)
+          node server.js &
+        # Allow server to warm up
+
+      - name: Wait for backend
+        run: |
+          for i in {1..15}; do
+            if curl -sSf http://localhost:8080/health; then
+              echo "backend up" && exit 0
+            fi
+            sleep 2
+          done
+          echo "backend did not become ready" && exit 1
+
+      - name: Run smoke-test
+        run: node Backend/scripts/smoke-test.js
+
+      - name: Run e2e light checks
+        run: node Backend/scripts/e2e-test.js
+
+  tests:
+    needs: smoke-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Use Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+      - name: Install backend deps
+        run: npm ci --prefix Backend
+      - name: Start backend (background)
+        run: |
+          cd Backend
+          node server.js &
+      - name: Wait for backend
+        run: |
+          for i in {1..15}; do
+            if curl -sSf http://localhost:8080/health; then
+              echo "backend up" && exit 0
+            fi
+            sleep 2
+          done
+          echo "backend did not become ready" && exit 1
+      - name: Run Jest E2E
+        run: npm test --prefix Backend -- --runInBand
+
+  deploy-staging:
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check for VERCEL_TOKEN secret (skip if not provided)
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "VERCEL_TOKEN not found. Skipping deploy-staging job. To enable, add VERCEL_TOKEN as a repository secret.";
+            exit 0
+          fi
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          echo "Deploying to Vercel (requires VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID)"
+          # Example using Vercel CLI (ensure secrets provided)
+          npm i -g vercel
+          vercel --token $VERCEL_TOKEN --prod --confirm
