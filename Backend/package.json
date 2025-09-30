@@ -20,7 +20,7 @@
     "ioredis": "5.8.0",
     "jsonwebtoken": "9.0.2",
     "mongodb": "6.20.0",
-    "mongoose": "^8.18.2",
+    "mongoose": "^8.18.3",
     "morgan": "1.10.1",
     "nodemailer": "^7.0.6",
     "nodemon": "3.1.10",
