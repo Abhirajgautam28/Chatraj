@@ -149,6 +149,9 @@ const TextType = ({
     const shouldHideCursor =
         hideCursorWhileTyping && (currentCharIndex < textArray[currentTextIndex].length || isDeleting);
 
+    // compute current color once to avoid redundant calls in render
+    const currentColor = getCurrentTextColor();
+
     return createElement(
         Component,
         {
@@ -157,8 +160,8 @@ const TextType = ({
             ...props
         },
         <span
-            className="inline"
-            style={getCurrentTextColor() ? { color: getCurrentTextColor() } : undefined}
+            className={`inline ${currentColor ? '' : 'text-current'}`}
+            style={currentColor ? { color: currentColor } : undefined}
         >
             {displayedText}
         </span>,
@@ -176,7 +179,7 @@ const TextType = ({
 export default TextType;
 
 TextType.propTypes = {
-    text: PropTypes.oneOfType([PropTypes.string, PropTypes.array]).isRequired,
+    text: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]).isRequired,
     as: PropTypes.oneOfType([PropTypes.string, PropTypes.elementType]),
     typingSpeed: PropTypes.number,
     initialDelay: PropTypes.number,
