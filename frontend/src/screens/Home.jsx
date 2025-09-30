@@ -13,12 +13,10 @@ import ContactUs from '../components/ContactUs.jsx';
 
 const AskChatRajModal = lazy(() => import('../components/AskChatRajModal.jsx'));
 
-// Newsletter API endpoint for subscription
 const NEWSLETTER_API_URL =
   import.meta.env.VITE_NEWSLETTER_API_URL ||
   'https://chatraj-backend.onrender.com/api/newsletter/subscribe';
 
-// 9 Key Features for a balanced grid
 const features = [
   {
     icon: 'ri-robot-2-line',
@@ -175,7 +173,6 @@ const Home = () => {
     }
   };
 
-  // For animated background shapes
   const AnimatedBg = () => (
     <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
       <motion.div
@@ -204,7 +201,6 @@ const Home = () => {
 
   return (
     <div className={`flex flex-col min-h-screen overflow-x-hidden ${isDarkMode ? 'bg-gradient-to-r from-blue-900 via-gray-900 to-blue-900' : 'bg-gray-50'}`}>
-      {/* Only render AnimatedBg if user does not prefer reduced motion */}
       {typeof window !== "undefined" && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && (
         <AnimatedBg />
       )}
