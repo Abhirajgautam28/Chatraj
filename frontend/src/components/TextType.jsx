@@ -1,6 +1,6 @@
-import PropTypes from 'prop-types';
 import { useEffect, useRef, useState, createElement, useMemo, useCallback } from 'react';
 import { gsap } from 'gsap';
+import PropTypes from 'prop-types';
 
 const TextType = ({
     text,
@@ -40,7 +40,8 @@ const TextType = ({
     }, [variableSpeed, typingSpeed]);
 
     const getCurrentTextColor = () => {
-        if (textColors.length === 0) return '#ffffff';
+        // If no explicit textColors provided, return null so parent CSS classes control color
+        if (!textColors || textColors.length === 0) return null;
         return textColors[currentTextIndex % textColors.length];
     };
 
@@ -155,7 +156,10 @@ const TextType = ({
             className: `inline-block whitespace-pre-wrap tracking-tight ${className}`,
             ...props
         },
-        <span className="inline" style={{ color: getCurrentTextColor() }}>
+        <span
+            className="inline"
+            style={getCurrentTextColor() ? { color: getCurrentTextColor() } : undefined}
+        >
             {displayedText}
         </span>,
         showCursor && (
@@ -170,3 +174,24 @@ const TextType = ({
 };
 
 export default TextType;
+
+TextType.propTypes = {
+    text: PropTypes.oneOfType([PropTypes.string, PropTypes.array]).isRequired,
+    as: PropTypes.oneOfType([PropTypes.string, PropTypes.elementType]),
+    typingSpeed: PropTypes.number,
+    initialDelay: PropTypes.number,
+    pauseDuration: PropTypes.number,
+    deletingSpeed: PropTypes.number,
+    loop: PropTypes.bool,
+    className: PropTypes.string,
+    showCursor: PropTypes.bool,
+    hideCursorWhileTyping: PropTypes.bool,
+    cursorCharacter: PropTypes.string,
+    cursorClassName: PropTypes.string,
+    cursorBlinkDuration: PropTypes.number,
+    textColors: PropTypes.arrayOf(PropTypes.string),
+    variableSpeed: PropTypes.shape({ min: PropTypes.number, max: PropTypes.number }),
+    onSentenceComplete: PropTypes.func,
+    startOnVisible: PropTypes.bool,
+    reverseMode: PropTypes.bool
+};
