@@ -20,7 +20,7 @@
     "@codemirror/lang-javascript": "^6.2.4",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@mantine/core": "^8.3.2",
+    "@mantine/core": "^8.3.3",
     "@mantine/hooks": "^8.3.1",
     "@monaco-editor/react": "^4.7.0",
     "@mui/material": "^7.3.4",
