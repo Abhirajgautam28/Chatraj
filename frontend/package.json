@@ -39,7 +39,7 @@
     "gsap": "^3.13.0",
     "highlight.js": "^11.11.1",
     "imagesloaded": "^5.0.0",
-    "markdown-to-jsx": "^7.7.14",
+    "markdown-to-jsx": "^7.7.15",
     "masonry-layout": "^4.2.2",
     "monaco-editor": "^0.54.0",
     "monaco-vim": "^0.4.2",
