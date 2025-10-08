@@ -65,7 +65,7 @@
     "autoprefixer": "10.4.21",
     "babel-jest": "^30.2.0",
     "concurrently": "^9.2.1",
-    "cypress": "^15.3.0",
+    "cypress": "^15.4.0",
     "eslint": "^9.37.0",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^6.1.1",
