@@ -1,4 +1,5 @@
 import http from 'http';
+import '../Backend/patches/patch-validator-isURL.js';
 import app from './app.js';
 import connect from './db/db.js';
 import { Server } from 'socket.io';
