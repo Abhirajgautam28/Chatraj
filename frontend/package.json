@@ -32,7 +32,7 @@
     "@webcontainer/api": "^1.0.0",
     "animate.css": "^4.1.1",
     "animejs": "^3.2.2",
-    "antd": "^5.27.4",
+    "antd": "^5.27.5",
     "axios": "^1.12.2",
     "bootstrap": "^5.3.8",
     "framer-motion": "^12.23.24",
