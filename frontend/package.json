@@ -33,7 +33,7 @@
     "animate.css": "^4.1.1",
     "animejs": "^3.2.2",
     "antd": "^5.27.6",
-    "axios": "^1.12.2",
+    "axios": "^1.13.2",
     "bootstrap": "^5.3.8",
     "framer-motion": "^12.23.24",
     "gsap": "^3.13.0",
