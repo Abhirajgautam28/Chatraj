@@ -310,7 +310,7 @@ const Categories = () => {
                         <motion.div
                           key={index}
                           onClick={() => handleCategoryClick(cat.title)}
-                          className={`relative p-4 transition-all duration-300 transform bg-gray-800 border border-gray-700 rounded-xl shadow-md cursor-pointer group ${tileSize === 'sm' ? 'min-h-[100px]' : tileSize === 'lg' ? 'min-h-[220px]' : 'min-h-[160px]'}`}
+                          className={`relative p-4 transition-all duration-300 transform bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-md cursor-pointer group ${tileSize === 'sm' ? 'min-h-[100px]' : tileSize === 'lg' ? 'min-h-[220px]' : 'min-h-[160px]'}`}
                           initial={{ opacity: 0, y: 30, scale: 0.95 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 30, scale: 0.95 }}
@@ -329,15 +329,15 @@ const Categories = () => {
                             </span>
                           )}
                           <motion.div
-                            className={`flex items-center justify-center w-12 h-12 mb-3 text-white bg-gray-700 rounded-lg group-hover:bg-blue-700 transition-colors duration-300 ${tileSize === 'sm' ? 'w-8 h-8 mb-1' : tileSize === 'lg' ? 'w-16 h-16 mb-5' : ''}`}
+                            className={`flex items-center justify-center w-12 h-12 mb-3 rounded-lg transition-colors duration-300 text-blue-900 bg-blue-50 group-hover:bg-blue-100 dark:text-white dark:bg-gray-700 dark:group-hover:bg-blue-700 ${tileSize === 'sm' ? 'w-8 h-8 mb-1' : tileSize === 'lg' ? 'w-16 h-16 mb-5' : ''}`}
                             initial={{ rotate: 0 }}
                             whileHover={{ rotate: 12, scale: 1.12 }}
                             transition={{ type: 'spring', stiffness: 200, damping: 15 }}
                           >
                             <i className={`${cat.icon} text-2xl group-hover:text-blue-200 transition-colors duration-300`}></i>
                           </motion.div>
-                          <h2 className={`mb-1 font-semibold text-white group-hover:text-blue-300 transition-colors duration-300 ${tileSize === 'sm' ? 'text-base' : tileSize === 'lg' ? 'text-2xl' : 'text-lg'}`}>{cat.title}</h2>
-                          <p className={`text-xs text-gray-400 group-hover:text-blue-200 transition-colors duration-300 ${tileSize === 'sm' ? 'hidden' : tileSize === 'lg' ? 'text-base' : ''}`}>{cat.description}</p>
+                          <h2 className={`mb-1 font-semibold text-blue-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors duration-300 ${tileSize === 'sm' ? 'text-base' : tileSize === 'lg' ? 'text-2xl' : 'text-lg'}`}>{cat.title}</h2>
+                          <p className={`text-xs text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-200 transition-colors duration-300 ${tileSize === 'sm' ? 'hidden' : tileSize === 'lg' ? 'text-base' : ''}`}>{cat.description}</p>
                         </motion.div>
                       );
                     })}
@@ -352,7 +352,7 @@ const Categories = () => {
                         <motion.div
                           key={index}
                           onClick={() => handleCategoryClick(cat.title)}
-                          className={`flex items-center gap-4 p-4 bg-gray-800 border border-gray-700 rounded-xl shadow-md cursor-pointer group transition-all ${tileSize === 'sm' ? 'py-2' : tileSize === 'lg' ? 'py-8' : ''}`}
+                          className={`flex items-center gap-4 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-md cursor-pointer group transition-all ${tileSize === 'sm' ? 'py-2' : tileSize === 'lg' ? 'py-8' : ''}`}
                           initial={{ opacity: 0, x: -30 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: -30 }}
@@ -366,7 +366,7 @@ const Categories = () => {
                           whileTap={{ scale: 0.98 }}
                         >
                           <motion.div
-                            className={`flex items-center justify-center w-12 h-12 text-white bg-gray-700 rounded-lg group-hover:bg-blue-700 transition-colors duration-300 ${tileSize === 'sm' ? 'w-8 h-8' : tileSize === 'lg' ? 'w-16 h-16' : ''}`}
+                            className={`flex items-center justify-center w-12 h-12 rounded-lg transition-colors duration-300 text-blue-900 bg-blue-50 group-hover:bg-blue-100 dark:text-white dark:bg-gray-700 dark:group-hover:bg-blue-700 ${tileSize === 'sm' ? 'w-8 h-8' : tileSize === 'lg' ? 'w-16 h-16' : ''}`}
                             initial={{ rotate: 0 }}
                             whileHover={{ rotate: 12, scale: 1.12 }}
                             transition={{ type: 'spring', stiffness: 200, damping: 15 }}
@@ -374,8 +374,8 @@ const Categories = () => {
                             <i className={`${cat.icon} text-2xl group-hover:text-blue-200 transition-colors duration-300`}></i>
                           </motion.div>
                           <div className="flex-1">
-                            <h2 className={`font-semibold text-white group-hover:text-blue-300 transition-colors duration-300 ${tileSize === 'sm' ? 'text-base' : tileSize === 'lg' ? 'text-2xl' : 'text-lg'}`}>{cat.title}</h2>
-                            <p className={`text-xs text-gray-400 group-hover:text-blue-200 transition-colors duration-300 ${tileSize === 'sm' ? 'hidden' : tileSize === 'lg' ? 'text-base' : ''}`}>{cat.description}</p>
+                            <h2 className={`font-semibold text-blue-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors duration-300 ${tileSize === 'sm' ? 'text-base' : tileSize === 'lg' ? 'text-2xl' : 'text-lg'}`}>{cat.title}</h2>
+                            <p className={`text-xs text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-200 transition-colors duration-300 ${tileSize === 'sm' ? 'hidden' : tileSize === 'lg' ? 'text-base' : ''}`}>{cat.description}</p>
                           </div>
                           {count > 0 && (
                             <span className="px-2 py-1 text-xs font-bold text-white bg-blue-600 rounded-full">
@@ -396,7 +396,7 @@ const Categories = () => {
                         <motion.div
                           key={index}
                           onClick={() => handleCategoryClick(cat.title)}
-                          className={`flex flex-col items-center justify-center p-2 bg-gray-800 border border-gray-700 rounded-lg shadow cursor-pointer group transition-all ${tileSize === 'sm' ? 'min-h-[60px]' : tileSize === 'lg' ? 'min-h-[140px]' : 'min-h-[90px]'}`}
+                          className={`flex flex-col items-center justify-center p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow cursor-pointer group transition-all ${tileSize === 'sm' ? 'min-h-[60px]' : tileSize === 'lg' ? 'min-h-[140px]' : 'min-h-[90px]'}`}
                           initial={{ opacity: 0, scale: 0.92 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.92 }}
@@ -430,7 +430,7 @@ const Categories = () => {
                         <motion.div
                           key={index}
                           onClick={() => handleCategoryClick(cat.title)}
-                          className={`flex flex-col items-start p-5 bg-gray-900 border border-blue-900 rounded-2xl shadow-lg cursor-pointer group transition-all ${tileSize === 'sm' ? 'min-h-[80px]' : tileSize === 'lg' ? 'min-h-[180px]' : 'min-h-[120px]'}`}
+                          className={`flex flex-col items-start p-5 bg-white dark:bg-gray-900 border border-blue-100 dark:border-blue-900 rounded-2xl shadow-lg cursor-pointer group transition-all ${tileSize === 'sm' ? 'min-h-[80px]' : tileSize === 'lg' ? 'min-h-[180px]' : 'min-h-[120px]'}`}
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: 20 }}
@@ -445,12 +445,12 @@ const Categories = () => {
                         >
                           <div className="flex items-center gap-3 mb-2">
                             <i className={`${cat.icon} text-2xl text-blue-400`}></i>
-                            <span className={`font-bold text-white ${tileSize === 'sm' ? 'text-base' : tileSize === 'lg' ? 'text-2xl' : 'text-lg'}`}>{cat.title}</span>
+                            <span className={`font-bold text-blue-900 dark:text-white ${tileSize === 'sm' ? 'text-base' : tileSize === 'lg' ? 'text-2xl' : 'text-lg'}`}>{cat.title}</span>
                             {count > 0 && (
                               <span className="ml-2 px-2 py-0.5 text-xs font-bold text-white bg-blue-600 rounded-full">{count}</span>
                             )}
                           </div>
-                          <p className={`text-blue-200 ${tileSize === 'sm' ? 'text-xs' : tileSize === 'lg' ? 'text-lg' : 'text-sm'}`}>{cat.description}</p>
+                          <p className={`text-blue-200 dark:text-blue-200 ${tileSize === 'sm' ? 'text-xs' : tileSize === 'lg' ? 'text-lg' : 'text-sm'}`}>{cat.description}</p>
                         </motion.div>
                       );
                     })}
@@ -465,7 +465,7 @@ const Categories = () => {
                         <motion.button
                           key={index}
                           onClick={() => handleCategoryClick(cat.title)}
-                          className={`px-3 py-2 rounded bg-gray-800 text-blue-200 font-semibold border border-gray-700 hover:bg-blue-700 hover:text-white transition shadow ${tileSize === 'sm' ? 'text-xs' : tileSize === 'lg' ? 'text-lg px-5 py-3' : ''}`}
+                          className={`px-3 py-2 rounded bg-blue-50 text-blue-900 border border-blue-100 hover:bg-blue-100 hover:text-blue-800 dark:bg-gray-800 dark:text-blue-200 dark:border-gray-700 dark:hover:bg-blue-700 dark:hover:text-white font-semibold transition shadow ${tileSize === 'sm' ? 'text-xs' : tileSize === 'lg' ? 'text-lg px-5 py-3' : ''}`}
                           initial={{ opacity: 0, scale: 0.9 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.9 }}
@@ -491,7 +491,7 @@ const Categories = () => {
                         <motion.div
                           key={index}
                           onClick={() => handleCategoryClick(cat.title)}
-                          className={`flex flex-col md:flex-row items-start md:items-center gap-4 p-6 bg-gray-900 border border-blue-900 rounded-2xl shadow-lg cursor-pointer group transition-all ${tileSize === 'sm' ? 'py-2' : tileSize === 'lg' ? 'py-10' : ''}`}
+                          className={`flex flex-col md:flex-row items-start md:items-center gap-4 p-6 bg-white dark:bg-gray-900 border border-blue-100 dark:border-blue-900 rounded-2xl shadow-lg cursor-pointer group transition-all ${tileSize === 'sm' ? 'py-2' : tileSize === 'lg' ? 'py-10' : ''}`}
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: 20 }}
@@ -506,7 +506,7 @@ const Categories = () => {
                         >
                           <div className="flex items-center gap-3 mb-2 md:mb-0">
                             <i className={`${cat.icon} text-2xl text-blue-400`}></i>
-                            <span className={`font-bold text-white ${tileSize === 'sm' ? 'text-base' : tileSize === 'lg' ? 'text-2xl' : 'text-lg'}`}>{cat.title}</span>
+                            <span className={`font-bold text-blue-900 dark:text-white ${tileSize === 'sm' ? 'text-base' : tileSize === 'lg' ? 'text-2xl' : 'text-lg'}`}>{cat.title}</span>
                             {count > 0 && (
                               <span className="ml-2 px-2 py-0.5 text-xs font-bold text-white bg-blue-600 rounded-full">{count}</span>
                             )}
