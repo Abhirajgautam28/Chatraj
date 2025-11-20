@@ -6,7 +6,12 @@ const ThreeBackground = () => {
   const mountRef = useRef(null);
   const { isDarkMode } = useContext(ThemeContext);
 
+  // Reduced motion check
+  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   useEffect(() => {
+    if (prefersReducedMotion) return;
+
     const currentMount = mountRef.current;
 
     // Scene setup
@@ -79,7 +84,9 @@ const ThreeBackground = () => {
       particlesMaterial.dispose();
       renderer.dispose();
     };
-  }, [isDarkMode]);
+  }, [isDarkMode, prefersReducedMotion]);
+
+  if (prefersReducedMotion) return null;
 
   return (
     <div
