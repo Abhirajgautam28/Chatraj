@@ -100,7 +100,7 @@ const Register = () => {
     }
 
     return (
-        <div ref={containerRef} className="relative flex items-center justify-center min-h-screen bg-gray-900 overflow-hidden">
+        <div ref={containerRef} className="relative flex items-center justify-center min-h-screen bg-transparent overflow-hidden">
             {errorMsg && (
                 <div className="fixed top-8 left-1/2 z-50 -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded shadow-lg text-center font-semibold animate__animated animate__fadeInDown">
                     {errorMsg}
