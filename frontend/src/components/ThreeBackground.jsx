@@ -11,9 +11,6 @@ const ThreeBackground = () => {
 
     // Scene setup
     const scene = new THREE.Scene();
-    // Set background color based on theme, or keep transparent
-    // scene.background = new THREE.Color(isDarkMode ? 0x111827 : 0xf3f4f6);
-    // We'll keep it transparent to overlay on existing gradient
 
     // Camera setup
     const camera = new THREE.PerspectiveCamera(
@@ -29,17 +26,6 @@ const ThreeBackground = () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     currentMount.appendChild(renderer.domElement);
-
-    // Object: Rotating Icosahedron (Techy feel)
-    const geometry = new THREE.IcosahedronGeometry(1.5, 1); // Radius 1.5, Detail 1
-    const material = new THREE.MeshBasicMaterial({
-      color: isDarkMode ? 0x3b82f6 : 0x2563eb, // Blue
-      wireframe: true,
-      transparent: true,
-      opacity: 0.3,
-    });
-    const sphere = new THREE.Mesh(geometry, material);
-    scene.add(sphere);
 
     // Particles
     const particlesGeometry = new THREE.BufferGeometry();
@@ -66,9 +52,6 @@ const ThreeBackground = () => {
     const animate = () => {
       requestAnimationFrame(animate);
 
-      sphere.rotation.x += 0.002;
-      sphere.rotation.y += 0.002;
-
       particlesMesh.rotation.y -= 0.001;
       particlesMesh.rotation.x -= 0.0005;
 
@@ -92,8 +75,6 @@ const ThreeBackground = () => {
       if (currentMount && renderer.domElement) {
         currentMount.removeChild(renderer.domElement);
       }
-      geometry.dispose();
-      material.dispose();
       particlesGeometry.dispose();
       particlesMaterial.dispose();
       renderer.dispose();
