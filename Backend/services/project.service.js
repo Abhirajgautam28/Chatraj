@@ -102,7 +102,7 @@ export const addUsersToProject = async ({ projectId, users, userId }) => {
 
 }
 
-export const getProjectById = async ({ projectId }) => {
+export const getProjectById = async ({ projectId, userId }) => {
     if (!projectId) {
         throw new Error("projectId is required")
     }
@@ -116,6 +116,18 @@ export const getProjectById = async ({ projectId }) => {
         _id: projectId
     }).populate('users', '_id firstName lastName')
 
+    if (!project) {
+        throw new Error("Project not found");
+    }
+
+    // Check if requesting user is a member
+    if (userId) {
+        const isMember = project.users.some(u => u._id && u._id.toString() === userId.toString());
+        if (!isMember) {
+            throw new Error("Unauthorized access");
+        }
+    }
+
     // Always return a valid fileTree object
     if (project && (!project.fileTree || typeof project.fileTree !== 'object')) {
         project.fileTree = {};
@@ -124,7 +136,7 @@ export const getProjectById = async ({ projectId }) => {
     return project;
 }
 
-export const updateFileTree = async ({ projectId, fileTree }) => {
+export const updateFileTree = async ({ projectId, fileTree, userId }) => {
     if (!projectId) {
         throw new Error("projectId is required")
     }
@@ -135,6 +147,17 @@ export const updateFileTree = async ({ projectId, fileTree }) => {
 
     if (!fileTree) {
         throw new Error("fileTree is required")
+    }
+
+    if (userId) {
+        const project = await projectModel.findOne({
+            _id: projectId,
+            users: userId
+        });
+
+        if (!project) {
+            throw new Error("Unauthorized access");
+        }
     }
 
     const project = await projectModel.findOneAndUpdate({

@@ -172,8 +172,10 @@ export const getProjectById = async (req, res) => {
     const { projectId } = req.params;
 
     try {
-
-        const project = await projectService.getProjectById({ projectId });
+        const project = await projectService.getProjectById({
+            projectId,
+            userId: req.user._id
+        });
 
         return res.status(200).json({
             project
@@ -181,7 +183,8 @@ export const getProjectById = async (req, res) => {
 
     } catch (err) {
         console.log(err)
-        res.status(400).json({ error: err.message })
+        const status = err.message === 'Unauthorized access' ? 401 : 400;
+        res.status(status).json({ error: err.message })
     }
 
 }
@@ -199,7 +202,8 @@ export const updateFileTree = async (req, res) => {
 
         const project = await projectService.updateFileTree({
             projectId,
-            fileTree
+            fileTree,
+            userId: req.user._id
         })
 
         return res.status(200).json({
@@ -208,7 +212,8 @@ export const updateFileTree = async (req, res) => {
 
     } catch (err) {
         console.log(err)
-        res.status(400).json({ error: err.message })
+        const status = err.message === 'Unauthorized access' ? 401 : 400;
+        res.status(status).json({ error: err.message })
     }
 
 }
