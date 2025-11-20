@@ -6,6 +6,50 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## Latest Features
 
+### 2025-11-20
+**Features & UI Enhancements**
+- Added a minimal Three.js 3D particle effect to the homepage for enhanced user experience.
+- Simplified the homepage 3D background to show only floating particles.
+**Fixes & Improvements**
+- Fixed a critical security vulnerability allowing unauthorized access to projects (IDOR).
+- Updated frontend dependencies including `vite`, `react-router-dom`, and `@babel/preset-react`.
+
+### 2025-11-17
+**Features & UI Enhancements**
+- Added Vercel Analytics for tracking user interactions and performance metrics.
+**Fixes & Improvements**
+- Fixed the light mode rendering issue on the Categories screen.
+- Addressed a security vulnerability by upgrading `js-yaml` and implementing a runtime patch for `validator.isURL`.
+
+### 2025-10-14
+**Fixes & Improvements**
+- Upgraded `dompurify` to fix a Cross-Site Scripting (XSS) vulnerability.
+- Implemented a runtime patch for `validator.isURL` to mitigate security advisories.
+- Updated various backend and frontend dependencies for stability and security.
+
+### 2025-09-21
+**Development & Testing**
+- Added smoke test scripts to verify server and frontend functionality.
+- Implemented E2E test scripts for basic user flow testing.
+- Added GitHub Actions workflows for smoke testing and secrets management guidance.
+**Fixes & Improvements**
+- Fixed issues with backend tests and axios base URL configuration.
+
+### 2025-09-20
+**Features & UI Enhancements**
+- Added `TextType` animation to the home screen title.
+- Introduced a text scramble effect using `DecryptedText` component.
+**Fixes & Improvements**
+- Fixed rendering and animation issues on the home screen.
+- Removed decrypted text artifacts from the home screen.
+- Installed GSAP for better animation support.
+
+### 2025-09-17
+**DevOps & Configuration**
+- Added Dockerfiles for frontend and backend services.
+- Created a project workspace and updated `.gitignore` for better development workflow.
+- Modified `compose.yaml` for correct host port mapping.
+
 ### 2025-09-08
 **Fixes & Improvements**
 - Fixed an issue with the user leaderboard and updated the styling for the project showcase.
