@@ -10,6 +10,7 @@ import { ThemeContext } from '../context/theme.context';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
 import Blog from '../components/Blog.jsx';
 import ContactUs from '../components/ContactUs.jsx';
+import ThreeBackground from '../components/ThreeBackground.jsx';
 
 const AskChatRajModal = lazy(() => import('../components/AskChatRajModal.jsx'));
 
@@ -202,7 +203,10 @@ const Home = () => {
   return (
     <div className={`flex flex-col min-h-screen overflow-x-hidden ${isDarkMode ? 'bg-gradient-to-r from-blue-900 via-gray-900 to-blue-900' : 'bg-gray-50'}`}>
       {typeof window !== "undefined" && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && (
-        <AnimatedBg />
+        <>
+          <AnimatedBg />
+          <ThreeBackground />
+        </>
       )}
 
       {/* Navbar */}
