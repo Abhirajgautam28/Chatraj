@@ -200,7 +200,7 @@ const Home = () => {
   );
 
   return (
-    <div className={`flex flex-col min-h-screen overflow-x-hidden ${isDarkMode ? 'bg-gradient-to-r from-blue-900 via-gray-900 to-blue-900' : 'bg-gray-50'}`}>
+    <div className="flex flex-col min-h-screen overflow-x-hidden bg-transparent">
       {typeof window !== "undefined" && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && (
         <AnimatedBg />
       )}
@@ -251,7 +251,7 @@ const Home = () => {
       </motion.nav>
 
       {/* Hero */}
-      <section className="relative flex flex-col items-center justify-center min-h-screen text-center">
+      <section className="relative z-10 flex flex-col items-center justify-center min-h-screen text-center">
         <TextType
           text={["Your Intelligent Software Engineering Assistant"]}
           typingSpeed={75}
@@ -307,7 +307,7 @@ function greet(name) {
       </section>
 
       {/* Features */}
-      <section className={`px-4 py-20 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
+      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
         <div className="max-w-6xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Key Features</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
@@ -329,7 +329,7 @@ function greet(name) {
         </div>
       </section>
 
-      <section className={`py-20 ${isDarkMode ? 'bg-gray-900/80' : 'bg-white'}`}>
+      <section className={`relative z-10 py-20 ${isDarkMode ? 'bg-gray-900/80' : 'bg-white'}`}>
         <div className="max-w-6xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Popular Use Cases</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
@@ -350,7 +350,7 @@ function greet(name) {
         </div>
       </section>
 
-      <section className={`px-4 py-20 ${isDarkMode ? 'bg-gray-900/50' : 'bg-white'}`}>
+      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-gray-900/50' : 'bg-white'}`}>
         <div className="max-w-6xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Why Choose ChatRaj</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
@@ -375,7 +375,7 @@ function greet(name) {
         </div>
       </section>
 
-      <section className={`px-4 py-20 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
         <div className="max-w-6xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Powered By</h2>
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
@@ -395,7 +395,7 @@ function greet(name) {
         </div>
       </section>
 
-      <section className={`px-4 py-20 overflow-x-auto ${isDarkMode ? 'bg-gray-900/70' : 'bg-white'}`}>
+      <section className={`relative z-10 px-4 py-20 overflow-x-auto ${isDarkMode ? 'bg-gray-900/70' : 'bg-white'}`}>
         <div className="flex flex-col items-center w-full max-w-6xl gap-12 mx-auto md:flex-row">
           <div className="flex-1 min-w-0">
             <h2 className={`mb-8 text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>How ChatRaj Works</h2>
@@ -435,7 +435,7 @@ function greet(name) {
       </section>
 
       {/* Project Showcase Section */}
-      <section className={`py-20 ${isDarkMode ? 'bg-white/5' : 'bg-white'}`}>
+      <section className={`relative z-10 py-20 ${isDarkMode ? 'bg-white/5' : 'bg-white'}`}>
         <div className="max-w-4xl mx-auto">
           <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-gray-900">Project Showcase</h2>
           <ProjectShowcase />
@@ -443,14 +443,14 @@ function greet(name) {
       </section>
 
       {/* User Leaderboard Section */}
-      <section className={`py-20 ${isDarkMode ? 'bg-gray-100/10' : 'bg-gray-100'}`}>
+      <section className={`relative z-10 py-20 ${isDarkMode ? 'bg-gray-100/10' : 'bg-gray-100'}`}>
         <div className="max-w-4xl mx-auto">
           <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-gray-900">User Leaderboard</h2>
           <UserLeaderboard />
         </div>
       </section>
 
-      <section className={`px-4 py-20 ${isDarkMode ? 'bg-gray-800/80' : 'bg-gray-100'}`}>
+      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-gray-800/80' : 'bg-gray-100'}`}>
         <div className="max-w-4xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Frequently Asked Questions</h2>
           <div className="space-y-6">
@@ -463,15 +463,19 @@ function greet(name) {
           </div>
         </div>
       </section>
-      <section className="py-20">
+      <section className="relative z-10 py-20">
         <div className="max-w-6xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Blogs</h2>
           <Blog user={user} />
         </div>
       </section>
-      <ContactUs />
 
-      <section className={`px-4 py-20 ${isDarkMode ? 'bg-blue-900/80' : 'bg-gray-100'}`}>
+      {/* Wrapped ContactUs in a section if needed, or rely on internal styling. Assuming internal styling is fine or we can't easily change it. ContactUs usually has its own container. I'll wrap it just in case */}
+      <div className="relative z-10">
+        <ContactUs />
+      </div>
+
+      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-blue-900/80' : 'bg-gray-100'}`}>
         <div className="max-w-xl mx-auto text-center">
           <h2 className={`mb-4 text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Stay Updated</h2>
           <p className={`mb-8 text-lg ${isDarkMode ? 'text-blue-100' : 'text-gray-600'}`}>
@@ -640,7 +644,7 @@ function greet(name) {
       </div>
 
       {/* Footer */}
-      <footer className={`px-8 py-6 mt-0 text-center ${isDarkMode ? 'bg-gray-900' : 'bg-gray-200'}`}>
+      <footer className={`relative z-10 px-8 py-6 mt-0 text-center ${isDarkMode ? 'bg-gray-900' : 'bg-gray-200'}`}>
         <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>© 2025 ChatRaj All rights reserved.</p>
       </footer>
 

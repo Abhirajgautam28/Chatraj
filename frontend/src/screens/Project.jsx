@@ -886,7 +886,7 @@ const Project = () => {
   // ...existing code...
 
   return (
-    <main className="flex w-screen h-screen overflow-hidden bg-white dark:bg-gray-900">
+    <main className="flex w-screen h-screen overflow-hidden bg-transparent">
       <section className="relative flex flex-col h-screen left min-w-96 bg-slate-100 dark:bg-gray-800">
         <header className="absolute top-0 z-10 flex items-center justify-between w-full p-2 px-4 bg-slate-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow">
           <div className="flex items-center gap-4">

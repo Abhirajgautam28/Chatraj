@@ -118,10 +118,7 @@ const Categories = () => {
 
   return (
     <motion.div
-      className={`min-h-screen transition-colors duration-300 ${isDarkMode
-        ? 'bg-gradient-to-r from-blue-900 via-gray-900 to-blue-900'
-        : 'bg-gradient-to-r from-blue-100 via-white to-blue-100'}
-      `}
+      className="min-h-screen transition-colors duration-300 bg-transparent"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}

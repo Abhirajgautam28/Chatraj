@@ -191,7 +191,7 @@ const Login = () => {
     };
 
     return (
-        <div ref={containerRef} className="relative flex items-center justify-center min-h-screen bg-gray-900 overflow-hidden">
+        <div ref={containerRef} className="relative flex items-center justify-center min-h-screen bg-transparent overflow-hidden">
             <div className="absolute inset-0 z-0">
                 {[...Array(10)].map((_, i) => (
                     <div
