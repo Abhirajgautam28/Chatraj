@@ -27,38 +27,68 @@ const ThreeBackground = () => {
     camera.position.z = 5;
 
     // Renderer setup
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    currentMount.appendChild(renderer.domElement);
-
-    // Particles
-    const particlesGeometry = new THREE.BufferGeometry();
-    const particlesCount = 700;
-    const posArray = new Float32Array(particlesCount * 3);
-
-    for (let i = 0; i < particlesCount * 3; i++) {
-      // Spread particles around
-      posArray[i] = (Math.random() - 0.5) * 15;
+    let renderer;
+    try {
+        renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        currentMount.appendChild(renderer.domElement);
+    } catch (e) {
+        console.warn('WebGL not supported or failed to initialize:', e);
+        return;
     }
 
-    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-    const particlesMaterial = new THREE.PointsMaterial({
-      size: 0.02,
-      color: isDarkMode ? 0x60a5fa : 0x3b82f6,
+    // Particles - Using InstancedMesh for Spheres
+    const particlesCount = 700;
+    const geometry = new THREE.SphereGeometry(0.02, 8, 8);
+    const material = new THREE.MeshBasicMaterial({
       transparent: true,
       opacity: 0.6,
+      color: 0xffffff,
     });
-    const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
-    scene.add(particlesMesh);
+
+    const mesh = new THREE.InstancedMesh(geometry, material, particlesCount);
+
+    const dummy = new THREE.Object3D();
+    const color = new THREE.Color();
+
+    for (let i = 0; i < particlesCount; i++) {
+      // Position
+      dummy.position.x = (Math.random() - 0.5) * 15;
+      dummy.position.y = (Math.random() - 0.5) * 15;
+      dummy.position.z = (Math.random() - 0.5) * 15;
+
+      dummy.rotation.x = Math.random() * 2 * Math.PI;
+      dummy.rotation.y = Math.random() * 2 * Math.PI;
+
+      const scale = Math.random();
+      dummy.scale.set(scale, scale, scale);
+
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+
+      // Random Color
+      if (Math.random() > 0.5) {
+          color.setHex(isDarkMode ? 0x60a5fa : 0x3b82f6); // Blueish
+      } else {
+          color.setHex(Math.random() * 0xffffff); // Random
+      }
+      mesh.setColorAt(i, color);
+    }
+
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.instanceColor.needsUpdate = true;
+
+    scene.add(mesh);
 
 
     // Animation Loop
+    let animationId;
     const animate = () => {
-      requestAnimationFrame(animate);
+      animationId = requestAnimationFrame(animate);
 
-      particlesMesh.rotation.y -= 0.001;
-      particlesMesh.rotation.x -= 0.0005;
+      mesh.rotation.y -= 0.001;
+      mesh.rotation.x -= 0.0005;
 
       renderer.render(scene, camera);
     };
@@ -77,11 +107,12 @@ const ThreeBackground = () => {
     // Cleanup
     return () => {
       window.removeEventListener('resize', handleResize);
+      if (animationId) cancelAnimationFrame(animationId);
       if (currentMount && renderer.domElement) {
         currentMount.removeChild(renderer.domElement);
       }
-      particlesGeometry.dispose();
-      particlesMaterial.dispose();
+      geometry.dispose();
+      material.dispose();
       renderer.dispose();
     };
   }, [isDarkMode, prefersReducedMotion]);
@@ -91,15 +122,15 @@ const ThreeBackground = () => {
   return (
     <div
       ref={mountRef}
-      className="absolute inset-0 z-0 pointer-events-none"
+      className={`absolute inset-0 pointer-events-none ${isDarkMode ? 'bg-gradient-to-r from-blue-900 via-gray-900 to-blue-900' : 'bg-gray-50'}`}
       style={{
-        position: 'fixed', // Fixed to cover viewport while scrolling
+        position: 'fixed',
         top: 0,
         left: 0,
         width: '100%',
         height: '100%',
-        zIndex: 0, // Behind content
-        opacity: 0.6 // Subtle effect
+        zIndex: -1, // Behind everything
+        opacity: 1 // Background should be fully opaque (or handled by gradient)
       }}
     />
   );
