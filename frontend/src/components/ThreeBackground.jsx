@@ -29,28 +29,47 @@ const ThreeBackground = () => {
     // Renderer setup
     let renderer;
     try {
-        renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        currentMount.appendChild(renderer.domElement);
+      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      // Make sure the canvas doesn't capture pointer events and blends nicely with page
+      renderer.domElement.style.pointerEvents = 'none';
+      renderer.domElement.style.mixBlendMode = 'screen';
+      currentMount.appendChild(renderer.domElement);
     } catch (e) {
-        console.warn('WebGL not supported or failed to initialize:', e);
-        return;
+      console.warn('WebGL not supported or failed to initialize:', e);
+      return;
     }
 
     // Particles - Using InstancedMesh for Spheres
     const particlesCount = 700;
     const geometry = new THREE.SphereGeometry(0.02, 8, 8);
+    // Use vertex colors so each instance can be colored individually
     const material = new THREE.MeshBasicMaterial({
       transparent: true,
-      opacity: 0.6,
-      color: 0xffffff,
+      opacity: 0.9,
+      vertexColors: true,
+      depthWrite: false
     });
 
     const mesh = new THREE.InstancedMesh(geometry, material, particlesCount);
 
     const dummy = new THREE.Object3D();
     const color = new THREE.Color();
+
+    // A bright palette to keep particles visible in light & dark modes
+    const palette = [
+      '#60a5fa', // blue
+      '#f472b6', // pink
+      '#fbbf24', // yellow
+      '#34d399', // green
+      '#f97316', // orange
+      '#a78bfa', // purple
+      '#06b6d4', // cyan
+      '#ef4444', // red
+      '#ff7ab6',
+      '#ffd166'
+    ];
 
     for (let i = 0; i < particlesCount; i++) {
       // Position
@@ -61,18 +80,16 @@ const ThreeBackground = () => {
       dummy.rotation.x = Math.random() * 2 * Math.PI;
       dummy.rotation.y = Math.random() * 2 * Math.PI;
 
-      const scale = Math.random();
+      // Slightly constrained scale for better visibility
+      const scale = Math.random() * 0.9 + 0.1;
       dummy.scale.set(scale, scale, scale);
 
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
 
-      // Random Color
-      if (Math.random() > 0.5) {
-          color.setHex(isDarkMode ? 0x60a5fa : 0x3b82f6); // Blueish
-      } else {
-          color.setHex(Math.random() * 0xffffff); // Random
-      }
+      // Pick a color from the palette (randomized)
+      const c = palette[Math.floor(Math.random() * palette.length)];
+      color.set(c);
       mesh.setColorAt(i, color);
     }
 

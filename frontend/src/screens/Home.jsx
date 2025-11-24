@@ -350,7 +350,7 @@ function greet(name) {
         </div>
       </section>
 
-      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-gray-900/50' : 'bg-white'}`}>
+      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-gray-900/50' : 'bg-white/90'}`}>
         <div className="max-w-6xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Why Choose ChatRaj</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
@@ -455,7 +455,7 @@ function greet(name) {
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Frequently Asked Questions</h2>
           <div className="space-y-6">
             {faqs.map((faq, i) => (
-              <details key={i} className={`p-6 rounded-lg shadow ${isDarkMode ? 'bg-gray-900/70' : 'bg-white'}`}>
+              <details key={i} className={`p-6 rounded-lg shadow ${isDarkMode ? 'bg-gray-900/70' : 'bg-white/90'}`}>
                 <summary className={`mb-2 text-lg font-semibold cursor-pointer ${isDarkMode ? 'text-blue-400' : 'text-gray-800'}`}>{faq.q}</summary>
                 <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{faq.a}</p>
               </details>
