@@ -32,9 +32,10 @@ const ThreeBackground = () => {
       renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(window.devicePixelRatio);
-      // Make sure the canvas doesn't capture pointer events and blends nicely with page
+      // Make sure the canvas doesn't capture pointer events
       renderer.domElement.style.pointerEvents = 'none';
-      renderer.domElement.style.mixBlendMode = 'screen';
+      // Use normal mix-blend; additive blending will be handled by material for consistent visibility
+      renderer.domElement.style.mixBlendMode = 'normal';
       currentMount.appendChild(renderer.domElement);
     } catch (e) {
       console.warn('WebGL not supported or failed to initialize:', e);
@@ -43,13 +44,15 @@ const ThreeBackground = () => {
 
     // Particles - Using InstancedMesh for Spheres
     const particlesCount = 700;
-    const geometry = new THREE.SphereGeometry(0.02, 8, 8);
+    // Slightly larger spheres for better visibility
+    const geometry = new THREE.SphereGeometry(0.035, 8, 8);
     // Use vertex colors so each instance can be colored individually
     const material = new THREE.MeshBasicMaterial({
       transparent: true,
-      opacity: 0.9,
+      opacity: 0.85,
       vertexColors: true,
-      depthWrite: false
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
     });
 
     const mesh = new THREE.InstancedMesh(geometry, material, particlesCount);
