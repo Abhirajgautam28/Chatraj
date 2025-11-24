@@ -292,7 +292,7 @@ const Home = () => {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.7 }}
-          className={`max-w-2xl p-6 mx-auto mt-16 transition-all duration-300 border shadow-xl rounded-xl group hover:scale-105 hover:shadow-2xl hover:border-blue-400 ${isDarkMode ? 'bg-gray-900/80 border-blue-900/30 hover:bg-gray-800' : 'bg-gray-50 border-blue-100 hover:bg-white'}`}
+          className={`max-w-2xl p-6 mx-auto mt-16 transition-all duration-300 border shadow-xl rounded-xl group hover:scale-105 hover:shadow-2xl hover:border-blue-400 ${isDarkMode ? 'bg-gray-900/80 border-blue-900/30 hover:bg-gray-800' : 'bg-gray-50/80 border-blue-100 hover:bg-white/90'}`}
         >
           <pre className={`font-mono text-base leading-relaxed text-left ${isDarkMode ? 'text-blue-200' : 'text-black'}`}>
             {`// AI-powered code suggestion
@@ -317,7 +317,7 @@ function greet(name) {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`p-6 transition-all duration-300 border rounded-lg shadow-lg ${isDarkMode ? 'bg-gray-800/50 border-blue-900/10' : 'bg-white'} hover:scale-105 hover:shadow-2xl hover:border-blue-400`}
+                className={`p-6 transition-all duration-300 border rounded-lg shadow-lg ${isDarkMode ? 'bg-gray-800/50 border-blue-900/10' : 'bg-white/90'} hover:scale-105 hover:shadow-2xl hover:border-blue-400`}
               >
                 <i className={`text-4xl ${isDarkMode ? 'text-blue-500' : 'text-blue-600'} ${feature.icon}`}></i>
                 <h3 className={`mt-4 mb-2 text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{feature.title}</h3>
@@ -329,7 +329,7 @@ function greet(name) {
         </div>
       </section>
 
-      <section className={`relative z-10 py-20 ${isDarkMode ? 'bg-gray-900/80' : 'bg-white'}`}>
+      <section className={`relative z-10 py-20 ${isDarkMode ? 'bg-gray-900/80' : 'bg-white/90'}`}>
         <div className="max-w-6xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Popular Use Cases</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
@@ -339,7 +339,7 @@ function greet(name) {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`p-6 transition-all duration-300 rounded-lg shadow ${isDarkMode ? 'bg-gray-800/40' : 'bg-white'} hover:scale-105 hover:shadow-2xl`}
+                className={`p-6 transition-all duration-300 rounded-lg shadow ${isDarkMode ? 'bg-gray-800/40' : 'bg-white/90'} hover:scale-105 hover:shadow-2xl`}
               >
                 <i className={`text-3xl ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} ${useCase.icon}`}></i>
                 <h3 className={`mt-4 mb-2 text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{useCase.title}</h3>
@@ -360,7 +360,7 @@ function greet(name) {
                 initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`flex gap-4 p-6 transition-all duration-300 rounded-lg shadow ${isDarkMode ? 'bg-gray-800/30' : 'bg-white'} hover:scale-105 hover:shadow-2xl`}
+                className={`flex gap-4 p-6 transition-all duration-300 rounded-lg shadow ${isDarkMode ? 'bg-gray-800/30' : 'bg-white/90'} hover:scale-105 hover:shadow-2xl`}
               >
                 <div className={`flex items-center justify-center w-12 h-12 rounded-lg ${isDarkMode ? 'bg-blue-500/10' : 'bg-blue-100'}`}>
                   <i className={`text-2xl ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} ${benefit.icon}`}></i>
@@ -385,7 +385,7 @@ function greet(name) {
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`flex flex-col items-center p-6 text-center rounded-lg shadow ${isDarkMode ? 'bg-gray-700/50' : 'bg-white'}`}
+                className={`flex flex-col items-center p-6 text-center rounded-lg shadow ${isDarkMode ? 'bg-gray-700/50' : 'bg-white/90'}`}
               >
                 <i className={`text-4xl ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} ${tech.icon}`}></i>
                 <span className={`mt-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{tech.name}</span>
@@ -395,7 +395,7 @@ function greet(name) {
         </div>
       </section>
 
-      <section className={`relative z-10 px-4 py-20 overflow-x-auto ${isDarkMode ? 'bg-gray-900/70' : 'bg-white'}`}>
+      <section className={`relative z-10 px-4 py-20 overflow-x-auto ${isDarkMode ? 'bg-gray-900/70' : 'bg-white/90'}`}>
         <div className="flex flex-col items-center w-full max-w-6xl gap-12 mx-auto md:flex-row">
           <div className="flex-1 min-w-0">
             <h2 className={`mb-8 text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>How ChatRaj Works</h2>
@@ -435,7 +435,7 @@ function greet(name) {
       </section>
 
       {/* Project Showcase Section */}
-      <section className={`relative z-10 py-20 ${isDarkMode ? 'bg-white/5' : 'bg-white'}`}>
+      <section className={`relative z-10 py-20 ${isDarkMode ? 'bg-white/5' : 'bg-white/90'}`}>
         <div className="max-w-4xl mx-auto">
           <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-gray-900">Project Showcase</h2>
           <ProjectShowcase />
