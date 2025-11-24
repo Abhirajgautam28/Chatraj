@@ -1,3 +1,8 @@
+import projectModel from '../models/project.model.js';
+import * as projectService from '../services/project.service.js';
+import userModel from '../models/user.model.js';
+import { validationResult } from 'express-validator';
+
 export const getAllProject = async (req, res) => {
     try {
         const loggedInUser = await userModel.findOne({ email: req.user.email });
@@ -11,9 +16,17 @@ export const getAllProject = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
 export const createProject = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
     try {
         const { name, category, users } = req.body;
+        // NOTE: category validation is handled by route validator now,
+        // but kept here for safety if validator fails or is bypassed.
         if (!name || !category) {
             return res.status(400).json({ error: 'Name and category are required' });
         }
@@ -33,6 +46,7 @@ export const createProject = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
 export const addUserToProject = async (req, res) => {
     const errors = validationResult(req);
 
@@ -54,6 +68,7 @@ export const addUserToProject = async (req, res) => {
         res.status(400).json({ error: err.message });
     }
 }
+
 // Update only sidebar settings for a project (deep merge)
 export const updateProjectSidebarSettings = async (req, res) => {
     try {
@@ -73,10 +88,6 @@ export const updateProjectSidebarSettings = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
-import projectModel from '../models/project.model.js';
-import * as projectService from '../services/project.service.js';
-import userModel from '../models/user.model.js';
-import { validationResult } from 'express-validator';
 
 // Get project counts by category
 export const getProjectCountsByCategory = async (req, res) => {
@@ -139,41 +150,15 @@ export const getProjectShowcase = async (req, res) => {
     }
 }
 
-export const addUsersToProject = async (req, res) => {
-    try {
-
-        const { projectId, users } = req.body
-
-        const loggedInUser = await userModel.findOne({
-            email: req.user.email
-        })
-
-
-        const project = await projectService.addUsersToProject({
-            projectId,
-            users,
-            userId: loggedInUser._id
-        })
-
-        return res.status(200).json({
-            project,
-        })
-
-    } catch (err) {
-        console.log(err)
-        res.status(400).json({ error: err.message })
-    }
-
-
-}
-
 export const getProjectById = async (req, res) => {
 
     const { projectId } = req.params;
 
     try {
-
-        const project = await projectService.getProjectById({ projectId });
+        const project = await projectService.getProjectById({
+            projectId,
+            userId: req.user._id
+        });
 
         return res.status(200).json({
             project
@@ -181,7 +166,8 @@ export const getProjectById = async (req, res) => {
 
     } catch (err) {
         console.log(err)
-        res.status(400).json({ error: err.message })
+        const status = err.message === 'Unauthorized access' ? 401 : 400;
+        res.status(status).json({ error: err.message })
     }
 
 }
@@ -199,7 +185,8 @@ export const updateFileTree = async (req, res) => {
 
         const project = await projectService.updateFileTree({
             projectId,
-            fileTree
+            fileTree,
+            userId: req.user._id
         })
 
         return res.status(200).json({
@@ -208,7 +195,8 @@ export const updateFileTree = async (req, res) => {
 
     } catch (err) {
         console.log(err)
-        res.status(400).json({ error: err.message })
+        const status = err.message === 'Unauthorized access' ? 401 : 400;
+        res.status(status).json({ error: err.message })
     }
 
 }

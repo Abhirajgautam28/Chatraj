@@ -80,9 +80,11 @@ A redesigned blog section with 3D animations, Material-UI components, and a mode
 - **Customizable Interface:** Adjust chat bubbles, theme colors, font sizes, and more.
 - **New Icon:** Replaced the default Vite icon with the official ChatRaj icon.
 - **Multilingual Support:** Use the platform in English, Hindi, Spanish, French, German, or Japanese.
+- **3D Particle Background:** A minimal, aesthetic 3D particle effect on the homepage powered by Three.js.
 
 ### Privacy & Security
 
+- **Vercel Analytics:** integrated for tracking user interactions and performance metrics securely.
 - **reCAPTCHA:** Implemented reCAPTCHA on login and register screens to prevent bots and enhance security.
 - **Two-Factor Authentication:** Added 2FA for password resets and user registration to enhance security.
 - **Local Chat History:** Manage, clear, or auto-delete chat history.
@@ -122,7 +124,7 @@ Organize projects with 15+ predefined categories, grid/list views, search functi
 **Frontend:**
 - React (Vite)
 - Tailwind CSS, Animate.css
-- Remix Icon, Motion.js
+- Remix Icon, Motion.js, GSAP, Three.js
 
 **AI Integration:**
 - Google Generative AI (`@google/generative-ai`)
