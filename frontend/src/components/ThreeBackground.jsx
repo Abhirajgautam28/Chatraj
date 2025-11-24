@@ -129,7 +129,7 @@ const ThreeBackground = () => {
         left: 0,
         width: '100%',
         height: '100%',
-        zIndex: -1, // Behind everything
+        zIndex: 0, // Place canvas behind app content but above page background
         opacity: 1 // Background should be fully opaque (or handled by gradient)
       }}
     />
