@@ -58,8 +58,9 @@ const Dashboard = () => {
   }, [categoryName]);
 
   return (
-    <main className="relative min-h-screen p-4 bg-gradient-to-r from-blue-800 to-gray-900">
-      <div className="container relative mx-auto">
+    <main className="relative min-h-screen p-4 bg-transparent">
+      {/* Added z-10 to ensure content is above the particle background */}
+      <div className="container relative z-10 mx-auto">
         <motion.button
           onClick={handleLogout}
           className="absolute z-50 flex items-center gap-2 px-3 py-2 text-white transition bg-gray-700 rounded-md top-4 right-4 hover:bg-gray-600"
