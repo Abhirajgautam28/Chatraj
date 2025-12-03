@@ -23,19 +23,20 @@ const LiquidCursor = () => {
         svg.style.pointerEvents = 'none';
         svg.style.zIndex = '9999';
 
-        // defs filter for gooey effect
+        // defs filter for gooey effect (tuned for a more minimal, transparent water feel)
         const defs = document.createElementNS(svgNS, 'defs');
         const filter = document.createElementNS(svgNS, 'filter');
         filter.setAttribute('id', 'gooey');
         const feGaussian = document.createElementNS(svgNS, 'feGaussianBlur');
         feGaussian.setAttribute('in', 'SourceGraphic');
-        feGaussian.setAttribute('stdDeviation', '12');
+        // reduced blur for more subtle blending
+        feGaussian.setAttribute('stdDeviation', '6');
         feGaussian.setAttribute('result', 'blur');
         const feColorMatrix = document.createElementNS(svgNS, 'feColorMatrix');
         feColorMatrix.setAttribute('in', 'blur');
         feColorMatrix.setAttribute('mode', 'matrix');
-        // The last row amplifies alpha and thresholds to create merging blobs
-        feColorMatrix.setAttribute('values', '1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -10');
+        // softer alpha amplification for a more transparent look
+        feColorMatrix.setAttribute('values', '1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 12 -6');
 
         filter.appendChild(feGaussian);
         filter.appendChild(feColorMatrix);
@@ -48,16 +49,18 @@ const LiquidCursor = () => {
         svg.appendChild(g);
 
         // create circle elements
-        const BLOBS = 9;
+        // fewer blobs and smaller sizes for a minimal water effect
+        const BLOBS = 6;
         const circles = [];
         for (let i = 0; i < BLOBS; i++) {
             const c = document.createElementNS(svgNS, 'circle');
             c.setAttribute('cx', '-100');
             c.setAttribute('cy', '-100');
-            c.setAttribute('r', String(10 + i * 2));
-            // color; use hsl to give a subtle gradient across blobs
-            c.setAttribute('fill', `hsl(${(i * 36) % 360} 90% 60%)`);
-            c.setAttribute('fill-opacity', '0.85');
+            // smaller base radius and gentler growth
+            c.setAttribute('r', String(6 + i * 1.2));
+            // muted color palette and lower opacity for subtlety
+            c.setAttribute('fill', `hsl(${(i * 40) % 360} 85% 62%)`);
+            c.setAttribute('fill-opacity', '0.65');
             g.appendChild(c);
             circles.push(c);
         }
@@ -76,7 +79,7 @@ const LiquidCursor = () => {
         // state for blobs
         const blobs = [];
         for (let i = 0; i < BLOBS; i++) {
-            blobs.push({ x: -100, y: -100, r: 10 + i * 2 });
+            blobs.push({ x: -100, y: -100, r: 6 + i * 1.2 });
         }
 
         const lerp = (a, b, t) => a + (b - a) * t;
@@ -91,19 +94,20 @@ const LiquidCursor = () => {
             let ty = pointer.y;
             for (let i = 0; i < blobs.length; i++) {
                 const b = blobs[i];
-                const followFactor = 0.12 + i * 0.02;
-                // introduce lateral wave perpendicular to movement
-                const wave = Math.sin(elapsed * 6 + i * 0.6) * (6 + i * 1.2);
+                // slightly faster smoothing for a gentler tail
+                const followFactor = 0.18 + i * 0.015;
+                // slower, smaller lateral wave for minimal motion
+                const wave = Math.sin(elapsed * 3 + i * 0.5) * (3 + i * 0.6);
 
                 b.x = lerp(b.x, tx + wave, followFactor);
-                b.y = lerp(b.y, ty + Math.cos(elapsed * 4 + i * 0.4) * 4, followFactor);
+                b.y = lerp(b.y, ty + Math.cos(elapsed * 2 + i * 0.35) * 2, followFactor);
 
-                // radius pulse when pointer is down
-                const base = 8 + i * 1.6;
-                b.r = lerp(b.r, pointer.down ? base * 1.9 : base, 0.08);
+                // radius pulse when pointer is down (subtle)
+                const base = 6 + i * 1.2;
+                b.r = lerp(b.r, pointer.down ? base * 1.4 : base, 0.06);
 
-                // set for next blob to follow previous
-                tx = b.x - (i * 6); // slight offset along x so blobs form a tail
+                // set for next blob to follow previous (smaller offset)
+                tx = b.x - (i * 3);
                 ty = b.y;
 
                 // update circle element
