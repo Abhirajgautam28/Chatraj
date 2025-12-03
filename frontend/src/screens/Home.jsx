@@ -10,6 +10,7 @@ import { ThemeContext } from '../context/theme.context';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
 import Blog from '../components/Blog.jsx';
 import ContactUs from '../components/ContactUs.jsx';
+import LiquidCursor from '../components/LiquidCursor.jsx';
 
 const AskChatRajModal = lazy(() => import('../components/AskChatRajModal.jsx'));
 
@@ -201,6 +202,7 @@ const Home = () => {
 
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden bg-transparent">
+      <LiquidCursor />
       {typeof window !== "undefined" && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && (
         <AnimatedBg />
       )}
