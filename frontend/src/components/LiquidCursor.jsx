@@ -29,14 +29,14 @@ const LiquidCursor = () => {
         filter.setAttribute('id', 'gooey');
         const feGaussian = document.createElementNS(svgNS, 'feGaussianBlur');
         feGaussian.setAttribute('in', 'SourceGraphic');
-        // reduced blur for more subtle blending
-        feGaussian.setAttribute('stdDeviation', '6');
+        // gentler blur for a clear, water-like look
+        feGaussian.setAttribute('stdDeviation', '4');
         feGaussian.setAttribute('result', 'blur');
         const feColorMatrix = document.createElementNS(svgNS, 'feColorMatrix');
         feColorMatrix.setAttribute('in', 'blur');
         feColorMatrix.setAttribute('mode', 'matrix');
-        // softer alpha amplification for a more transparent look
-        feColorMatrix.setAttribute('values', '1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 12 -6');
+        // softer alpha amplification for a more transparent, watery appearance
+        feColorMatrix.setAttribute('values', '1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 10 -5');
 
         filter.appendChild(feGaussian);
         filter.appendChild(feColorMatrix);
@@ -46,10 +46,11 @@ const LiquidCursor = () => {
         // group that will be filtered (gooey)
         const g = document.createElementNS(svgNS, 'g');
         g.setAttribute('filter', 'url(#gooey)');
+        // subtle blend mode for a translucent water effect
+        try { g.style.mixBlendMode = 'screen'; } catch { void 0; }
         svg.appendChild(g);
 
-        // create circle elements
-        // fewer blobs and smaller sizes for a minimal water effect
+        // create circle elements (watery-blue palette, transparent)
         const BLOBS = 6;
         const circles = [];
         for (let i = 0; i < BLOBS; i++) {
@@ -58,9 +59,11 @@ const LiquidCursor = () => {
             c.setAttribute('cy', '-100');
             // smaller base radius and gentler growth
             c.setAttribute('r', String(6 + i * 1.2));
-            // muted color palette and lower opacity for subtlety
-            c.setAttribute('fill', `hsl(${(i * 40) % 360} 85% 62%)`);
-            c.setAttribute('fill-opacity', '0.65');
+            // watery blue tones, slightly offset per blob
+            const hue = 200 + (i * 6); // 200-230 range
+            c.setAttribute('fill', `hsl(${hue} 85% 60%)`);
+            // low opacity for transparent water-like color
+            c.setAttribute('fill-opacity', '0.28');
             g.appendChild(c);
             circles.push(c);
         }
@@ -77,6 +80,8 @@ const LiquidCursor = () => {
         window.addEventListener('pointerup', onPointerUp);
 
         // state for blobs
+        // subtle blend mode for a translucent water effect
+        try { g.style.mixBlendMode = 'screen'; } catch { void 0; }
         const blobs = [];
         for (let i = 0; i < BLOBS; i++) {
             blobs.push({ x: -100, y: -100, r: 6 + i * 1.2 });
