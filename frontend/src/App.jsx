@@ -10,7 +10,9 @@ const App = () => {
     <ThemeProvider>
       <UserProvider>
         <ThreeBackground />
-        <AppRoutes />
+        <div className="relative z-10">
+          <AppRoutes />
+        </div>
       </UserProvider>
     </ThemeProvider>
   )
