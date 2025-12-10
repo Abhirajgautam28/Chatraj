@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { requiredKeys } from '../config/required-keys.js';
+import Blog from '../models/blog.model.js';
 
 const router = Router();
 
@@ -19,12 +20,11 @@ router.get('/config-info', (req, res) => {
     }
 });
 
-export default router;
-
-// Serve dynamic sitemap if requested at backend root (useful when backend domain is the primary site)
-router.get('/sitemap.xml', (req, res) => {
+// Serve dynamic sitemap including blog pages (by id)
+router.get('/sitemap.xml', async (req, res) => {
     try {
-        const siteUrl = process.env.SITE_URL || process.env.BACKEND_URL || `https://${process.env.RENDER_EXTERNAL_HOSTNAME}` || 'https://chatraj.vercel.app';
+        const siteUrl = process.env.SITE_URL || process.env.BACKEND_URL || (process.env.RENDER_EXTERNAL_HOSTNAME ? `https://${process.env.RENDER_EXTERNAL_HOSTNAME}` : null) || 'https://chatraj.vercel.app';
+        // base pages
         const urls = [
             '/',
             '/categories',
@@ -32,7 +32,20 @@ router.get('/sitemap.xml', (req, res) => {
             '/login',
             '/blogs'
         ];
-        const xmlUrls = urls.map(u => `  <url>\n    <loc>${siteUrl.replace(/\/$/, '')}${u}\n    </loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>`).join('\n');
+
+        // include blog detail pages by id
+        let blogIds = [];
+        try {
+            const blogs = await Blog.find({}, '_id').lean();
+            blogIds = blogs.map(b => String(b._id));
+        } catch (e) {
+            // If DB is not reachable, continue with base urls only
+            console.warn('Could not fetch blogs for sitemap:', e.message || e);
+        }
+
+        const allUrls = urls.concat(blogIds.map(id => `/blogs/${id}`));
+
+        const xmlUrls = allUrls.map(u => `  <url>\n    <loc>${siteUrl.replace(/\/$/, '')}${u}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>`).join('\n');
         const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${xmlUrls}\n</urlset>`;
         res.header('Content-Type', 'application/xml');
         res.send(xml);
@@ -40,3 +53,5 @@ router.get('/sitemap.xml', (req, res) => {
         res.status(500).send('Failed to generate sitemap');
     }
 });
+
+export default router;
