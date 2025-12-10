@@ -30,7 +30,11 @@ try {
       // ignore if not present
     }
 
-    const Blog = mongoose.models.Blog || mongoose.model('Blog')
+    const Blog = mongoose.models.Blog
+    if (!Blog) {
+      console.error('Blog model not registered; cannot apply slugs.')
+      process.exit(4)
+    }
 
     for (const it of items) {
       const id = it._id
