@@ -1,8 +1,15 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import { requiredKeys } from '../config/required-keys.js';
 import Blog from '../models/blog.model.js';
 
-const router = Router();
+// Rate limiter for sitemap route (e.g., 10 requests per minute per IP)
+const sitemapLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10, // limit each IP to 10 requests per windowMs
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
 
 router.get('/config-info', (req, res) => {
     try {
@@ -21,7 +28,7 @@ router.get('/config-info', (req, res) => {
 });
 
 // Serve dynamic sitemap including blog pages (by id)
-router.get('/sitemap.xml', async (req, res) => {
+router.get('/sitemap.xml', sitemapLimiter, async (req, res) => {
     try {
         const siteUrl = process.env.SITE_URL || process.env.BACKEND_URL || (process.env.RENDER_EXTERNAL_HOSTNAME ? `https://${process.env.RENDER_EXTERNAL_HOSTNAME}` : null) || 'https://chatraj.vercel.app';
         // base pages
