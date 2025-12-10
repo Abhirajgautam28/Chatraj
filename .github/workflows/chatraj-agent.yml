@@ -1,5 +1,8 @@
 name: Chatraj Agent
 
+permissions:
+  contents: read
+
 on:
     workflow_dispatch: {}
     schedule:
