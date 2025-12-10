@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Default sitemap entries. If you deploy to a different domain, set SITE_URL env var or update this file. -->
-  <url>
-    <loc>https://chatraj.vercel.app/</loc>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://chatraj.vercel.app/categories</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://chatraj.vercel.app/register</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://chatraj.vercel.app/login</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://chatraj.vercel.app/blogs</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
+    <!-- Default sitemap entries. If you deploy to a different domain, set SITE_URL env var or update this file. -->
+    <url>
+        <loc>https://chatraj.vercel.app/</loc>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>
+    <url>
+        <loc>https://chatraj.vercel.app/categories</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://chatraj.vercel.app/register</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://chatraj.vercel.app/login</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://chatraj.vercel.app/blogs</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
 </urlset>
