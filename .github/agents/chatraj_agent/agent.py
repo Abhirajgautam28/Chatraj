@@ -15,7 +15,7 @@ class ChatrajAgent:
     def run_command(self, command: str, cwd: Optional[str] = None, check: bool = True):
         cwd = cwd or self.repo_root
         print(f"Running: {command} (cwd={cwd})")
-        result = subprocess.run(command, shell=True, cwd=cwd)
+        result = subprocess.run(command, shell=False, cwd=cwd)
         if check and result.returncode != 0:
             raise RuntimeError(
                 f"Command failed ({result.returncode}): {command}")
