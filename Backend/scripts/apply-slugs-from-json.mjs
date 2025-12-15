@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import fs from 'fs'
 import path from 'path'
+import { fileURLToPath } from 'url'
 
 const MONGO_URI = process.env.MONGODB_URI
 if (!MONGO_URI) {
@@ -8,18 +9,35 @@ if (!MONGO_URI) {
   process.exit(2)
 }
 
-const mappingFile = process.argv[2] || path.resolve(new URL(import.meta.url).pathname, '..', 'auto_populate_slugs.json')
+const mappingArg = process.argv[2]
+const scriptDir = path.dirname(fileURLToPath(import.meta.url))
 
-let mappingPath = mappingFile
-try {
-  if (!fs.existsSync(mappingPath)) {
-    console.error('Mapping file not found at', mappingPath)
-    process.exit(3)
+const candidates = []
+if (mappingArg) {
+  if (path.isAbsolute(mappingArg)) {
+    candidates.push(mappingArg)
+  } else {
+    candidates.push(path.resolve(process.cwd(), mappingArg))
+    candidates.push(path.resolve(scriptDir, mappingArg))
+    candidates.push(path.resolve(scriptDir, '..', mappingArg))
   }
+} else {
+  candidates.push(path.resolve(scriptDir, 'auto_populate_slugs.json'))
+  candidates.push(path.resolve(scriptDir, '..', 'auto_populate_slugs.json'))
+  candidates.push(path.resolve(process.cwd(), 'auto_populate_slugs.json'))
+}
+
+let mappingPath = candidates.find(p => fs.existsSync(p))
+if (!mappingPath) {
+  console.error('Mapping file not found. Paths checked:')
+  for (const c of candidates) console.error(' -', c)
+  process.exit(3)
+}
+try {
   const raw = fs.readFileSync(mappingPath, 'utf8')
   const items = JSON.parse(raw)
 
-  await mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  await mongoose.connect(MONGO_URI)
 
   try {
     // ensure Blog model is registered if app models exist
@@ -30,11 +48,11 @@ try {
       // ignore if not present
     }
 
-    const Blog = mongoose.models.Blog
-    if (!Blog) {
-      console.error('Blog model not registered; cannot apply slugs.')
+        const Blog = mongoose.models.Blog
+        if (!Blog) {
+      console.error('Blog model not registered. Ensure Backend/models/blog.model.js exists and exports the model.')
       process.exit(4)
-    }
+        }
 
     for (const it of items) {
       const id = it._id
