@@ -9,7 +9,9 @@ if (!MONGO_URI) {
   process.exit(2)
 }
 
-const mappingArg = process.argv[2]
+const rawArgs = process.argv.slice(2)
+const dryRun = rawArgs.includes('--dry-run') || rawArgs.includes('-n')
+const mappingArg = rawArgs.find(a => !a.startsWith('-'))
 const scriptDir = path.dirname(fileURLToPath(import.meta.url))
 
 const candidates = []
@@ -57,6 +59,10 @@ try {
     for (const it of items) {
       const id = it._id
       const slug = it.slug
+      if (dryRun) {
+        console.log('[dry-run] Would update', id, '->', slug)
+        continue
+      }
       try {
         const res = await Blog.updateOne({ _id: id }, { $set: { slug } })
         console.log(`Updated ${id}:`, res.matchedCount, 'matched,', res.modifiedCount, 'modified')
