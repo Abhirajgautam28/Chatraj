@@ -1,0 +1,4 @@
+requests>=2.0
+pytest>=7.0
+pymongo>=4.0
+

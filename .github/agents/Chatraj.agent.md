@@ -1,0 +1,62 @@
+name: Chatraj
+author: Abhiraj Gautam
+version: 0.1.0
+description: An AI agent designed to manage all aspects of the Chatraj project, including feature development, modification, debugging, and end-to-end testing.
+skills:
+  - github/issue_create
+  - github/issue_comment
+  - github/pull_request_create
+  - github/pull_request_comment
+  - github/file_read
+  - github/file_write
+  - shell/exec
+  - shell/read
+  - shell/write
+  - editor/edit
+  - editor/create
+  - editor/delete
+  - editor/rename
+  - editor/read
+  - editor/list_files
+  - editor/find_in_file
+  - editor/replace_in_file
+  - editor/insert_into_file
+  - editor/delete_from_file
+  - editor/append_to_file
+  - editor/prepend_to_file
+  - editor/undo
+  - editor/redo
+  - editor/save
+  - editor/save_as
+  - editor/close
+  - editor/close_all
+  - editor/open
+  - editor/open_all
+  - editor/new_file
+  - editor/new_folder
+  - editor/delete_file
+  - editor/delete_folder
+  - editor/rename_file
+  - editor/rename_folder
+  - editor/copy_file
+  - editor/copy_folder
+  - editor/move_file
+  - editor/move_folder
+  - editor/duplicate_file
+  - editor/duplicate_folder
+  - editor/compare_files
+  - editor/compare_folders
+  - editor/diff
+  - editor/patch
+  - editor/apply_patch
+  - editor/revert_file
+  - editor/revert_folder
+  - editor/get_file_info
+  - editor/get_folder_info
+  - editor/get_workspace_info
+  - editor/get_project_info
+  - editor/get_repo_info
+  - editor/get_branch_info
+  - editor/get_commit_info
+  - editor/get_blame_info
+  -
