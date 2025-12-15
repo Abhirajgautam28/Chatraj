@@ -1,0 +1,77 @@
+name: Chatraj Agent PR checks
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+    pull_request:
+        types: [opened, synchronize, reopened]
+
+jobs:
+    run-node-scripts:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "18"
+
+            - name: Run frontend script if present
+              id: frontend
+              run: |
+                  if [ -d frontend ]; then
+                    cd frontend
+                    npm ci --ignore-scripts
+                    if npm run generate-sitemap --silent; then
+                      echo "::set-output name=frontend_ok::true"
+                      npm run generate-sitemap --silent > ../frontend_sitemap_output.txt 2>&1 || true
+                    else
+                      echo "::set-output name=frontend_ok::false"
+                    fi
+                  else
+                    echo "::set-output name=frontend_ok::false"
+                  fi
+
+            - name: Run backend script if present
+              id: backend
+              run: |
+                  if [ -d Backend ]; then
+                    cd Backend
+                    npm ci --ignore-scripts
+                    if npm run generate-sitemap --silent; then
+                      echo "::set-output name=backend_ok::true"
+                      npm run generate-sitemap --silent > ../backend_sitemap_output.txt 2>&1 || true
+                    else
+                      echo "::set-output name=backend_ok::false"
+                    fi
+                  else
+                    echo "::set-output name=backend_ok::false"
+                  fi
+
+            - name: Post PR comment with outputs
+              uses: actions/github-script@v6
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      const fs = require('fs');
+                      let body = '### Chatraj Agent Run Results\n';
+                      if (fs.existsSync('frontend_sitemap_output.txt')) {
+                        body += '\n**Frontend sitemap output:**\n```\n' + fs.readFileSync('frontend_sitemap_output.txt','utf8') + '\n```\n';
+                      } else {
+                        body += '\n**Frontend:** no output or script not present.\n';
+                      }
+                      if (fs.existsSync('backend_sitemap_output.txt')) {
+                        body += '\n**Backend sitemap output:**\n```\n' + fs.readFileSync('backend_sitemap_output.txt','utf8') + '\n```\n';
+                      } else {
+                        body += '\n**Backend:** no output or script not present.\n';
+                      }
+                      github.rest.issues.createComment({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        issue_number: context.issue.number,
+                        body: body
+                      })
