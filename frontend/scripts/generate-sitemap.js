@@ -1,6 +1,10 @@
 #!/usr/bin/env node
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Resolve __dirname in ESM
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Determine site URL from environment (Vite expects VITE_ prefix for client, but build scripts can use SITE_URL)
 const siteUrl = process.env.VITE_SITE_URL || process.env.SITE_URL || 'https://chatraj.vercel.app';
