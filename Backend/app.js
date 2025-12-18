@@ -54,14 +54,7 @@ app.use(cors({
   exposedHeaders: ['Set-Cookie', 'Access-Control-Allow-Origin']
 }));
 
-// Explicitly handle preflight OPTIONS requests for all routes
-app.options('*', cors({
-  origin: dynamicCors,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-  exposedHeaders: ['Set-Cookie', 'Access-Control-Allow-Origin']
-}));
+// CORS preflight is handled by the global CORS middleware above
 
 app.use(corsErrorLogger);
 
