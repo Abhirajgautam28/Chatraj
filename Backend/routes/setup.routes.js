@@ -3,6 +3,9 @@ import rateLimit from 'express-rate-limit';
 import { requiredKeys } from '../config/required-keys.js';
 import Blog from '../models/blog.model.js';
 
+// initialize router
+const router = Router();
+
 // Rate limiter for sitemap route (e.g., 10 requests per minute per IP)
 const sitemapLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
