@@ -101,6 +101,14 @@ const Register = () => {
 
     return (
         <div ref={containerRef} className="relative flex items-center justify-center min-h-screen bg-transparent overflow-hidden">
+            <button
+                type="button"
+                aria-label="Back to home"
+                onClick={() => navigate('/')}
+                className="absolute top-6 left-6 z-50 p-2 bg-gray-700/60 hover:bg-gray-700 text-white rounded-full shadow-lg focus:outline-none transition"
+            >
+                <i className="ri-arrow-left-line text-lg"></i>
+            </button>
             {errorMsg && (
                 <div className="fixed top-8 left-1/2 z-50 -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded shadow-lg text-center font-semibold animate__animated animate__fadeInDown">
                     {errorMsg}
