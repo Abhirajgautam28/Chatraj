@@ -192,6 +192,14 @@ const Login = () => {
 
     return (
         <div ref={containerRef} className="relative flex items-center justify-center min-h-screen bg-transparent overflow-hidden">
+            <button
+                type="button"
+                aria-label="Back to home"
+                onClick={() => navigate('/')}
+                className="absolute top-6 left-6 z-50 p-2 bg-gray-700/60 hover:bg-gray-700 text-white rounded-full shadow-lg focus:outline-none transition"
+            >
+                <i className="ri-arrow-left-line text-lg"></i>
+            </button>
             <div className="absolute inset-0 z-0">
                 {[...Array(10)].map((_, i) => (
                     <div
