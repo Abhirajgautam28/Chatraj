@@ -26,7 +26,7 @@
     "nodemailer": "^7.0.12",
     "nodemon": "3.1.11",
     "path-to-regexp": "^8.3.0",
-    "socket.io": "4.8.1",
+    "socket.io": "4.8.3",
     "validator": "^13.15.23"
   },
   "devDependencies": {
