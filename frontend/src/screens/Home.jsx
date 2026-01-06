@@ -647,7 +647,7 @@ function greet(name) {
 
       {/* Footer */}
       <footer className={`relative z-10 px-8 py-6 mt-0 text-center ${isDarkMode ? 'bg-gray-900' : 'bg-gray-200'}`}>
-        <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>© 2025 ChatRaj All rights reserved.</p>
+        <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>© 2026 ChatRaj All rights reserved.</p>
       </footer>
 
       <Suspense fallback={<div>Loading...</div>}>
