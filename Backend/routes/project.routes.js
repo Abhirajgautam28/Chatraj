@@ -1,6 +1,7 @@
 
 import { Router } from 'express';
 import { body } from 'express-validator';
+import rateLimit from 'express-rate-limit';
 import {
   getProjectCountsByCategory,
   updateProjectSidebarSettings,
@@ -17,34 +18,49 @@ import { authUser } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
+// Rate limiter for project-related routes to mitigate abuse and DoS
+const projectLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per window per route group
+});
+
 // Add project counts by category route
 router.get('/category-counts',
+    projectLimiter,
     authUser,
     getProjectCountsByCategory
 );
 
 // Update only sidebar settings for a project
 router.put('/sidebar-settings/:projectId',
+    projectLimiter,
     authUser,
     updateProjectSidebarSettings
 );
 
 
 router.post('/create',
+    projectLimiter,
+    projectLimiter,
+    projectLimiter,
     authUser,
     body('name').isString().withMessage('Name is required'),
+    projectLimiter,
     body('category').isString().withMessage('Category is required'),
     body('users').optional().isArray().withMessage('Users must be an array'),
     createProject
 )
 
+    projectLimiter,
 router.get('/all',
     authUser,
+    projectLimiter,
     getAllProject
 )
 
 router.put('/add-user',
     authUser,
+    projectLimiter,
     body('projectId').isString().withMessage('Project ID is required'),
     body('users').isArray({ min: 1 }).withMessage('Users must be an array of strings').bail()
         .custom((users) => users.every(user => typeof user === 'string')).withMessage('Each user must be a string'),
@@ -73,7 +89,7 @@ router.put('/settings/:projectId',
     updateProjectSettings
 )
 
-router.get('/showcase', getProjectShowcase);
+router.get('/showcase', projectLimiter, getProjectShowcase);
 
 
 export default router;
