@@ -2,8 +2,14 @@ import { Router } from 'express';
 import * as userController from '../controllers/user.controller.js';
 import { body } from 'express-validator';
 import * as authMiddleware from '../middleware/auth.middleware.js';
+import rateLimit from 'express-rate-limit';
 
 const router = Router();
+
+const leaderboardLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 leaderboard requests per windowMs
+});
 
 // Send OTP for password reset (used in Login.jsx)
 router.post('/send-otp', userController.sendOtpController);
@@ -34,6 +40,6 @@ router.get('/logout', userController.logoutController);
 
 router.get('/all', authMiddleware.authUser, userController.getAllUsersController);
 
-router.get('/leaderboard', userController.getLeaderboardController);
+router.get('/leaderboard', leaderboardLimiter, userController.getLeaderboardController);
 
 export default router;
