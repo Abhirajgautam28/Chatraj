@@ -22,6 +22,11 @@ const validateFileTree = (value) => {
     }
 
     if (nodeType === 'object') {
+      // Only allow plain objects (no special prototypes like Date, ObjectId, etc.)
+      const proto = Object.getPrototypeOf(node);
+      if (proto !== Object.prototype && proto !== null) {
+        throw new Error('Invalid fileTree');
+      }
       for (const key of Object.keys(node)) {
         if (key.startsWith('$') || key.includes('.')) {
           throw new Error('Invalid fileTree');
@@ -40,7 +45,8 @@ const validateFileTree = (value) => {
   }
 
   const valueType = typeof value;
-  if (valueType !== 'object') {
+  // Root must be a non-array plain object
+  if (valueType !== 'object' || Array.isArray(value)) {
     throw new Error('Invalid fileTree');
   }
 
