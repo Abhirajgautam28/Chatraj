@@ -85,8 +85,8 @@ router.get('/settings/:projectId',
 )
 
 router.put('/settings/:projectId',
-    authUser,
     projectLimiter,
+    authUser,
     updateProjectSettings
 )
 
