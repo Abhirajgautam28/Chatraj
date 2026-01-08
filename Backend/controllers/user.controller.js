@@ -34,6 +34,7 @@ import { validationResult } from 'express-validator';
 import redisClient from '../services/redis.service.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 export const createUserController = async (req, res) => {
 
@@ -60,7 +61,8 @@ function generateOTP(length) {
     const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*';
     let otp = '';
     for (let i = 0; i < length; i++) {
-        otp += chars[Math.floor(Math.random() * chars.length)];
+        const index = crypto.randomInt(chars.length);
+        otp += chars[index];
     }
     return otp;
 }
