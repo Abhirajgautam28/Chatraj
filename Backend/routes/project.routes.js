@@ -80,6 +80,7 @@ router.put('/update-file-tree',
 )
 
 router.get('/settings/:projectId',
+    projectLimiter,
     authUser,
     getProjectSettings
 )
