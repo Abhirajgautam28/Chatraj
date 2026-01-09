@@ -32,10 +32,25 @@ jobs:
             if (!data || data.state !== 'success') {
               throw new Error(`Combined status for ${sha} is '${data ? data.state : 'unknown'}'. Aborting auto-merge.`);
             }
+      - name: Check for PAT to enable auto-merge
+        id: check_pat
+        run: |
+          if [ -z "${{ secrets.AUTO_MERGE_PAT }}" ]; then
+            echo "PAT_MISSING=true" >> $GITHUB_OUTPUT
+          else
+            echo "PAT_MISSING=false" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Enable auto-merge for PR
+      - name: Enable auto-merge for PR (requires `AUTO_MERGE_PAT` secret)
+        if: steps.check_pat.outputs.PAT_MISSING == 'false'
         uses: peter-evans/enable-pull-request-automerge@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.AUTO_MERGE_PAT }}
           pull-request-number: ${{ github.event.pull_request.number }}
           merge-method: SQUASH
+
+      - name: Skip auto-merge due to missing PAT
+        if: steps.check_pat.outputs.PAT_MISSING == 'true'
+        run: |
+          echo "AUTO_MERGE_PAT secret is not configured. Skipping auto-merge."
+          echo "To enable auto-merge automatically, create a repository secret named 'AUTO_MERGE_PAT' with a PAT that has 'repo' scope."
