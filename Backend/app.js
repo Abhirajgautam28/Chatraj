@@ -9,7 +9,7 @@ import newsletterRoutes from './routes/newsletter.routes.js';
 import blogRoutes from './routes/blog.routes.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-
+import csurf from 'csurf';
 const allowedOrigins = [
   'https://chatraj-frontend.vercel.app',
   'https://chatraj.vercel.app',
@@ -63,12 +63,26 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// CSRF protection middleware using cookies
+const csrfProtection = csurf({
+  cookie: true,
+  ignoreMethods: ['GET', 'HEAD', 'OPTIONS']
+});
+
+// Endpoint to retrieve CSRF token for clients (e.g., SPA frontends)
+app.get('/csrf-token', csrfProtection, (req, res) => {
+  res.status(200).json({ csrfToken: req.csrfToken() });
+});
+
 app.get('/health', (req, res) => {
     res.status(200).json({ 
         status: 'ok',
         timestamp: new Date().toISOString()
     });
 });
+
+// Apply CSRF protection to all subsequent routes
+app.use(csrfProtection);
 
 app.use('/api/setup', setupRoutes);
 app.use('/api/users', userRoutes);

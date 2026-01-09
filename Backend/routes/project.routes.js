@@ -1,6 +1,7 @@
 
 import { Router } from 'express';
 import { body } from 'express-validator';
+import rateLimit from 'express-rate-limit';
 import {
   getProjectCountsByCategory,
   updateProjectSidebarSettings,
@@ -17,20 +18,29 @@ import { authUser } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
+// Rate limiter for project-related routes to mitigate abuse and DoS
+const projectLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per window per route group
+});
+
 // Add project counts by category route
 router.get('/category-counts',
+    projectLimiter,
     authUser,
     getProjectCountsByCategory
 );
 
 // Update only sidebar settings for a project
 router.put('/sidebar-settings/:projectId',
+    projectLimiter,
     authUser,
     updateProjectSidebarSettings
 );
 
 
 router.post('/create',
+    projectLimiter,
     authUser,
     body('name').isString().withMessage('Name is required'),
     body('category').isString().withMessage('Category is required'),
@@ -39,11 +49,13 @@ router.post('/create',
 )
 
 router.get('/all',
+    projectLimiter,
     authUser,
     getAllProject
 )
 
 router.put('/add-user',
+    projectLimiter,
     authUser,
     body('projectId').isString().withMessage('Project ID is required'),
     body('users').isArray({ min: 1 }).withMessage('Users must be an array of strings').bail()
@@ -64,16 +76,18 @@ router.put('/update-file-tree',
 )
 
 router.get('/settings/:projectId',
+    projectLimiter,
     authUser,
     getProjectSettings
 )
 
 router.put('/settings/:projectId',
+    projectLimiter,
     authUser,
     updateProjectSettings
 )
 
-router.get('/showcase', getProjectShowcase);
+router.get('/showcase', projectLimiter, getProjectShowcase);
 
 
 export default router;

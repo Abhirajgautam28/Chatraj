@@ -6,6 +6,16 @@ import { sensitiveLimiter, authLimiter } from '../middleware/rateLimiter.js';
 
 const router = Router();
 
+const leaderboardLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 leaderboard requests per windowMs
+});
+
+const usersLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 user list requests per windowMs
+});
+
 // Send OTP for password reset (used in Login.jsx)
 router.post('/send-otp', sensitiveLimiter, userController.sendOtpController);
 
@@ -37,6 +47,6 @@ router.get('/logout', sensitiveLimiter, userController.logoutController);
 
 router.get('/all', authLimiter, authMiddleware.authUser, userController.getAllUsersController);
 
-router.get('/leaderboard', userController.getLeaderboardController);
+router.get('/leaderboard', leaderboardLimiter, userController.getLeaderboardController);
 
 export default router;

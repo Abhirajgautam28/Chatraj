@@ -1,6 +1,58 @@
 import projectModel from '../models/project.model.js';
 import mongoose from 'mongoose';
 
+// Basic recursive validation to ensure fileTree is a plain JSON-like structure
+// and does not contain MongoDB operator-style keys (starting with '$' or containing '.').
+const validateFileTree = (value) => {
+  const validateNode = (node) => {
+    if (node === null || node === undefined) {
+      return;
+    }
+
+    const nodeType = typeof node;
+    if (nodeType === 'string' || nodeType === 'number' || nodeType === 'boolean') {
+      return;
+    }
+
+    if (Array.isArray(node)) {
+      for (const item of node) {
+        validateNode(item);
+      }
+      return;
+    }
+
+    if (nodeType === 'object') {
+      // Only allow plain objects (no special prototypes like Date, ObjectId, etc.)
+      const proto = Object.getPrototypeOf(node);
+      if (proto !== Object.prototype && proto !== null) {
+        throw new Error('Invalid fileTree');
+      }
+      for (const key of Object.keys(node)) {
+        if (key.startsWith('$') || key.includes('.')) {
+          throw new Error('Invalid fileTree');
+        }
+        validateNode(node[key]);
+      }
+      return;
+    }
+
+    // Disallow functions, symbols, etc.
+    throw new Error('Invalid fileTree');
+  };
+
+  if (value === null || value === undefined) {
+    throw new Error('fileTree is required');
+  }
+
+  const valueType = typeof value;
+  // Root must be a non-array plain object
+  if (valueType !== 'object' || Array.isArray(value)) {
+    throw new Error('Invalid fileTree');
+  }
+
+  validateNode(value);
+};
+
 export const createProject = async ({ name, userId, category }) => {
   if (!name) {
     throw new Error('Name is required');
@@ -145,9 +197,8 @@ export const updateFileTree = async ({ projectId, fileTree, userId }) => {
         throw new Error("Invalid projectId")
     }
 
-    if (!fileTree) {
-        throw new Error("fileTree is required")
-    }
+    // Validate fileTree structure to prevent injection of MongoDB operators or invalid types
+    validateFileTree(fileTree);
 
     if (userId) {
         const project = await projectModel.findOne({

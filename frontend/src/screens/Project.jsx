@@ -229,6 +229,22 @@ const Project = () => {
   const [replyingTo, setReplyingTo] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [showSearch, setShowSearch] = useState(false)
+
+  const sanitizeIframeUrl = (rawValue) => {
+    if (!rawValue) return null;
+    try {
+      const url = new URL(rawValue, window.location.origin);
+      if (url.origin !== window.location.origin) {
+        return null;
+      }
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+        return null;
+      }
+      return url.toString();
+    } catch {
+      return null;
+    }
+  };
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
@@ -1302,8 +1318,13 @@ const Project = () => {
             <div className="address-bar">
               <input
                 type="text"
-                onChange={(e) => setIframeUrl(e.target.value)}
-                value={iframeUrl}
+                onChange={(e) => {
+                  const safeUrl = sanitizeIframeUrl(e.target.value);
+                  if (safeUrl !== null) {
+                    setIframeUrl(safeUrl);
+                  }
+                }}
+                value={iframeUrl || ''}
                 className="w-full p-2 px-4 bg-slate-200 dark:bg-gray-700 dark:text-white"
               />
             </div>
