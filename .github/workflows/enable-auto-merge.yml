@@ -34,9 +34,21 @@ jobs:
               repo,
               ref: sha
             });
-            const data = resp && resp.data;
-            if (!data || data.state !== 'success') {
-              throw new Error(`Combined status for ${sha} is '${data ? data.state : 'unknown'}'. Aborting auto-merge.`);
+            if (!resp) {
+              throw new Error(`No response received from status API for commit ${sha}`);
+            }
+            if (typeof resp.status === 'number' && resp.status !== 200) {
+              throw new Error(`Status API returned HTTP ${resp.status} for commit ${sha}`);
+            }
+            const data = resp.data;
+            if (!data) {
+              throw new Error(`Status API response missing 'data' for commit ${sha}`);
+            }
+            if (typeof data.state === 'undefined') {
+              throw new Error(`Status API response missing 'state' for commit ${sha}`);
+            }
+            if (data.state !== 'success') {
+              throw new Error(`Combined status for ${sha} is '${data.state}'. Aborting auto-merge.`);
             }
       - name: Check for PAT to enable auto-merge
         id: check_pat
