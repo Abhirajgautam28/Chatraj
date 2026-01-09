@@ -8,15 +8,31 @@ on:
       - synchronize
 
 permissions:
+  contents: write
   pull-requests: write
+  checks: read
+  statuses: read
 
 jobs:
   enable-auto-merge:
     if: |
-      github.actor == 'Abhirajgautam28' &&
+      github.event.pull_request.user.login == 'Abhirajgautam28' &&
       contains(join(github.event.pull_request.labels.*.name, ','), 'automerge')
     runs-on: ubuntu-latest
     steps:
+      - name: Ensure deployment / status checks succeeded for this commit
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const sha = context.payload.pull_request.head.sha;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const { data } = await github.repos.getCombinedStatusForRef({ owner, repo, ref: sha });
+            if (!data || data.state !== 'success') {
+              throw new Error(`Combined status for ${sha} is '${data ? data.state : 'unknown'}'. Aborting auto-merge.`);
+            }
+
       - name: Enable auto-merge for PR
         uses: peter-evans/enable-pull-request-automerge@v3
         with:
