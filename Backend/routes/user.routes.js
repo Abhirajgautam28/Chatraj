@@ -11,6 +11,11 @@ const leaderboardLimiter = rateLimit({
   max: 100, // limit each IP to 100 leaderboard requests per windowMs
 });
 
+const usersLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 user list requests per windowMs
+});
+
 // Send OTP for password reset (used in Login.jsx)
 router.post('/send-otp', userController.sendOtpController);
 
@@ -38,7 +43,7 @@ router.get('/profile', authMiddleware.authUser, userController.profileController
 
 router.get('/logout', userController.logoutController);
 
-router.get('/all', authMiddleware.authUser, userController.getAllUsersController);
+router.get('/all', authMiddleware.authUser, usersLimiter, userController.getAllUsersController);
 
 router.get('/leaderboard', leaderboardLimiter, userController.getLeaderboardController);
 
