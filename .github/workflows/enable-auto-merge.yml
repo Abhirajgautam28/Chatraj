@@ -28,7 +28,7 @@ jobs:
             const sha = context.payload.pull_request.head.sha;
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const { data } = await github.repos.getCombinedStatusForRef({ owner, repo, ref: sha });
+            const { data } = await github.rest.repos.getCombinedStatusForRef({ owner, repo, ref: sha });
             if (!data || data.state !== 'success') {
               throw new Error(`Combined status for ${sha} is '${data ? data.state : 'unknown'}'. Aborting auto-merge.`);
             }
