@@ -32,7 +32,7 @@ jobs:
       - name: Install frontend dependencies
         run: npm install --prefix frontend
 
-      - name: Validate required secrets (fail fast with instructions)
+      - name: Validate required secrets (informational)
         run: |
           missing=()
           for s in MONGODB_URI JWT_SECRET SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASS; do
@@ -42,11 +42,13 @@ jobs:
           done
           if [ ${#missing[@]} -ne 0 ]; then
             echo "The following required repository secrets are missing: ${missing[*]}"
-            echo "Add them in your repository Settings → Secrets (Repository) before re-running this workflow."
-            echo "See README_DEV.md for step-by-step instructions."
-            exit 1
+            echo "These tests require repository secrets to exercise full end-to-end flows."
+            echo "Subsequent backend startup and smoke tests will be skipped in this run."
+          else
+            echo "All required secrets present. Proceeding with smoke tests."
           fi
       - name: Start backend
+        if: ${{ secrets.MONGODB_URI && secrets.JWT_SECRET && secrets.SMTP_HOST && secrets.SMTP_PORT && secrets.SMTP_USER && secrets.SMTP_PASS }}
         run: |
           cd Backend
           # export secrets to process (runner already has them in environment if configured)
@@ -54,6 +56,7 @@ jobs:
         # Allow server to warm up
 
       - name: Wait for backend
+        if: ${{ secrets.MONGODB_URI && secrets.JWT_SECRET && secrets.SMTP_HOST && secrets.SMTP_PORT && secrets.SMTP_USER && secrets.SMTP_PASS }}
         run: |
           for i in {1..15}; do
             if curl -sSf http://localhost:8080/health; then
@@ -64,9 +67,11 @@ jobs:
           echo "backend did not become ready" && exit 1
 
       - name: Run smoke-test
+        if: ${{ secrets.MONGODB_URI && secrets.JWT_SECRET && secrets.SMTP_HOST && secrets.SMTP_PORT && secrets.SMTP_USER && secrets.SMTP_PASS }}
         run: node Backend/scripts/smoke-test.js
 
       - name: Run e2e light checks
+        if: ${{ secrets.MONGODB_URI && secrets.JWT_SECRET && secrets.SMTP_HOST && secrets.SMTP_PORT && secrets.SMTP_USER && secrets.SMTP_PASS }}
         run: node Backend/scripts/e2e-test.js
 
   tests:
@@ -79,8 +84,10 @@ jobs:
         with:
           node-version: "20"
       - name: Install backend deps
+        if: ${{ secrets.MONGODB_URI && secrets.JWT_SECRET && secrets.SMTP_HOST && secrets.SMTP_PORT && secrets.SMTP_USER && secrets.SMTP_PASS }}
         run: npm ci --prefix Backend
       - name: Start backend (background)
+        if: ${{ secrets.MONGODB_URI && secrets.JWT_SECRET && secrets.SMTP_HOST && secrets.SMTP_PORT && secrets.SMTP_USER && secrets.SMTP_PASS }}
         run: |
           cd Backend
           node server.js &
