@@ -28,7 +28,13 @@ jobs:
             const sha = context.payload.pull_request.head.sha;
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const { data } = await github.rest.repos.getCombinedStatusForRef({ owner, repo, ref: sha });
+            // Use generic request to avoid `rest.repos` availability issues in some runtimes
+            const resp = await github.request('GET /repos/{owner}/{repo}/commits/{ref}/status', {
+              owner,
+              repo,
+              ref: sha
+            });
+            const data = resp && resp.data;
             if (!data || data.state !== 'success') {
               throw new Error(`Combined status for ${sha} is '${data ? data.state : 'unknown'}'. Aborting auto-merge.`);
             }
