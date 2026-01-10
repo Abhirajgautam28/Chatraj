@@ -27,9 +27,14 @@ const likeRateLimiter = rateLimit({
     max: 200, // allow more frequent likes but still protect against abuse
 });
 
+const getBlogRateLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 300, // limit each IP to 300 blog fetch requests per windowMs
+});
+
 router.post('/', authUser, createBlog);
 router.get('/', getAllBlogs);
-router.get('/:id', getBlogById);
+router.get('/:id', getBlogRateLimiter, getBlogById);
 router.post('/like/:id', authUser, likeRateLimiter, likeBlog);
 router.post('/comment/:id', authUser, commentRateLimiter, commentOnBlog);
 router.post('/generate', authUser, generateRateLimiter, generateBlogContent);
