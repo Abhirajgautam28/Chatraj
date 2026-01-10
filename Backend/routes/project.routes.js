@@ -70,6 +70,7 @@ router.get('/get-project/:projectId',
 )
 
 router.put('/update-file-tree',
+    projectLimiter,
     authUser,
     body('projectId').isString().withMessage('Project ID is required'),
     body('fileTree').isObject().withMessage('File tree is required'),
