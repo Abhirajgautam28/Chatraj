@@ -39,7 +39,7 @@ router.post('/login',
   userController.loginController
 );
 
-router.post('/reset-password', userController.resetPasswordController);
+router.post('/reset-password', sensitiveLimiter, userController.resetPasswordController);
 router.post('/update-password', sensitiveLimiter, userController.updatePasswordController);
 
 router.get('/profile', authLimiter, authMiddleware.authUser, userController.profileController);
