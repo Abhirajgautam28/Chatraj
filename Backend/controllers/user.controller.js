@@ -1,3 +1,5 @@
+import mongoose from 'mongoose';
+
 // Send OTP for password reset (used in Login.jsx)
 export const sendOtpController = async (req, res) => {
     try {
@@ -105,6 +107,10 @@ export const verifyOtpController = async (req, res) => {
     if ((!userId && !email) || !otp) return res.status(400).json({ message: 'User ID or email and OTP required' });
     let user;
     if (userId) {
+        // Validate userId to prevent NoSQL injection and malformed identifiers
+        if (typeof userId !== 'string' || !mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: 'Invalid User ID' });
+        }
         user = await userModel.findById(userId).select('+otp');
     } else if (email) {
         if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return res.status(400).json({ message: 'Valid email is required' });
