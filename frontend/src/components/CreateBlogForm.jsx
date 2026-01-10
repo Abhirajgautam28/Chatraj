@@ -121,6 +121,26 @@ const getYouTubeEmbedUrl = (urlString) => {
 
 // Validate that a URL is safe. Allow http/https absolute URLs and
 // same-origin relative paths like `/uploads/foo.jpg` or `images/foo.jpg`.
+const MAX_URL_LENGTH_BEFORE_DECODE = 2048;
+const MAX_URL_LENGTH_AFTER_DECODE = 4096;
+const MAX_DECODE_DEPTH = 3;
+const TRAVERSAL_RE = /(^|[\/\\])\.\.([\/\\]|$)/;
+
+function safeDecodeLimited(value, maxDepth, maxLength) {
+    let decoded = value;
+    for (let i = 0; i < maxDepth; i++) {
+        try {
+            const next = decodeURIComponent(decoded);
+            if (next === decoded) break;
+            decoded = next;
+            if (decoded.length > maxLength) return '';
+        } catch (_) {
+            break;
+        }
+    }
+    return decoded;
+}
+
 const isSafeUrl = (urlString) => {
     if (!urlString || typeof urlString !== 'string') return false;
     try {
@@ -135,26 +155,13 @@ const isSafeUrl = (urlString) => {
         if (urlString.startsWith('//')) return false; // protocol-relative URLs are disallowed
 
         // Reject extremely long inputs early to avoid DoS via huge attacker-controlled strings
-        if (urlString.length > 2048) return false;
+        if (urlString.length > MAX_URL_LENGTH_BEFORE_DECODE) return false;
 
-        const traversalRe = /(^|[\/\\])\.\.([\/\\]|$)/;
-
-        // Attempt iterative percent-decoding up to a small limit (handles %252e%252e -> %2e%2e -> ..)
-        let decoded = urlString;
-        const maxDecodes = 3;
-        for (let i = 0; i < maxDecodes; i++) {
-            try {
-                const next = decodeURIComponent(decoded);
-                if (next === decoded) break;
-                decoded = next;
-                if (decoded.length > 4096) return false; // defensive size cap after decoding
-            } catch (_) {
-                break; // stop decoding on malformed sequences
-            }
-        }
+        const decoded = safeDecodeLimited(urlString, MAX_DECODE_DEPTH, MAX_URL_LENGTH_AFTER_DECODE);
+        if (!decoded) return false;
 
         // Validate decoded value for traversal, colon, whitespace, and allowed chars.
-        if (traversalRe.test(decoded)) return false;
+        if (TRAVERSAL_RE.test(decoded)) return false;
         if (decoded.includes(':')) return false; // disallow strings containing a colon
         if (/\s/.test(decoded)) return false;
         if (!(decoded.startsWith('/') || /^[A-Za-z0-9_./~-]+$/.test(decoded))) return false;
