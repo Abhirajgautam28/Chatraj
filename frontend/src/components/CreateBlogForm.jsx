@@ -130,6 +130,23 @@ const MAX_URL_LENGTH_AFTER_DECODE = 4096; // cap decoded length to avoid blowup
 const MAX_DECODE_DEPTH = 3; // bounded iterative decoding depth
 const TRAVERSAL_RE = /(^|[\/\\])\.\.([\/\\]|$)/;
 
+/**
+ * Iteratively percent-decode `value` up to `maxDepth` times, but cap
+ * the decoded length to `maxLength`. Returns the fully-decoded string
+ * on success, or `null` on failure (overflow or other issues).
+ *
+ * Note: malformed percent-encodings do not cause a hard failure here —
+ * the function stops decoding and returns the last successfully-decoded
+ * value. This is a defensive choice to be tolerant of minor input
+ * issues while still enforcing length and traversal protections. If
+ * callers need stricter behavior they should validate the returned
+ * value accordingly.
+ *
+ * @param {string} value
+ * @param {number} maxDepth
+ * @param {number} maxLength
+ * @returns {string|null}
+ */
 function safeDecodeLimited(value, maxDepth, maxLength) {
     let decoded = value;
     for (let i = 0; i < maxDepth; i++) {
@@ -139,7 +156,10 @@ function safeDecodeLimited(value, maxDepth, maxLength) {
             decoded = next;
             if (decoded.length > maxLength) return null; // indicate failure
         } catch (_) {
-            break; // stop on malformed sequences
+            // Stop decoding on malformed percent-encodings and return
+            // the last successfully-decoded value. This avoids rejecting
+            // otherwise harmless inputs with a single bad percent escape.
+            break;
         }
     }
     return decoded;
@@ -163,6 +183,7 @@ const isSafeUrl = (urlString) => {
 
         const decoded = safeDecodeLimited(urlString, MAX_DECODE_DEPTH, MAX_URL_LENGTH_AFTER_DECODE);
         if (decoded === null) return false;
+        if (decoded === '') return false; // reject empty decoded values
 
         // Validate decoded value for traversal, colon, whitespace, and allowed chars.
         if (TRAVERSAL_RE.test(decoded)) return false;
