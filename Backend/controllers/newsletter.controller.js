@@ -20,7 +20,12 @@ export const subscribeNewsletter = async (req, res) => {
     if (!isValid) {
       return res.status(400).json({ error: 'Valid email is required.' });
     }
-    const existing = await Newsletter.findOne({ email: normalizedEmail });
+
+    // Prevent duplicates against legacy mixed-case records by doing a
+    // case-insensitive lookup. We then store the normalized email (with
+    // domain lowercased) for consistent future inserts.
+    const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const existing = await Newsletter.findOne({ email: { $regex: `^${escapeRegex(normalizedEmail)}$`, $options: 'i' } });
     if (existing) {
       return res.status(409).json({ error: 'Email already subscribed.' });
     }
