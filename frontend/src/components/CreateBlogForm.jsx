@@ -131,9 +131,9 @@ const isSafeUrl = (urlString) => {
         // If URL constructor fails, this may be a relative URL. Allow
         // same-origin relative paths (starting with '/') or simple
         // relative paths without a protocol (no ':' char) and no spaces.
-        // Explicitly disallow path-traversal segments like "..".
+        // Explicitly disallow path-traversal patterns like "../", "/../" or "..\".
         if (urlString.startsWith('//')) return false; // protocol-relative URLs are disallowed
-        if (urlString.includes('..')) return false; // disallow path traversal segments
+        if (/(^|[\/\\])\.\.([\/\\]|$)/.test(urlString)) return false; // detect directory traversal segments
         if (urlString.includes(':')) return false; // disallow strings containing a colon
         if (/\s/.test(urlString)) return false;
         return urlString.startsWith('/') || /^[A-Za-z0-9_./~-]+$/.test(urlString);
