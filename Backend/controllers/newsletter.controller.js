@@ -15,14 +15,14 @@ export const subscribeNewsletter = async (req, res) => {
   try {
     const { email } = req.body;
     console.log('Newsletter: Received subscribe request for:', email);
-    if (!email || !/.+@.+\..+/.test(email)) {
+    if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       return res.status(400).json({ error: 'Valid email is required.' });
     }
-    const existing = await Newsletter.findOne({ email });
+    const existing = await Newsletter.findOne({ email: email.trim() });
     if (existing) {
       return res.status(409).json({ error: 'Email already subscribed.' });
     }
-    const subscription = await Newsletter.create({ email });
+    const subscription = await Newsletter.create({ email: email.trim() });
     try {
       const sender = process.env.SMTP_FROM || 'ChatRaj <no-reply@chatraj.com>';
       const mailOptions = {

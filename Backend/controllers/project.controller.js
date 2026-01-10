@@ -1,6 +1,7 @@
 import projectModel from '../models/project.model.js';
 import * as projectService from '../services/project.service.js';
 import userModel from '../models/user.model.js';
+import mongoose from 'mongoose';
 import { validationResult } from 'express-validator';
 
 export const getAllProject = async (req, res) => {
@@ -13,7 +14,8 @@ export const getAllProject = async (req, res) => {
         const projects = await projectModel.find({ users: { $in: [loggedInUser._id] } });
         res.status(200).json({ projects });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error('getAllProject error:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 };
 
@@ -43,7 +45,8 @@ export const createProject = async (req, res) => {
         });
         res.status(201).json({ project });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error('createProject error:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 };
 
@@ -64,7 +67,7 @@ export const addUserToProject = async (req, res) => {
         });
         return res.status(200).json({ project });
     } catch (err) {
-        console.log(err);
+        console.error('addUserToProject error:', err);
         res.status(400).json({ error: err.message });
     }
 }
@@ -77,8 +80,12 @@ export const updateProjectSidebarSettings = async (req, res) => {
         if (!sidebar || typeof sidebar !== 'object') {
             return res.status(400).json({ error: 'Sidebar settings required' });
         }
+        if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) return res.status(400).json({ error: 'Invalid projectId' });
         const project = await projectModel.findById(projectId);
         if (!project) return res.status(404).json({ error: 'Project not found' });
+        // Authorization: check if requesting user is member
+        const isMember = project.users && project.users.some(u => u.toString() === req.user._id.toString());
+        if (!isMember) return res.status(401).json({ error: 'Unauthorized' });
         // Deep merge sidebar settings
         project.settings = project.settings || {};
         project.settings.sidebar = { ...project.settings.sidebar, ...sidebar };
@@ -137,7 +144,8 @@ export const getProjectCountsByCategory = async (req, res) => {
     });
     res.status(200).json(result);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+        console.error('getProjectCountsByCategory error:', err);
+        res.status(500).json({ error: 'Internal server error' });
   }
 }
 
@@ -146,6 +154,7 @@ export const getProjectShowcase = async (req, res) => {
         const projects = await projectModel.find({}).sort({ users: -1 }).limit(10);
         res.status(200).json({ projects });
     } catch (error) {
+        console.error('getProjectShowcase error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 }
@@ -165,7 +174,7 @@ export const getProjectById = async (req, res) => {
         })
 
     } catch (err) {
-        console.log(err)
+        console.error('getProjectById error:', err);
         const status = err.message === 'Unauthorized access' ? 401 : 400;
         res.status(status).json({ error: err.message })
     }
@@ -194,7 +203,7 @@ export const updateFileTree = async (req, res) => {
         })
 
     } catch (err) {
-        console.log(err)
+        console.error('updateFileTree error:', err);
         const status = err.message === 'Unauthorized access' ? 401 : 400;
         res.status(status).json({ error: err.message })
     }
@@ -204,11 +213,15 @@ export const updateFileTree = async (req, res) => {
 export const getProjectSettings = async (req, res) => {
     try {
         const { projectId } = req.params;
+        if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) return res.status(400).json({ error: 'Invalid projectId' });
         const project = await projectModel.findById(projectId);
         if (!project) return res.status(404).json({ error: 'Project not found' });
+        const isMember = project.users && project.users.some(u => u.toString() === req.user._id.toString());
+        if (!isMember) return res.status(401).json({ error: 'Unauthorized' });
         res.status(200).json({ settings: project.settings || {} });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error('getProjectSettings error:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 };
 
@@ -216,14 +229,16 @@ export const updateProjectSettings = async (req, res) => {
     try {
         const { projectId } = req.params;
         const { settings } = req.body;
-        const project = await projectModel.findByIdAndUpdate(
-            projectId,
-            { settings },
-            { new: true }
-        );
+        if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) return res.status(400).json({ error: 'Invalid projectId' });
+        const project = await projectModel.findById(projectId);
         if (!project) return res.status(404).json({ error: 'Project not found' });
+        const isMember = project.users && project.users.some(u => u.toString() === req.user._id.toString());
+        if (!isMember) return res.status(401).json({ error: 'Unauthorized' });
+        project.settings = settings;
+        await project.save();
         res.status(200).json({ settings: project.settings });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error('updateProjectSettings error:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 };
