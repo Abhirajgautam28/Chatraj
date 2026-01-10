@@ -131,43 +131,48 @@ const MAX_DECODE_DEPTH = 3; // bounded iterative decoding depth
 const TRAVERSAL_RE = /(^|[\/\\])\.\.([\/\\]|$)/;
 
 /**
- * Iteratively percent-decode `value` up to `maxDepth` times, but cap
- * the decoded length to `maxLength`. Returns an object describing the
- * result so callers can distinguish between a successful decode,
- * an overflow, or a premature stop due to malformed sequences.
- *
- * { value, error, truncated, depth }
- * - value: decoded string or null on hard failure/overflow
- * - error: null or a short error code ('overflow')
- * - truncated: true if decoding stopped early due to malformed sequences
- * - depth: number of decoding iterations performed
- *
- * The function intentionally tolerates a single malformed percent-escape
- * by returning the last successfully-decoded value (with `truncated=true`) so
- * callers can choose whether to accept or reject that relaxed result.
+ * Iteratively percent-decode `value` up to `maxDepth` times, capping the
+ * decoded length to `maxLength`. Returns a normalized result object:
+ * { value, status, depth } where `status` is 'ok' | 'overflow' | 'malformed'.
+ * - value: decoded string or null on overflow
+ * - status: 'ok' when fully decoded, 'overflow' when decoded length exceeded
+ *   `maxLength`, or 'malformed' when percent-decoding failed (last good
+ *   decoded value is returned).
+ * - depth: number of decoding iterations attempted
+ */
+/**
+ * Result:
+ * - status: 'ok' | 'overflow' | 'malformed'
+ * - value: string | null
+ * - depth: number of decoding iterations attempted
  */
 function safeDecodeLimited(value, maxDepth, maxLength) {
     let decoded = value;
-    let truncated = false;
+    let status = 'ok'; // 'ok' | 'overflow' | 'malformed'
     let depth = 0;
+
     for (let i = 0; i < maxDepth; i++) {
-        depth = i + 1;
+        depth++;
         try {
             const next = decodeURIComponent(decoded);
             if (next === decoded) {
-                return { value: decoded, error: null, truncated, depth };
+                break; // no further progress
             }
             decoded = next;
-            if (decoded.length > maxLength) return { value: null, error: 'overflow', truncated: false, depth };
+            if (decoded.length > maxLength) {
+                status = 'overflow';
+                decoded = null;
+                break;
+            }
         } catch (_) {
-            // Stop decoding on malformed percent-encodings and return
-            // the last successfully-decoded value, marking it truncated so
-            // callers can opt to reject it if they require strict decoding.
-            truncated = true;
+            // malformed percent-encoding: keep last successfully decoded
+            // value and mark as malformed so callers can decide.
+            status = 'malformed';
             break;
         }
     }
-    return { value: decoded, error: null, truncated, depth };
+
+    return { value: decoded, status, depth };
 }
 
 const isSafeUrl = (urlString) => {
@@ -186,9 +191,12 @@ const isSafeUrl = (urlString) => {
         // Reject extremely long inputs early to avoid DoS via huge attacker-controlled strings
         if (urlString.length > MAX_URL_LENGTH_BEFORE_DECODE) return false;
 
-        const decoded = safeDecodeLimited(urlString, MAX_DECODE_DEPTH, MAX_URL_LENGTH_AFTER_DECODE);
+        const decodedInfo = safeDecodeLimited(urlString, MAX_DECODE_DEPTH, MAX_URL_LENGTH_AFTER_DECODE);
+        // Reject outright on overflow to avoid accepting truncated/attacker-controlled large inputs
+        if (decodedInfo.status === 'overflow') return false;
+        const decoded = decodedInfo.value;
         if (decoded === null) return false;
-        if (decoded === '') return false; // reject empty decoded values
+        if (decoded.trim() === '') return false; // reject empty or whitespace-only decoded values
 
         // Validate decoded value for traversal, colon, whitespace, and allowed chars.
         if (TRAVERSAL_RE.test(decoded)) return false;
