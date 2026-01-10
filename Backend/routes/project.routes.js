@@ -64,6 +64,7 @@ router.put('/add-user',
 )
 
 router.get('/get-project/:projectId',
+    projectLimiter,
     authUser,
     getProjectById
 )
