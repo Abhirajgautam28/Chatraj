@@ -132,37 +132,42 @@ const TRAVERSAL_RE = /(^|[\/\\])\.\.([\/\\]|$)/;
 
 /**
  * Iteratively percent-decode `value` up to `maxDepth` times, but cap
- * the decoded length to `maxLength`. Returns the fully-decoded string
- * on success, or `null` on failure (overflow or other issues).
+ * the decoded length to `maxLength`. Returns an object describing the
+ * result so callers can distinguish between a successful decode,
+ * an overflow, or a premature stop due to malformed sequences.
  *
- * Note: malformed percent-encodings do not cause a hard failure here —
- * the function stops decoding and returns the last successfully-decoded
- * value. This is a defensive choice to be tolerant of minor input
- * issues while still enforcing length and traversal protections. If
- * callers need stricter behavior they should validate the returned
- * value accordingly.
+ * { value, error, truncated, depth }
+ * - value: decoded string or null on hard failure/overflow
+ * - error: null or a short error code ('overflow')
+ * - truncated: true if decoding stopped early due to malformed sequences
+ * - depth: number of decoding iterations performed
  *
- * @param {string} value
- * @param {number} maxDepth
- * @param {number} maxLength
- * @returns {string|null}
+ * The function intentionally tolerates a single malformed percent-escape
+ * by returning the last successfully-decoded value (with `truncated=true`) so
+ * callers can choose whether to accept or reject that relaxed result.
  */
 function safeDecodeLimited(value, maxDepth, maxLength) {
     let decoded = value;
+    let truncated = false;
+    let depth = 0;
     for (let i = 0; i < maxDepth; i++) {
+        depth = i + 1;
         try {
             const next = decodeURIComponent(decoded);
-            if (next === decoded) break;
+            if (next === decoded) {
+                return { value: decoded, error: null, truncated, depth };
+            }
             decoded = next;
-            if (decoded.length > maxLength) return null; // indicate failure
+            if (decoded.length > maxLength) return { value: null, error: 'overflow', truncated: false, depth };
         } catch (_) {
             // Stop decoding on malformed percent-encodings and return
-            // the last successfully-decoded value. This avoids rejecting
-            // otherwise harmless inputs with a single bad percent escape.
+            // the last successfully-decoded value, marking it truncated so
+            // callers can opt to reject it if they require strict decoding.
+            truncated = true;
             break;
         }
     }
-    return decoded;
+    return { value: decoded, error: null, truncated, depth };
 }
 
 const isSafeUrl = (urlString) => {
