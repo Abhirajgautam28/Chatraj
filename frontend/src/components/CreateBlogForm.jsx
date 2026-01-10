@@ -121,9 +121,13 @@ const getYouTubeEmbedUrl = (urlString) => {
 
 // Validate that a URL is safe. Allow http/https absolute URLs and
 // same-origin relative paths like `/uploads/foo.jpg` or `images/foo.jpg`.
-const MAX_URL_LENGTH_BEFORE_DECODE = 2048;
-const MAX_URL_LENGTH_AFTER_DECODE = 4096;
-const MAX_DECODE_DEPTH = 3;
+// Policy: guardrail sizes and decode limits. These are conservative
+// values chosen to prevent attacker-controlled large inputs and limit
+// repeated decoding attempts (e.g. `%252e%252e` chains). Adjust these
+// if you have a reasoned case for larger user-provided paths.
+const MAX_URL_LENGTH_BEFORE_DECODE = 2048; // reject very long raw inputs early
+const MAX_URL_LENGTH_AFTER_DECODE = 4096; // cap decoded length to avoid blowup
+const MAX_DECODE_DEPTH = 3; // bounded iterative decoding depth
 const TRAVERSAL_RE = /(^|[\/\\])\.\.([\/\\]|$)/;
 
 function safeDecodeLimited(value, maxDepth, maxLength) {
@@ -133,9 +137,9 @@ function safeDecodeLimited(value, maxDepth, maxLength) {
             const next = decodeURIComponent(decoded);
             if (next === decoded) break;
             decoded = next;
-            if (decoded.length > maxLength) return '';
+            if (decoded.length > maxLength) return null; // indicate failure
         } catch (_) {
-            break;
+            break; // stop on malformed sequences
         }
     }
     return decoded;
@@ -158,7 +162,7 @@ const isSafeUrl = (urlString) => {
         if (urlString.length > MAX_URL_LENGTH_BEFORE_DECODE) return false;
 
         const decoded = safeDecodeLimited(urlString, MAX_DECODE_DEPTH, MAX_URL_LENGTH_AFTER_DECODE);
-        if (!decoded) return false;
+        if (decoded === null) return false;
 
         // Validate decoded value for traversal, colon, whitespace, and allowed chars.
         if (TRAVERSAL_RE.test(decoded)) return false;
