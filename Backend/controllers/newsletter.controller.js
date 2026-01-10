@@ -1,5 +1,6 @@
 import Newsletter from '../models/newsletter.model.js';
 import { normalizeEmail } from '../utils/email.js';
+import { escapeRegex } from '../utils/strings.js';
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
@@ -24,7 +25,6 @@ export const subscribeNewsletter = async (req, res) => {
     // Prevent duplicates against legacy mixed-case records by doing a
     // case-insensitive lookup. We then store the normalized email (with
     // domain lowercased) for consistent future inserts.
-    const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const existing = await Newsletter.findOne({ email: { $regex: `^${escapeRegex(normalizedEmail)}$`, $options: 'i' } });
     if (existing) {
       return res.status(409).json({ error: 'Email already subscribed.' });
