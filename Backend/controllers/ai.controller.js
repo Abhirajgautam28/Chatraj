@@ -4,10 +4,12 @@ import * as ai from '../services/ai.service.js';
 export const getResult = async (req, res) => {
     try {
         const { prompt } = req.query;
+        if (typeof prompt !== 'string' || prompt.trim().length === 0) return res.status(400).json({ message: 'Prompt is required' });
         const result = await ai.generateResult(prompt);
         res.send(result);
     } catch (error) {
-        res.status(500).send({ message: error.message });
+        console.error('getResult error:', error);
+        res.status(500).send({ message: 'Internal server error' });
     }
 }
 
@@ -30,6 +32,7 @@ export const postResult = async (req, res) => {
         }
         res.json({ response: responseText });
     } catch (error) {
-        res.status(500).json({ response: error.message });
+        console.error('postResult error:', error);
+        res.status(500).json({ response: 'Internal server error' });
     }
 }

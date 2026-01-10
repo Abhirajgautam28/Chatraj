@@ -37,7 +37,10 @@ export const getAllBlogs = async (req, res) => {
 
 export const getBlogById = async (req, res) => {
     try {
-        const blog = await Blog.findById(req.params.id).populate('author', 'firstName lastName').populate('comments.user', 'firstName lastName');
+        const id = req.params.id;
+        const mongoose = (await import('mongoose')).default;
+        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
+        const blog = await Blog.findById(id).populate('author', 'firstName lastName').populate('comments.user', 'firstName lastName');
         if (!blog) {
             return res.status(404).json({ error: 'Blog not found' });
         }
@@ -49,7 +52,10 @@ export const getBlogById = async (req, res) => {
 
 export const likeBlog = async (req, res) => {
     try {
-        const blog = await Blog.findById(req.params.id);
+        const id = req.params.id;
+        const mongoose = (await import('mongoose')).default;
+        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
+        const blog = await Blog.findById(id);
         const user = await User.findOne({ email: req.user.email });
 
         if (!blog) {
@@ -78,7 +84,10 @@ export const likeBlog = async (req, res) => {
 export const commentOnBlog = async (req, res) => {
     try {
         const { text } = req.body;
-        const blog = await Blog.findById(req.params.id);
+        const id = req.params.id;
+        const mongoose = (await import('mongoose')).default;
+        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
+        const blog = await Blog.findById(id);
         const user = await User.findOne({ email: req.user.email });
 
         if (!blog) {
@@ -105,8 +114,9 @@ export const commentOnBlog = async (req, res) => {
 export const generateBlogContent = async (req, res) => {
     try {
         const { topic } = req.body;
+        if (typeof topic !== 'string' || topic.trim().length === 0 || topic.trim().length > 200) return res.status(400).json({ error: 'Invalid topic' });
         const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-        const prompt = `Write a professional blog post of about 100 words on the topic: "${topic}".`;
+        const prompt = `Write a professional blog post of about 100 words on the topic: "${topic.trim().slice(0,200)}".`;
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();

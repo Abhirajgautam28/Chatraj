@@ -2,8 +2,8 @@
 export const sendOtpController = async (req, res) => {
     try {
         const { email } = req.body;
-        if (!email) return res.status(400).json({ message: 'Email is required' });
-        const user = await userModel.findOne({ email });
+        if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return res.status(400).json({ message: 'Valid email is required' });
+        const user = await userModel.findOne({ email: email.trim() });
         if (!user) return res.status(404).json({ message: 'User not found' });
         // Generate OTP
         const otp = generateOTP(7);
@@ -13,7 +13,8 @@ export const sendOtpController = async (req, res) => {
         await sendOtpEmail(user.email, otp);
         res.status(200).json({ message: 'OTP sent to email.' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('sendOtpController error:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -29,6 +30,16 @@ import userModel from '../models/user.model.js';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 dotenv.config();
+// Helper: escape user-supplied text before inserting into HTML templates
+function escapeHtml(unsafe) {
+    if (unsafe === undefined || unsafe === null) return '';
+    return String(unsafe)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
 import * as userService from '../services/user.service.js';
 import { validationResult } from 'express-validator';
 import redisClient from '../services/redis.service.js';
@@ -52,7 +63,8 @@ export const createUserController = async (req, res) => {
         await sendOtpEmail(user.email, otp);
         res.status(201).json({ message: 'OTP sent to email. Please verify.', userId: user._id });
     } catch (error) {
-        res.status(400).send(error.message);
+        console.error('createUserController error:', error);
+        res.status(400).send('Invalid request');
     }
 }
 
@@ -95,7 +107,8 @@ export const verifyOtpController = async (req, res) => {
     if (userId) {
         user = await userModel.findById(userId).select('+otp');
     } else if (email) {
-        user = await userModel.findOne({ email }).select('+otp');
+        if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return res.status(400).json({ message: 'Valid email is required' });
+        user = await userModel.findOne({ email: email.trim() }).select('+otp');
     }
     if (!user) return res.status(404).json({ message: 'User not found' });
     if (user.otp !== otp) return res.status(401).json({ message: 'Invalid OTP' });
@@ -115,7 +128,8 @@ export const loginController = async (req, res) => {
     }
     try {
         const { email, password } = req.body;
-        const user = await userModel.findOne({ email }).select('+password +googleApiKey');
+        if (typeof email !== 'string' || typeof password !== 'string') return res.status(400).json({ errors: 'Invalid credentials' });
+        const user = await userModel.findOne({ email: email.trim() }).select('+password +googleApiKey');
         if (!user) {
             return res.status(401).json({ errors: 'Invalid credentials' });
         }
@@ -130,8 +144,8 @@ export const loginController = async (req, res) => {
         delete user._doc.password;
         res.status(200).json({ user, token });
     } catch (err) {
-        console.log(err);
-        res.status(400).send(err.message);
+        console.error('loginController error:', err);
+        res.status(400).send('Invalid request');
     }
 }
 
@@ -157,8 +171,8 @@ export const logoutController = async (req, res) => {
             message: 'Logged out successfully'
         });
     } catch (err) {
-        console.log(err);
-        res.status(400).send(err.message);
+        console.error('logoutController error:', err);
+        res.status(400).send('Invalid request');
     }
 }
 
@@ -178,15 +192,16 @@ export const getAllUsersController = async (req, res) => {
             users: usersWithNames
         })
     } catch (err) {
-        console.log(err)
-        res.status(400).json({ error: err.message })
+        console.error('getAllUsersController error:', err);
+        res.status(400).json({ error: 'Unable to fetch users' })
     }
 }
 
 export const resetPasswordController = async (req, res) => {
     try {
         const { email } = req.body;
-        const user = await userModel.findOne({ email });
+        if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return res.status(400).json({ message: 'Valid email is required' });
+        const user = await userModel.findOne({ email: email.trim() });
         if (!user) return res.status(404).json({ message: 'User not found' });
 
         const resetToken = jwt.sign(
@@ -197,16 +212,17 @@ export const resetPasswordController = async (req, res) => {
 
         res.json({ message: 'Reset link sent to email', resetToken });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error('resetPasswordController error:', err);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
 export const updatePasswordController = async (req, res) => {
     try {
         const { email, newPassword } = req.body;
-        if (!email || !newPassword) return res.status(400).json({ message: 'Email and new password required' });
+        if (typeof email !== 'string' || typeof newPassword !== 'string' || newPassword.length < 8) return res.status(400).json({ message: 'Valid email and a new password (min 8 chars) required' });
 
-        const user = await userModel.findOne({ email });
+        const user = await userModel.findOne({ email: email.trim() });
         if (!user) return res.status(404).json({ message: 'User not found' });
 
         // Prevent duplicate password reset emails by using a flag
@@ -223,7 +239,8 @@ export const updatePasswordController = async (req, res) => {
 
         res.json({ message: 'Password updated successfully' });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error('updatePasswordController error:', err);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -242,7 +259,7 @@ async function sendPasswordResetSuccessEmail(email, name) {
       <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f4f8fc; padding: 40px; border-radius: 16px; color: #222; box-shadow: 0 4px 24px rgba(37,99,235,0.08);">
         <div style="text-align:center;">
           <h1 style="color: #2563eb; font-size: 2.2em; margin-bottom: 8px;">Password Reset Successful 🎉</h1>
-          <p style="font-size: 1.15em; color: #444; margin-bottom: 24px;">Hi <b>${name}</b>, your ChatRaj password has been reset successfully.</p>
+          <p style="font-size: 1.15em; color: #444; margin-bottom: 24px;">Hi <b>${escapeHtml(name)}</b>, your ChatRaj password has been reset successfully.</p>
         </div>
         <div style="background: #eaf1fb; border-radius: 10px; padding: 24px; margin-bottom: 24px;">
           <h2 style="color: #2563eb; margin-bottom: 12px;">What's Next?</h2>
@@ -267,7 +284,7 @@ async function sendPasswordResetSuccessEmail(email, name) {
     `;
     let info = await transporter.sendMail({
         from: process.env.SMTP_FROM || 'ChatRaj <no-reply@chatraj.com>',
-        to: email,
+        to: typeof email === 'string' ? email.trim() : email,
         subject: 'Your ChatRaj Password Has Been Reset',
         html
     });

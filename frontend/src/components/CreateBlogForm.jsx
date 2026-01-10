@@ -115,8 +115,20 @@ const getYouTubeEmbedUrl = (urlString) => {
         if (videoId) {
             return `https://www.youtube.com/embed/${videoId}`;
         }
-    } catch {}
+    } catch { }
     return '';
+};
+
+// Validate that a URL is safe (only http/https allowed)
+const isSafeUrl = (urlString) => {
+    if (!urlString || typeof urlString !== 'string') return false;
+    try {
+        const url = new URL(urlString);
+        const protocol = url.protocol.toLowerCase();
+        return protocol === 'http:' || protocol === 'https:';
+    } catch (e) {
+        return false;
+    }
 };
 
 const DarkModeToggle = ({ darkMode, setDarkMode }) => (
@@ -158,10 +170,15 @@ const LivePreview = ({ title, blocks }) => (
             <h1 className="text-3xl font-extrabold mb-4 text-blue-700 dark:text-blue-300 drop-shadow">{title}</h1>
             {blocks.map(block => {
                 if (block.type === 'text') return <p key={block.id} className="text-lg leading-relaxed mb-3">{block.content}</p>;
-                if (block.type === 'image') return <img key={block.id} src={block.content} alt="preview" className="rounded-xl shadow mb-3" />;
+                if (block.type === 'image') {
+                    const safeSrc = isSafeUrl(block.content) ? block.content : null;
+                    if (!safeSrc) return <div key={block.id} className="w-full rounded-xl shadow mb-3 flex items-center justify-center bg-gray-200 dark:bg-gray-800 text-gray-500 text-center">Invalid or unsupported image URL</div>;
+                    return <img key={block.id} src={safeSrc} alt="preview" className="rounded-xl shadow mb-3" />;
+                }
                 if (block.type === 'video') {
                     const embedUrl = getYouTubeEmbedUrl(block.content);
-                    if (!embedUrl) {
+                    // ensure embedUrl is https and safe
+                    if (!embedUrl || !embedUrl.startsWith('https://')) {
                         return <div key={block.id} className="w-full aspect-video rounded-xl shadow mb-3 flex items-center justify-center bg-gray-200 dark:bg-gray-800 text-gray-500 text-center">Invalid or unsupported video URL</div>;
                     }
                     return <iframe key={block.id} src={embedUrl} title="preview" className="w-full aspect-video rounded-xl shadow mb-3" allowFullScreen />;
@@ -276,56 +293,7 @@ const CreateBlogFormContent = () => {
                             <button type="submit" className="px-8 py-3 font-bold text-lg text-white bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl shadow-lg hover:from-blue-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-blue-400 transition">Publish Post</button>
                         </div>
                     </form>
-                    <div className="glass-card p-8 md:p-10 bg-white/60 dark:bg-gray-800/60 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 backdrop-blur-xl relative overflow-hidden">
-                        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-gradient-to-tr from-purple-400/30 via-blue-400/20 to-transparent rounded-full blur-2xl pointer-events-none"></div>
-                        <h2 className="text-2xl font-bold mb-6 text-blue-700 dark:text-blue-300">Live Preview</h2>
-                        <div className="prose prose-blue dark:prose-invert max-w-none">
-                            <h1 className="text-3xl font-extrabold mb-4 text-blue-700 dark:text-blue-300 drop-shadow">{title}</h1>
-                            {blocks.map(block => {
-                                if (block.type === 'text') return <p key={block.id} className="text-lg leading-relaxed mb-3">{block.content}</p>;
-                                if (block.type === 'image') return <img key={block.id} src={block.content} alt="preview" className="rounded-xl shadow mb-3" />;
-                                if (block.type === 'video') {
-                                    const getYouTubeEmbedUrl = (urlString) => {
-                                        if (!urlString) return '';
-                                        try {
-                                            const url = new URL(urlString);
-                                            let videoId = '';
-                                            if (url.hostname === 'youtu.be') {
-                                                videoId = url.pathname.slice(1);
-                                            } else if (url.hostname.includes('youtube.com')) {
-                                                if (url.pathname === '/watch' && url.searchParams.has('v')) {
-                                                    videoId = url.searchParams.get('v');
-                                                } else if (url.pathname.startsWith('/embed/')) {
-                                                    videoId = url.pathname.split('/embed/')[1].split(/[/?]/)[0];
-                                                } else if (url.pathname.startsWith('/v/')) {
-                                                    videoId = url.pathname.split('/v/')[1].split(/[/?]/)[0];
-                                                }
-                                            }
-                                            if (!videoId) {
-                                                const match = urlString.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
-                                                if (match && match[1]) {
-                                                    videoId = match[1];
-                                                }
-                                            }
-                                            if (videoId) {
-                                                return `https://www.youtube.com/embed/${videoId}`;
-                                            }
-                                        } catch {
-                                        }
-                                        return '';
-                                    };
-                                    const embedUrl = getYouTubeEmbedUrl(block.content);
-                                    if (!embedUrl) {
-                                        return <div key={block.id} className="w-full aspect-video rounded-xl shadow mb-3 flex items-center justify-center bg-gray-200 dark:bg-gray-800 text-gray-500 text-center">Invalid or unsupported video URL</div>;
-                                    }
-                                    return <iframe key={block.id} src={embedUrl} title="preview" className="w-full aspect-video rounded-xl shadow mb-3" allowFullScreen />;
-                                }
-                                if (block.type === 'code') return <pre key={block.id} className="bg-gray-900/90 text-white rounded-xl p-4 mb-3 overflow-x-auto"><code className="language-javascript">{block.content}</code></pre>;
-                                if (block.type === 'quote') return <blockquote key={block.id} className="border-l-4 border-blue-400 pl-4 italic text-lg text-blue-700 dark:text-blue-300 mb-3">{block.content}</blockquote>;
-                                return null;
-                            })}
-                        </div>
-                    </div>
+                    <LivePreview title={title} blocks={blocks} />
                 </div>
             </div>
         </DndProvider>
