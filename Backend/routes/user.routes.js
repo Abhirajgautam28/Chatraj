@@ -3,6 +3,7 @@ import * as userController from '../controllers/user.controller.js';
 import { body } from 'express-validator';
 import * as authMiddleware from '../middleware/auth.middleware.js';
 import { sensitiveLimiter, authLimiter } from '../middleware/rateLimiter.js';
+import rateLimit from 'express-rate-limit';
 
 const router = Router();
 
@@ -38,8 +39,8 @@ router.post('/login',
   userController.loginController
 );
 
-router.post('/reset-password', userController.resetPasswordController);
-router.post('/update-password', userController.updatePasswordController);
+router.post('/reset-password', sensitiveLimiter, userController.resetPasswordController);
+router.post('/update-password', sensitiveLimiter, userController.updatePasswordController);
 
 router.get('/profile', authLimiter, authMiddleware.authUser, userController.profileController);
 
