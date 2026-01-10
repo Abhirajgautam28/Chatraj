@@ -133,7 +133,14 @@ const isSafeUrl = (urlString) => {
         // relative paths without a protocol (no ':' char) and no spaces.
         // Explicitly disallow path-traversal patterns like "../", "/../" or "..\".
         if (urlString.startsWith('//')) return false; // protocol-relative URLs are disallowed
-        if (/(^|[\/\\])\.\.([\/\\]|$)/.test(urlString)) return false; // detect directory traversal segments
+        const traversalRe = /(^|[\/\\])\.\.([\/\\]|$)/;
+        if (traversalRe.test(urlString)) return false; // detect directory traversal segments
+        try {
+            const decoded = decodeURIComponent(urlString);
+            if (decoded !== urlString && traversalRe.test(decoded)) return false;
+        } catch (_) {
+            // malformed percent-encodings — continue and rely on original checks
+        }
         if (urlString.includes(':')) return false; // disallow strings containing a colon
         if (/\s/.test(urlString)) return false;
         return urlString.startsWith('/') || /^[A-Za-z0-9_./~-]+$/.test(urlString);
