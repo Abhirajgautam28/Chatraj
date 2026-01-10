@@ -1,6 +1,7 @@
 import Blog from '../models/blog.model.js';
 import User from '../models/user.model.js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import mongoose from 'mongoose';
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
@@ -38,7 +39,6 @@ export const getAllBlogs = async (req, res) => {
 export const getBlogById = async (req, res) => {
     try {
         const id = req.params.id;
-        const mongoose = (await import('mongoose')).default;
         if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
         const blog = await Blog.findById(id).populate('author', 'firstName lastName').populate('comments.user', 'firstName lastName');
         if (!blog) {
@@ -53,7 +53,6 @@ export const getBlogById = async (req, res) => {
 export const likeBlog = async (req, res) => {
     try {
         const id = req.params.id;
-        const mongoose = (await import('mongoose')).default;
         if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
         const blog = await Blog.findById(id);
         const user = await User.findOne({ email: req.user.email });
@@ -85,7 +84,6 @@ export const commentOnBlog = async (req, res) => {
     try {
         const { text } = req.body;
         const id = req.params.id;
-        const mongoose = (await import('mongoose')).default;
         if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
         const blog = await Blog.findById(id);
         const user = await User.findOne({ email: req.user.email });

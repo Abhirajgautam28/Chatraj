@@ -119,7 +119,8 @@ const getYouTubeEmbedUrl = (urlString) => {
     return '';
 };
 
-// Validate that a URL is safe (only http/https allowed)
+// Validate that a URL is safe. Allow http/https absolute URLs and
+// same-origin relative paths like `/uploads/foo.jpg` or `images/foo.jpg`.
 const isSafeUrl = (urlString) => {
     if (!urlString || typeof urlString !== 'string') return false;
     try {
@@ -127,7 +128,13 @@ const isSafeUrl = (urlString) => {
         const protocol = url.protocol.toLowerCase();
         return protocol === 'http:' || protocol === 'https:';
     } catch (e) {
-        return false;
+        // If URL constructor fails, this may be a relative URL. Allow
+        // same-origin relative paths (starting with '/') or simple
+        // relative paths without a protocol (no ':' char) and no spaces.
+        if (urlString.startsWith('//')) return false; // protocol-relative URLs are disallowed
+        if (urlString.includes(':')) return false; // disallow strings containing a colon
+        if (/\s/.test(urlString)) return false;
+        return urlString.startsWith('/') || /^[A-Za-z0-9_./~-]+$/.test(urlString);
     }
 };
 

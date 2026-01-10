@@ -1,4 +1,5 @@
 import Newsletter from '../models/newsletter.model.js';
+import { normalizeEmail } from '../utils/email.js';
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
@@ -15,19 +16,20 @@ export const subscribeNewsletter = async (req, res) => {
   try {
     const { email } = req.body;
     console.log('Newsletter: Received subscribe request for:', email);
-    if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    const { value: normalizedEmail, isValid } = normalizeEmail(email);
+    if (!isValid) {
       return res.status(400).json({ error: 'Valid email is required.' });
     }
-    const existing = await Newsletter.findOne({ email: email.trim() });
+    const existing = await Newsletter.findOne({ email: normalizedEmail });
     if (existing) {
       return res.status(409).json({ error: 'Email already subscribed.' });
     }
-    const subscription = await Newsletter.create({ email: email.trim() });
+    const subscription = await Newsletter.create({ email: normalizedEmail });
     try {
       const sender = process.env.SMTP_FROM || 'ChatRaj <no-reply@chatraj.com>';
       const mailOptions = {
         from: sender,
-        to: email,
+        to: normalizedEmail,
         subject: '🚀 Welcome to the ChatRaj Newsletter – Your Gateway to Next-Gen Collaboration!',
         html: `
           <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f4f8fc; padding: 40px; border-radius: 16px; color: #222; box-shadow: 0 4px 24px rgba(37,99,235,0.08);">
