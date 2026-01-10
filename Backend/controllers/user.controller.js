@@ -4,8 +4,9 @@ import mongoose from 'mongoose';
 export const sendOtpController = async (req, res) => {
     try {
         const { email } = req.body;
-        if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return res.status(400).json({ message: 'Valid email is required' });
-        const user = await userModel.findOne({ email: email.trim() });
+        const { value: normalizedEmail, isValid } = normalizeEmail(email);
+        if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
+        const user = await userModel.findOne({ email: normalizedEmail });
         if (!user) return res.status(404).json({ message: 'User not found' });
         // Generate OTP
         const otp = generateOTP(7);
@@ -29,6 +30,7 @@ export const getLeaderboardController = async (req, res) => {
     }
 };
 import userModel from '../models/user.model.js';
+import { normalizeEmail } from '../utils/email.js';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -113,8 +115,9 @@ export const verifyOtpController = async (req, res) => {
         }
         user = await userModel.findById(userId).select('+otp');
     } else if (email) {
-        if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return res.status(400).json({ message: 'Valid email is required' });
-        user = await userModel.findOne({ email: email.trim() }).select('+otp');
+        const { value: normalizedEmail, isValid } = normalizeEmail(email);
+        if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
+        user = await userModel.findOne({ email: normalizedEmail }).select('+otp');
     }
     if (!user) return res.status(404).json({ message: 'User not found' });
     if (user.otp !== otp) return res.status(401).json({ message: 'Invalid OTP' });
@@ -206,8 +209,9 @@ export const getAllUsersController = async (req, res) => {
 export const resetPasswordController = async (req, res) => {
     try {
         const { email } = req.body;
-        if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return res.status(400).json({ message: 'Valid email is required' });
-        const user = await userModel.findOne({ email: email.trim() });
+        const { value: normalizedEmail, isValid } = normalizeEmail(email);
+        if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
+        const user = await userModel.findOne({ email: normalizedEmail });
         if (!user) return res.status(404).json({ message: 'User not found' });
 
         const resetToken = jwt.sign(
@@ -225,10 +229,13 @@ export const resetPasswordController = async (req, res) => {
 
 export const updatePasswordController = async (req, res) => {
     try {
-        const { email, newPassword } = req.body;
-        if (typeof email !== 'string' || typeof newPassword !== 'string' || newPassword.length < 8) return res.status(400).json({ message: 'Valid email and a new password (min 8 chars) required' });
+        let { email, newPassword } = req.body;
+        const { value: normalizedEmail, isValid } = normalizeEmail(email);
+        if (!isValid || typeof newPassword !== 'string') return res.status(400).json({ message: 'Valid email and a new password (min 8 chars) required' });
+        newPassword = newPassword.trim();
+        if (newPassword.length < 8) return res.status(400).json({ message: 'Valid email and a new password (min 8 chars) required' });
 
-        const user = await userModel.findOne({ email: email.trim() });
+        const user = await userModel.findOne({ email: normalizedEmail });
         if (!user) return res.status(404).json({ message: 'User not found' });
 
         // Prevent duplicate password reset emails by using a flag
