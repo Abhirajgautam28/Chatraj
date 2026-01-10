@@ -12,6 +12,11 @@ import rateLimit from 'express-rate-limit';
 
 const router = Router();
 
+const createBlogRateLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 50, // limit each IP to 50 blog creation requests per windowMs
+});
+
 const commentRateLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // limit each IP to 100 comment requests per windowMs
@@ -37,7 +42,7 @@ const getAllBlogsRateLimiter = rateLimit({
     max: 300, // limit each IP to 300 list-all requests per windowMs
 });
 
-router.post('/', authUser, createBlog);
+router.post('/', authUser, createBlogRateLimiter, createBlog);
 router.get('/', getAllBlogsRateLimiter, getAllBlogs);
 router.get('/:id', getBlogRateLimiter, getBlogById);
 router.post('/like/:id', authUser, likeRateLimiter, likeBlog);
