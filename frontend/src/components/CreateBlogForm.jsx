@@ -133,17 +133,33 @@ const isSafeUrl = (urlString) => {
         // relative paths without a protocol (no ':' char) and no spaces.
         // Explicitly disallow path-traversal patterns like "../", "/../" or "..\".
         if (urlString.startsWith('//')) return false; // protocol-relative URLs are disallowed
+
+        // Reject extremely long inputs early to avoid DoS via huge attacker-controlled strings
+        if (urlString.length > 2048) return false;
+
         const traversalRe = /(^|[\/\\])\.\.([\/\\]|$)/;
-        if (traversalRe.test(urlString)) return false; // detect directory traversal segments
-        try {
-            const decoded = decodeURIComponent(urlString);
-            if (decoded !== urlString && traversalRe.test(decoded)) return false;
-        } catch (_) {
-            // malformed percent-encodings — continue and rely on original checks
+
+        // Attempt iterative percent-decoding up to a small limit (handles %252e%252e -> %2e%2e -> ..)
+        let decoded = urlString;
+        const maxDecodes = 3;
+        for (let i = 0; i < maxDecodes; i++) {
+            try {
+                const next = decodeURIComponent(decoded);
+                if (next === decoded) break;
+                decoded = next;
+                if (decoded.length > 4096) return false; // defensive size cap after decoding
+            } catch (_) {
+                break; // stop decoding on malformed sequences
+            }
         }
-        if (urlString.includes(':')) return false; // disallow strings containing a colon
-        if (/\s/.test(urlString)) return false;
-        return urlString.startsWith('/') || /^[A-Za-z0-9_./~-]+$/.test(urlString);
+
+        // Validate decoded value for traversal, colon, whitespace, and allowed chars.
+        if (traversalRe.test(decoded)) return false;
+        if (decoded.includes(':')) return false; // disallow strings containing a colon
+        if (/\s/.test(decoded)) return false;
+        if (!(decoded.startsWith('/') || /^[A-Za-z0-9_./~-]+$/.test(decoded))) return false;
+
+        return true;
     }
 };
 
