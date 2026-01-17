@@ -209,6 +209,14 @@ const Login = () => {
             </div>
 
             <div className="form-container relative z-10 w-full max-w-md p-8 bg-gray-800/50 backdrop-blur-sm rounded-lg shadow-2xl">
+                <button
+                    type="button"
+                    onClick={() => navigate(-1)}
+                    className="absolute left-4 top-4 text-gray-300 hover:text-white focus:outline-none"
+                    aria-label="Go back"
+                >
+                    <i className="ri-arrow-left-line text-2xl" />
+                </button>
                 <h2 className="mb-6 text-3xl font-bold text-center text-white">Welcome Back</h2>
                 <form onSubmit={submitHandler}>
                     <div className="mb-4">
