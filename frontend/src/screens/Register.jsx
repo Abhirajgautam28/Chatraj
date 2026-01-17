@@ -1,4 +1,3 @@
-// ...existing code...
 import { useState, useContext, useEffect, useRef } from 'react';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Link, useNavigate } from 'react-router-dom';
@@ -141,6 +140,14 @@ const Register = () => {
             </div>
 
             <div className="form-container relative z-10 w-full max-w-md p-8 bg-gray-800/50 backdrop-blur-sm rounded-lg shadow-2xl">
+                <button
+                    type="button"
+                    onClick={() => navigate(-1)}
+                    className="absolute left-4 top-4 text-gray-300 hover:text-white focus:outline-none"
+                    aria-label="Go back"
+                >
+                    <i className="ri-arrow-left-line text-2xl" />
+                </button>
                 <h2 className="mb-6 text-3xl font-bold text-center text-white">Create an Account</h2>
                 <form onSubmit={submitHandler}>
                     <div className="flex gap-4 mb-4">
