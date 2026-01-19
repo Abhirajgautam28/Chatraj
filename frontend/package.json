@@ -24,7 +24,7 @@
     "@mantine/core": "^8.3.12",
     "@mantine/hooks": "^8.3.1",
     "@monaco-editor/react": "^4.7.0",
-    "@mui/material": "^7.3.6",
+    "@mui/material": "^7.3.7",
     "@radix-ui/react-dialog": "^1.1.15",
     "@replit/codemirror-vim": "^6.3.0",
     "@uiw/codemirror-theme-vscode": "^4.25.4",
