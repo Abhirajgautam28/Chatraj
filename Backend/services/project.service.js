@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 const validateFileTree = (value) => {
   const validateNode = (node) => {
     if (node === null || node === undefined) {
+      // Treat null/undefined as simple literal values; they are not traversed further.
       return;
     }
 
@@ -40,13 +41,14 @@ const validateFileTree = (value) => {
     throw new Error('Invalid fileTree');
   };
 
-  if (value === null || value === undefined) {
+  // Allow null as an explicit "no fileTree" value, but still reject undefined.
+  if (value === undefined) {
     throw new Error('fileTree is required');
   }
 
   const valueType = typeof value;
-  // Root must be a non-array plain object
-  if (valueType !== 'object' || Array.isArray(value)) {
+  // Root must be a non-array plain object or null
+  if (value !== null && (valueType !== 'object' || Array.isArray(value))) {
     throw new Error('Invalid fileTree');
   }
 
