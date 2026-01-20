@@ -94,28 +94,48 @@ const getYouTubeEmbedUrl = (urlString) => {
     if (!urlString) return '';
     try {
         const url = new URL(urlString);
+        // Only allow http/https schemes
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+            return '';
+        }
+        const hostname = url.hostname.toLowerCase();
+        const isYoutubeHost =
+            hostname === 'youtube.com' ||
+            hostname === 'www.youtube.com' ||
+            hostname === 'm.youtube.com';
+        const isShortHost =
+            hostname === 'youtu.be' ||
+            hostname === 'www.youtu.be';
+
         let videoId = '';
-        if (url.hostname === 'youtu.be') {
+
+        if (isShortHost) {
             videoId = url.pathname.slice(1);
         } else if (['youtube.com', 'www.youtube.com', 'm.youtube.com'].includes(url.hostname)) {
             if (url.pathname === '/watch' && url.searchParams.has('v')) {
-                videoId = url.searchParams.get('v');
+                videoId = url.searchParams.get('v') || '';
             } else if (url.pathname.startsWith('/embed/')) {
                 videoId = url.pathname.split('/embed/')[1].split(/[/?]/)[0];
             } else if (url.pathname.startsWith('/v/')) {
                 videoId = url.pathname.split('/v/')[1].split(/[/?]/)[0];
             }
         }
+
+        // Fallback: extract from string only if it looks like a YouTube URL
         if (!videoId) {
-            const match = urlString.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+            const match = urlString.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/i);
             if (match && match[1]) {
                 videoId = match[1];
             }
         }
-        if (videoId) {
+
+        // Ensure videoId is in expected format
+        if (videoId && /^[A-Za-z0-9_-]{11}$/.test(videoId)) {
             return `https://www.youtube.com/embed/${videoId}`;
         }
-    } catch { }
+    } catch {
+        // Invalid URL or parsing error, fall through to empty string
+    }
     return '';
 };
 
