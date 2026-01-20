@@ -202,6 +202,9 @@ export const updateFileTree = async ({ projectId, fileTree, userId }) => {
     // Validate fileTree structure to prevent injection of MongoDB operators or invalid types
     validateFileTree(fileTree);
 
+    // Normalize to plain JSON to strip any unexpected prototypes or non-serializable values
+    const safeFileTree = JSON.parse(JSON.stringify(fileTree));
+
     if (userId) {
         const project = await projectModel.findOne({
             _id: projectId,
@@ -216,7 +219,7 @@ export const updateFileTree = async ({ projectId, fileTree, userId }) => {
     const project = await projectModel.findOneAndUpdate({
         _id: projectId
     }, {
-        fileTree
+        $set: { fileTree: safeFileTree }
     }, {
         new: true
     })
