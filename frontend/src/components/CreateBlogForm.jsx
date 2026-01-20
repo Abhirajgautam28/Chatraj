@@ -111,7 +111,7 @@ const getYouTubeEmbedUrl = (urlString) => {
 
         if (isShortHost) {
             videoId = url.pathname.slice(1);
-        } else if (isYoutubeHost) {
+        } else if (['youtube.com', 'www.youtube.com', 'm.youtube.com'].includes(url.hostname)) {
             if (url.pathname === '/watch' && url.searchParams.has('v')) {
                 videoId = url.searchParams.get('v') || '';
             } else if (url.pathname.startsWith('/embed/')) {
