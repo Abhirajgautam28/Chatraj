@@ -43,7 +43,7 @@
     "highlight.js": "^11.11.1",
     "imagesloaded": "^5.0.0",
     "js-yaml": "^4.1.1",
-    "markdown-to-jsx": "^9.6.0",
+    "markdown-to-jsx": "^9.6.1",
     "masonry-layout": "^4.2.2",
     "monaco-editor": "^0.55.1",
     "monaco-vim": "^0.4.4",
@@ -55,7 +55,7 @@
     "react-google-recaptcha": "^3.1.0",
     "react-modal": "^3.16.3",
     "react-router-dom": "^7.13.0",
-    "remixicon": "^4.8.0",
+    "remixicon": "^4.9.0",
     "socket.io-client": "^4.8.3",
     "three": "^0.182.0"
   },
