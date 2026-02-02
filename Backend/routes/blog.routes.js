@@ -42,11 +42,11 @@ const getAllBlogsRateLimiter = rateLimit({
     max: 300, // limit each IP to 300 list-all requests per windowMs
 });
 
-router.post('/', authUser, createBlogRateLimiter, createBlog);
+router.post('/', createBlogRateLimiter, authUser, createBlog);
 router.get('/', getAllBlogsRateLimiter, getAllBlogs);
 router.get('/:id', getBlogRateLimiter, getBlogById);
-router.post('/like/:id', authUser, likeRateLimiter, likeBlog);
-router.post('/comment/:id', authUser, commentRateLimiter, commentOnBlog);
-router.post('/generate', authUser, generateRateLimiter, generateBlogContent);
+router.post('/like/:id', likeRateLimiter, authUser, likeBlog);
+router.post('/comment/:id', commentRateLimiter, authUser, commentOnBlog);
+router.post('/generate', generateRateLimiter, authUser, generateBlogContent);
 
 export default router;
