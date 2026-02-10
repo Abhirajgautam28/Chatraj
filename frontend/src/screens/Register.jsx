@@ -2,6 +2,7 @@ import { useState, useContext, useEffect, useRef } from 'react';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/user.context';
+import { ThemeContext } from '../context/theme.context';
 import axios from '../config/axios';
 import anime from 'animejs';
 
@@ -16,6 +17,7 @@ const Register = () => {
     const [otp, setOtp] = useState('');
     const [userId, setUserId] = useState('');
     const { setUser } = useContext(UserContext);
+    const { isDarkMode } = useContext(ThemeContext);
     const navigate = useNavigate();
 
     const [errorMsg, setErrorMsg] = useState('');
@@ -107,14 +109,14 @@ const Register = () => {
             )}
             {showOtpModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-                    <div className="bg-gray-800 rounded-lg shadow-2xl p-8 w-full max-w-sm">
-                        <h2 className="mb-4 text-xl font-bold text-center text-white">Enter OTP</h2>
+                    <div className={`${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} rounded-lg shadow-2xl p-8 w-full max-w-sm`}>
+                        <h2 className="mb-4 text-xl font-bold text-center">Enter OTP</h2>
                         <form onSubmit={handleOtpSubmit}>
                             <input
                                 type="text"
                                 value={otp}
                                 onChange={e => setOtp(e.target.value)}
-                                className="w-full p-3 mb-4 text-white bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className={`w-full p-3 mb-4 transition duration-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700 border border-gray-600' : 'text-gray-900 bg-white border border-gray-300'}`}
                                 placeholder="Enter the OTP sent to your email"
                                 required
                             />
@@ -139,7 +141,7 @@ const Register = () => {
                 ))}
             </div>
 
-            <div className="form-container relative z-10 w-full max-w-md p-8 bg-gray-800/50 backdrop-blur-sm rounded-lg shadow-2xl">
+            <div className={`form-container relative z-10 w-full max-w-md p-8 backdrop-blur-sm rounded-lg shadow-2xl ${isDarkMode ? 'bg-gray-800/50 text-white' : 'bg-white/60 text-gray-900'}`}>
                 <button
                     type="button"
                     onClick={() => navigate(-1)}
@@ -159,7 +161,7 @@ const Register = () => {
                                 type="text"
                                 value={firstName}
                                 onChange={(e) => setFirstName(e.target.value)}
-                                className="w-full p-3 text-white bg-gray-700/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                                className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
                                 placeholder="John"
                                 required
                             />
@@ -172,7 +174,7 @@ const Register = () => {
                                 type="text"
                                 value={lastName}
                                 onChange={(e) => setLastName(e.target.value)}
-                                className="w-full p-3 text-white bg-gray-700/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                                className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
                                 placeholder="Doe"
                                 required
                             />
@@ -186,7 +188,7 @@ const Register = () => {
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full p-3 text-white bg-gray-700/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                            className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
                             placeholder="your.email@example.com"
                             required
                         />
@@ -209,7 +211,7 @@ const Register = () => {
                             type="text"
                             value={googleApiKey}
                             onChange={(e) => setGoogleApiKey(e.target.value)}
-                            className="w-full p-3 text-white bg-gray-700/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                            className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
                             placeholder="Enter your Google API Key"
                             required
                         />
@@ -223,7 +225,7 @@ const Register = () => {
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full p-3 text-white bg-gray-700/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                                className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
                                 placeholder="••••••••"
                                 required
                             />
@@ -236,7 +238,7 @@ const Register = () => {
                                 type="password"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                className="w-full p-3 text-white bg-gray-700/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                                className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
                                 placeholder="••••••••"
                                 required
                             />
@@ -251,18 +253,18 @@ const Register = () => {
                     </button>
                     {showRecaptcha && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-                            <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-sm flex flex-col items-center">
+                            <div className={`${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} rounded-lg shadow-2xl p-8 w-full max-w-sm flex flex-col items-center`}>
                                 <ReCAPTCHA
                                     sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
                                     onChange={handleRecaptcha}
                                 />
-                                <button className="mt-4 px-4 py-2 bg-gray-700 text-white rounded" onClick={() => setShowRecaptcha(false)} type="button">Cancel</button>
+                                <button className={`${isDarkMode ? 'mt-4 px-4 py-2 bg-gray-700 text-white rounded' : 'mt-4 px-4 py-2 bg-gray-100 text-gray-900 rounded border'}`} onClick={() => setShowRecaptcha(false)} type="button">Cancel</button>
                             </div>
                         </div>
                     )}
                 </form>
 
-                <p className="mt-6 text-center text-gray-400">
+                <p className={`mt-6 text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     Already have an account?{' '}
                     <Link to="/login" className="text-blue-400 font-semibold hover:underline">
                         Login

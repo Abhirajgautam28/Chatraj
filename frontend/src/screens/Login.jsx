@@ -219,7 +219,7 @@ const Login = () => {
                 >
                     <i className="ri-arrow-left-line text-2xl" />
                 </button>
-                <h2 className="mb-6 text-3xl font-bold text-center text-white">Welcome Back</h2>
+                <h2 className={`mb-6 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Welcome Back</h2>
                 <form onSubmit={submitHandler}>
                     <div className="mb-4">
                         <label className="block mb-2 text-sm font-medium text-gray-300">
@@ -293,9 +293,9 @@ const Login = () => {
                 </p>
             </div>
 
-            {showReset && (
+                {showReset && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-                    <div className="w-full max-w-sm p-8 bg-gray-800 rounded-lg shadow-2xl">
+                    <div className={`${isDarkMode ? 'w-full max-w-sm p-8 bg-gray-800 text-white rounded-lg shadow-2xl' : 'w-full max-w-sm p-8 bg-white text-gray-900 rounded-lg shadow-2xl'}`}>
                         {!resetSuccess ? (
                             <>
                                 <h3 className="mb-4 text-xl font-bold text-center text-white">Reset Password</h3>
@@ -308,7 +308,7 @@ const Login = () => {
                                             type="email"
                                             value={resetEmail}
                                             onChange={(e) => setResetEmail(e.target.value)}
-                                            className="w-full p-3 mb-4 text-white transition duration-300 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className={`w-full p-3 mb-4 transition duration-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700 border border-gray-600' : 'text-gray-900 bg-white border border-gray-300'}`}
                                             placeholder="Enter your email"
                                             required
                                             disabled={resetOtpSent}
@@ -344,7 +344,7 @@ const Login = () => {
                                             type="text"
                                             value={resetOtp}
                                             onChange={e => setResetOtp(e.target.value)}
-                                            className="w-full p-3 mb-2 text-white transition duration-300 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className={`w-full p-3 mb-2 transition duration-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700 border border-gray-600' : 'text-gray-900 bg-white border border-gray-300'}`}
                                             placeholder="Enter OTP"
                                             required
                                         />
@@ -411,7 +411,7 @@ const Login = () => {
                                                 type={showPassword ? "text" : "password"}
                                                 value={resetNewPassword}
                                                 onChange={e => setResetNewPassword(e.target.value)}
-                                                className="w-full p-3 text-white transition duration-300 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                                                className={`w-full p-3 transition duration-300 rounded pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700 border border-gray-600' : 'text-gray-900 bg-white border border-gray-300'}`}
                                                 placeholder="Enter new password"
                                                 required
                                                 disabled={resetSuccess}
@@ -430,7 +430,7 @@ const Login = () => {
                                             type="password"
                                             value={resetConfirmPassword}
                                             onChange={e => setResetConfirmPassword(e.target.value)}
-                                            className="w-full p-3 mb-4 text-white transition duration-300 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className={`w-full p-3 mb-4 transition duration-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700 border border-gray-600' : 'text-gray-900 bg-white border border-gray-300'}`}
                                             placeholder="Confirm new password"
                                             required
                                             disabled={resetSuccess}
@@ -457,8 +457,8 @@ const Login = () => {
                         ) : (
                             <div className="flex flex-col items-center justify-center">
                                 <i className="mb-4 text-4xl text-blue-400 ri-checkbox-circle-line"></i>
-                                <p className="mb-2 text-lg font-semibold text-white">Password reset!</p>
-                                <p className="text-center text-gray-400">You can now log in with your new password.</p>
+                                <p className={`mb-2 text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Password reset!</p>
+                                <p className={`text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>You can now log in with your new password.</p>
                             </div>
                         )}
                     </div>
