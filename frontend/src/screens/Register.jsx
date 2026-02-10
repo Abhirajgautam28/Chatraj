@@ -150,7 +150,7 @@ const Register = () => {
                 >
                     <i className="ri-arrow-left-line text-2xl" />
                 </button>
-                <h2 className="mb-6 text-3xl font-bold text-center text-white">Create an Account</h2>
+                <h2 className={`mb-6 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Create an Account</h2>
                 <form onSubmit={submitHandler}>
                     <div className="flex gap-4 mb-4">
                         <div className="w-1/2">
