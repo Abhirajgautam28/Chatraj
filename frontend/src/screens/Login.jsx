@@ -3,6 +3,7 @@ import { useState, useContext, useEffect, useRef } from 'react';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { UserContext } from '../context/user.context';
+import { ThemeContext } from '../context/theme.context';
 import axios from '../config/axios';
 import anime from 'animejs';
 
@@ -10,6 +11,7 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const { setUser } = useContext(UserContext);
+    const { isDarkMode } = useContext(ThemeContext);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -208,7 +210,7 @@ const Login = () => {
                 ))}
             </div>
 
-            <div className="form-container relative z-10 w-full max-w-md p-8 bg-gray-800/50 backdrop-blur-sm rounded-lg shadow-2xl">
+            <div className={`form-container relative z-10 w-full max-w-md p-8 backdrop-blur-sm rounded-lg shadow-2xl ${isDarkMode ? 'bg-gray-800/50 text-white' : 'bg-white/60 text-gray-900'}`}>
                 <button
                     type="button"
                     onClick={() => navigate(-1)}
@@ -227,7 +229,7 @@ const Login = () => {
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full p-3 text-white bg-gray-700/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                            className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
                             placeholder="your.email@example.com"
                             required
                         />
@@ -241,7 +243,7 @@ const Login = () => {
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full p-3 text-white bg-gray-700/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                            className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
                             placeholder="••••••••"
                             required
                         />
@@ -266,7 +268,7 @@ const Login = () => {
                 {/* Only show recaptcha modal if not disabled */}
                 {showRecaptcha && !isRecaptchaDisabled && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-                        <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-sm flex flex-col items-center">
+                        <div className={`${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} rounded-lg shadow-2xl p-8 w-full max-w-sm flex flex-col items-center`}>
                             {import.meta.env.VITE_RECAPTCHA_SITE_KEY ? (
                                 <ReCAPTCHA
                                     sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
@@ -275,7 +277,7 @@ const Login = () => {
                             ) : (
                                 <div className="text-red-600 font-semibold text-center mb-4">reCAPTCHA site key is missing. Please set VITE_RECAPTCHA_SITE_KEY in your environment variables.</div>
                             )}
-                            <button className="mt-4 px-4 py-2 bg-gray-700 text-white rounded" onClick={() => setShowRecaptcha(false)} type="button">Cancel</button>
+                            <button className={`${isDarkMode ? 'mt-4 px-4 py-2 bg-gray-700 text-white rounded' : 'mt-4 px-4 py-2 bg-gray-100 text-gray-900 rounded border'}`} onClick={() => setShowRecaptcha(false)} type="button">Cancel</button>
                         </div>
                     </div>
                 )}
@@ -283,7 +285,7 @@ const Login = () => {
                 {loginError && (
                     <div className="mt-4 text-center text-red-500 font-semibold">{loginError}</div>
                 )}
-                <p className="mt-6 text-center text-gray-400">
+                <p className={`mt-6 text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     Don&apos;t have an account?{' '}
                     <Link to="/register" className="text-blue-400 font-semibold hover:underline">
                         Sign up
