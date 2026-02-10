@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 // SVG-based gooey liquid cursor (metaball / wave style)
 // Uses an SVG filter (blur + color-matrix) to merge circles into a liquid wave.
