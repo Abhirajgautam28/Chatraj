@@ -76,7 +76,17 @@ const Login = () => {
         setLoginError('');
         // If recaptcha is disabled, skip token check
         if (isRecaptchaDisabled || token) {
-            axios.post('/api/users/login', { email, password, recaptchaToken: token })
+            // Ensure XSRF header is explicitly attached in case automatic
+            // axios xsrf handling does not run (cross-origin dev setup).
+            let xsrfHeader = {};
+            try {
+                const match = document.cookie.match(new RegExp('(^|; )XSRF-TOKEN=([^;]*)'));
+                if (match) xsrfHeader['X-XSRF-TOKEN'] = decodeURIComponent(match[2]);
+            } catch (e) {
+                // ignore
+            }
+
+            axios.post('/api/users/login', { email, password, recaptchaToken: token }, { headers: xsrfHeader, withCredentials: true })
                 .then((res) => {
                     localStorage.setItem('token', res.data.token);
                     setUser(res.data.user);

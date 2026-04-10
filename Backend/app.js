@@ -1,4 +1,5 @@
 import express from 'express';
+import fs from 'fs';
 import morgan from 'morgan';
 import connect from './db/db.js';
 import userRoutes from './routes/user.routes.js';
@@ -50,7 +51,7 @@ app.use(cors({
   origin: dynamicCors,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-XSRF-TOKEN', 'X-CSRF-Token'],
   exposedHeaders: ['Set-Cookie', 'Access-Control-Allow-Origin']
 }));
 
@@ -70,8 +71,22 @@ const csrfProtection = csurf({
 });
 
 // Endpoint to retrieve CSRF token for clients (e.g., SPA frontends)
+// Endpoint to retrieve CSRF token for clients (e.g., SPA frontends)
 app.get('/csrf-token', csrfProtection, (req, res) => {
-  res.status(200).json({ csrfToken: req.csrfToken() });
+  try {
+    const token = req.csrfToken();
+    const cookieOptions = {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+    };
+    // csurf will set its own `_csrf` cookie when configured with `cookie: true`;
+    // set a browser-friendly `XSRF-TOKEN` cookie too so axios can read it.
+    res.cookie('XSRF-TOKEN', token, cookieOptions);
+    res.status(200).json({ csrfToken: token });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to generate CSRF token' });
+  }
 });
 
 app.get('/health', (req, res) => {
@@ -81,8 +96,38 @@ app.get('/health', (req, res) => {
     });
 });
 
-// Apply CSRF protection to all subsequent routes
-app.use(csrfProtection);
+// Conditional CSRF middleware:
+// - For safe methods (GET/HEAD/OPTIONS) run csurf to generate a token and set
+//   the `XSRF-TOKEN` cookie so browser JS (axios) can read it and send it back
+//   as `X-XSRF-TOKEN` on state-changing requests.
+// - For unsafe methods, run the csurf middleware to validate the token.
+app.use((req, res, next) => {
+  const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
+  if (safeMethods.includes(req.method)) {
+    // run csrfProtection to generate token for safe requests
+    csrfProtection(req, res, (err) => {
+      if (!err) {
+        try {
+          const token = req.csrfToken && req.csrfToken();
+          if (token) {
+            const cookieOptions = {
+              httpOnly: false,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+            };
+            res.cookie('XSRF-TOKEN', token, cookieOptions);
+          }
+        } catch (e) {
+          // ignore token generation errors for safe methods
+        }
+      }
+      next(err);
+    });
+  } else {
+    // validate token for unsafe methods
+    csrfProtection(req, res, next);
+  }
+});
 
 app.use('/api/setup', setupRoutes);
 app.use('/api/users', userRoutes);
@@ -92,11 +137,21 @@ app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/blogs', blogRoutes);
 
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ 
-        error: 'Something broke!',
-        message: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
+  console.error(err.stack);
+  // Handle CSRF errors specially
+  if (err && (err.code === 'EBADCSRFTOKEN' || err.message === 'invalid csrf token')) {
+    console.error('CSRF validation failed:', err.message);
+    return res.status(403).json({
+      error: 'Invalid CSRF token',
+      message: process.env.NODE_ENV === 'development' ? err.message : 'Forbidden'
     });
+  }
+
+  const status = err.status || 500;
+  res.status(status).json({ 
+    error: 'Something broke!',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
+  });
 });
 
 export default app;
