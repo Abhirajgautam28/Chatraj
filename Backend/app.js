@@ -64,25 +64,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Development-only debug middleware to inspect CSRF headers/cookies on login route
-if (process.env.NODE_ENV !== 'production') {
-  app.use((req, res, next) => {
-    if (req.path === '/api/users/login') {
-      console.log('DEBUG CSRF - /api/users/login incoming', {
-        method: req.method,
-        headers: {
-          'x-xsrf-token': req.headers['x-xsrf-token'],
-          'x-csrf-token': req.headers['x-csrf-token'],
-          'x-xsrf-token': req.headers['x-xsrf-token'],
-          'x-xsrf-token-alt': req.headers['x-xsrf-token']
-        },
-        cookies: req.cookies
-      });
-    }
-    next();
-  });
-}
-
 // CSRF protection middleware using cookies
 const csrfProtection = csurf({
   cookie: true,
@@ -155,54 +136,11 @@ app.use("/api/ai", aiRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/blogs', blogRoutes);
 
-// Development helper: mark a user as verified (only in non-production)
-if (process.env.NODE_ENV !== 'production') {
-  app.post('/dev/verify-user', express.json(), async (req, res) => {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ error: 'email required' });
-    try {
-      const userModel = (await import('./models/user.model.js')).default;
-      const user = await userModel.findOne({ email: email.trim() });
-      if (!user) return res.status(404).json({ error: 'User not found' });
-      user.isVerified = true;
-      user.otp = undefined;
-      await user.save();
-      return res.status(200).json({ message: 'User verified', email: user.email });
-    } catch (err) {
-      console.error('dev verify-user error:', err);
-      return res.status(500).json({ error: 'Internal error' });
-    }
-  });
-}
-
 app.use((err, req, res, next) => {
   console.error(err.stack);
   // Handle CSRF errors specially
   if (err && (err.code === 'EBADCSRFTOKEN' || err.message === 'invalid csrf token')) {
-    // Log CSRF failure details for debugging (development only)
-    try {
-      if (process.env.NODE_ENV !== 'production') {
-        const debugDir = 'logs';
-        if (!fs.existsSync(debugDir)) fs.mkdirSync(debugDir);
-        const entry = {
-          timestamp: new Date().toISOString(),
-          path: req.path,
-          method: req.method,
-          ip: req.ip,
-          headers: {
-            'x-xsrf-token': req.headers['x-xsrf-token'],
-            'x-csrf-token': req.headers['x-csrf-token'],
-            'x-xsrftoken': req.headers['x-xsrftoken'],
-            authorization: req.headers['authorization']
-          },
-          cookies: req.cookies
-        };
-        fs.appendFileSync(`${debugDir}/csrf-debug.log`, JSON.stringify(entry) + '\n');
-      }
-    } catch (logErr) {
-      console.error('Failed to write CSRF debug log:', logErr);
-    }
-
+    console.error('CSRF validation failed:', err.message);
     return res.status(403).json({
       error: 'Invalid CSRF token',
       message: process.env.NODE_ENV === 'development' ? err.message : 'Forbidden'
