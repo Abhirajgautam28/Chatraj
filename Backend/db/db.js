@@ -40,12 +40,15 @@ async function connect() {
         const mongoUri = process.env.MONGODB_URI || '';
         if (mongoUri.startsWith('mongodb+srv://') && /querySrv|ENOTFOUND|EAI_AGAIN|ECONNREFUSED/.test(String(error))) {
             try {
-                const srvMatch = mongoUri.match(/^mongodb\+srv:\/\/(?:([^@]+)@)?([^\/]+)\/?([^?]*)\??(.*)$/);
-                if (srvMatch) {
-                    const authPart = srvMatch[1] || '';
-                    const cluster = srvMatch[2];
-                    const dbName = srvMatch[3] || '';
-                    const originalQuery = srvMatch[4] || '';
+                const parsedUrl = new URL(mongoUri);
+                const authPart = parsedUrl.username
+                    ? (parsedUrl.password
+                        ? `${parsedUrl.username}:${parsedUrl.password}`
+                        : parsedUrl.username)
+                    : '';
+                const cluster = parsedUrl.host;
+                const dbName = parsedUrl.pathname.replace(/^\//, '') || '';
+                const originalQuery = parsedUrl.search ? parsedUrl.search.slice(1) : '';
 
                     const resolver = new dns.Resolver();
                     resolver.setServers(['8.8.8.8', '1.1.1.1']);
