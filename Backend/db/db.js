@@ -51,7 +51,16 @@ async function connect() {
                 const originalQuery = parsedUrl.search ? parsedUrl.search.slice(1) : '';
 
                     const resolver = new dns.Resolver();
-                    resolver.setServers(['8.8.8.8', '1.1.1.1']);
+                    const customDnsServers = process.env.MONGODB_DNS_SERVERS;
+                    if (customDnsServers) {
+                        const servers = customDnsServers
+                            .split(',')
+                            .map(s => s.trim())
+                            .filter(Boolean);
+                        if (servers.length > 0) {
+                            resolver.setServers(servers);
+                        }
+                    }
 
                     // Resolve SRV records
                     const records = await resolver.resolveSrv(`_mongodb._tcp.${cluster}`);
