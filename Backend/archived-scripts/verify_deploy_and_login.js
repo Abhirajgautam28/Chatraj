@@ -17,7 +17,7 @@ function arg(name, def) {
 }
 
 const API_RAW = arg('api', process.env.BACKEND_URL || 'https://chatraj-backend.onrender.com');
-const API = String(API_RAW).replace(/\/+$/, ''); // normalized base without trailing slash
+const API = String(API_RAW).replace(/\/+$, ''); // normalized base without trailing slash
 const EMAIL = arg('email', process.env.TEST_USER_EMAIL || 'testuser@example.com');
 const PASSWORD = arg('password', process.env.TEST_USER_PASSWORD || 'TestPass123!');
 const TIMEOUT = Number(arg('timeout', '300000')); // 5 minutes default
