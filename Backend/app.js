@@ -11,6 +11,7 @@ import blogRoutes from './routes/blog.routes.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import csurf from 'csurf';
+import crypto from 'crypto';
 const allowedOrigins = [
   'https://chatraj-frontend.vercel.app',
   'https://chatraj.vercel.app',
@@ -78,30 +79,80 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // CSRF protection middleware using cookies
+// Configure the internal `_csrf` cookie options based on environment so its
+// flags (httpOnly/secure/sameSite) align with the public `XSRF-TOKEN` cookie
+// we set for client-side JS. We use env flags rather than per-request checks
+// when initializing csurf because csurf's cookie option is static.
+const FORCE_SECURE_COOKIES = process.env.FORCE_SECURE_COOKIES === 'true' || process.env.NODE_ENV === 'production';
+const csrfCookieOptions = {
+  httpOnly: true,
+  secure: Boolean(FORCE_SECURE_COOKIES),
+  sameSite: FORCE_SECURE_COOKIES ? 'None' : 'Lax'
+};
 const csrfProtection = csurf({
-  cookie: true,
+  cookie: csrfCookieOptions,
   ignoreMethods: ['GET', 'HEAD', 'OPTIONS']
 });
 
 // Endpoint to retrieve CSRF token for clients (e.g., SPA frontends)
 // Endpoint to retrieve CSRF token for clients (e.g., SPA frontends)
-app.get('/csrf-token', csrfProtection, (req, res) => {
+// Helper: sign/verify stateless CSRF tokens for cross-origin clients
+const CSRF_SIGNING_SECRET = process.env.CSRF_SIGNING_SECRET || process.env.SESSION_SECRET || process.env.JWT_SECRET || 'change_me_now';
+function base64urlEncode(buf) {
+  return buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function base64urlToBuffer(str) {
+  let base64 = String(str).replace(/-/g, '+').replace(/_/g, '/');
+  while (base64.length % 4) base64 += '=';
+  return Buffer.from(base64, 'base64');
+}
+function signCsrfToken() {
+  const ts = Date.now().toString();
+  const nonce = crypto.randomBytes(12).toString('hex');
+  const data = `${ts}:${nonce}`;
+  const sig = crypto.createHmac('sha256', CSRF_SIGNING_SECRET).update(data).digest();
+  return `${data}:${base64urlEncode(sig)}`;
+}
+function verifySignedCsrfToken(token) {
+  if (!token || typeof token !== 'string') return false;
+  const parts = token.split(':');
+  if (parts.length !== 3) return false;
+  const [tsStr, nonce, sig] = parts;
+  const ts = parseInt(tsStr, 10);
+  if (Number.isNaN(ts)) return false;
+  // token valid for 15 minutes
+  if (Date.now() - ts > 1000 * 60 * 15) return false;
+  const data = `${tsStr}:${nonce}`;
+  const expected = crypto.createHmac('sha256', CSRF_SIGNING_SECRET).update(data).digest();
+  let provided;
   try {
-    const token = req.csrfToken();
-    // Determine secure cookie settings from runtime request (handles proxies/CDNs)
-    const isSecureRequest = isSecureFromRequest(req);
-    const cookieOptions = {
-      httpOnly: false,
-      secure: Boolean(isSecureRequest),
-      sameSite: isSecureRequest ? 'None' : 'Lax'
-    };
-    // csurf will set its own `_csrf` cookie when configured with `cookie: true`;
-    // set a browser-friendly `XSRF-TOKEN` cookie too so axios can read it.
-    res.cookie('XSRF-TOKEN', token, cookieOptions);
-    res.status(200).json({ csrfToken: token });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to generate CSRF token' });
+    provided = base64urlToBuffer(sig);
+  } catch (e) {
+    return false;
   }
+  if (expected.length !== provided.length) return false;
+  try {
+    return crypto.timingSafeEqual(expected, provided);
+  } catch (e) {
+    return false;
+  }
+}
+
+// Debug endpoint (temporary): reports whether the incoming request contained
+// an X-XSRF-TOKEN header and whether the `_csrf` cookie was present. This
+// endpoint intentionally does NOT enforce CSRF so you can inspect what the
+// browser actually sends. Remove after debugging.
+app.all('/debug/csrf-check', (req, res) => {
+  const header = req.get('X-XSRF-TOKEN') || req.get('X-CSRF-TOKEN') || null;
+  const cookiePresent = !!(req.cookies && req.cookies._csrf);
+  return res.status(200).json({
+    headerPresent: Boolean(header),
+    headerLen: header ? String(header).length : 0,
+    cookiePresent,
+    cookieLen: cookiePresent ? String(req.cookies._csrf).length : 0,
+    origin: req.headers.origin || null,
+    host: req.headers.host || null
+  });
 });
 
 app.get('/health', (req, res) => {
@@ -118,8 +169,12 @@ app.get('/health', (req, res) => {
 // - For unsafe methods, run the csurf middleware to validate the token.
 app.use((req, res, next) => {
   const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
+
+  // For safe methods, generate the csurf token and also produce a signed
+  // stateless token we can return to cross-origin clients. The signed token
+  // can be verified on unsafe requests without relying on the browser to
+  // accept/send third-party cookies.
   if (safeMethods.includes(req.method)) {
-    // run csrfProtection to generate token for safe requests
     csrfProtection(req, res, (err) => {
       if (!err) {
         try {
@@ -131,7 +186,15 @@ app.use((req, res, next) => {
               secure: Boolean(isSecureRequest),
               sameSite: isSecureRequest ? 'None' : 'Lax'
             };
+            // Prevent caching of token responses to avoid stale body vs cookie mismatches
+            res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+            res.set('Pragma', 'no-cache');
+            res.set('Surrogate-Control', 'no-store');
+            res.set('Vary', 'Origin');
+            // server-set cookie for legacy/same-origin clients
             res.cookie('XSRF-TOKEN', token, cookieOptions);
+            // attach a signed token for cross-origin clients to use in headers
+            req.signedCsrfToken = signCsrfToken();
           }
         } catch (e) {
           // ignore token generation errors for safe methods
@@ -139,9 +202,38 @@ app.use((req, res, next) => {
       }
       next(err);
     });
-  } else {
-    // validate token for unsafe methods
-    csrfProtection(req, res, next);
+    return;
+  }
+
+  // For unsafe methods, first accept a signed token in the header (stateless
+  // approach). If present and valid, bypass csurf cookie verification.
+  const header = req.get('X-XSRF-TOKEN') || req.get('X-CSRF-TOKEN');
+  if (header && verifySignedCsrfToken(header)) {
+    return next();
+  }
+
+  // Otherwise fallback to cookie-based csurf verification.
+  csrfProtection(req, res, next);
+});
+
+// Route: return CSRF token for clients. For cross-origin clients we return
+// the signed token (req.signedCsrfToken) so the client can send it in the
+// `X-XSRF-TOKEN` header; legacy clients will still receive the server-set
+// `XSRF-TOKEN` cookie.
+app.get('/csrf-token', (req, res) => {
+  try {
+    const isSecureRequest = isSecureFromRequest(req);
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Surrogate-Control', 'no-store');
+    res.set('Vary', 'Origin');
+
+    // If the middleware generated a signed token, return that; otherwise
+    // produce a fresh signed token.
+    const signed = req.signedCsrfToken || signCsrfToken();
+    return res.status(200).json({ csrfToken: signed });
+  } catch (err) {
+    return res.status(500).json({ error: 'Failed to generate CSRF token' });
   }
 });
 
@@ -157,6 +249,14 @@ app.use((err, req, res, next) => {
   // Handle CSRF errors specially
   if (err && (err.code === 'EBADCSRFTOKEN' || err.message === 'invalid csrf token')) {
     console.error('CSRF validation failed:', err.message);
+    // Helpful debug information (avoid logging full tokens in production)
+    try {
+      const headerToken = req.get('X-XSRF-TOKEN') || req.get('X-CSRF-TOKEN') || null;
+      const cookieSecret = req.cookies && req.cookies._csrf ? `[present,len=${String(req.cookies._csrf).length}]` : '[missing]';
+      console.error('CSRF debug: header present=', Boolean(headerToken), 'headerLen=', headerToken ? headerToken.length : 0, ' cookie:', cookieSecret, ' origin=', req.headers.origin, ' host=', req.headers.host);
+    } catch (e) {
+      // ignore logging errors
+    }
     return res.status(403).json({
       error: 'Invalid CSRF token',
       message: process.env.NODE_ENV === 'development' ? err.message : 'Forbidden'
