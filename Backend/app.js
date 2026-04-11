@@ -22,6 +22,19 @@ const allowedOrigins = [
 
 const app = express();
 
+// Helper: determine whether cookies should be marked Secure + SameSite=None
+// based on the incoming request or enforced environment flags. Extracted
+// so the logic can be changed in a single place (proxies/CDNs aware).
+function isSecureFromRequest(req) {
+  if (process.env.FORCE_SECURE_COOKIES === 'true' || process.env.NODE_ENV === 'production') return true;
+  if (!req) return false;
+  try {
+    return Boolean(req.secure || (req.headers && String(req.headers['x-forwarded-proto']) === 'https'));
+  } catch (e) {
+    return false;
+  }
+}
+
 // CORS debug logger
 const corsErrorLogger = (err, req, res, next) => {
   if (err && err.message && err.message.includes('CORS')) {
@@ -76,7 +89,7 @@ app.get('/csrf-token', csrfProtection, (req, res) => {
   try {
     const token = req.csrfToken();
     // Determine secure cookie settings from runtime request (handles proxies/CDNs)
-    const isSecureRequest = req.secure || req.headers['x-forwarded-proto'] === 'https' || process.env.FORCE_SECURE_COOKIES === 'true' || process.env.NODE_ENV === 'production';
+    const isSecureRequest = isSecureFromRequest(req);
     const cookieOptions = {
       httpOnly: false,
       secure: Boolean(isSecureRequest),
@@ -112,7 +125,7 @@ app.use((req, res, next) => {
         try {
           const token = req.csrfToken && req.csrfToken();
           if (token) {
-            const isSecureRequest = req.secure || req.headers['x-forwarded-proto'] === 'https' || process.env.FORCE_SECURE_COOKIES === 'true' || process.env.NODE_ENV === 'production';
+            const isSecureRequest = isSecureFromRequest(req);
             const cookieOptions = {
               httpOnly: false,
               secure: Boolean(isSecureRequest),
