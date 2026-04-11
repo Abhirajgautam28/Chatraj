@@ -96,8 +96,22 @@ const csrfProtection = csurf({
 
 // Endpoint to retrieve CSRF token for clients (e.g., SPA frontends)
 // Endpoint to retrieve CSRF token for clients (e.g., SPA frontends)
+// Debug mode for CSRF internals: enabled in development or when explicitly set
+const CSRF_DEBUG = process.env.CSRF_DEBUG === 'true' || process.env.NODE_ENV === 'development';
+
 // Helper: sign/verify stateless CSRF tokens for cross-origin clients
-const CSRF_SIGNING_SECRET = process.env.CSRF_SIGNING_SECRET || process.env.SESSION_SECRET || process.env.JWT_SECRET || 'change_me_now';
+const CSRF_SIGNING_SECRET = (() => {
+  const v = process.env.CSRF_SIGNING_SECRET || process.env.SESSION_SECRET || process.env.JWT_SECRET;
+  if (!v) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('CSRF_SIGNING_SECRET (or SESSION_SECRET/JWT_SECRET) must be set in production');
+    }
+    // Development fallback (insecure) but log prominently so maintainers change it
+    console.warn('Warning: CSRF_SIGNING_SECRET not set; falling back to insecure default for development only. Set CSRF_SIGNING_SECRET in production.');
+    return 'change_me_now';
+  }
+  return v;
+})();
 function base64urlEncode(buf) {
   return buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
@@ -138,22 +152,10 @@ function verifySignedCsrfToken(token) {
   }
 }
 
-// Debug endpoint (temporary): reports whether the incoming request contained
-// an X-XSRF-TOKEN header and whether the `_csrf` cookie was present. This
-// endpoint intentionally does NOT enforce CSRF so you can inspect what the
-// browser actually sends. Remove after debugging.
-app.all('/debug/csrf-check', (req, res) => {
-  const header = req.get('X-XSRF-TOKEN') || req.get('X-CSRF-TOKEN') || null;
-  const cookiePresent = !!(req.cookies && req.cookies._csrf);
-  return res.status(200).json({
-    headerPresent: Boolean(header),
-    headerLen: header ? String(header).length : 0,
-    cookiePresent,
-    cookieLen: cookiePresent ? String(req.cookies._csrf).length : 0,
-    origin: req.headers.origin || null,
-    host: req.headers.host || null
-  });
-});
+// NOTE: `/debug/csrf-check` endpoint was removed after verification to
+// prevent exposing CSRF internals in any environment. Use logs and the
+// archived verification script (`Backend/archived-scripts/verify_deploy_and_login.js`)
+// for further diagnostics.
 
 app.get('/health', (req, res) => {
     res.status(200).json({ 
@@ -251,9 +253,11 @@ app.use((err, req, res, next) => {
     console.error('CSRF validation failed:', err.message);
     // Helpful debug information (avoid logging full tokens in production)
     try {
-      const headerToken = req.get('X-XSRF-TOKEN') || req.get('X-CSRF-TOKEN') || null;
-      const cookieSecret = req.cookies && req.cookies._csrf ? `[present,len=${String(req.cookies._csrf).length}]` : '[missing]';
-      console.error('CSRF debug: header present=', Boolean(headerToken), 'headerLen=', headerToken ? headerToken.length : 0, ' cookie:', cookieSecret, ' origin=', req.headers.origin, ' host=', req.headers.host);
+      if (CSRF_DEBUG) {
+        const headerToken = req.get('X-XSRF-TOKEN') || req.get('X-CSRF-TOKEN') || null;
+        const cookieSecret = req.cookies && req.cookies._csrf ? `[present,len=${String(req.cookies._csrf).length}]` : '[missing]';
+        console.error('CSRF debug: header present=', Boolean(headerToken), 'headerLen=', headerToken ? headerToken.length : 0, ' cookie:', cookieSecret, ' origin=', req.headers.origin, ' host=', req.headers.host);
+      }
     } catch (e) {
       // ignore logging errors
     }
