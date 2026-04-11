@@ -100,15 +100,18 @@ const csrfProtection = csurf({
 const CSRF_DEBUG = process.env.CSRF_DEBUG === 'true' || process.env.NODE_ENV === 'development';
 
 // Helper: sign/verify stateless CSRF tokens for cross-origin clients
-let CSRF_SIGNING_SECRET = process.env.CSRF_SIGNING_SECRET || process.env.SESSION_SECRET || process.env.JWT_SECRET;
-if (!CSRF_SIGNING_SECRET) {
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('CSRF_SIGNING_SECRET (or SESSION_SECRET/JWT_SECRET) must be set in production');
+const CSRF_SIGNING_SECRET = (() => {
+  const v = process.env.CSRF_SIGNING_SECRET || process.env.SESSION_SECRET || process.env.JWT_SECRET;
+  if (!v) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('CSRF_SIGNING_SECRET (or SESSION_SECRET/JWT_SECRET) must be set in production');
+    }
+    // Development fallback (insecure) but log prominently so maintainers change it
+    console.warn('Warning: CSRF_SIGNING_SECRET not set; falling back to insecure default for development only. Set CSRF_SIGNING_SECRET in production.');
+    return 'change_me_now';
   }
-  // Development fallback (insecure) but log prominently so maintainers change it
-  console.warn('Warning: CSRF_SIGNING_SECRET not set; falling back to insecure default for development only. Set CSRF_SIGNING_SECRET in production.');
-  CSRF_SIGNING_SECRET = 'change_me_now';
-}
+  return v;
+})();
 function base64urlEncode(buf) {
   return buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
@@ -149,27 +152,10 @@ function verifySignedCsrfToken(token) {
   }
 }
 
-// Debug endpoint (temporary): only enabled when CSRF_DEBUG is true. Reports
-// whether the incoming request contained an X-XSRF-TOKEN header and whether
-// the `_csrf` cookie was present. This is safe in development but must not
-// be exposed in production.
-if (CSRF_DEBUG) {
-  app.all('/debug/csrf-check', (req, res) => {
-    const header = req.get('X-XSRF-TOKEN') || req.get('X-CSRF-TOKEN') || null;
-    const cookiePresent = !!(req.cookies && req.cookies._csrf);
-    return res.status(200).json({
-      headerPresent: Boolean(header),
-      headerLen: header ? String(header).length : 0,
-      cookiePresent,
-      cookieLen: cookiePresent ? String(req.cookies._csrf).length : 0,
-      origin: req.headers.origin || null,
-      host: req.headers.host || null
-    });
-  });
-} else {
-  // In production keep the endpoint hidden; optionally log attempts when run
-  // in non-debug mode (do not expose details).
-}
+// NOTE: `/debug/csrf-check` endpoint was removed after verification to
+// prevent exposing CSRF internals in any environment. Use logs and the
+// archived verification script (`Backend/archived-scripts/verify_deploy_and_login.js`)
+// for further diagnostics.
 
 app.get('/health', (req, res) => {
     res.status(200).json({ 
