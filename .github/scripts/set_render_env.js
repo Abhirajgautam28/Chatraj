@@ -7,11 +7,10 @@
   try {
     const apiKey = process.env.RENDER_API_KEY;
     const serviceId = process.env.SERVICE_ID;
-    const key = process.env.ENV_KEY || 'CSRF_SIGNING_SECRET';
+    const key = process.env.ENV_KEY;
     const value = process.env.ENV_VALUE;
-
-    if (!apiKey || !serviceId || !value) {
-      console.error('Missing required env vars. Set RENDER_API_KEY, SERVICE_ID, and ENV_VALUE.');
+    if (!apiKey || !serviceId || !key || !value) {
+      console.error('Missing required env vars. Set RENDER_API_KEY, SERVICE_ID, ENV_KEY and ENV_VALUE.');
       process.exit(1);
     }
 
