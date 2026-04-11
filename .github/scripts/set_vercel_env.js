@@ -28,11 +28,21 @@
     }
 
     const list = await listResp.json();
-    const existing = Array.isArray(list) ? list.find(e => e.key === key) : null;
+    // Vercel's response may wrap envs in an object (e.g., { envs: [...] }).
+    let envList = [];
+    if (Array.isArray(list)) envList = list;
+    else if (Array.isArray(list.envs)) envList = list.envs;
+    else if (Array.isArray(list.envs?.envs)) envList = list.envs.envs; // defensive
+    else envList = [];
+    const existing = envList.find(e => e.key === key) || null;
 
     if (existing && existing.id) {
       const updateUrl = `https://api.vercel.com/v9/projects/${projectId}/env/${existing.id}`;
-      const updateResp = await fetch(updateUrl, { method: 'PATCH', headers, body: JSON.stringify({ value, target: [target] }) });
+      const updatePayload = { value, target: [target] };
+      // preserve type if present, otherwise treat as encrypted
+      if (existing.type) updatePayload.type = existing.type;
+      else updatePayload.type = 'encrypted';
+      const updateResp = await fetch(updateUrl, { method: 'PATCH', headers, body: JSON.stringify(updatePayload) });
       if (!updateResp.ok) {
         const body = await updateResp.text().catch(() => '<no body>');
         console.error('Failed to update Vercel env var:', updateResp.status, body);
@@ -43,7 +53,9 @@
     }
 
     // Create
-    const createResp = await fetch(listUrl, { method: 'POST', headers, body: JSON.stringify({ key, value, target: [target] }) });
+    // Create: Vercel expects a `type` (e.g. 'encrypted') for secret values.
+    const createPayload = { key, value, target: [target], type: 'encrypted' };
+    const createResp = await fetch(listUrl, { method: 'POST', headers, body: JSON.stringify(createPayload) });
     if (!createResp.ok) {
       const body = await createResp.text().catch(() => '<no body>');
       console.error('Failed to create Vercel env var:', createResp.status, body);

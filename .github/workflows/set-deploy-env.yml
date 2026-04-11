@@ -7,9 +7,6 @@ on:
         description: 'Target platform (render)'
         required: true
         default: 'render'
-      env_key:
-        description: 'Environment variable key to set (e.g., CSRF_SIGNING_SECRET)'
-        required: true
       render_service_id:
         description: 'Render service id (srv-...)'
         required: false
@@ -32,7 +29,7 @@ jobs:
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           SERVICE_ID: ${{ github.event.inputs.render_service_id }}
-          ENV_KEY: ${{ github.event.inputs.env_key }}
+          ENV_KEY: CSRF_SIGNING_SECRET
           ENV_VALUE: ${{ secrets.CSRF_SIGNING_SECRET }}
         run: |
           if [ -z "${RENDER_API_KEY}" ]; then

@@ -6,9 +6,6 @@ on:
       vercel_project_id:
         description: 'Vercel project id (proj_...)'
         required: true
-      env_key:
-        description: 'Environment variable key to set (e.g., CSRF_SIGNING_SECRET)'
-        required: true
       target:
         description: 'Vercel target environment (production|preview|development)'
         required: false
@@ -31,7 +28,7 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ github.event.inputs.vercel_project_id }}
-          ENV_KEY: ${{ github.event.inputs.env_key }}
+          ENV_KEY: CSRF_SIGNING_SECRET
           ENV_VALUE: ${{ secrets.CSRF_SIGNING_SECRET }}
           VERCEL_TARGET: ${{ github.event.inputs.target }}
         run: |
