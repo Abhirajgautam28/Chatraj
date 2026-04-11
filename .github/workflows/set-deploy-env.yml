@@ -7,6 +7,9 @@ on:
         description: 'Target platform (render)'
         required: true
         default: 'render'
+      env_key:
+        description: 'Environment variable key to set (e.g., CSRF_SIGNING_SECRET)'
+        required: true
       render_service_id:
         description: 'Render service id (srv-...)'
         required: false
@@ -15,7 +18,7 @@ jobs:
   set-render-env:
     if: ${{ github.event.inputs.platform == 'render' }}
     runs-on: ubuntu-latest
-    permissions: write-all
+    permissions: contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,7 +32,7 @@ jobs:
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           SERVICE_ID: ${{ github.event.inputs.render_service_id }}
-          ENV_KEY: CSRF_SIGNING_SECRET
+          ENV_KEY: ${{ github.event.inputs.env_key }}
           ENV_VALUE: ${{ secrets.CSRF_SIGNING_SECRET }}
         run: |
           if [ -z "${RENDER_API_KEY}" ]; then
