@@ -96,19 +96,20 @@ const csrfProtection = csurf({
 
 // Endpoint to retrieve CSRF token for clients (e.g., SPA frontends)
 // Endpoint to retrieve CSRF token for clients (e.g., SPA frontends)
-// Debug mode for CSRF internals: enabled in development or when explicitly set
-const CSRF_DEBUG = process.env.CSRF_DEBUG === 'true' || process.env.NODE_ENV === 'development';
+// Note: CSRF debug flag removed. Debug logging is gated by
+// `NODE_ENV === 'development'` directly to avoid unused flags.
 
 // Helper: sign/verify stateless CSRF tokens for cross-origin clients
 const CSRF_SIGNING_SECRET = (() => {
   const v = process.env.CSRF_SIGNING_SECRET || process.env.SESSION_SECRET || process.env.JWT_SECRET;
   if (!v) {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('CSRF_SIGNING_SECRET (or SESSION_SECRET/JWT_SECRET) must be set in production');
+    // Only permit the insecure fallback in explicit development mode.
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Warning: CSRF_SIGNING_SECRET not set; falling back to insecure default for development only. Set CSRF_SIGNING_SECRET in non-development environments.');
+      return 'change_me_now';
     }
-    // Development fallback (insecure) but log prominently so maintainers change it
-    console.warn('Warning: CSRF_SIGNING_SECRET not set; falling back to insecure default for development only. Set CSRF_SIGNING_SECRET in production.');
-    return 'change_me_now';
+    // For staging/production/other environments, require an explicit secret.
+    throw new Error('CSRF_SIGNING_SECRET (or SESSION_SECRET/JWT_SECRET) must be set in non-development environments');
   }
   return v;
 })();
@@ -253,7 +254,8 @@ app.use((err, req, res, next) => {
     console.error('CSRF validation failed:', err.message);
     // Helpful debug information (avoid logging full tokens in production)
     try {
-      if (CSRF_DEBUG) {
+      // Development-only CSRF debug logging — avoid exposing token details
+      if (process.env.NODE_ENV === 'development') {
         const headerToken = req.get('X-XSRF-TOKEN') || req.get('X-CSRF-TOKEN') || null;
         const cookieSecret = req.cookies && req.cookies._csrf ? `[present,len=${String(req.cookies._csrf).length}]` : '[missing]';
         console.error('CSRF debug: header present=', Boolean(headerToken), 'headerLen=', headerToken ? headerToken.length : 0, ' cookie:', cookieSecret, ' origin=', req.headers.origin, ' host=', req.headers.host);
