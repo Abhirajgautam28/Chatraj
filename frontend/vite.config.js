@@ -28,11 +28,11 @@ export default defineConfig({
     process.env.NODE_ENV === 'test' && mockCssPlugin(),
   ].filter(Boolean),
   server: {
-    // Ensure HMR uses the localhost host/port explicitly to avoid
-    // client websocket connection problems in some Windows dev setups.
-    host: 'localhost',
+    // Do not hardcode 'localhost' to preserve WSL/container/remote-dev workflows.
+    // Allow overriding via env: VITE_DEV_HOST and VITE_HMR_HOST for special cases.
+    host: process.env.VITE_DEV_HOST || undefined,
     hmr: {
-      host: 'localhost',
+      host: process.env.VITE_HMR_HOST || process.env.VITE_DEV_HOST || undefined,
       protocol: 'ws',
       clientPort: 5173
     },

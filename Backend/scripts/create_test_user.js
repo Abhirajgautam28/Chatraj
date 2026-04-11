@@ -1,4 +1,3 @@
-dotenv.config({ path: new URL('../.env', import.meta.url).pathname });
 import dotenv from 'dotenv';
 import path from 'path';
 import connect from '../db/db.js';
