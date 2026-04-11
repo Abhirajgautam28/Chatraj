@@ -75,10 +75,12 @@ const csrfProtection = csurf({
 app.get('/csrf-token', csrfProtection, (req, res) => {
   try {
     const token = req.csrfToken();
+    // Determine secure cookie settings from runtime request (handles proxies/CDNs)
+    const isSecureRequest = req.secure || req.headers['x-forwarded-proto'] === 'https' || process.env.FORCE_SECURE_COOKIES === 'true' || process.env.NODE_ENV === 'production';
     const cookieOptions = {
       httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+      secure: Boolean(isSecureRequest),
+      sameSite: isSecureRequest ? 'None' : 'Lax'
     };
     // csurf will set its own `_csrf` cookie when configured with `cookie: true`;
     // set a browser-friendly `XSRF-TOKEN` cookie too so axios can read it.
@@ -110,10 +112,11 @@ app.use((req, res, next) => {
         try {
           const token = req.csrfToken && req.csrfToken();
           if (token) {
+            const isSecureRequest = req.secure || req.headers['x-forwarded-proto'] === 'https' || process.env.FORCE_SECURE_COOKIES === 'true' || process.env.NODE_ENV === 'production';
             const cookieOptions = {
               httpOnly: false,
-              secure: process.env.NODE_ENV === 'production',
-              sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+              secure: Boolean(isSecureRequest),
+              sameSite: isSecureRequest ? 'None' : 'Lax'
             };
             res.cookie('XSRF-TOKEN', token, cookieOptions);
           }
