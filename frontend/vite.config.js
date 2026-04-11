@@ -28,6 +28,14 @@ export default defineConfig({
     process.env.NODE_ENV === 'test' && mockCssPlugin(),
   ].filter(Boolean),
   server: {
+    // Ensure HMR uses the localhost host/port explicitly to avoid
+    // client websocket connection problems in some Windows dev setups.
+    host: 'localhost',
+    hmr: {
+      host: 'localhost',
+      protocol: 'ws',
+      clientPort: 5173
+    },
     headers: {
       "Cross-Origin-Embedder-Policy": "require-corp",
       "Cross-Origin-Opener-Policy": "same-origin"

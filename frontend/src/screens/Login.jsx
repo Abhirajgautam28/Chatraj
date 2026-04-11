@@ -4,7 +4,7 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
-import axios from '../config/axios';
+import axios, { getCsrfToken } from '../config/axios';
 import anime from 'animejs';
 
 const Login = () => {
@@ -63,8 +63,15 @@ const Login = () => {
     // ...removed unused recaptchaToken
     const [loginError, setLoginError] = useState('');
 
-    function submitHandler(e) {
+    async function submitHandler(e) {
         e.preventDefault();
+        // Ensure we have a CSRF token available before showing recaptcha / posting
+        try {
+            await getCsrfToken();
+        } catch (err) {
+            // ignore token fetch errors; server will return 403 if required
+        }
+
         if (isRecaptchaDisabled) {
             // Bypass recaptcha in local/dev
             handleRecaptcha('test-bypass-token');
