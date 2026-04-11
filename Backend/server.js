@@ -14,14 +14,19 @@ import pingService from './services/ping.service.js';
 
 const port = process.env.PORT || 8080;
 
-// Enforce presence of critical environment variables — do not fall back to
-// local in-memory services in production or production-like runs. This makes
-// missing configuration fail fast and avoids repeated connection errors.
+// Enforce presence of critical environment variables in production-like runs.
+// In development/test we emit a warning so local workflows remain ergonomic.
 const requiredEnv = ['MONGODB_URI', 'JWT_SECRET'];
 const missing = requiredEnv.filter(k => !process.env[k]);
 if (missing.length) {
-    console.error(`Missing required environment variables: ${missing.join(', ')}.\nPlease set them in your .env file or host environment before starting.`);
-    process.exit(1);
+    const enforce = process.env.NODE_ENV === 'production' || process.env.ENFORCE_REQUIRED_ENV === 'true';
+    const msg = `Missing required environment variables: ${missing.join(', ')}. Please set them in your .env file or host environment before starting.`;
+    if (enforce) {
+        console.error(msg);
+        process.exit(1);
+    } else {
+        console.warn(`${msg} Continuing because NODE_ENV !== 'production'. Set ENFORCE_REQUIRED_ENV=true to enforce in non-production environments.`);
+    }
 }
 
 connect().catch(console.error);
