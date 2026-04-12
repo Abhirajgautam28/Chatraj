@@ -1,0 +1,48 @@
+## Ops workflow: set deployment env vars on push to `ops/set-deploy-env`
+name: Ops: Set deploy environment variables
+
+on:
+  push:
+    branches:
+      - 'ops/set-deploy-env'
+
+permissions: contents: read
+
+jobs:
+  set-deploy-env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Set Render env var (CSRF_SIGNING_SECRET)
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          SERVICE_ID: srv-d0jm2j56ubrc73ajtedg
+          ENV_KEY: CSRF_SIGNING_SECRET
+          ENV_VALUE: ${{ secrets.CSRF_SIGNING_SECRET }}
+        run: |
+          if [ -z "${RENDER_API_KEY}" ]; then
+            echo "RENDER_API_KEY secret is missing. Aborting.";
+            exit 1;
+          fi
+          node .github/scripts/set_render_env.js
+
+      - name: Set Vercel env var (CSRF_SIGNING_SECRET)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: prj_obPaSXFtnFtEJrV0udUw8Alg8jKw
+          ENV_KEY: CSRF_SIGNING_SECRET
+          ENV_VALUE: ${{ secrets.CSRF_SIGNING_SECRET }}
+          VERCEL_TARGET: production
+        run: |
+          if [ -z "${VERCEL_TOKEN}" ]; then
+            echo "VERCEL_TOKEN secret is missing. Aborting.";
+            exit 1;
+          fi
+          node .github/scripts/set_vercel_env.js
