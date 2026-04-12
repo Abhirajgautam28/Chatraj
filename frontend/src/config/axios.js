@@ -88,6 +88,9 @@ export async function getCsrfToken() {
         const token = data && data.csrfToken ? data.csrfToken : null;
         if (token) {
           _cachedXsrf = token;
+          if (typeof document !== 'undefined') {
+            document.cookie = `${xsrfCookieName}=${encodeURIComponent(token)}; path=/`;
+          }
         }
         return token;
       } catch (e) {
