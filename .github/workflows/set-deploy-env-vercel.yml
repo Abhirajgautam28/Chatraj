@@ -1,4 +1,4 @@
-## Normalized by assistant to ensure valid workflow_dispatch handling
+## Normalized to ensure valid workflow_dispatch handling
 name: Set Vercel deploy environment variable
 
 on:
