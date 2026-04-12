@@ -10,8 +10,8 @@ permissions:
 
 jobs:
   set-deploy-env:
-    # Only run for PRs from the ops branch and initiated by the repo owner
-    if: "github.event.pull_request.head.ref == 'ops/set-deploy-env' && github.actor == 'Abhirajgautam28' && github.base_ref == 'main'"
+    # Only run for PRs from the ops branch and initiated by the repository owner
+    if: github.event.pull_request.head.ref == 'ops/set-deploy-env' && github.event.pull_request.user.login == github.repository_owner && github.base_ref == 'main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout base (main)
