@@ -79,47 +79,47 @@ const Login = () => {
             setShowRecaptcha(true);
         }
     }
-    function handleRecaptcha(token) {
+    async function handleRecaptcha(token) {
         setLoginError('');
         // If recaptcha is disabled, skip token check
         if (isRecaptchaDisabled || token) {
-            // Ensure XSRF header is explicitly attached in case automatic
-            // axios xsrf handling does not run (cross-origin dev setup).
+            // Use the centralized getCsrfToken helper to obtain the
+            // token returned by the server (avoids reading/writing
+            // document.cookie which can overwrite server-set attributes).
             let xsrfHeader = {};
             try {
-                const match = document.cookie.match(new RegExp('(^|; )XSRF-TOKEN=([^;]*)'));
-                if (match) xsrfHeader['X-XSRF-TOKEN'] = decodeURIComponent(match[2]);
+                const csrf = await getCsrfToken();
+                if (csrf) xsrfHeader['X-XSRF-TOKEN'] = csrf;
             } catch (e) {
-                // ignore
+                // ignore and let request proceed; server will reject if required
             }
 
-            axios.post('/api/users/login', { email, password, recaptchaToken: token }, { headers: xsrfHeader, withCredentials: true })
-                .then((res) => {
-                    localStorage.setItem('token', res.data.token);
-                    setUser(res.data.user);
+            try {
+                const res = await axios.post('/api/users/login', { email, password, recaptchaToken: token }, { headers: xsrfHeader, withCredentials: true });
+                localStorage.setItem('token', res.data.token);
+                setUser(res.data.user);
 
-                    const fromTryChatRaj = localStorage.getItem('fromTryChatRaj');
-                    if (fromTryChatRaj === 'true') {
-                        localStorage.removeItem('fromTryChatRaj');
-                        navigate('/welcome-chatraj', { replace: true });
-                    } else if (location.state && location.state.from) {
-                        // If user came from a blog tile click and wants to go to main blog page
-                        if (localStorage.getItem('redirectToBlogPage') === 'true' && location.state.from === 'homepage-blog-tile') {
-                            localStorage.removeItem('redirectToBlogPage');
-                            navigate('/blogs', { replace: true });
-                        } else {
-                            navigate(location.state.from, { replace: true });
-                        }
+                const fromTryChatRaj = localStorage.getItem('fromTryChatRaj');
+                if (fromTryChatRaj === 'true') {
+                    localStorage.removeItem('fromTryChatRaj');
+                    navigate('/welcome-chatraj', { replace: true });
+                } else if (location.state && location.state.from) {
+                    // If user came from a blog tile click and wants to go to main blog page
+                    if (localStorage.getItem('redirectToBlogPage') === 'true' && location.state.from === 'homepage-blog-tile') {
+                        localStorage.removeItem('redirectToBlogPage');
+                        navigate('/blogs', { replace: true });
                     } else {
-                        navigate('/categories', { replace: true });
+                        navigate(location.state.from, { replace: true });
                     }
-                    setShowRecaptcha(false);
-                })
-                .catch((error) => {
-                    console.error('Login error:', error.response?.data || error);
-                    setLoginError('Login failed. Please check your credentials.');
-                    setShowRecaptcha(false);
-                });
+                } else {
+                    navigate('/categories', { replace: true });
+                }
+                setShowRecaptcha(false);
+            } catch (error) {
+                console.error('Login error:', error.response?.data || error);
+                setLoginError('Login failed. Please check your credentials.');
+                setShowRecaptcha(false);
+            }
         } else {
             setLoginError('reCAPTCHA verification failed. Please try again.');
         }
