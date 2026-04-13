@@ -84,15 +84,14 @@ const Login = () => {
         setLoginError('');
         // If recaptcha is disabled, skip token check
         if (isRecaptchaDisabled || token) {
+            // Ensure the CSRF token(s) are fetched so the axios interceptor
+            // can attach the appropriate headers (cookie token and/or
+            // signed stateless token) before making the request.
             try {
-                // Ensure the CSRF token(s) are fetched so the axios interceptor
-                // can attach the appropriate headers (cookie token and/or
-                // signed stateless token) before making the request.
                 await getCsrfToken();
                 const res = await axios.post('/api/users/login', { email, password, recaptchaToken: token });
                 localStorage.setItem('token', res.data.token);
                 setUser(res.data.user);
-
                 const fromTryChatRaj = localStorage.getItem('fromTryChatRaj');
                 if (fromTryChatRaj === 'true') {
                     localStorage.removeItem('fromTryChatRaj');

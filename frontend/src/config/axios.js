@@ -103,7 +103,9 @@ export async function getCsrfToken() {
           // server to set cookie attributes correctly and use the returned
           // token value directly for headers.
         }
-        if (signed) _cachedSignedXsrf = signed;
+        if (signed) {
+          _cachedSignedXsrf = signed;
+        }
         return token;
       } catch (e) {
         return null;
