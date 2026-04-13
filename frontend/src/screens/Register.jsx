@@ -22,6 +22,9 @@ const Register = () => {
 
     const [errorMsg, setErrorMsg] = useState('');
     const [showRecaptcha, setShowRecaptcha] = useState(false);
+    // disable reCAPTCHA locally (sitekey often restricted to deployed domain)
+    const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    const recaptchaEnabled = import.meta.env.VITE_DISABLE_RECAPTCHA !== 'true' && !isLocalhost;
     // ...removed unused recaptchaToken
     const containerRef = useRef(null);
 
@@ -63,28 +66,42 @@ const Register = () => {
             setErrorMsg('Google API Key must be at least 10 characters long.');
             return;
         }
-        setShowRecaptcha(true);
+        // If recaptcha is enabled (deployed site), show widget. For local/dev,
+        // skip reCAPTCHA and proceed directly to registration to avoid
+        // "Localhost not in supported domains" errors.
+        if (recaptchaEnabled) {
+            setShowRecaptcha(true);
+        } else {
+            doRegister();
+        }
     }
 
     function handleRecaptcha(token) {
         if (token) {
             // Proceed with registration after reCAPTCHA
-            axios.post('/api/users/register', { firstName, lastName, email, password, googleApiKey })
-                .then((res) => {
-                    setUserId(res.data.userId);
-                    setShowOtpModal(true);
-                    setShowRecaptcha(false);
-                })
-                .catch((error) => {
-                    if (error.response?.data?.errors) {
-                        setErrorMsg(error.response.data.errors.map(e => e.msg).join(' '));
-                    } else {
-                        setErrorMsg('Registration failed. Please try again.');
-                    }
-                    setShowRecaptcha(false);
-                });
+            doRegister();
         }
+        }
+
+    // Extracted registration logic so we can call it directly when
+    // reCAPTCHA is intentionally disabled (local dev).
+    function doRegister() {
+        axios.post('/api/users/register', { firstName, lastName, email, password, googleApiKey })
+            .then((res) => {
+                setUserId(res.data.userId);
+                setShowOtpModal(true);
+                setShowRecaptcha(false);
+            })
+            .catch((error) => {
+                if (error.response?.data?.errors) {
+                    setErrorMsg(error.response.data.errors.map(e => e.msg).join(' '));
+                } else {
+                    setErrorMsg('Registration failed. Please try again.');
+                }
+                setShowRecaptcha(false);
+            });
     }
+
 
     function handleOtpSubmit(e) {
         e.preventDefault();
