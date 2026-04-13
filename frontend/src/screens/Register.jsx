@@ -93,8 +93,11 @@ const Register = () => {
                 setShowRecaptcha(false);
             })
             .catch((error) => {
-                if (error.response?.data?.errors) {
-                    setErrorMsg(error.response.data.errors.map(e => e.msg).join(' '));
+                const serverMessage = error.response?.data?.message || (error.response?.data?.errors ? error.response.data.errors.map(e => e.msg).join(' ') : null);
+                if (serverMessage) {
+                    setErrorMsg(serverMessage);
+                } else if (error.response?.status === 409) {
+                    setErrorMsg('Email already registered. Please login to your existing account.');
                 } else {
                     setErrorMsg('Registration failed. Please try again.');
                 }
