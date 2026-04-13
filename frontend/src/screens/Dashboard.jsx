@@ -2,7 +2,7 @@
 import { useContext, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserContext } from '../context/user.context';
-import axios from "../config/axios";
+import axios, { clearCsrfCache } from "../config/axios";
 import { useNavigate, useParams } from 'react-router-dom';
 
 const Dashboard = () => {
@@ -34,6 +34,8 @@ const Dashboard = () => {
   const handleLogout = () => {
     // Remove token and user, then redirect to logout screen
     localStorage.removeItem('token');
+    // Clear CSRF caches immediately
+    clearCsrfCache();
     navigate('/logout', { replace: true });
   };
 
