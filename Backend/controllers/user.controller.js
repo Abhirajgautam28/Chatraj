@@ -85,6 +85,13 @@ function generateOTP(length) {
 
 // Helper: Send OTP email
 async function sendOtpEmail(email, otp) {
+    // In test environments skip sending real emails to avoid external
+    // dependencies and flaky failures when SMTP creds are not configured.
+    if (process.env.NODE_ENV === 'test') {
+        console.log('Skipping email send in test environment (OTP:', otp, ')');
+        return;
+    }
+
     const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587,
@@ -259,6 +266,11 @@ export const updatePasswordController = async (req, res) => {
 
 // Helper: Send password reset success email with modern template
 async function sendPasswordResetSuccessEmail(email, name) {
+    if (process.env.NODE_ENV === 'test') {
+        console.log('Skipping password reset success email in test environment for', email);
+        return;
+    }
+
     const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587,
