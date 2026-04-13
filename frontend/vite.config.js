@@ -36,21 +36,27 @@ export default defineConfig({
       protocol: 'ws',
       clientPort: 5173
     },
-    // Proxy API and CSRF token requests to the backend in development so
-    // the browser sees a same-origin API and cookies are preserved.
-    proxy: {
-      '/api': {
-        target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:8080',
-        changeOrigin: true,
-        secure: false,
-        ws: true
-      },
-      '/csrf-token': {
-        target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:8080',
-        changeOrigin: true,
-        secure: false,
-        ws: true
+    // Proxy configuration: route API and CSRF calls to the local backend
+    // so the browser perceives same-origin requests and cookies are sent.
+    // Keep options DRY and allow overriding the proxy target via env.
+    proxy: (() => {
+      const proxyTarget = process.env.VITE_API_PROXY_TARGET || 'http://localhost:8080';
+      const baseOptions = { target: proxyTarget, changeOrigin: true, secure: false };
+      return {
+        '/api': { ...baseOptions, ws: true },
+        // CSRF token endpoint does not require WebSocket support; keep ws: false
+        // to reduce the surface area and express intent clearly.
+        '/csrf-token': { ...baseOptions, ws: false }
+      };
+    })(),
+    // Optionally set cross-origin isolation headers used by certain APIs
+    // (SharedArrayBuffer, performance.measureUserAgentSpecificMemory, etc.).
+    // Enable in development by setting `VITE_ENABLE_COOP_COEP=true` if needed.
+    ...(process.env.VITE_ENABLE_COOP_COEP === 'true' ? {
+      headers: {
+        'Cross-Origin-Embedder-Policy': 'require-corp',
+        'Cross-Origin-Opener-Policy': 'same-origin'
       }
-    }
+    } : {}),
   }
 })

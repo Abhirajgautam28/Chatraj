@@ -30,6 +30,7 @@ axiosInstance.defaults.xsrfHeaderName = 'X-XSRF-TOKEN';
 // Simple in-memory cache and single in-flight fetch memoization for CSRF token
 let _cachedXsrf = null;
 let _xsrfFetchPromise = null;
+let _cachedSignedXsrf = null;
 
 axiosInstance.interceptors.request.use(
   async config => {
@@ -39,13 +40,16 @@ axiosInstance.interceptors.request.use(
     } else {
       delete config.headers.Authorization;
     }
-      let _cachedSignedXsrf = null;
 
     // Ensure XSRF header is present. Use cached value or the memoized fetch helper
     try {
       const xsrfHeaderName = axiosInstance.defaults.xsrfHeaderName || 'X-XSRF-TOKEN';
       const xsrfValue = await getCsrfToken();
       if (xsrfValue) config.headers[xsrfHeaderName] = xsrfValue;
+      // Include signed stateless CSRF token when available (fallback for
+      // browsers that block third-party cookies). The backend will accept
+      // this header as an alternative to cookie-based csurf validation.
+      if (_cachedSignedXsrf) config.headers['X-CSRF-SIGNED'] = _cachedSignedXsrf;
     } catch (e) {
       // ignore in non-browser environments or when fetch fails
     }
@@ -55,10 +59,6 @@ axiosInstance.interceptors.request.use(
   error => Promise.reject(error)
 );
 
-            // Include signed stateless CSRF token when available (fallback for
-            // browsers that block third-party cookies). The backend will accept
-            // this header as an alternative to cookie-based csurf validation.
-            if (_cachedSignedXsrf) config.headers['X-CSRF-SIGNED'] = _cachedSignedXsrf;
 export default axiosInstance;
 
 // Named export: explicit helper to fetch CSRF token from the API and return it.
@@ -93,26 +93,22 @@ export async function getCsrfToken() {
         if (!resp.ok) return null;
         const data = await resp.json();
         const token = data && data.csrfToken ? data.csrfToken : null;
+        const signed = data && data.signedCsrf ? data.signedCsrf : null;
         if (token) {
           _cachedXsrf = token;
           // Do NOT write the XSRF cookie from client-side JS. Writing here
-<<<<<<< HEAD
           // can overwrite the server-set cookie and strip Secure/SameSite
           // attributes, preventing the browser from sending the server's
           // httpOnly `_csrf` cookie on cross-site requests. Rely on the
           // server to set cookie attributes correctly and use the returned
           // token value directly for headers.
-              const signed = data && data.signedCsrf ? data.signedCsrf : null;
-=======
-          // can overwrite server-set cookie attributes (Secure/SameSite) and
-          // break cross-origin cookie behavior. Rely on server-set cookies
-          // and use the returned token directly for request headers.
->>>>>>> 17979b3 (fix(csrf): avoid client-side cookie writes and use proxy-relative API in dev)
+        }
+        if (signed) {
+          _cachedSignedXsrf = signed;
         }
         return token;
       } catch (e) {
         return null;
-              if (signed) _cachedSignedXsrf = signed;
       } finally {
         _xsrfFetchPromise = null;
       }
