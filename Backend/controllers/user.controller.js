@@ -63,12 +63,35 @@ export const createUserController = async (req, res) => {
         const otp = generateOTP(7);
         // Create user with OTP and isVerified false
         const user = await userService.createUser({ ...req.body, otp, isVerified: false });
-        // Send OTP email
-        await sendOtpEmail(user.email, otp);
-        res.status(201).json({ message: 'OTP sent to email. Please verify.', userId: user._id });
+
+        // Attempt to send OTP email but do NOT fail registration if email
+        // delivery fails (makes local development and flaky SMTP less painful).
+        try {
+            await sendOtpEmail(user.email, otp);
+            // success
+            return res.status(201).json({ message: 'OTP sent to email. Please verify.', userId: user._id });
+        } catch (emailErr) {
+            console.error('sendOtpEmail error:', emailErr && emailErr.message ? emailErr.message : emailErr);
+            // In non-production expose the OTP to the client so local dev and
+            // testing can continue without a working SMTP provider. Never
+            // include OTP in production responses.
+            if (process.env.NODE_ENV !== 'production') {
+                return res.status(201).json({ message: 'Account created but failed to send verification email (SMTP error). OTP included for local testing.', userId: user._id, otp });
+            }
+            // In production, return a success but tell the client we couldn't
+            // send the email so the user can contact support or retry later.
+            return res.status(201).json({ message: 'Account created. We could not send a verification email — please contact support or try again later.', userId: user._id });
+        }
     } catch (error) {
-        console.error('createUserController error:', error);
-        res.status(400).send('Invalid request');
+        console.error('createUserController error:', error && error.message ? error.message : error);
+        // Handle duplicate key (email already registered) explicitly so the
+        // frontend can show a helpful message to the user.
+        if (error && (error.code === 11000 || error.name === 'MongoServerError') && error.keyValue && error.keyValue.email) {
+            return res.status(409).json({ message: 'Email already registered. Please login to your existing account.' });
+        }
+
+        // Fallback generic error
+        return res.status(400).json({ message: 'Invalid request' });
     }
 }
 
