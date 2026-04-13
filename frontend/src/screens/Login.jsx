@@ -79,6 +79,7 @@ const Login = () => {
             setShowRecaptcha(true);
         }
     }
+
     async function handleRecaptcha(token) {
         setLoginError('');
         // If recaptcha is disabled, skip token check
