@@ -36,9 +36,21 @@ export default defineConfig({
       protocol: 'ws',
       clientPort: 5173
     },
-    headers: {
-      "Cross-Origin-Embedder-Policy": "require-corp",
-      "Cross-Origin-Opener-Policy": "same-origin"
+    // Proxy API and CSRF token requests to the backend in development so
+    // the browser sees a same-origin API and cookies are preserved.
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+        ws: true
+      },
+      '/csrf-token': {
+        target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+        ws: true
+      }
     }
   }
 })

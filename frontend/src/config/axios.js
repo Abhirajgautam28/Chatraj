@@ -4,10 +4,12 @@ let API_URL = import.meta.env.VITE_API_URL || '';
 
 const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-// Prefer local backend during interactive development on localhost so the
-// developer experience doesn't require switching env files to test locally.
+// Prefer proxying to local backend during interactive development so the
+// browser sees same-origin requests (Vite dev server proxy). This preserves
+// cookies and avoids SameSite cross-site issues when running frontend on a
+// different port during development.
 if (import.meta.env.DEV && isLocalhost) {
-  API_URL = 'http://localhost:8080';
+  API_URL = '';
 } else {
   if (!API_URL || API_URL === '' || (typeof window !== 'undefined' && API_URL === window.location.origin)) {
     API_URL = 'http://localhost:8080';
