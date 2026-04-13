@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import axios from '../config/axios.js';
+import axios, { clearCsrfCache } from '../config/axios.js';
 import { ThemeContext } from '../context/theme.context.jsx';
 
 const Categories = () => {
@@ -142,6 +142,8 @@ const Categories = () => {
           <motion.button
             onClick={() => {
               localStorage.removeItem('token');
+              // Clear cached CSRF tokens immediately
+              clearCsrfCache();
               navigate('/logout', { replace: true });
             }}
             className="relative flex items-center justify-center w-12 h-12 text-2xl text-white bg-blue-600 rounded-full shadow-xl hover:scale-110 hover:shadow-2xl focus:outline-none transition-all"

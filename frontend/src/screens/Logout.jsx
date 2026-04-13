@@ -2,7 +2,7 @@ import { useEffect, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/user.context';
-import axios from '../config/axios';
+import axios, { clearCsrfCache } from '../config/axios';
 
 const Logout = () => {
   const { setUser } = useContext(UserContext);
@@ -12,7 +12,10 @@ const Logout = () => {
     // Always clear token and user, then redirect to home page
     localStorage.removeItem('token');
     setUser(null);
-    axios.get('/api/users/logout').catch(() => { });
+    // Clear in-memory CSRF caches so a new session won't reuse old tokens
+    clearCsrfCache();
+    // Explicitly include credentials when calling logout endpoint
+    axios.get('/api/users/logout', { withCredentials: true }).catch(() => { });
     const timer = setTimeout(() => {
       navigate('/', { replace: true });
     }, 2000);

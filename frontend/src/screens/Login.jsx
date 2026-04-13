@@ -89,7 +89,7 @@ const Login = () => {
             // signed stateless token) before making the request.
             try {
                 await getCsrfToken();
-                const res = await axios.post('/api/users/login', { email, password, recaptchaToken: token });
+                const res = await axios.post('/api/users/login', { email, password, recaptchaToken: token }, { withCredentials: true });
                 localStorage.setItem('token', res.data.token);
                 setUser(res.data.user);
                 const fromTryChatRaj = localStorage.getItem('fromTryChatRaj');
