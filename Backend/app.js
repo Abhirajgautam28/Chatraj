@@ -11,6 +11,49 @@ import blogRoutes from './routes/blog.routes.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import csurf from 'csurf';
+import crypto from 'crypto';
+
+// CSRF signing secret used for stateless signed tokens (fallback for cross-origin clients)
+const CSRF_SIGNING_SECRET = (() => {
+  if (process.env.CSRF_SIGNING_SECRET) return process.env.CSRF_SIGNING_SECRET;
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('CSRF_SIGNING_SECRET not set — using development fallback (insecure)');
+    return 'dev-csrf-signing-secret';
+  }
+  throw new Error('CSRF_SIGNING_SECRET must be set in production');
+})();
+
+function signRawToken(raw) {
+  return `${raw}.${crypto.createHmac('sha256', CSRF_SIGNING_SECRET).update(raw).digest('base64url')}`;
+}
+
+function verifySignedCsrfToken(signed) {
+  try {
+    if (!signed || typeof signed !== 'string') return false;
+    const parts = signed.split('.');
+    if (parts.length !== 2) return false;
+    const [raw, sig] = parts;
+    const expected = crypto.createHmac('sha256', CSRF_SIGNING_SECRET).update(raw).digest('base64url');
+    const a = Buffer.from(sig);
+    const b = Buffer.from(expected);
+    if (a.length !== b.length) return false;
+    if (!crypto.timingSafeEqual(a, b)) return false;
+    const idx = raw.indexOf(':');
+    if (idx === -1) return false;
+    const ts = Number(raw.slice(0, idx));
+    if (Number.isNaN(ts)) return false;
+    // token expiry: 1 hour
+    if (Date.now() - ts > 1000 * 60 * 60) return false;
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function createSignedCsrf() {
+  const raw = `${Date.now()}:${crypto.randomBytes(12).toString('base64url')}`;
+  return signRawToken(raw);
+}
 const allowedOrigins = [
   'https://chatraj-frontend.vercel.app',
   'https://chatraj.vercel.app',
@@ -98,7 +141,12 @@ app.get('/csrf-token', csrfProtection, (req, res) => {
     // csurf will set its own `_csrf` cookie when configured with `cookie: true`;
     // set a browser-friendly `XSRF-TOKEN` cookie too so axios can read it.
     res.cookie('XSRF-TOKEN', token, cookieOptions);
-    res.status(200).json({ csrfToken: token });
+    // Also provide a signed, stateless CSRF token in the response body so
+    // clients that cannot reliably use cookies (third-party cookie blocks,
+    // strict privacy modes, etc.) can use this token as a fallback. The
+    // signed token is time-limited and verified server-side.
+    const signed = createSignedCsrf();
+    res.status(200).json({ csrfToken: token, signedCsrf: signed });
   } catch (err) {
     res.status(500).json({ error: 'Failed to generate CSRF token' });
   }
@@ -140,7 +188,20 @@ app.use((req, res, next) => {
       next(err);
     });
   } else {
-    // validate token for unsafe methods
+    // For unsafe methods, allow either the standard csurf validation or a
+    // server-signed stateless CSRF token provided by trusted clients. This
+    // helps support cross-origin frontends (e.g., Vercel) that cannot
+    // persist third-party cookies in some browsers.
+    try {
+      const signedHeader = req.headers['x-csrf-signed'] || req.headers['x-csrf-signed-token'];
+      if (signedHeader && verifySignedCsrfToken(signedHeader)) {
+        // Signed token valid — bypass csurf validation for this request.
+        return next();
+      }
+    } catch (e) {
+      // ignore and fall through to regular csurf validation
+    }
+    // validate token for unsafe methods using csurf
     csrfProtection(req, res, next);
   }
 });
