@@ -17,6 +17,17 @@ const usersLimiter = rateLimit({
   max: 100, // limit each IP to 100 user list requests per windowMs
 });
 
+// Slightly higher limit for registration to reduce false positives
+// during legitimate user signups (e.g., when users retry due to client-side
+// behavior). Keep `sensitiveLimiter` unchanged for login and other sensitive
+// endpoints to preserve stricter throttling there.
+const registrationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 12,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Send OTP for password reset (used in Login.jsx)
 router.post('/send-otp', sensitiveLimiter, userController.sendOtpController);
 
@@ -26,7 +37,7 @@ router.post('/register',
   body('email').isEmail().withMessage('Email must be a valid email address'),
   body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
   body('googleApiKey').isLength({ min: 10 }).withMessage('Google API Key is required'),
-  sensitiveLimiter,
+  registrationLimiter,
   userController.createUserController
 );
 

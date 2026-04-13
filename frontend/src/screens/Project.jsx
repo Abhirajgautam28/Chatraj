@@ -364,7 +364,7 @@ const Project = () => {
 
   function addCollaborators() {
     axios
-      .put("/projects/add-user", {
+      .put("/api/projects/add-user", {
         projectId: location.state.project._id,
         users: Array.from(selectedUserId)
       })
@@ -443,7 +443,7 @@ const Project = () => {
       setFileTree(res.data.project.fileTree || {})
     })
     axios
-      .get("/users/all")
+      .get("/api/users/all")
       .then((res) => {
         setUsers(res.data.users)
       })
