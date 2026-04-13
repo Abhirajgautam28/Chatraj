@@ -90,9 +90,10 @@ export async function getCsrfToken() {
         const token = data && data.csrfToken ? data.csrfToken : null;
         if (token) {
           _cachedXsrf = token;
-          if (typeof document !== 'undefined') {
-            document.cookie = `${xsrfCookieName}=${encodeURIComponent(token)}; path=/`;
-          }
+          // Do NOT write the XSRF cookie from client-side JS. Writing here
+          // can overwrite server-set cookie attributes (Secure/SameSite) and
+          // break cross-origin cookie behavior. Rely on server-set cookies
+          // and use the returned token directly for request headers.
         }
         return token;
       } catch (e) {
