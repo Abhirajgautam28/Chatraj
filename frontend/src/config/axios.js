@@ -30,6 +30,7 @@ axiosInstance.defaults.xsrfHeaderName = 'X-XSRF-TOKEN';
 // Simple in-memory cache and single in-flight fetch memoization for CSRF token
 let _cachedXsrf = null;
 let _xsrfFetchPromise = null;
+let _cachedSignedXsrf = null;
 
 axiosInstance.interceptors.request.use(
   async config => {
@@ -45,6 +46,10 @@ axiosInstance.interceptors.request.use(
       const xsrfHeaderName = axiosInstance.defaults.xsrfHeaderName || 'X-XSRF-TOKEN';
       const xsrfValue = await getCsrfToken();
       if (xsrfValue) config.headers[xsrfHeaderName] = xsrfValue;
+      // Include signed stateless CSRF token when available (fallback for
+      // browsers that block third-party cookies). The backend will accept
+      // this header as an alternative to cookie-based csurf validation.
+      if (_cachedSignedXsrf) config.headers['X-CSRF-SIGNED'] = _cachedSignedXsrf;
     } catch (e) {
       // ignore in non-browser environments or when fetch fails
     }
@@ -88,6 +93,7 @@ export async function getCsrfToken() {
         if (!resp.ok) return null;
         const data = await resp.json();
         const token = data && data.csrfToken ? data.csrfToken : null;
+        const signed = data && data.signedCsrf ? data.signedCsrf : null;
         if (token) {
           _cachedXsrf = token;
           // Do NOT write the XSRF cookie from client-side JS. Writing here
@@ -97,6 +103,7 @@ export async function getCsrfToken() {
           // server to set cookie attributes correctly and use the returned
           // token value directly for headers.
         }
+        if (signed) _cachedSignedXsrf = signed;
         return token;
       } catch (e) {
         return null;
