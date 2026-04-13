@@ -119,3 +119,11 @@ export async function getCsrfToken() {
     return null;
   }
 }
+
+// Clear in-memory CSRF caches. Call this when the user logs out or when
+// authentication state is reset so we don't reuse stale tokens in the same tab.
+export function clearCsrfCache() {
+  _cachedXsrf = null;
+  _cachedSignedXsrf = null;
+  _xsrfFetchPromise = null;
+}

@@ -107,7 +107,12 @@ app.use(cors({
   origin: dynamicCors,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-XSRF-TOKEN', 'X-CSRF-Token'],
+  // Allow the signed CSRF header used as a stateless fallback (X-CSRF-SIGNED)
+  // so cross-origin frontends (Vercel) can include it during preflight checks.
+  allowedHeaders: [
+    'Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin',
+    'X-XSRF-TOKEN', 'X-CSRF-Token', 'X-CSRF-SIGNED'
+  ],
   exposedHeaders: ['Set-Cookie', 'Access-Control-Allow-Origin']
 }));
 
