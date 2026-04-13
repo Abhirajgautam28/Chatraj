@@ -89,6 +89,11 @@ const Register = () => {
         axios.post('/api/users/register', { firstName, lastName, email, password, googleApiKey })
             .then((res) => {
                 setUserId(res.data.userId);
+                // If server returns OTP (development mode), pre-fill it and
+                // show a non-blocking notice so developers can continue.
+                if (res.data && res.data.otp) {
+                    setOtp(res.data.otp);
+                }
                 setShowOtpModal(true);
                 setShowRecaptcha(false);
             })
@@ -272,8 +277,8 @@ const Register = () => {
                         Register
                     </button>
                     {showRecaptcha && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-                            <div className={`${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} rounded-lg shadow-2xl p-8 w-full max-w-sm flex flex-col items-center`}>
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" role="dialog" aria-modal="true">
+                            <div className={`${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} rounded-lg shadow-2xl p-8 w-full max-w-sm flex flex-col items-center`} tabIndex={-1}>
                                 <ReCAPTCHA
                                     sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
                                     onChange={handleRecaptcha}
