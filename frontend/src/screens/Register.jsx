@@ -27,6 +27,8 @@ const Register = () => {
     const recaptchaEnabled = import.meta.env.VITE_DISABLE_RECAPTCHA !== 'true' && !isLocalhost;
     // ...removed unused recaptchaToken
     const containerRef = useRef(null);
+    const modalRef = useRef(null);
+    const lastActiveElementRef = useRef(null);
 
     useEffect(() => {
         if (containerRef.current) {
@@ -81,7 +83,42 @@ const Register = () => {
             // Proceed with registration after reCAPTCHA
             doRegister();
         }
+    }
+
+    // Manage focus when the recaptcha modal opens and closes to follow
+    // accessible dialog patterns: move focus into the dialog and restore
+    // it when closed; handle Escape to close the dialog.
+    useEffect(() => {
+        if (showRecaptcha) {
+            try {
+                lastActiveElementRef.current = typeof document !== 'undefined' ? document.activeElement : null;
+            } catch (e) {
+                lastActiveElementRef.current = null;
+            }
+            const focusTimeout = setTimeout(() => {
+                try {
+                    if (modalRef.current && typeof modalRef.current.focus === 'function') modalRef.current.focus();
+                } catch (e) {}
+            }, 50);
+
+            const onKey = (e) => {
+                if (e.key === 'Escape') setShowRecaptcha(false);
+            };
+            window.addEventListener('keydown', onKey);
+            return () => {
+                clearTimeout(focusTimeout);
+                window.removeEventListener('keydown', onKey);
+            };
         }
+
+        // When modal closes, restore focus to the previously focused element
+        if (!showRecaptcha && lastActiveElementRef.current && typeof lastActiveElementRef.current.focus === 'function') {
+            try {
+                lastActiveElementRef.current.focus();
+            } catch (e) {}
+            lastActiveElementRef.current = null;
+        }
+    }, [showRecaptcha]);
 
     // Extracted registration logic so we can call it directly when
     // reCAPTCHA is intentionally disabled (local dev).

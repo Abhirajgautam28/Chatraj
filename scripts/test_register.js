@@ -40,10 +40,27 @@ async function fetchWithCookies(url, options = {}, cookies = '') {
     console.log('csrf-token status', tokenResp.status);
     const setCookie = tokenResp.headers['set-cookie'];
     console.log('set-cookie header:', setCookie);
-    const json = JSON.parse(tokenResp.body || '{}');
+    let json;
+    try {
+      json = tokenResp.body ? JSON.parse(tokenResp.body) : {};
+    } catch (err) {
+      console.error('Failed to parse /csrf-token JSON response:', err);
+      console.error('Response body:', tokenResp.body);
+      process.exit(1);
+    }
+
     const csrfToken = json.csrfToken;
     const signed = json.signedCsrf;
     console.log('csrfToken', csrfToken ? 'present' : 'missing', 'signed', signed ? 'present' : 'missing');
+
+    if (!csrfToken) {
+      console.error('No csrfToken returned from /csrf-token; aborting test.');
+      process.exit(1);
+    }
+    if (!setCookie) {
+      console.error('No Set-Cookie header returned from /csrf-token; cookies may be blocked. Aborting.');
+      process.exit(1);
+    }
 
     const testEmail = `test+${Date.now()}@example.com`;
     const payload = { firstName: 'Auto', lastName: 'Tester', email: testEmail, password: 'Password123!', googleApiKey: '1234567890' };
@@ -52,6 +69,20 @@ async function fetchWithCookies(url, options = {}, cookies = '') {
 
     console.log('register status', registerResp.status);
     console.log('register body:', registerResp.body);
+
+    // Fail fast on unexpected HTTP status codes so test failures are obvious
+    if (registerResp.status < 200 || registerResp.status >= 300) {
+      console.error('Registration failed with unexpected status', { status: registerResp.status, body: registerResp.body });
+      process.exit(1);
+    }
+
+    // Try parsing JSON body for clearer output when available
+    try {
+      const parsed = registerResp.body ? JSON.parse(registerResp.body) : {};
+      console.log('Parsed register JSON:', parsed);
+    } catch (err) {
+      console.warn('Register response is not valid JSON:', err);
+    }
   } catch (e) {
     console.error('test script error', e);
     process.exit(1);
