@@ -106,8 +106,11 @@ async function fetchWithCookies(url, options = {}, cookies = '') {
         res.on('end', () => {
           const body = Buffer.concat(chunks).toString('utf8');
           const response = { status: res.statusCode, headers: res.headers, body };
-          // Reject on HTTP errors so callers can decide how to handle them
-          if (res.statusCode >= 400) {
+          // By default keep the old behaviour and resolve with the response
+          // object even for >=400 statuses. Consumers that want an exception
+          // for HTTP errors can opt-in by setting `options.rejectOnHttpError`.
+          const rejectOnHttpError = Boolean(options && options.rejectOnHttpError);
+          if (res.statusCode >= 400 && rejectOnHttpError) {
             const err = new Error('HTTP Error: ' + res.statusCode);
             err.details = response;
             reject(err);
@@ -130,12 +133,17 @@ async function fetchWithCookies(url, options = {}, cookies = '') {
     const tokenResp = await fetchWithCookies(`${base}/csrf-token`);
     console.log('csrf-token status', tokenResp.status);
     const setCookie = tokenResp.headers['set-cookie'];
-    console.log('set-cookie header:', setCookie);
+    console.log('set-cookie header (sanitized):', sanitizeHeaders(tokenResp.headers));
+    // Reuse a single cookie header string for subsequent requests to avoid
+    // duplicating the Array.isArray(...) join logic in multiple places.
+    const cookieHeader = Array.isArray(setCookie) ? setCookie.join('; ') : (setCookie || '');
     let json;
     try {
       json = tokenResp.body ? JSON.parse(tokenResp.body) : {};
     } catch (err) {
-      throw new TestError('Failed to parse /csrf-token JSON response', sanitizeResponse(tokenResp), err);
+      const details = sanitizeResponse(tokenResp);
+      if (err && err.details) details.originalFetch = sanitizeResponse(err.details);
+      throw new TestError('Failed to parse /csrf-token JSON response', details, err);
     }
 
     const csrfToken = json.csrfToken;
@@ -152,7 +160,7 @@ async function fetchWithCookies(url, options = {}, cookies = '') {
     const testEmail = `test+${Date.now()}@example.com`;
     const payload = { firstName: 'Auto', lastName: 'Tester', email: testEmail, password: 'Password123!', googleApiKey: '1234567890' };
     console.log('Posting register for', testEmail);
-    const registerResp = await fetchWithCookies(`${base}/api/users/register`, { method: 'POST', body: JSON.stringify(payload), headers: { 'X-XSRF-TOKEN': csrfToken } }, Array.isArray(setCookie) ? setCookie.join('; ') : (setCookie || ''));
+    const registerResp = await fetchWithCookies(`${base}/api/users/register`, { method: 'POST', body: JSON.stringify(payload), headers: { 'X-XSRF-TOKEN': csrfToken } }, cookieHeader);
 
     console.log('register status', registerResp.status);
     console.log('register response (sanitized):', sanitizeResponse(registerResp));
@@ -169,18 +177,22 @@ async function fetchWithCookies(url, options = {}, cookies = '') {
       console.log('Parsed register JSON (sanitized):', maskObjectSensitive(parsed));
       // If the server returned an OTP (common in dev/test), verify it to complete login flow
       if (parsed && parsed.otp && parsed.userId) {
-        console.log('Verifying returned OTP to complete login flow...');
-        const verifyResp = await fetchWithCookies(`${base}/api/users/verify-otp`, { method: 'POST', body: JSON.stringify({ userId: parsed.userId, otp: parsed.otp }), headers: { 'X-XSRF-TOKEN': csrfToken } }, Array.isArray(setCookie) ? setCookie.join('; ') : (setCookie || ''));
+      console.log('Verifying returned OTP to complete login flow...');
+      const verifyResp = await fetchWithCookies(`${base}/api/users/verify-otp`, { method: 'POST', body: JSON.stringify({ userId: parsed.userId, otp: parsed.otp }), headers: { 'X-XSRF-TOKEN': csrfToken } }, cookieHeader);
         console.log('verify response (sanitized):', sanitizeResponse(verifyResp));
         try {
           const vparsed = verifyResp.body ? JSON.parse(verifyResp.body) : {};
           console.log('Parsed verify JSON (sanitized):', maskObjectSensitive(vparsed));
         } catch (err) {
-          throw new TestError('Verify response is not valid JSON', sanitizeResponse(verifyResp), err);
+          const details = sanitizeResponse(verifyResp);
+          if (err && err.details) details.originalFetch = sanitizeResponse(err.details);
+          throw new TestError('Verify response is not valid JSON', details, err);
         }
       }
     } catch (err) {
-      throw new TestError('Registration response is not valid JSON', sanitizeResponse(registerResp), err);
+      const details = sanitizeResponse(registerResp);
+      if (err && err.details) details.originalFetch = sanitizeResponse(err.details);
+      throw new TestError('Registration response is not valid JSON', details, err);
     }
   } catch (e) {
     // Print a short error message and sanitized details to avoid leaking secrets
