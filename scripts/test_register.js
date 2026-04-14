@@ -96,6 +96,21 @@ async function fetchWithCookies(url, options = {}, cookies = '') {
     try {
       const parsed = registerResp.body ? JSON.parse(registerResp.body) : {};
       console.log('Parsed register JSON:', parsed);
+      // If the server returned an OTP (common in dev/test), verify it to complete login flow
+      if (parsed && parsed.otp && parsed.userId) {
+        console.log('Verifying returned OTP to complete login flow...');
+        const verifyResp = await fetchWithCookies(`${base}/api/users/verify-otp`, { method: 'POST', body: JSON.stringify({ userId: parsed.userId, otp: parsed.otp }), headers: { 'X-XSRF-TOKEN': csrfToken } }, Array.isArray(setCookie) ? setCookie.join('; ') : (setCookie || ''));
+        console.log('verify status', verifyResp.status);
+        console.log('verify body', verifyResp.body);
+        try {
+          const vparsed = verifyResp.body ? JSON.parse(verifyResp.body) : {};
+          console.log('Parsed verify JSON:', vparsed);
+        } catch (err) {
+          const ve = new Error('Verify response is not valid JSON');
+          ve.details = { error: err, status: verifyResp.status, headers: verifyResp.headers, body: verifyResp.body };
+          throw ve;
+        }
+      }
     } catch (err) {
       const parseErr = new Error('Registration response is not valid JSON');
       parseErr.details = {
