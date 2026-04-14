@@ -128,7 +128,7 @@ async function fetchWithCookies(url, options = {}, cookies = '') {
 
 (async () => {
   try {
-    const base = 'http://localhost:8080';
+    const base = process.env.BASE_URL || 'http://localhost:8080';
     console.log('Requesting /csrf-token...');
     const tokenResp = await fetchWithCookies(`${base}/csrf-token`);
     console.log('csrf-token status', tokenResp.status);
