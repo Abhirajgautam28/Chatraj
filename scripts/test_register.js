@@ -76,12 +76,14 @@ async function fetchWithCookies(url, options = {}, cookies = '') {
       process.exit(1);
     }
 
-    // Try parsing JSON body for clearer output when available
+    // Registration endpoint is expected to return JSON in normal operation.
+    // Treat non-JSON responses as a hard failure to catch regressions (e.g. HTML error pages).
     try {
       const parsed = registerResp.body ? JSON.parse(registerResp.body) : {};
       console.log('Parsed register JSON:', parsed);
     } catch (err) {
-      console.warn('Register response is not valid JSON:', err);
+      console.error('Registration response is not valid JSON:', { error: err, body: registerResp.body });
+      process.exit(1);
     }
   } catch (e) {
     console.error('test script error', e);
