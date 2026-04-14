@@ -19,7 +19,7 @@ export default defineConfig({
     },
   },
   test: {
-    environment: 'jsdom',
+    environment: 'happy-dom',
   setupFiles: ['./register-css-mock.js', './jest.setup.js'],
     globals: true,
     coverage: {
