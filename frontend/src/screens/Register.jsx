@@ -87,7 +87,9 @@ const Register = () => {
 
     // Manage focus when the recaptcha modal opens and closes to follow
     // accessible dialog patterns: move focus into the dialog and restore
-    // it when closed; handle Escape to close the dialog.
+    // it when closed. Use the modal element's keyboard handler instead of
+    // a global window listener so Escape handling doesn't leak to other
+    // parts of the page or other dialogs.
     useEffect(() => {
         if (showRecaptcha) {
             try {
@@ -97,17 +99,14 @@ const Register = () => {
             }
             const focusTimeout = setTimeout(() => {
                 try {
-                    if (modalRef.current && typeof modalRef.current.focus === 'function') modalRef.current.focus();
+                    if (modalRef.current && typeof modalRef.current.focus === 'function') {
+                        modalRef.current.focus();
+                    }
                 } catch (e) {}
             }, 50);
 
-            const onKey = (e) => {
-                if (e.key === 'Escape') setShowRecaptcha(false);
-            };
-            window.addEventListener('keydown', onKey);
             return () => {
                 clearTimeout(focusTimeout);
-                window.removeEventListener('keydown', onKey);
             };
         }
 
@@ -315,7 +314,12 @@ const Register = () => {
                     </button>
                     {showRecaptcha && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" role="dialog" aria-modal="true">
-                            <div className={`${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} rounded-lg shadow-2xl p-8 w-full max-w-sm flex flex-col items-center`} tabIndex={-1}>
+                            <div
+                                ref={modalRef}
+                                onKeyDown={(e) => { if (e.key === 'Escape') setShowRecaptcha(false); }}
+                                className={`${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} rounded-lg shadow-2xl p-8 w-full max-w-sm flex flex-col items-center`}
+                                tabIndex={-1}
+                            >
                                 <ReCAPTCHA
                                     sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
                                     onChange={handleRecaptcha}
