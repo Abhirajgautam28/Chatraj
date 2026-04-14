@@ -82,6 +82,21 @@ function sanitizeResponse(resp = {}) {
   };
 }
 
+// Build enriched details for TestError: sanitized response plus any
+// original fetch error details (also sanitized) so callers retain full
+// context when we re-wrap errors.
+function buildErrorDetails(resp = {}, err) {
+  const details = sanitizeResponse(resp);
+  try {
+    if (err && err.details) {
+      details.originalFetch = sanitizeResponse(err.details);
+    }
+  } catch (e) {
+    // best-effort: don't throw while trying to build details
+  }
+  return details;
+}
+
 async function fetchWithCookies(url, options = {}, cookies = '') {
   const u = new URL(url);
   const headers = Object.assign({}, options.headers || {});
@@ -141,9 +156,7 @@ async function fetchWithCookies(url, options = {}, cookies = '') {
     try {
       json = tokenResp.body ? JSON.parse(tokenResp.body) : {};
     } catch (err) {
-      const details = sanitizeResponse(tokenResp);
-      if (err && err.details) details.originalFetch = sanitizeResponse(err.details);
-      throw new TestError('Failed to parse /csrf-token JSON response', details, err);
+      throw new TestError('Failed to parse /csrf-token JSON response', buildErrorDetails(tokenResp, err), err);
     }
 
     const csrfToken = json.csrfToken;
@@ -177,22 +190,18 @@ async function fetchWithCookies(url, options = {}, cookies = '') {
       console.log('Parsed register JSON (sanitized):', maskObjectSensitive(parsed));
       // If the server returned an OTP (common in dev/test), verify it to complete login flow
       if (parsed && parsed.otp && parsed.userId) {
-      console.log('Verifying returned OTP to complete login flow...');
-      const verifyResp = await fetchWithCookies(`${base}/api/users/verify-otp`, { method: 'POST', body: JSON.stringify({ userId: parsed.userId, otp: parsed.otp }), headers: { 'X-XSRF-TOKEN': csrfToken } }, cookieHeader);
+        console.log('Verifying returned OTP to complete login flow...');
+        const verifyResp = await fetchWithCookies(`${base}/api/users/verify-otp`, { method: 'POST', body: JSON.stringify({ userId: parsed.userId, otp: parsed.otp }), headers: { 'X-XSRF-TOKEN': csrfToken } }, cookieHeader);
         console.log('verify response (sanitized):', sanitizeResponse(verifyResp));
         try {
           const vparsed = verifyResp.body ? JSON.parse(verifyResp.body) : {};
           console.log('Parsed verify JSON (sanitized):', maskObjectSensitive(vparsed));
         } catch (err) {
-          const details = sanitizeResponse(verifyResp);
-          if (err && err.details) details.originalFetch = sanitizeResponse(err.details);
-          throw new TestError('Verify response is not valid JSON', details, err);
+          throw new TestError('Verify response is not valid JSON', buildErrorDetails(verifyResp, err), err);
         }
       }
     } catch (err) {
-      const details = sanitizeResponse(registerResp);
-      if (err && err.details) details.originalFetch = sanitizeResponse(err.details);
-      throw new TestError('Registration response is not valid JSON', details, err);
+      throw new TestError('Registration response is not valid JSON', buildErrorDetails(registerResp, err), err);
     }
   } catch (e) {
     // Print a short error message and sanitized details to avoid leaking secrets
