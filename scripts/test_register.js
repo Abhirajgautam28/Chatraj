@@ -1,4 +1,5 @@
 import http from 'http';
+import https from 'https';
 import { URL } from 'url';
 
 async function fetchWithCookies(url, options = {}, cookies = '') {
@@ -9,10 +10,12 @@ async function fetchWithCookies(url, options = {}, cookies = '') {
   if (options.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
 
   return new Promise((resolve, reject) => {
-    const req = http.request(
+    const transport = u.protocol === 'https:' ? https : http;
+    const port = u.port || (u.protocol === 'https:' ? 443 : 80);
+    const req = transport.request(
       {
         hostname: u.hostname,
-        port: u.port,
+        port,
         path: u.pathname + (u.search || ''),
         method: options.method || 'GET',
         headers,
@@ -22,7 +25,15 @@ async function fetchWithCookies(url, options = {}, cookies = '') {
         res.on('data', c => chunks.push(c));
         res.on('end', () => {
           const body = Buffer.concat(chunks).toString('utf8');
-          resolve({ status: res.statusCode, headers: res.headers, body });
+          const response = { status: res.statusCode, headers: res.headers, body };
+          // Reject on HTTP errors so callers can decide how to handle them
+          if (res.statusCode >= 400) {
+            const err = new Error('HTTP Error: ' + res.statusCode);
+            err.details = response;
+            reject(err);
+            return;
+          }
+          resolve(response);
         });
       }
     ).on('error', reject);
