@@ -87,12 +87,10 @@ function sanitizeResponse(resp = {}) {
 // context when we re-wrap errors.
 function buildErrorDetails(resp = {}, err) {
   const details = sanitizeResponse(resp);
-  try {
-    if (err && err.details) {
-      details.originalFetch = sanitizeResponse(err.details);
-    }
-  } catch (e) {
-    // best-effort: don't throw while trying to build details
+  // Prefer explicit, safe property access so failures building the
+  // details object are visible instead of being silently swallowed.
+  if (err && typeof err === 'object' && err.details) {
+    details.originalFetch = sanitizeResponse(err.details);
   }
   return details;
 }
@@ -143,7 +141,9 @@ async function fetchWithCookies(url, options = {}, cookies = '') {
 
 (async () => {
   try {
-    const base = process.env.BASE_URL || 'http://localhost:8080';
+    // Default to the hosted backend for CI/hosted-preview validation while
+    // still allowing overrides via `BASE_URL` for local testing.
+    const base = process.env.BASE_URL || 'https://chatraj-backend.onrender.com';
     console.log('Requesting /csrf-token...');
     const tokenResp = await fetchWithCookies(`${base}/csrf-token`);
     console.log('csrf-token status', tokenResp.status);
