@@ -44,9 +44,10 @@ async function fetchWithCookies(url, options = {}, cookies = '') {
     try {
       json = tokenResp.body ? JSON.parse(tokenResp.body) : {};
     } catch (err) {
-      console.error('Failed to parse /csrf-token JSON response:', err);
-      console.error('Response body:', tokenResp.body);
-      process.exit(1);
+      const parseErr = new Error('Failed to parse /csrf-token JSON response');
+      parseErr.cause = err;
+      parseErr.details = { body: tokenResp.body, status: tokenResp.status, headers: tokenResp.headers };
+      throw parseErr;
     }
 
     const csrfToken = json.csrfToken;
@@ -54,12 +55,14 @@ async function fetchWithCookies(url, options = {}, cookies = '') {
     console.log('csrfToken', csrfToken ? 'present' : 'missing', 'signed', signed ? 'present' : 'missing');
 
     if (!csrfToken) {
-      console.error('No csrfToken returned from /csrf-token; aborting test.');
-      process.exit(1);
+      const err = new Error('No csrfToken returned from /csrf-token; aborting test.');
+      err.details = { status: tokenResp.status, headers: tokenResp.headers, body: tokenResp.body };
+      throw err;
     }
     if (!setCookie) {
-      console.error('No Set-Cookie header returned from /csrf-token; cookies may be blocked. Aborting.');
-      process.exit(1);
+      const err = new Error('No Set-Cookie header returned from /csrf-token; cookies may be blocked. Aborting.');
+      err.details = { status: tokenResp.status, headers: tokenResp.headers, body: tokenResp.body };
+      throw err;
     }
 
     const testEmail = `test+${Date.now()}@example.com`;
@@ -72,8 +75,9 @@ async function fetchWithCookies(url, options = {}, cookies = '') {
 
     // Fail fast on unexpected HTTP status codes so test failures are obvious
     if (registerResp.status < 200 || registerResp.status >= 300) {
-      console.error('Registration failed with unexpected status', { status: registerResp.status, body: registerResp.body });
-      process.exit(1);
+      const statusErr = new Error('Registration failed with unexpected status ' + registerResp.status);
+      statusErr.details = { status: registerResp.status, headers: registerResp.headers, body: registerResp.body };
+      throw statusErr;
     }
 
     // Registration endpoint is expected to return JSON in normal operation.
@@ -82,11 +86,22 @@ async function fetchWithCookies(url, options = {}, cookies = '') {
       const parsed = registerResp.body ? JSON.parse(registerResp.body) : {};
       console.log('Parsed register JSON:', parsed);
     } catch (err) {
-      console.error('Registration response is not valid JSON:', { error: err, body: registerResp.body });
-      process.exit(1);
+      const parseErr = new Error('Registration response is not valid JSON');
+      parseErr.details = {
+        error: err,
+        status: registerResp.status,
+        headers: {
+          'content-type': registerResp.headers?.['content-type'] ?? registerResp.headers?.['Content-Type'],
+          location: registerResp.headers?.location ?? registerResp.headers?.Location,
+          raw: registerResp.headers,
+        },
+        body: registerResp.body,
+      };
+      throw parseErr;
     }
   } catch (e) {
     console.error('test script error', e);
+    if (e && e.details) console.error('details:', e.details);
     process.exit(1);
   }
 })();
