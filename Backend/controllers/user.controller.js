@@ -74,16 +74,22 @@ export const createUserController = async (req, res) => {
             return res.status(201).json({ message: 'OTP sent to email. Please verify.', userId: user._id });
         } catch (emailErr) {
             console.error('sendOtpEmail error:', emailErr && emailErr.message ? emailErr.message : emailErr);
-            // Only include OTP in API responses when it's explicitly allowed
-            // (development/test or EXPOSE_OTP=true). This prevents accidental
-            // leakage when `NODE_ENV` is unset on hosted environments.
-            if (shouldExposeOtpToClient()) {
-                return res.status(201).json({ message: 'Account created but failed to send verification email (SMTP error). OTP included for local testing.', userId: user._id, otp });
+            // Never include the OTP in API responses. If operators explicitly
+            // need the OTP for debugging, enable `EXPOSE_OTP=true` in a safe
+            // environment and inspect server logs — but do NOT return it to
+            // the client to avoid accidental leakage.
+            if (String(process.env.EXPOSE_OTP || '').toLowerCase() === 'true' && String(process.env.CI || '').toLowerCase() !== 'true') {
+                try {
+                    // Log only a masked version of the OTP to avoid plain-text
+                    // leakage in logs: show length and the first/last char.
+                    const masked = typeof otp === 'string' && otp.length > 2 ? `${otp[0]}***${otp[otp.length-1]}` : '<redacted>';
+                    console.warn(`OTP (masked) for ${user.email}: ${masked}`);
+                } catch (logErr) {
+                    console.warn('Failed to mask OTP for logs');
+                }
             }
-            // In production or when exposure isn't allowed, do not include
-            // the OTP in the response. Log the SMTP error server-side and
-            // return a generic message to the client.
             return res.status(201).json({ message: 'Account created. We could not send a verification email — please contact support or try again later.', userId: user._id });
+        }
         }
     } catch (error) {
         console.error('createUserController error:', error && error.message ? error.message : error);
