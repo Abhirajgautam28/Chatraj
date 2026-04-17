@@ -34,6 +34,15 @@ import { normalizeEmail } from '../utils/email.js';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 dotenv.config();
+
+// Decide whether it's safe to expose OTPs to API responses. Defaults to
+// conservative behavior (don't expose) unless explicitly allowed via
+// `EXPOSE_OTP=true` or when running in clear development/test modes.
+function shouldExposeOtpToClient() {
+    if (String(process.env.EXPOSE_OTP).toLowerCase() === 'true') return true;
+    const env = String(process.env.NODE_ENV || 'production').toLowerCase();
+    return env === 'development' || env === 'test';
+}
 // Helper: escape user-supplied text before inserting into HTML templates
 function escapeHtml(unsafe) {
     if (unsafe === undefined || unsafe === null) return '';
@@ -72,14 +81,15 @@ export const createUserController = async (req, res) => {
             return res.status(201).json({ message: 'OTP sent to email. Please verify.', userId: user._id });
         } catch (emailErr) {
             console.error('sendOtpEmail error:', emailErr && emailErr.message ? emailErr.message : emailErr);
-            // In non-production expose the OTP to the client so local dev and
-            // testing can continue without a working SMTP provider. Never
-            // include OTP in production responses.
-            if (process.env.NODE_ENV !== 'production') {
+            // Only include OTP in API responses when it's explicitly allowed
+            // (development/test or EXPOSE_OTP=true). This prevents accidental
+            // leakage when `NODE_ENV` is unset on hosted environments.
+            if (shouldExposeOtpToClient()) {
                 return res.status(201).json({ message: 'Account created but failed to send verification email (SMTP error). OTP included for local testing.', userId: user._id, otp });
             }
-            // In production, return a success but tell the client we couldn't
-            // send the email so the user can contact support or retry later.
+            // In production or when exposure isn't allowed, do not include
+            // the OTP in the response. Log the SMTP error server-side and
+            // return a generic message to the client.
             return res.status(201).json({ message: 'Account created. We could not send a verification email — please contact support or try again later.', userId: user._id });
         }
     } catch (error) {
