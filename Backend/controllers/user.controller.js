@@ -61,44 +61,62 @@ export const createUserController = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
     try {
-        // Generate OTP
-        const otp = generateOTP(7);
-        // Create user with OTP and isVerified false
-        const user = await userService.createUser({ ...req.body, otp, isVerified: false });
+        const { firstName, lastName, email, password, googleApiKey } = req.body;
+        const { value: normalizedEmail, isValid } = normalizeEmail(email);
+        if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
 
-        // Attempt to send OTP email but do NOT fail registration if email
-        // delivery fails (makes local development and flaky SMTP less painful).
+        // If a verified user already exists, reject immediately.
+        const existing = await userModel.findOne({ email: normalizedEmail }).select('+isVerified');
+        if (existing && existing.isVerified) {
+            return res.status(409).json({ message: 'Email already registered. Please login to your existing account.' });
+        }
+
+        // If an unverified user exists from an older run, remove it so
+        // we don't block re-registration (we will keep pending state in Redis).
+        if (existing && !existing.isVerified) {
+            try {
+                await userModel.deleteOne({ _id: existing._id });
+            } catch (delErr) {
+                console.warn('Failed to remove stale unverified user:', delErr && delErr.message ? delErr.message : delErr);
+            }
+        }
+
+        // Hash the password now so we can safely persist pending state
+        // in Redis without storing plaintext passwords.
+        const hashedPassword = await userModel.hashPassword(password);
+        const otp = generateOTP(7);
+
+        // Try to send the OTP email before persisting user data.
         try {
-            await sendOtpEmail(user.email, otp);
-            // success
-            return res.status(201).json({ message: 'OTP sent to email. Please verify.', userId: user._id });
+            await sendOtpEmail(normalizedEmail, otp);
         } catch (emailErr) {
             console.error('sendOtpEmail error:', emailErr && emailErr.message ? emailErr.message : emailErr);
-            // Never include the OTP in API responses. If operators explicitly
-            // need the OTP for debugging, enable `EXPOSE_OTP=true` in a safe
-            // environment and inspect server logs — but do NOT return it to
-            // the client to avoid accidental leakage.
-            if (shouldExposeOtpToClient()) {
-                try {
-                    // Log only a masked version of the OTP to avoid plain-text
-                    // leakage in logs: show length and the first/last char.
-                    const masked = typeof otp === 'string' && otp.length > 2 ? `${otp[0]}***${otp[otp.length-1]}` : '<redacted>';
-                    console.warn(`OTP (masked) for ${user.email}: ${masked}`);
-                } catch (logErr) {
-                    console.warn('Failed to mask OTP for logs');
-                }
-            }
-            return res.status(201).json({ message: 'Account created. We could not send a verification email — please contact support or try again later.', userId: user._id });
+            return res.status(502).json({ message: 'Failed to send verification email. Please try again later.' });
         }
+
+        // Persist pending registration in Redis with TTL so unverified
+        // accounts are not stored in MongoDB until the user verifies.
+        const pendingKey = `pending:registration:${normalizedEmail}`;
+        const pending = {
+            firstName,
+            lastName,
+            email: normalizedEmail,
+            passwordHash: hashedPassword,
+            googleApiKey,
+            otp,
+            createdAt: Date.now()
+        };
+        const ttl = parseInt(process.env.REGISTRATION_OTP_TTL_SECONDS || '900', 10);
+        await redisClient.set(pendingKey, JSON.stringify(pending), 'EX', ttl);
+        return res.status(201).json({ message: 'OTP sent to email. Please verify.' });
     } catch (error) {
         console.error('createUserController error:', error && error.message ? error.message : error);
-        // Handle duplicate key (email already registered) explicitly so the
-        // frontend can show a helpful message to the user.
+        // If duplicate key error occurred during a DB op elsewhere, treat
+        // it as a conflict for the client.
         if (error && (error.code === 11000 || error.name === 'MongoServerError') && error.keyValue && error.keyValue.email) {
             return res.status(409).json({ message: 'Email already registered. Please login to your existing account.' });
         }
 
-        // Fallback generic error
         return res.status(400).json({ message: 'Invalid request' });
     }
 }
@@ -150,6 +168,53 @@ export const verifyOtpController = async (req, res) => {
         const { value: normalizedEmail, isValid } = normalizeEmail(email);
         if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
         user = await userModel.findOne({ email: normalizedEmail }).select('+otp');
+        // If user not found in DB, check for a pending registration stored in Redis
+        // (we persist pending registrations there until the user verifies via OTP).
+        if (!user) {
+            try {
+                const pendingKey = `pending:registration:${normalizedEmail}`;
+                const pendingJson = await redisClient.get(pendingKey);
+                if (pendingJson) {
+                    const pending = JSON.parse(pendingJson);
+                    if (pending.otp !== otp) return res.status(401).json({ message: 'Invalid OTP' });
+
+                    // Create the real user record from pending values.
+                    try {
+                        const created = await userModel.create({
+                            firstName: pending.firstName,
+                            lastName: pending.lastName,
+                            email: pending.email,
+                            password: pending.passwordHash,
+                            googleApiKey: pending.googleApiKey,
+                            isVerified: true,
+                        });
+                        // remove pending key
+                        await redisClient.del(pendingKey);
+                        // generate token for the newly created user
+                        const token = await created.generateJWT();
+                        // hide password before returning
+                        if (created._doc) delete created._doc.password;
+                        return res.status(200).json({ message: 'Verified successfully', token, user: created });
+                    } catch (createErr) {
+                        console.error('Error creating user from pending registration:', createErr && createErr.message ? createErr.message : createErr);
+                        // If a duplicate key was created in a race, try to mark existing user as verified
+                        if (createErr && (createErr.code === 11000 || createErr.name === 'MongoServerError')) {
+                            const existingUser = await userModel.findOne({ email: normalizedEmail }).select('+otp');
+                            if (existingUser) {
+                                existingUser.isVerified = true;
+                                existingUser.otp = undefined;
+                                await existingUser.save();
+                                const token = await existingUser.generateJWT();
+                                return res.status(200).json({ message: 'Verified successfully', token, user: existingUser });
+                            }
+                        }
+                        return res.status(500).json({ message: 'Failed to create account' });
+                    }
+                }
+            } catch (redisErr) {
+                console.error('Error checking pending registration in Redis:', redisErr && redisErr.message ? redisErr.message : redisErr);
+            }
+        }
     }
     if (!user) return res.status(404).json({ message: 'User not found' });
     if (user.otp !== otp) return res.status(401).json({ message: 'Invalid OTP' });
@@ -179,10 +244,50 @@ export const adminGetOtpController = async (req, res) => {
             const { value: normalizedEmail, isValid } = normalizeEmail(email);
             if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
             user = await userModel.findOne({ email: normalizedEmail }).select('+otp');
+            // If not in DB, check for a pending registration in Redis
+            if (!user) {
+                try {
+                    const pendingKey = `pending:registration:${normalizedEmail}`;
+                    const pendingJson = await redisClient.get(pendingKey);
+                    if (pendingJson) {
+                        const pending = JSON.parse(pendingJson);
+                        // synthesize a minimal user-like object for masking
+                        user = { _id: null, email: normalizedEmail, otp: pending.otp };
+                    }
+                } catch (redisErr) {
+                    console.error('Failed to read pending registration for admin OTP:', redisErr && redisErr.message ? redisErr.message : redisErr);
+                }
+            }
         }
         if (!user) return res.status(404).json({ message: 'User not found' });
         const otp = user.otp;
         const masked = typeof otp === 'string' && otp.length > 2 ? `${otp[0]}***${otp[otp.length - 1]}` : '<redacted>';
+
+        // Audit access: log who requested this and what they requested.
+        try {
+            const requesterIp = req.ip || req.headers['x-forwarded-for'] || req.connection && req.connection.remoteAddress;
+            const adminMasked = typeof adminKey === 'string' ? `***${adminKey.slice(-4)}` : '<none>';
+            const audit = {
+                timestamp: new Date().toISOString(),
+                requesterIp,
+                adminKey: adminMasked,
+                queried: { email: user.email, userId: user._id }
+            };
+            console.info('admin-otp-audit', JSON.stringify(audit));
+            // Also append to disk log for persistence
+            try {
+                const fs = await import('fs');
+                const logPath = 'logs/admin_otp_audit.log';
+                const line = JSON.stringify(audit) + '\n';
+                fs.appendFile(logPath, line, (err) => {
+                    if (err) console.warn('Failed to append admin audit log:', err && err.message ? err.message : err);
+                });
+            } catch (fileErr) {
+                console.warn('Unable to write admin audit log file:', fileErr && fileErr.message ? fileErr.message : fileErr);
+            }
+        } catch (auditErr) {
+            console.warn('Failed to produce admin audit log:', auditErr && auditErr.message ? auditErr.message : auditErr);
+        }
         return res.status(200).json({ userId: user._id, email: user.email, maskedOtp: masked });
     } catch (err) {
         console.error('adminGetOtpController error:', err);

@@ -5,6 +5,8 @@ const DEFAULT_RETRIES = Math.max(1, parseInt(process.env.SMTP_RETRY_COUNT || '3'
 const DEFAULT_BACKOFF_MS = parseInt(process.env.SMTP_RETRY_BACKOFF_MS || '500', 10);
 
 let transporterInstance = null;
+let transporterConfigHash = null;
+let webhookActiveCount = 0;
 
 function missingSmtpKeys() {
   const missing = [];
@@ -15,13 +17,20 @@ function missingSmtpKeys() {
 }
 
 function createTransporter() {
-  if (transporterInstance) return transporterInstance;
+  const cfgHash = `${process.env.SMTP_HOST || ''}|${process.env.SMTP_USER || ''}|${process.env.SMTP_PASS || ''}|${process.env.SMTP_PORT || ''}`;
+  // Recreate transporter if config changed
+  if (transporterInstance && transporterConfigHash === cfgHash) return transporterInstance;
   const missing = missingSmtpKeys();
   if (missing.length) {
     throw new Error(`SMTP configuration missing: ${missing.join(', ')}`);
   }
   const port = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587;
   const secure = port === 465;
+  // Close old transporter if present
+  if (transporterInstance && typeof transporterInstance.close === 'function') {
+    try { transporterInstance.close(); } catch (e) { /* ignore */ }
+  }
+
   transporterInstance = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port,
@@ -32,6 +41,7 @@ function createTransporter() {
     },
     connectionTimeout: parseInt(process.env.SMTP_CONNECTION_TIMEOUT_MS || '10000', 10),
   });
+  transporterConfigHash = cfgHash;
   return transporterInstance;
 }
 
@@ -45,6 +55,17 @@ function verifyTransporter(transporter) {
 }
 
 async function sendWebhookNotification(webhookUrl, payload) {
+  // Throttle concurrent webhook notifications to avoid stampeding external
+  // services when SMTP is failing hard. If throttled, we drop the notification
+  // and log a warning — this is a best-effort alerting mechanism.
+  const maxConcurrent = parseInt(process.env.SMTP_FAILURE_WEBHOOK_MAX_CONCURRENT || '2', 10);
+  const timeoutMs = parseInt(process.env.SMTP_FAILURE_WEBHOOK_TIMEOUT_MS || '5000', 10);
+  if (webhookActiveCount >= maxConcurrent) {
+    console.warn('SMTP failure webhook skipped because concurrency limit reached');
+    return;
+  }
+
+  webhookActiveCount += 1;
   try {
     const u = new URL(webhookUrl);
     const lib = u.protocol === 'https:' ? await import('https') : await import('http');
@@ -66,11 +87,21 @@ async function sendWebhookNotification(webhookUrl, payload) {
         res.on('end', resolve);
       });
       req.on('error', reject);
-      req.write(body);
+      // Timeout handling
+      req.setTimeout(timeoutMs, () => {
+        req.destroy(new Error('Webhook request timed out'));
+      });
+      try {
+        req.write(body);
+      } catch (writeErr) {
+        reject(writeErr);
+      }
       req.end();
     });
   } catch (err) {
     console.error('SMTP failure webhook notify failed:', err && err.message ? err.message : err);
+  } finally {
+    webhookActiveCount = Math.max(0, webhookActiveCount - 1);
   }
 }
 
