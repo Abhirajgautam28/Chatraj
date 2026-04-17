@@ -86,14 +86,6 @@ export const createUserController = async (req, res) => {
         const hashedPassword = await userModel.hashPassword(password);
         const otp = generateOTP(7);
 
-        // Try to send the OTP email before persisting user data.
-        try {
-            await sendOtpEmail(normalizedEmail, otp);
-        } catch (emailErr) {
-            console.error('sendOtpEmail error:', emailErr && emailErr.message ? emailErr.message : emailErr);
-            return res.status(502).json({ message: 'Failed to send verification email. Please try again later.' });
-        }
-
         // Persist pending registration in Redis with TTL so unverified
         // accounts are not stored in MongoDB until the user verifies.
         const pendingKey = `pending:registration:${normalizedEmail}`;
@@ -108,7 +100,46 @@ export const createUserController = async (req, res) => {
         };
         const ttl = parseInt(process.env.REGISTRATION_OTP_TTL_SECONDS || '900', 10);
         await redisClient.set(pendingKey, JSON.stringify(pending), 'EX', ttl);
-        return res.status(201).json({ message: 'OTP sent to email. Please verify.' });
+
+        // Attempt to send OTP email immediately. If sending fails, we keep
+        // the pending registration in Redis and schedule background retries
+        // so the user can still verify once delivery succeeds.
+        try {
+            await sendOtpEmail(normalizedEmail, otp);
+            return res.status(201).json({ message: 'OTP sent to email. Please verify.' });
+        } catch (emailErr) {
+            console.error('sendOtpEmail error (will retry in background):', emailErr && emailErr.message ? emailErr.message : emailErr);
+
+            // Background retry loop (best-effort; survives only while process runs).
+            (async function backgroundResend(attempt) {
+                const maxAttempts = parseInt(process.env.REGISTRATION_SEND_RETRY_ATTEMPTS || '5', 10);
+                const initialBackoff = parseInt(process.env.REGISTRATION_SEND_RETRY_BACKOFF_MS || '2000', 10);
+                try {
+                    if (attempt > maxAttempts) {
+                        console.error(`Background resend exhausted for ${normalizedEmail}`);
+                        return;
+                    }
+                    const wait = initialBackoff * Math.pow(2, attempt - 1);
+                    // wait before retry except on first immediate retry
+                    if (attempt > 1) await new Promise(r => setTimeout(r, wait));
+                    const latestPendingJson = await redisClient.get(pendingKey);
+                    if (!latestPendingJson) {
+                        // pending cleared (maybe user verified)
+                        return;
+                    }
+                    const latest = JSON.parse(latestPendingJson);
+                    await sendOtpEmail(latest.email, latest.otp);
+                    // on success, remove pending and stop
+                    try { await redisClient.del(pendingKey); } catch (e) { /* ignore */ }
+                    console.info(`Background resend succeeded for ${normalizedEmail}`);
+                } catch (err) {
+                    console.error('Background resend attempt failed:', err && err.message ? err.message : err);
+                    setTimeout(() => backgroundResend(attempt + 1), 0);
+                }
+            })(1);
+
+            return res.status(201).json({ message: 'OTP delivery queued. If you do not receive the email shortly, please check spam or try again.' });
+        }
     } catch (error) {
         console.error('createUserController error:', error && error.message ? error.message : error);
         // If duplicate key error occurred during a DB op elsewhere, treat

@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { URL } from 'url';
+import { Buffer } from 'buffer';
 
 const DEFAULT_RETRIES = Math.max(1, parseInt(process.env.SMTP_RETRY_COUNT || '3', 10));
 const DEFAULT_BACKOFF_MS = parseInt(process.env.SMTP_RETRY_BACKOFF_MS || '500', 10);
@@ -52,6 +53,87 @@ function verifyTransporter(transporter) {
       return resolve(success);
     });
   });
+}
+
+async function sendViaSendGrid(mailOptions) {
+  if (!process.env.SENDGRID_API_KEY) throw new Error('SendGrid API key not configured');
+  const parseAddress = (addr) => {
+    if (!addr) return 'no-reply@chatraj.com';
+    const match = /<([^>]+)>/.exec(addr);
+    if (match) return match[1];
+    return addr.includes('@') ? addr : 'no-reply@chatraj.com';
+  };
+
+  const payload = {
+    personalizations: [
+      {
+        to: [
+          {
+            email: parseAddress(mailOptions.to),
+          },
+        ],
+      },
+    ],
+    from: {
+      email: parseAddress(mailOptions.from || process.env.SMTP_FROM || 'no-reply@chatraj.com'),
+    },
+    subject: mailOptions.subject || '(no subject)',
+    content: [],
+  };
+
+  if (mailOptions.text) payload.content.push({ type: 'text/plain', value: mailOptions.text });
+  if (mailOptions.html) payload.content.push({ type: 'text/html', value: mailOptions.html });
+  if (!payload.content.length) payload.content.push({ type: 'text/plain', value: '' });
+
+  const u = new URL('https://api.sendgrid.com/v3/mail/send');
+  const lib = u.protocol === 'https:' ? await import('https') : await import('http');
+  const body = JSON.stringify(payload);
+  const opts = {
+    method: 'POST',
+    hostname: u.hostname,
+    port: u.port || 443,
+    path: u.pathname,
+    headers: {
+      Authorization: `Bearer ${process.env.SENDGRID_API_KEY}`,
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(body),
+    },
+  };
+
+  await new Promise((resolve, reject) => {
+    const req = lib.request(opts, (res) => {
+      const chunks = [];
+      res.on('data', (c) => chunks.push(c));
+      res.on('end', () => {
+        const buf = Buffer.concat(chunks);
+        if (res.statusCode >= 200 && res.statusCode < 300) return resolve();
+        return reject(new Error(`SendGrid failed: ${res.statusCode} ${buf.toString()}`));
+      });
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+  console.info('SendGrid: message queued to %s', mailOptions.to);
+}
+
+async function sendViaEthereal(mailOptions) {
+  // Development-only fallback using Ethereal (nodemailer test SMTP)
+  const testAccount = await nodemailer.createTestAccount();
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.ethereal.email',
+    port: 587,
+    secure: false,
+    auth: { user: testAccount.user, pass: testAccount.pass },
+  });
+  const info = await transporter.sendMail(mailOptions);
+  try {
+    const url = nodemailer.getTestMessageUrl(info);
+    console.info('Ethereal message URL:', url);
+  } catch (e) {
+    // ignore
+  }
+  return info;
 }
 
 async function sendWebhookNotification(webhookUrl, payload) {
@@ -109,34 +191,62 @@ export async function sendMailWithRetry(mailOptions, opts = {}) {
   const retries = Math.max(1, (typeof opts.retries === 'number' ? opts.retries : DEFAULT_RETRIES));
   const backoff = typeof opts.backoff === 'number' ? opts.backoff : DEFAULT_BACKOFF_MS;
 
-  const transporter = createTransporter();
-
-  // Best-effort verify; some providers may not support verify(), but
-  // a failure here is only informational — we still attempt to send.
-  try {
-    await verifyTransporter(transporter);
-  } catch (err) {
-    console.error('SMTP verify failed (continuing to send attempts):', err && err.message ? err.message : err);
-  }
+  const hasSmtp = missingSmtpKeys().length === 0;
+  const hasSendGrid = Boolean(process.env.SENDGRID_API_KEY && process.env.SENDGRID_API_KEY.trim());
+  const allowEthereal = Boolean(process.env.EMAIL_TEST_FALLBACK === 'true' || (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production'));
 
   let lastErr = null;
+
   for (let attempt = 1; attempt <= retries; attempt++) {
-    try {
-      const info = await transporter.sendMail(mailOptions);
-      console.info('SMTP: message sent to %s (messageId=%s)', mailOptions.to, info && info.messageId ? info.messageId : 'unknown');
-      return info;
-    } catch (err) {
-      lastErr = err;
-      console.error(`SMTP send attempt ${attempt} failed:`, err && err.message ? err.message : err);
-      if (attempt < retries) {
-        const wait = backoff * Math.pow(2, attempt - 1);
-        // eslint-disable-next-line no-await-in-loop
-        await new Promise((resolve) => setTimeout(resolve, wait));
+    // Try SMTP first if configured
+    if (hasSmtp) {
+      try {
+        const transporter = createTransporter();
+        try {
+          await verifyTransporter(transporter);
+        } catch (vErr) {
+          console.error('SMTP verify failed (continuing to send attempts):', vErr && vErr.message ? vErr.message : vErr);
+        }
+        const info = await transporter.sendMail(mailOptions);
+        console.info('SMTP: message sent to %s (messageId=%s)', mailOptions.to, info && info.messageId ? info.messageId : 'unknown');
+        return info;
+      } catch (err) {
+        lastErr = err;
+        console.error(`SMTP send attempt ${attempt} failed:`, err && err.message ? err.message : err);
       }
+    }
+
+    // Try SendGrid next if available
+    if (hasSendGrid) {
+      try {
+        await sendViaSendGrid(mailOptions);
+        return { provider: 'sendgrid', to: mailOptions.to };
+      } catch (err) {
+        lastErr = err;
+        console.error(`SendGrid attempt ${attempt} failed:`, err && err.message ? err.message : err);
+      }
+    }
+
+    // Development ethereal fallback
+    if (allowEthereal) {
+      try {
+        const info = await sendViaEthereal(mailOptions);
+        console.info('Ethereal: message sent to %s (id=%s)', mailOptions.to, info && info.messageId ? info.messageId : 'unknown');
+        return info;
+      } catch (err) {
+        lastErr = err;
+        console.error(`Ethereal attempt ${attempt} failed:`, err && err.message ? err.message : err);
+      }
+    }
+
+    if (attempt < retries) {
+      const wait = backoff * Math.pow(2, attempt - 1);
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((resolve) => setTimeout(resolve, wait));
     }
   }
 
-  // Optionally notify an external webhook that SMTP failed repeatedly.
+  // Optionally notify an external webhook that SMTP/SendGrid failed repeatedly.
   if (process.env.SMTP_FAILURE_WEBHOOK) {
     try {
       await sendWebhookNotification(process.env.SMTP_FAILURE_WEBHOOK, {
@@ -151,7 +261,7 @@ export async function sendMailWithRetry(mailOptions, opts = {}) {
   }
 
   if (lastErr) throw lastErr;
-  throw new Error('SMTP send failed after attempts but no error captured');
+  throw new Error('No email provider configured (SMTP or SENDGRID) and ethereal fallback not allowed');
 }
 
 export default {
