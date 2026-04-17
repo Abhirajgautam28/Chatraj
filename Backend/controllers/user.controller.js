@@ -78,7 +78,7 @@ export const createUserController = async (req, res) => {
             // need the OTP for debugging, enable `EXPOSE_OTP=true` in a safe
             // environment and inspect server logs — but do NOT return it to
             // the client to avoid accidental leakage.
-            if (String(process.env.EXPOSE_OTP || '').toLowerCase() === 'true' && String(process.env.CI || '').toLowerCase() !== 'true') {
+            if (shouldExposeOtpToClient()) {
                 try {
                     // Log only a masked version of the OTP to avoid plain-text
                     // leakage in logs: show length and the first/last char.
@@ -89,7 +89,6 @@ export const createUserController = async (req, res) => {
                 }
             }
             return res.status(201).json({ message: 'Account created. We could not send a verification email — please contact support or try again later.', userId: user._id });
-        }
         }
     } catch (error) {
         console.error('createUserController error:', error && error.message ? error.message : error);
@@ -160,6 +159,35 @@ export const verifyOtpController = async (req, res) => {
     let token = null;
     if (userId) token = await user.generateJWT();
     res.status(200).json({ message: 'Verified successfully', token, user });
+};
+
+// Admin-only: retrieve masked OTP for debugging. Requires `ADMIN_API_KEY`
+export const adminGetOtpController = async (req, res) => {
+    try {
+        const adminKey = req.get('x-admin-key');
+        if (!process.env.ADMIN_API_KEY) return res.status(403).json({ message: 'Admin API key not configured on server' });
+        if (!adminKey || adminKey !== process.env.ADMIN_API_KEY) return res.status(403).json({ message: 'Forbidden' });
+
+        const { email, userId } = req.query;
+        if (!email && !userId) return res.status(400).json({ message: 'Provide email or userId' });
+
+        let user;
+        if (userId) {
+            if (typeof userId !== 'string' || !mongoose.Types.ObjectId.isValid(userId)) return res.status(400).json({ message: 'Invalid userId' });
+            user = await userModel.findById(userId).select('+otp');
+        } else {
+            const { value: normalizedEmail, isValid } = normalizeEmail(email);
+            if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
+            user = await userModel.findOne({ email: normalizedEmail }).select('+otp');
+        }
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        const otp = user.otp;
+        const masked = typeof otp === 'string' && otp.length > 2 ? `${otp[0]}***${otp[otp.length - 1]}` : '<redacted>';
+        return res.status(200).json({ userId: user._id, email: user.email, maskedOtp: masked });
+    } catch (err) {
+        console.error('adminGetOtpController error:', err);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
 };
 
 export const loginController = async (req, res) => {
