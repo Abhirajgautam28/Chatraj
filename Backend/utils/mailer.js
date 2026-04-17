@@ -1,15 +1,28 @@
 import nodemailer from 'nodemailer';
+import { URL } from 'url';
 
-const DEFAULT_RETRIES = parseInt(process.env.SMTP_RETRY_COUNT || '3', 10);
+const DEFAULT_RETRIES = Math.max(1, parseInt(process.env.SMTP_RETRY_COUNT || '3', 10));
 const DEFAULT_BACKOFF_MS = parseInt(process.env.SMTP_RETRY_BACKOFF_MS || '500', 10);
 
+let transporterInstance = null;
+
+function missingSmtpKeys() {
+  const missing = [];
+  if (!process.env.SMTP_HOST) missing.push('SMTP_HOST');
+  if (!process.env.SMTP_USER) missing.push('SMTP_USER');
+  if (!process.env.SMTP_PASS) missing.push('SMTP_PASS');
+  return missing;
+}
+
 function createTransporter() {
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    throw new Error('SMTP configuration missing (SMTP_HOST/SMTP_USER/SMTP_PASS)');
+  if (transporterInstance) return transporterInstance;
+  const missing = missingSmtpKeys();
+  if (missing.length) {
+    throw new Error(`SMTP configuration missing: ${missing.join(', ')}`);
   }
   const port = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587;
   const secure = port === 465;
-  return nodemailer.createTransport({
+  transporterInstance = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port,
     secure,
@@ -19,6 +32,7 @@ function createTransporter() {
     },
     connectionTimeout: parseInt(process.env.SMTP_CONNECTION_TIMEOUT_MS || '10000', 10),
   });
+  return transporterInstance;
 }
 
 function verifyTransporter(transporter) {
@@ -30,8 +44,38 @@ function verifyTransporter(transporter) {
   });
 }
 
+async function sendWebhookNotification(webhookUrl, payload) {
+  try {
+    const u = new URL(webhookUrl);
+    const lib = u.protocol === 'https:' ? await import('https') : await import('http');
+    const body = JSON.stringify(payload);
+    const opts = {
+      method: 'POST',
+      hostname: u.hostname,
+      port: u.port || (u.protocol === 'https:' ? 443 : 80),
+      path: u.pathname + (u.search || ''),
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
+      },
+    };
+    await new Promise((resolve, reject) => {
+      const req = lib.request(opts, (res) => {
+        // consume response
+        res.on('data', () => {});
+        res.on('end', resolve);
+      });
+      req.on('error', reject);
+      req.write(body);
+      req.end();
+    });
+  } catch (err) {
+    console.error('SMTP failure webhook notify failed:', err && err.message ? err.message : err);
+  }
+}
+
 export async function sendMailWithRetry(mailOptions, opts = {}) {
-  const retries = typeof opts.retries === 'number' ? opts.retries : DEFAULT_RETRIES;
+  const retries = Math.max(1, (typeof opts.retries === 'number' ? opts.retries : DEFAULT_RETRIES));
   const backoff = typeof opts.backoff === 'number' ? opts.backoff : DEFAULT_BACKOFF_MS;
 
   const transporter = createTransporter();
@@ -60,7 +104,23 @@ export async function sendMailWithRetry(mailOptions, opts = {}) {
       }
     }
   }
-  throw lastErr;
+
+  // Optionally notify an external webhook that SMTP failed repeatedly.
+  if (process.env.SMTP_FAILURE_WEBHOOK) {
+    try {
+      await sendWebhookNotification(process.env.SMTP_FAILURE_WEBHOOK, {
+        timestamp: new Date().toISOString(),
+        to: mailOptions.to,
+        subject: mailOptions.subject,
+        error: (lastErr && (lastErr.message || String(lastErr))) || 'unknown',
+      });
+    } catch (notifyErr) {
+      console.error('Failed to send SMTP failure notification:', notifyErr && notifyErr.message ? notifyErr.message : notifyErr);
+    }
+  }
+
+  if (lastErr) throw lastErr;
+  throw new Error('SMTP send failed after attempts but no error captured');
 }
 
 export default {
