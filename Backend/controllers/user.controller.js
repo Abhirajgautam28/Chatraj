@@ -31,18 +31,11 @@ export const getLeaderboardController = async (req, res) => {
 };
 import userModel from '../models/user.model.js';
 import { normalizeEmail } from '../utils/email.js';
-import nodemailer from 'nodemailer';
+import { shouldExposeOtpToClient } from '../utils/security.js';
+import { sendMailWithRetry } from '../utils/mailer.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Decide whether it's safe to expose OTPs to API responses. Defaults to
-// conservative behavior (don't expose) unless explicitly allowed via
-// `EXPOSE_OTP=true` or when running in clear development/test modes.
-function shouldExposeOtpToClient() {
-    if (String(process.env.EXPOSE_OTP).toLowerCase() === 'true') return true;
-    const env = String(process.env.NODE_ENV || 'production').toLowerCase();
-    return env === 'development' || env === 'test';
-}
 // Helper: escape user-supplied text before inserting into HTML templates
 function escapeHtml(unsafe) {
     if (unsafe === undefined || unsafe === null) return '';
@@ -121,26 +114,20 @@ async function sendOtpEmail(email, otp) {
     // In test environments skip sending real emails to avoid external
     // dependencies and flaky failures when SMTP creds are not configured.
     if (process.env.NODE_ENV === 'test') {
-        console.log('Skipping email send in test environment (OTP:', otp, ')');
+        console.log('Skipping email send in test environment');
         return;
     }
 
-    const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587,
-        secure: false,
-        auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
-        },
-    });
-    let info = await transporter.sendMail({
+    const mailOptions = {
         from: process.env.SMTP_FROM || 'ChatRaj <no-reply@chatraj.com>',
         to: email,
         subject: 'Your ChatRaj OTP Verification',
-        text: `Welcome to ChatRaj!\n\nYour OTP is: ${otp}\n\nPlease enter this code in the registration popup to activate your account.`
-    });
-    console.log('OTP email sent: %s', info.messageId);
+        text: `Welcome to ChatRaj!\n\nYour OTP is: ${otp}\n\nPlease enter this code in the registration popup to activate your account.`,
+    };
+
+    // Use robust send with retry/backoff. Any thrown error will be
+    // propagated to the caller so registration flow can respond safely.
+    await sendMailWithRetry(mailOptions);
 }
 
 // OTP verification for both registration (userId) and password reset (email)
@@ -304,15 +291,6 @@ async function sendPasswordResetSuccessEmail(email, name) {
         return;
     }
 
-    const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587,
-        secure: false,
-        auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
-        },
-    });
     const html = `
       <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f4f8fc; padding: 40px; border-radius: 16px; color: #222; box-shadow: 0 4px 24px rgba(37,99,235,0.08);">
         <div style="text-align:center;">
@@ -340,11 +318,11 @@ async function sendPasswordResetSuccessEmail(email, name) {
         </div>
       </div>
     `;
-    let info = await transporter.sendMail({
+    const mailOptions = {
         from: process.env.SMTP_FROM || 'ChatRaj <no-reply@chatraj.com>',
         to: typeof email === 'string' ? email.trim() : email,
         subject: 'Your ChatRaj Password Has Been Reset',
-        html
-    });
-    console.log('Password reset success email sent: %s', info.messageId);
+        html,
+    };
+    await sendMailWithRetry(mailOptions);
 }
