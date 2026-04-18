@@ -1,6 +1,8 @@
 import nodemailer from 'nodemailer';
 import { URL } from 'url';
 import { Buffer } from 'buffer';
+import https from 'https';
+import http from 'http';
 
 const DEFAULT_RETRIES = Math.max(1, parseInt(process.env.SMTP_RETRY_COUNT || '3', 10));
 const DEFAULT_BACKOFF_MS = parseInt(process.env.SMTP_RETRY_BACKOFF_MS || '500', 10);
@@ -86,7 +88,6 @@ async function sendViaSendGrid(mailOptions) {
   if (!payload.content.length) payload.content.push({ type: 'text/plain', value: '' });
 
   const u = new URL('https://api.sendgrid.com/v3/mail/send');
-  const lib = u.protocol === 'https:' ? await import('https') : await import('http');
   const body = JSON.stringify(payload);
   const opts = {
     method: 'POST',
@@ -101,7 +102,7 @@ async function sendViaSendGrid(mailOptions) {
   };
 
   await new Promise((resolve, reject) => {
-    const req = lib.request(opts, (res) => {
+    const req = https.request(opts, (res) => {
       const chunks = [];
       res.on('data', (c) => chunks.push(c));
       res.on('end', () => {
@@ -150,7 +151,6 @@ async function sendWebhookNotification(webhookUrl, payload) {
   webhookActiveCount += 1;
   try {
     const u = new URL(webhookUrl);
-    const lib = u.protocol === 'https:' ? await import('https') : await import('http');
     const body = JSON.stringify(payload);
     const opts = {
       method: 'POST',
@@ -163,6 +163,7 @@ async function sendWebhookNotification(webhookUrl, payload) {
       },
     };
     await new Promise((resolve, reject) => {
+      const lib = u.protocol === 'https:' ? https : http;
       const req = lib.request(opts, (res) => {
         // consume response
         res.on('data', () => {});
@@ -195,10 +196,26 @@ export async function sendMailWithRetry(mailOptions, opts = {}) {
   const hasSendGrid = Boolean(process.env.SENDGRID_API_KEY && process.env.SENDGRID_API_KEY.trim());
   const allowEthereal = Boolean(process.env.EMAIL_TEST_FALLBACK === 'true' || (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production'));
 
+  // If no provider is configured, fail fast instead of looping no-op retries.
+  if (!hasSmtp && !hasSendGrid && !allowEthereal) {
+    throw new Error('No email provider configured: set SMTP_* env vars or SENDGRID_API_KEY, or enable EMAIL_TEST_FALLBACK in development');
+  }
+
   let lastErr = null;
 
   for (let attempt = 1; attempt <= retries; attempt++) {
-    // Try SMTP first if configured
+    // Prefer SendGrid for hosted environments (many hosts block direct SMTP)
+    if (hasSendGrid) {
+      try {
+        await sendViaSendGrid(mailOptions);
+        return { provider: 'sendgrid', to: mailOptions.to };
+      } catch (err) {
+        lastErr = err;
+        console.error(`SendGrid attempt ${attempt} failed:`, err && err.message ? err.message : err);
+      }
+    }
+
+    // Try SMTP if configured
     if (hasSmtp) {
       try {
         const transporter = createTransporter();
@@ -213,17 +230,6 @@ export async function sendMailWithRetry(mailOptions, opts = {}) {
       } catch (err) {
         lastErr = err;
         console.error(`SMTP send attempt ${attempt} failed:`, err && err.message ? err.message : err);
-      }
-    }
-
-    // Try SendGrid next if available
-    if (hasSendGrid) {
-      try {
-        await sendViaSendGrid(mailOptions);
-        return { provider: 'sendgrid', to: mailOptions.to };
-      } catch (err) {
-        lastErr = err;
-        console.error(`SendGrid attempt ${attempt} failed:`, err && err.message ? err.message : err);
       }
     }
 
