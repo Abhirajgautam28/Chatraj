@@ -10,13 +10,29 @@ async function run() {
     const keyPattern = 'pending:registration:*';
     if (typeof redisClient.scan === 'function') {
       let cursor = '0';
+      let safety = 0;
       do {
-        // ioredis returns [nextCursor, results]
+        // ioredis typically returns [nextCursor, keys]
         const res = await redisClient.scan(cursor, 'MATCH', keyPattern, 'COUNT', 100);
-        const nextCursor = Array.isArray(res) ? res[0] : res.cursor;
-        const batch = Array.isArray(res) ? res[1] : res.keys;
+        let nextCursor;
+        let batch;
+        if (Array.isArray(res) && res.length >= 2) {
+          nextCursor = res[0];
+          batch = res[1];
+        } else if (res && typeof res === 'object' && ('cursor' in res) && Array.isArray(res.keys)) {
+          nextCursor = res.cursor;
+          batch = res.keys;
+        } else {
+          console.warn('Unexpected SCAN response shape; aborting scan to avoid silent failure:', res);
+          break;
+        }
         if (Array.isArray(batch) && batch.length > 0) keys.push(...batch);
-        cursor = nextCursor;
+        cursor = String(nextCursor);
+        // safety to avoid potential infinite loops in case of unexpected cursor behavior
+        if (++safety > 10000) {
+          console.warn('SCAN loop exceeded safety limit; aborting');
+          break;
+        }
       } while (cursor !== '0');
     } else if (typeof redisClient.keys === 'function') {
       console.warn('redisClient.scan not available; falling back to KEYS (may block Redis on large datasets)');
@@ -38,7 +54,14 @@ async function run() {
       try {
         const v = await redisClient.get(k);
         if (!v) continue;
-        const pending = JSON.parse(v);
+        let pending;
+        try {
+          pending = JSON.parse(v);
+        } catch (parseErr) {
+          console.error('Failed to parse pending registration JSON for key', k, parseErr && (parseErr.message || parseErr));
+          // Skip this key to avoid crashing the whole job
+          continue;
+        }
         const sentCount = Number(pending.sentCount || 0);
         if (sentCount >= maxAttempts) {
           console.info('Max attempts reached for', pending.email);
@@ -58,15 +81,19 @@ async function run() {
           pending.sentCount = sentCount + 1;
           const newVal = JSON.stringify(pending);
 
-          // Prefer GETSET which preserves TTL on Redis.
+          // Prefer GETSET which preserves TTL on Redis. If GETSET fails,
+          // log and fall back to TTL-preserving update instead of aborting.
+          let updatedViaGetSet = false;
           if (typeof redisClient.getset === 'function') {
             try {
               await redisClient.getset(k, newVal);
+              updatedViaGetSet = true;
             } catch (e) {
-              // fallback below
-              throw e;
+              console.warn('redis GETSET failed for', k, '— falling back to TTL-preserving set:', e && e.message ? e.message : e);
             }
-          } else {
+          }
+
+          if (!updatedViaGetSet) {
             // Fallback: read remaining TTL and restore it after set
             let remainingMs = null;
             if (typeof redisClient.pttl === 'function') {
