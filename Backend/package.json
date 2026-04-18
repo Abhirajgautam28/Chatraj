@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "retry-pending-registrations": "node scripts/retry_pending_registrations.js",
     "build": "npm install"
   },
   "dependencies": {
