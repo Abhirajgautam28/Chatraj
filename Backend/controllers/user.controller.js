@@ -129,8 +129,16 @@ export const createUserController = async (req, res) => {
                     }
                     const latest = JSON.parse(latestPendingJson);
                     await sendOtpEmail(latest.email, latest.otp);
-                    // on success, remove pending and stop
-                    try { await redisClient.del(pendingKey); } catch (e) { /* ignore */ }
+                    // on success, update pending metadata (do NOT delete - user
+                    // must still be able to verify using the OTP). Keep TTL.
+                    try {
+                        latest.lastSentAt = Date.now();
+                        latest.sentCount = (latest.sentCount || 0) + 1;
+                        const ttl2 = parseInt(process.env.REGISTRATION_OTP_TTL_SECONDS || '900', 10);
+                        await redisClient.set(pendingKey, JSON.stringify(latest), 'EX', ttl2);
+                    } catch (updErr) {
+                        console.warn('Failed to update pending registration after resend:', updErr && updErr.message ? updErr.message : updErr);
+                    }
                     console.info(`Background resend succeeded for ${normalizedEmail}`);
                 } catch (err) {
                     console.error('Background resend attempt failed:', err && err.message ? err.message : err);
@@ -210,23 +218,23 @@ export const verifyOtpController = async (req, res) => {
                     if (pending.otp !== otp) return res.status(401).json({ message: 'Invalid OTP' });
 
                     // Create the real user record from pending values.
-                    try {
-                        const created = await userModel.create({
-                            firstName: pending.firstName,
-                            lastName: pending.lastName,
-                            email: pending.email,
-                            password: pending.passwordHash,
-                            googleApiKey: pending.googleApiKey,
-                            isVerified: true,
-                        });
-                        // remove pending key
-                        await redisClient.del(pendingKey);
-                        // generate token for the newly created user
-                        const token = await created.generateJWT();
-                        // hide password before returning
-                        if (created._doc) delete created._doc.password;
-                        return res.status(200).json({ message: 'Verified successfully', token, user: created });
-                    } catch (createErr) {
+                        try {
+                            const created = await userModel.create({
+                                firstName: pending.firstName,
+                                lastName: pending.lastName,
+                                email: pending.email,
+                                password: pending.passwordHash,
+                                googleApiKey: pending.googleApiKey,
+                                isVerified: true,
+                            });
+                            // remove pending key
+                            await redisClient.del(pendingKey);
+                            // generate token for the newly created user
+                            const token = await created.generateJWT();
+                            // hide password before returning
+                            if (created._doc) delete created._doc.password;
+                            return res.status(200).json({ message: 'Verified successfully', token, user: created });
+                        } catch (createErr) {
                         console.error('Error creating user from pending registration:', createErr && createErr.message ? createErr.message : createErr);
                         // If a duplicate key was created in a race, try to mark existing user as verified
                         if (createErr && (createErr.code === 11000 || createErr.name === 'MongoServerError')) {
