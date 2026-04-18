@@ -135,15 +135,20 @@ export const createUserController = async (req, res) => {
                         latest.lastSentAt = Date.now();
                         latest.sentCount = (latest.sentCount || 0) + 1;
                         const newVal = JSON.stringify(latest);
-                        // Try to update without changing TTL using GETSET (preserves TTL)
+
+                        // Prefer GETSET which preserves TTL on Redis. If GETSET fails
+                        // fall through to TTL-preserving fallback rather than rethrowing.
+                        let updatedViaGetSet = false;
                         if (typeof redisClient.getset === 'function') {
                             try {
                                 await redisClient.getset(pendingKey, newVal);
+                                updatedViaGetSet = true;
                             } catch (e) {
-                                // fallback to pttl/ttl approach below
-                                throw e;
+                                console.warn('redis GETSET failed; falling back to TTL-preserving set:', e && e.message ? e.message : e);
                             }
-                        } else {
+                        }
+
+                        if (!updatedViaGetSet) {
                             // Fallback: attempt to read remaining TTL and restore it after set
                             let remainingMs = null;
                             if (typeof redisClient.pttl === 'function') {
@@ -252,7 +257,14 @@ export const verifyOtpController = async (req, res) => {
             }
 
             if (pendingJson) {
-                const pending = JSON.parse(pendingJson);
+                let pending;
+                try {
+                    pending = JSON.parse(pendingJson);
+                } catch (parseErr) {
+                    console.error('Failed to parse pending registration JSON for', pendingKey, parseErr && (parseErr.message || parseErr));
+                    return res.status(500).json({ message: 'Corrupt pending registration data' });
+                }
+
                 if (pending.otp !== otp) return res.status(401).json({ message: 'Invalid OTP' });
 
                 // Create the real user record from pending values.
@@ -324,9 +336,14 @@ export const adminGetOtpController = async (req, res) => {
                     const pendingKey = `pending:registration:${normalizedEmail}`;
                     const pendingJson = await redisClient.get(pendingKey);
                     if (pendingJson) {
-                        const pending = JSON.parse(pendingJson);
-                        // synthesize a minimal user-like object for masking
-                        user = { _id: null, email: normalizedEmail, otp: pending.otp };
+                        try {
+                            const pending = JSON.parse(pendingJson);
+                            // synthesize a minimal user-like object for masking
+                            user = { _id: null, email: normalizedEmail, otp: pending.otp };
+                        } catch (parseErr) {
+                            console.error('Failed to parse pending registration JSON for admin OTP:', parseErr && (parseErr.message || parseErr));
+                            return res.status(500).json({ message: 'Corrupt pending registration data' });
+                        }
                     }
                 } catch (redisErr) {
                     console.error('Failed to read pending registration for admin OTP:', redisErr && redisErr.message ? redisErr.message : redisErr);
