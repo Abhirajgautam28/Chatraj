@@ -9,3 +9,13 @@ services:
       - key: NODE_ENV
         value: production
     healthCheckPath: /health
+  - type: cron
+    name: retry-pending-registrations
+    env: node
+    rootDir: Backend
+    # Run every 5 minutes; adjust schedule as needed.
+    schedule: "*/5 * * * *"
+    command: "node scripts/retry_pending_registrations.js"
+    envVars:
+      - key: NODE_ENV
+        value: production
