@@ -130,12 +130,45 @@ export const createUserController = async (req, res) => {
                     const latest = JSON.parse(latestPendingJson);
                     await sendOtpEmail(latest.email, latest.otp);
                     // on success, update pending metadata (do NOT delete - user
-                    // must still be able to verify using the OTP). Keep TTL.
+                    // must still be able to verify using the OTP). Preserve TTL.
                     try {
                         latest.lastSentAt = Date.now();
                         latest.sentCount = (latest.sentCount || 0) + 1;
-                        const ttl2 = parseInt(process.env.REGISTRATION_OTP_TTL_SECONDS || '900', 10);
-                        await redisClient.set(pendingKey, JSON.stringify(latest), 'EX', ttl2);
+                        const newVal = JSON.stringify(latest);
+                        // Try to update without changing TTL using GETSET (preserves TTL)
+                        if (typeof redisClient.getset === 'function') {
+                            try {
+                                await redisClient.getset(pendingKey, newVal);
+                            } catch (e) {
+                                // fallback to pttl/ttl approach below
+                                throw e;
+                            }
+                        } else {
+                            // Fallback: attempt to read remaining TTL and restore it after set
+                            let remainingMs = null;
+                            if (typeof redisClient.pttl === 'function') {
+                                try {
+                                    remainingMs = await redisClient.pttl(pendingKey);
+                                } catch (e) { remainingMs = null; }
+                            }
+                            if (remainingMs == null && typeof redisClient.ttl === 'function') {
+                                try {
+                                    const secs = await redisClient.ttl(pendingKey);
+                                    if (typeof secs === 'number' && secs >= 0) remainingMs = secs * 1000;
+                                } catch (e) { remainingMs = null; }
+                            }
+                            if (remainingMs != null && remainingMs > 0) {
+                                await redisClient.set(pendingKey, newVal);
+                                if (typeof redisClient.pexpire === 'function') {
+                                    await redisClient.pexpire(pendingKey, remainingMs);
+                                } else if (typeof redisClient.expire === 'function') {
+                                    await redisClient.expire(pendingKey, Math.ceil(remainingMs / 1000));
+                                }
+                            } else {
+                                // Couldn't preserve TTL safely; skip metadata update to avoid extending OTP validity
+                                console.warn('Could not preserve TTL for pending registration; skipping metadata update to avoid extending OTP lifetime');
+                            }
+                        }
                     } catch (updErr) {
                         console.warn('Failed to update pending registration after resend:', updErr && updErr.message ? updErr.message : updErr);
                     }
@@ -210,48 +243,50 @@ export const verifyOtpController = async (req, res) => {
         // If user not found in DB, check for a pending registration stored in Redis
         // (we persist pending registrations there until the user verifies via OTP).
         if (!user) {
+            const pendingKey = `pending:registration:${normalizedEmail}`;
+            let pendingJson = null;
             try {
-                const pendingKey = `pending:registration:${normalizedEmail}`;
-                const pendingJson = await redisClient.get(pendingKey);
-                if (pendingJson) {
-                    const pending = JSON.parse(pendingJson);
-                    if (pending.otp !== otp) return res.status(401).json({ message: 'Invalid OTP' });
-
-                    // Create the real user record from pending values.
-                        try {
-                            const created = await userModel.create({
-                                firstName: pending.firstName,
-                                lastName: pending.lastName,
-                                email: pending.email,
-                                password: pending.passwordHash,
-                                googleApiKey: pending.googleApiKey,
-                                isVerified: true,
-                            });
-                            // remove pending key
-                            await redisClient.del(pendingKey);
-                            // generate token for the newly created user
-                            const token = await created.generateJWT();
-                            // hide password before returning
-                            if (created._doc) delete created._doc.password;
-                            return res.status(200).json({ message: 'Verified successfully', token, user: created });
-                        } catch (createErr) {
-                        console.error('Error creating user from pending registration:', createErr && createErr.message ? createErr.message : createErr);
-                        // If a duplicate key was created in a race, try to mark existing user as verified
-                        if (createErr && (createErr.code === 11000 || createErr.name === 'MongoServerError')) {
-                            const existingUser = await userModel.findOne({ email: normalizedEmail }).select('+otp');
-                            if (existingUser) {
-                                existingUser.isVerified = true;
-                                existingUser.otp = undefined;
-                                await existingUser.save();
-                                const token = await existingUser.generateJWT();
-                                return res.status(200).json({ message: 'Verified successfully', token, user: existingUser });
-                            }
-                        }
-                        return res.status(500).json({ message: 'Failed to create account' });
-                    }
-                }
+                pendingJson = await redisClient.get(pendingKey);
             } catch (redisErr) {
                 console.error('Error checking pending registration in Redis:', redisErr && redisErr.message ? redisErr.message : redisErr);
+            }
+
+            if (pendingJson) {
+                const pending = JSON.parse(pendingJson);
+                if (pending.otp !== otp) return res.status(401).json({ message: 'Invalid OTP' });
+
+                // Create the real user record from pending values.
+                try {
+                    const created = await userModel.create({
+                        firstName: pending.firstName,
+                        lastName: pending.lastName,
+                        email: pending.email,
+                        password: pending.passwordHash,
+                        googleApiKey: pending.googleApiKey,
+                        isVerified: true,
+                    });
+                    // remove pending key
+                    await redisClient.del(pendingKey);
+                    // generate token for the newly created user
+                    const token = await created.generateJWT();
+                    // hide password before returning
+                    if (created._doc) delete created._doc.password;
+                    return res.status(200).json({ message: 'Verified successfully', token, user: created });
+                } catch (createErr) {
+                    console.error('Error creating user from pending registration:', createErr && createErr.message ? createErr.message : createErr);
+                    // If a duplicate key was created in a race, try to mark existing user as verified
+                    if (createErr && (createErr.code === 11000 || createErr.name === 'MongoServerError')) {
+                        const existingUser = await userModel.findOne({ email: normalizedEmail }).select('+otp');
+                        if (existingUser) {
+                            existingUser.isVerified = true;
+                            existingUser.otp = undefined;
+                            await existingUser.save();
+                            const token = await existingUser.generateJWT();
+                            return res.status(200).json({ message: 'Verified successfully', token, user: existingUser });
+                        }
+                    }
+                    return res.status(500).json({ message: 'Failed to create account' });
+                }
             }
         }
     }
