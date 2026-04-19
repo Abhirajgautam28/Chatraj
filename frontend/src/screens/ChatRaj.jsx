@@ -18,13 +18,6 @@ const formatMessageTime = (timestamp) => {
 const ChatRaj = () => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
-
-  const filteredMessages = useCallback(() => {
-    if (!searchTerm) return messages;
-    const lowerSearch = searchTerm.toLowerCase();
-    return messages.filter(m => m.content.toLowerCase().includes(lowerSearch));
-  }, [messages, searchTerm]);
-
   const [inputMessage, setInputMessage] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -33,6 +26,12 @@ const ChatRaj = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredMessagesList = React.useMemo(() => {
+    if (!searchTerm) return messages;
+    const lowerSearch = searchTerm.toLowerCase();
+    return messages.filter(m => m.content && typeof m.content === 'string' && m.content.toLowerCase().includes(lowerSearch));
+  }, [messages, searchTerm]);
   const [activeSettingsTab, setActiveSettingsTab] = useState('display');
   const [settings, setSettings] = useState(() => {
     const savedSettings = localStorage.getItem('chatrajSettings');
@@ -600,7 +599,7 @@ const ChatRaj = () => {
                   </p>
                 </div>
               ) : (
-                filteredMessages().map((message, index) => (
+                filteredMessagesList.map((message, index) => (
                   <div
                     key={index}
                     className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}

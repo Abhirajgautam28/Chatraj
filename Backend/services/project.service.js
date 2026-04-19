@@ -152,7 +152,7 @@ export const getProjectById = async ({ projectId, userId }) => {
     // Populate only _id, firstName, lastName for users
     const project = await projectModel.findOne({
         _id: projectId
-    }).populate('users', '_id firstName lastName')
+    }).populate('users', '_id firstName lastName').lean();
 
     if (!project) {
         throw new Error("Project not found");
