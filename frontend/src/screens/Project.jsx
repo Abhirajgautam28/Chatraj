@@ -537,29 +537,25 @@ const Project = () => {
     receiveMessage("message-reaction", handleReactionUpdate);
   }, []);
 
+  // Fix: Deduplicate messages on every update
   useEffect(() => {
     setMessages(prev => deduplicateMessages(prev));
   }, [messages.length]);
 
   // Patch messages to simulate readBy for current user's messages
-  const patchedMessages = React.useMemo(() => {
-    return messages.map(msg => {
-      if (msg.sender && msg.sender._id === user._id) {
-        return { ...msg, readBy: [user._id, 'other-user'] };
-      }
-      return msg;
-    });
-  }, [messages, user._id]);
+  const patchedMessages = messages.map(msg => {
+    if (msg.sender && msg.sender._id === user._id) {
+      return { ...msg, readBy: [user._id, 'other-user'] };
+    }
+    return msg;
+  });
 
-  const filteredMessages = React.useMemo(() => {
-    return searchTerm
-      ? patchedMessages.filter((msg) => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
-      : patchedMessages;
-  }, [patchedMessages, searchTerm]);
+  const filteredMessages = searchTerm
+    ? patchedMessages.filter((msg) => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
+    : patchedMessages;
 
-  const groupedMessages = React.useMemo(() => {
-    return groupMessagesByDate(filteredMessages);
-  }, [filteredMessages]);
+  // Fix: define groupedMessages before return
+  const groupedMessages = groupMessagesByDate(filteredMessages);
 
   // Map bubble roundness setting to Tailwind classes
   const bubbleRoundnessClass = {
@@ -888,6 +884,22 @@ const Project = () => {
       },
     }));
   }, [vimMode]);
+
+  // In CodeMirror style prop, remove fontFamily:
+  // style={{
+  //   ... remove fontFamily ...
+  //   fontSize: settings.display.messageFontSize === 'large' ? '1.2rem' : settings.display.messageFontSize === 'small' ? '0.9rem' : '1rem',
+  //   background: settings.display.syntaxHighlighting === false && isDarkMode
+  //     ? '#181e29'
+  //     : isDarkMode
+  //     ? '#111827'
+  //     : 'white',
+  //   color: settings.display.syntaxHighlighting === false && isDarkMode ? '#fff' : undefined,
+  //   height: '100%',
+  //   minHeight: 0,
+  // }}
+  // }))
+  // ...existing code...
 
   return (
     <main className="flex w-screen h-screen overflow-hidden bg-transparent">
@@ -1227,6 +1239,14 @@ const Project = () => {
           </div>
           <div className="flex flex-grow max-w-full bottom shrink" style={{ overflow: 'hidden', minHeight: 0 }}>
             <div className="flex-grow h-full code-editor-area bg-slate-50 dark:bg-gray-900 min-h-[200px] border border-blue-200 relative flex flex-col" style={{ minWidth: '0', maxWidth: '100vw', overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
+              {/* Debug info for production troubleshooting (remove after fix) */}
+              {typeof window !== 'undefined' && window.location && window.location.hostname !== 'localhost' && (
+                <div style={{ position: 'absolute', top: 0, right: 0, zIndex: 10, background: '#fff8', color: '#333', fontSize: '10px', padding: '2px 4px', borderRadius: '0 0 0 4px' }}>
+                  <div>currentFile: {String(currentFile)}</div>
+                  <div>fileTree keys: {Object.keys(fileTree).join(', ')}</div>
+                  <div>fileTree[currentFile]?.file?.contents length: {fileTree[currentFile]?.file?.contents?.length ?? 'N/A'}</div>
+                </div>
+              )}
               {fileTree && currentFile && fileTree[currentFile]?.file?.contents?.length > 0 ? (
                 <div style={{ flex: 1, minHeight: 0, width: '100%', display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
                   {vimMode ? (
