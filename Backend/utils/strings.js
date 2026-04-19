@@ -16,15 +16,8 @@ export const escapeHtml = (unsafe) => {
 		.replace(/'/g, '&#039;');
 };
 
-export const maskKey = (k) => {
-	if (!k) return '';
-	const str = String(k);
-	if (str.length <= 12) return str.slice(0, 3) + '...' + str.slice(-3);
-	return str.slice(0, 6) + '...' + str.slice(-6);
-};
-
-export default {
-	escapeRegex,
-	escapeHtml,
-	maskKey
-};
+export function maskKey(k) {
+  if (!k) return '';
+  if (k.length <= 10) return '*'.repeat(k.length);
+  return k.substring(0, 4) + '*'.repeat(k.length - 8) + k.substring(k.length - 4);
+}

@@ -1,5 +1,18 @@
 import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
+import { validationResult } from 'express-validator';
+import userModel from '../models/user.model.js';
+import * as userService from '../services/user.service.js';
+import redisClient from '../services/redis.service.js';
+import { normalizeEmail } from '../utils/email.js';
+import { shouldExposeOtpToClient } from '../utils/security.js';
+import { generateOTP } from '../utils/otp.js';
+import { sendMailWithRetry } from '../utils/mailer.js';
+import { escapeHtml } from '../utils/strings.js';
 import { logger } from '../utils/logger.js';
+
+dotenv.config();
 
 // Send OTP for password reset (used in Login.jsx)
 export const sendOtpController = async (req, res) => {
@@ -7,17 +20,13 @@ export const sendOtpController = async (req, res) => {
         const { email } = req.body;
         const { value: normalizedEmail, isValid } = normalizeEmail(email);
         if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
-
-        const otp = generateOTP(7);
-        // Atomic update: set OTP and unverify in one go
-        const user = await userModel.findOneAndUpdate(
-            { email: normalizedEmail },
-            { $set: { otp, isVerified: false } },
-            { new: true }
-        );
-
+        const user = await userModel.findOne({ email: normalizedEmail });
         if (!user) return res.status(404).json({ message: 'User not found' });
-
+        // Generate OTP
+        const otp = generateOTP(7);
+        user.otp = otp;
+        user.isVerified = false;
+        await user.save();
         await sendOtpEmail(user.email, otp);
         res.status(200).json({ message: 'OTP sent to email.' });
     } catch (error) {
@@ -28,26 +37,12 @@ export const sendOtpController = async (req, res) => {
 
 export const getLeaderboardController = async (req, res) => {
     try {
-        const users = await userModel.find({}).sort({ projects: -1 }).limit(10).lean();
+        const users = await userModel.find({}).sort({ projects: -1 }).limit(10);
         res.status(200).json({ users });
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
-import userModel from '../models/user.model.js';
-import { normalizeEmail } from '../utils/email.js';
-import { shouldExposeOtpToClient } from '../utils/security.js';
-import { sendMailWithRetry } from '../utils/mailer.js';
-import { escapeHtml } from '../utils/strings.js';
-import { generateOTP } from '../utils/otp.js';
-import dotenv from 'dotenv';
-dotenv.config();
-import * as userService from '../services/user.service.js';
-import { validationResult } from 'express-validator';
-import redisClient from '../services/redis.service.js';
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
 
 export const createUserController = async (req, res) => {
 
@@ -73,7 +68,7 @@ export const createUserController = async (req, res) => {
             try {
                 await userModel.deleteOne({ _id: existing._id });
             } catch (delErr) {
-                console.warn('Failed to remove stale unverified user:', delErr && delErr.message ? delErr.message : delErr);
+                logger.warn('Failed to remove stale unverified user:', delErr && delErr.message ? delErr.message : delErr);
             }
         }
 
@@ -140,7 +135,7 @@ export const createUserController = async (req, res) => {
                                 await redisClient.getset(pendingKey, newVal);
                                 updatedViaGetSet = true;
                             } catch (e) {
-                                console.warn('redis GETSET failed; falling back to TTL-preserving set:', e && e.message ? e.message : e);
+                                logger.warn('redis GETSET failed; falling back to TTL-preserving set:', e && e.message ? e.message : e);
                             }
                         }
 
@@ -167,11 +162,11 @@ export const createUserController = async (req, res) => {
                                 }
                             } else {
                                 // Couldn't preserve TTL safely; skip metadata update to avoid extending OTP validity
-                                console.warn('Could not preserve TTL for pending registration; skipping metadata update to avoid extending OTP lifetime');
+                                logger.warn('Could not preserve TTL for pending registration; skipping metadata update to avoid extending OTP lifetime');
                             }
                         }
                     } catch (updErr) {
-                        console.warn('Failed to update pending registration after resend:', updErr && updErr.message ? updErr.message : updErr);
+                        logger.warn('Failed to update pending registration after resend:', updErr && updErr.message ? updErr.message : updErr);
                     }
                     logger.info(`Background resend succeeded for ${normalizedEmail}`);
                 } catch (err) {
@@ -193,7 +188,6 @@ export const createUserController = async (req, res) => {
         return res.status(400).json({ message: 'Invalid request' });
     }
 }
-
 
 // Helper: Send OTP email
 async function sendOtpEmail(email, otp) {
@@ -367,7 +361,7 @@ export const adminGetOtpController = async (req, res) => {
         }
         return res.status(200).json({ userId: user._id, email: user.email, maskedOtp: masked });
     } catch (err) {
-        logger.error('adminGetOtpController error:', err);
+        console.error('adminGetOtpController error:', err);
         return res.status(500).json({ message: 'Internal server error' });
     }
 };
@@ -397,7 +391,7 @@ export const loginController = async (req, res) => {
         res.status(200).json({ user, token });
     } catch (err) {
         logger.error('loginController error:', err);
-        res.status(400).json({ error: 'Invalid request' });
+        res.status(400).json({ message: 'Invalid request' });
     }
 }
 
@@ -424,7 +418,7 @@ export const logoutController = async (req, res) => {
         });
     } catch (err) {
         logger.error('logoutController error:', err);
-        res.status(400).json({ error: 'Invalid request' });
+        res.status(400).json({ message: 'Invalid request' });
     }
 }
 
@@ -445,7 +439,7 @@ export const getAllUsersController = async (req, res) => {
         })
     } catch (err) {
         logger.error('getAllUsersController error:', err);
-        res.status(400).json({ error: 'Unable to fetch users' })
+        return res.status(400).json({ error: 'Unable to fetch users' });
     }
 }
 

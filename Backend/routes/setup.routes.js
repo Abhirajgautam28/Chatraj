@@ -2,6 +2,7 @@ import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { requiredKeys } from '../config/required-keys.js';
 import Blog from '../models/blog.model.js';
+import { logger } from '../utils/logger.js';
 
 // initialize router
 const router = Router();
@@ -50,7 +51,7 @@ router.get('/sitemap.xml', sitemapLimiter, async (req, res) => {
             blogIds = blogs.map(b => String(b._id));
         } catch (e) {
             // If DB is not reachable, continue with base urls only
-            console.warn('Could not fetch blogs for sitemap:', e.message || e);
+            logger.warn('Could not fetch blogs for sitemap:', e.message || e);
         }
 
         const allUrls = urls.concat(blogIds.map(id => `/blogs/${id}`));

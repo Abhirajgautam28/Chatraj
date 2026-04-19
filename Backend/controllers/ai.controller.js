@@ -1,6 +1,6 @@
 import * as ai from '../services/ai.service.js';
+import { parseAiResponse } from '../utils/ai.js';
 import { logger } from '../utils/logger.js';
-
 
 export const getResult = async (req, res) => {
     try {

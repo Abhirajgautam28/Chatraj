@@ -114,7 +114,7 @@ export const addUsersToProject = async ({ projectId, users, userId }) => {
         throw new Error("users are required")
     }
 
-    if (!Array.isArray(users) || users.some(uId => !mongoose.Types.ObjectId.isValid(uId))) {
+    if (!Array.isArray(users) || users.some(userId => !mongoose.Types.ObjectId.isValid(userId))) {
         throw new Error("Invalid userId(s) in users array")
     }
 
@@ -126,18 +126,34 @@ export const addUsersToProject = async ({ projectId, users, userId }) => {
         throw new Error("Invalid userId")
     }
 
-    // Atomic update: ensure the requester (userId) is a member, then add new users.
-    const updatedProject = await projectModel.findOneAndUpdate(
-        { _id: projectId, users: userId },
-        { $addToSet: { users: { $each: users } } },
-        { new: true }
-    );
 
-    if (!updatedProject) {
-        throw new Error("User not belong to this project or project not found")
+    const project = await projectModel.findOne({
+        _id: projectId,
+        users: userId
+    })
+
+    // ...removed console.log for production cleanliness
+
+    if (!project) {
+        throw new Error("User not belong to this project")
     }
 
+    const updatedProject = await projectModel.findOneAndUpdate({
+        _id: projectId
+    }, {
+        $addToSet: {
+            users: {
+                $each: users
+            }
+        }
+    }, {
+        new: true
+    })
+
     return updatedProject
+
+
+
 }
 
 export const getProjectById = async ({ projectId, userId }) => {
@@ -152,7 +168,7 @@ export const getProjectById = async ({ projectId, userId }) => {
     // Populate only _id, firstName, lastName for users
     const project = await projectModel.findOne({
         _id: projectId
-    }).populate('users', '_id firstName lastName').lean();
+    }).populate('users', '_id firstName lastName')
 
     if (!project) {
         throw new Error("Project not found");

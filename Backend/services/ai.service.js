@@ -37,7 +37,9 @@ export const generateContent = async ({ prompt, userApiKey, modelName = "gemini-
         const result = await model.generateContent(prompt);
         return result.response.text();
     } catch (err) {
-        console.error('AI generation error:', err);
+        // Import logger dynamically to avoid circular dependencies if any
+        const { logger } = await import('../utils/logger.js');
+        logger.error('AI generation error:', err);
         throw err;
     }
 }
