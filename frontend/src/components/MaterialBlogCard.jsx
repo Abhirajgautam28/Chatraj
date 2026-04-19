@@ -17,7 +17,9 @@ const MaterialBlogCard = ({ blog }) => (
       <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-3">{blog.summary || blog.content?.slice(0, 120) + '...'}</p>
       <div className="flex items-center gap-2 mt-auto">
         <i className="ri-user-3-line text-lg text-blue-400 dark:text-blue-300" />
-        <span className="text-gray-500 dark:text-gray-300 text-xs">{blog.authorName || 'Unknown Author'}</span>
+        <span className="text-gray-500 dark:text-gray-300 text-xs">
+            {blog.author ? `${blog.author.firstName} ${blog.author.lastName}` : 'Unknown Author'}
+        </span>
         <span className="mx-2 text-gray-300 dark:text-gray-600">|</span>
         <i className="ri-calendar-line text-lg text-blue-400 dark:text-blue-300" />
         <span className="text-gray-500 dark:text-gray-300 text-xs">{blog.createdAt ? new Date(blog.createdAt).toLocaleDateString() : ''}</span>

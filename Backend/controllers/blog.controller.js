@@ -8,6 +8,8 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 export const createBlog = async (req, res) => {
     try {
         const { title, content } = req.body;
+        // Invalidate blog list cache
+        await invalidateCache('blog:all');
         // Use req.user._id directly from optimized JWT payload
         const newBlog = new Blog({
             title,
@@ -24,7 +26,10 @@ export const createBlog = async (req, res) => {
 
 export const getAllBlogs = async (req, res) => {
     try {
-        const blogs = await Blog.find().populate('author', 'firstName lastName').sort({ createdAt: -1 }).lean();
+        const blogs = await withCache('blog:all', 300, async () => {
+            // Exclude large content and comments fields for list view performance
+            return await Blog.find().select('-content -comments').populate('author', 'firstName lastName').sort({ createdAt: -1 }).lean();
+        });
         res.status(200).json(blogs);
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
@@ -67,10 +72,12 @@ export const likeBlog = async (req, res) => {
                 { _id: id },
                 { $addToSet: { likes: userId } },
                 { new: true }
-            );
+            ).populate('author', 'firstName lastName').lean();
         }
 
         if (!blog) return res.status(404).json({ error: 'Blog not found' });
+        // Invalidate list cache as like count might be displayed
+        await invalidateCache('blog:all');
         res.status(200).json(blog);
     } catch (error) {
         console.error('likeBlog error:', error);
@@ -89,9 +96,11 @@ export const commentOnBlog = async (req, res) => {
             id,
             { $push: { comments: { user: req.user._id, text } } },
             { new: true }
-        ).populate('author', 'firstName lastName').populate('comments.user', 'firstName lastName');
+        ).populate('author', 'firstName lastName').populate('comments.user', 'firstName lastName').lean();
 
         if (!blog) return res.status(404).json({ error: 'Blog not found' });
+        // Invalidate list cache as comment count might be displayed
+        await invalidateCache('blog:all');
         res.status(201).json(blog);
     } catch (error) {
         console.error('commentOnBlog error:', error);

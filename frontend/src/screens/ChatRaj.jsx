@@ -1,8 +1,9 @@
-import { useState, useRef, useEffect, useContext, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useContext, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { ChatRajThemeContext } from '../context/chatraj-theme.context';
 import { UserContext } from '../context/user.context';
 import { useNavigate } from 'react-router-dom';
+import ChatRajMessage from '../components/ChatRajMessage';
 
 const formatMessageTime = (timestamp) => {
   const date = new Date(timestamp);
@@ -27,7 +28,7 @@ const ChatRaj = () => {
   const [showSearch, setShowSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredMessagesList = React.useMemo(() => {
+  const filteredMessagesList = useMemo(() => {
     if (!searchTerm) return messages;
     const lowerSearch = searchTerm.toLowerCase();
     return messages.filter(m => m.content && typeof m.content === 'string' && m.content.toLowerCase().includes(lowerSearch));
@@ -600,33 +601,13 @@ const ChatRaj = () => {
                 </div>
               ) : (
                 filteredMessagesList.map((message, index) => (
-                  <div
+                  <ChatRajMessage
                     key={index}
-                    className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div className={`max-w-[80%] px-4 py-3 ${settings.display.chatBubbles.roundness} ${
-                      message.type === 'user' 
-                        ? 'text-white' 
-                        : 'text-black dark:text-white'
-                    }`}
-                    style={{
-                      backgroundColor: message.type === 'user' ? 'var(--primary-color)' : 'var(--secondary-bg-color)',
-                    }}
-                    >
-                      <p className={`${settings.display.typography.fontFamily} ${
-                        message.type === 'user' 
-                          ? settings.display.typography.userMessageSize
-                          : settings.display.typography.aiMessageSize
-                      }`}>
-                        {message.content}
-                      </p>
-                      {settings.sidebar.showTimestamps && (
-                        <p className="mt-1 text-xs opacity-75">
-                          {formatMessageTime(message.timestamp)}
-                        </p>
-                      )}
-                    </div>
-                  </div>
+                    index={index}
+                    message={message}
+                    settings={settings}
+                    formatMessageTime={formatMessageTime}
+                  />
                 ))
               )}
               {isThinking && (
