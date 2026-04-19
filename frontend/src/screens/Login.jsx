@@ -29,6 +29,17 @@ const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
 
     const containerRef = useRef(null);
+    const resetTimeoutRef = useRef(null);
+    const otpIntervalRef = useRef(null);
+    const resendOtpIntervalRef = useRef(null);
+
+    useEffect(() => {
+        return () => {
+            if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
+            if (otpIntervalRef.current) clearInterval(otpIntervalRef.current);
+            if (resendOtpIntervalRef.current) clearInterval(resendOtpIntervalRef.current);
+        };
+    }, []);
 
     useEffect(() => {
         if (containerRef.current) {
@@ -132,12 +143,14 @@ const Login = () => {
             await axios.post('/api/users/send-otp', { email: resetEmail });
             setResetOtpSent(true);
             let timer = 30;
-            const interval = setInterval(() => {
+            if (otpIntervalRef.current) clearInterval(otpIntervalRef.current);
+            otpIntervalRef.current = setInterval(() => {
                 timer--;
                 setOtpResendTimer(timer);
                 if (timer <= 0) {
                     setOtpResendActive(true);
-                    clearInterval(interval);
+                    clearInterval(otpIntervalRef.current);
+                    otpIntervalRef.current = null;
                 }
             }, 1000);
         } catch {
@@ -183,7 +196,8 @@ const Login = () => {
                 newPassword: resetNewPassword
             });
             setResetSuccess(true);
-            setTimeout(() => {
+            if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
+            resetTimeoutRef.current = setTimeout(() => {
                 setShowReset(false);
                 setResetSuccess(false);
                 setResetEmail('');
@@ -195,6 +209,7 @@ const Login = () => {
                 setShowPassword(false);
                 setResetError('');
                 setResetInProgress(false);
+                resetTimeoutRef.current = null;
             }, 2500);
         } catch {
             setResetError('Failed to reset password. Please try again.');
@@ -380,12 +395,14 @@ const Login = () => {
                                                             setOtpResendActive(true);
                                                         });
                                                     let timer = 30;
-                                                    const interval = setInterval(() => {
+                                                    if (resendOtpIntervalRef.current) clearInterval(resendOtpIntervalRef.current);
+                                                    resendOtpIntervalRef.current = setInterval(() => {
                                                         timer--;
                                                         setOtpResendTimer(timer);
                                                         if (timer <= 0) {
                                                             setOtpResendActive(true);
-                                                            clearInterval(interval);
+                                                            clearInterval(resendOtpIntervalRef.current);
+                                                            resendOtpIntervalRef.current = null;
                                                         }
                                                     }, 1000);
                                                 }}

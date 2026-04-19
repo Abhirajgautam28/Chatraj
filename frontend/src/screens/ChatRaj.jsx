@@ -112,6 +112,15 @@ const ChatRaj = () => {
   const messageEndRef = useRef(null);
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
+  const aiResponseTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (aiResponseTimeoutRef.current) {
+        clearTimeout(aiResponseTimeoutRef.current);
+      }
+    };
+  }, []);
   useContext(ChatRajThemeContext);
   const { user } = useContext(UserContext);
 
@@ -275,7 +284,11 @@ const ChatRaj = () => {
     setInputMessage('');
     setIsThinking(true);
 
-    setTimeout(() => {
+    if (aiResponseTimeoutRef.current) {
+      clearTimeout(aiResponseTimeoutRef.current);
+    }
+
+    aiResponseTimeoutRef.current = setTimeout(() => {
       const aiMessage = {
         type: 'ai',
         content: "I understand and I'm here to help you! 🌟",
@@ -288,6 +301,7 @@ const ChatRaj = () => {
       if (voiceInput) {
         speakResponse(aiMessage.content);
       }
+      aiResponseTimeoutRef.current = null;
     }, 1500);
   }, [inputMessage, speakResponse]);
   useEffect(() => {

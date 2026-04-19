@@ -190,7 +190,10 @@ const Categories = () => {
                   <i className={`ri-arrow-down-s-line ml-1`}></i>
                 </button>
                 {openDropdown === 'view' && (
-                  <div className={`dropdown-menu-list absolute right-0 mt-2 w-44 ${isDarkMode ? 'bg-gray-900 border-blue-700' : 'bg-white border-blue-200'} border rounded-lg shadow-lg z-[10010]' style={{zIndex:10010}}`}>
+                  <div
+                    className={`dropdown-menu-list absolute right-0 mt-2 w-44 ${isDarkMode ? 'bg-gray-900 border-blue-700' : 'bg-white border-blue-200'} border rounded-lg shadow-lg z-[10010]`}
+                    style={{ zIndex: 10010 }}
+                  >
                     {viewOptions.map(opt => (
                       <button
                         key={opt.key}
@@ -217,7 +220,10 @@ const Categories = () => {
                   <i className={`ri-arrow-down-s-line ml-1`}></i>
                 </button>
                 {openDropdown === 'sort' && (
-                  <div className={`dropdown-menu-list absolute right-0 mt-2 w-44 ${isDarkMode ? 'bg-gray-900 border-blue-700' : 'bg-white border-blue-200'} border rounded-lg shadow-lg z-[10010]' style={{zIndex:10010}}`}>
+                  <div
+                    className={`dropdown-menu-list absolute right-0 mt-2 w-44 ${isDarkMode ? 'bg-gray-900 border-blue-700' : 'bg-white border-blue-200'} border rounded-lg shadow-lg z-[10010]`}
+                    style={{ zIndex: 10010 }}
+                  >
                     {sortOptions.map(opt => (
                       <button
                         key={opt.key}
@@ -244,7 +250,10 @@ const Categories = () => {
                   <i className={`ri-arrow-down-s-line ml-1`}></i>
                 </button>
                 {openDropdown === 'theme' && (
-                  <div className={`dropdown-menu-list absolute right-0 mt-2 w-44 ${isDarkMode ? 'bg-gray-900 border-blue-700' : 'bg-white border-blue-200'} border rounded-lg shadow-lg z-[10010]' style={{zIndex:10010}}`}>
+                  <div
+                    className={`dropdown-menu-list absolute right-0 mt-2 w-44 ${isDarkMode ? 'bg-gray-900 border-blue-700' : 'bg-white border-blue-200'} border rounded-lg shadow-lg z-[10010]`}
+                    style={{ zIndex: 10010 }}
+                  >
                     {themeOptions.map(opt => (
                       <button
                         key={opt.key}
@@ -271,7 +280,10 @@ const Categories = () => {
                   <i className={`ri-arrow-down-s-line ml-1`}></i>
                 </button>
                 {openDropdown === 'tileSize' && (
-                  <div className={`dropdown-menu-list absolute right-0 mt-2 w-44 ${isDarkMode ? 'bg-gray-900 border-blue-700' : 'bg-white border-blue-200'} border rounded-lg shadow-lg z-[10010]' style={{zIndex:10010}}`}>
+                  <div
+                    className={`dropdown-menu-list absolute right-0 mt-2 w-44 ${isDarkMode ? 'bg-gray-900 border-blue-700' : 'bg-white border-blue-200'} border rounded-lg shadow-lg z-[10010]`}
+                    style={{ zIndex: 10010 }}
+                  >
                     {tileSizeOptions.map(opt => (
                       <button
                         key={opt.key}

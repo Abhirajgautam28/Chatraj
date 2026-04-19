@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+
 // Utilities around exposing sensitive data in responses.
 // By default we are conservative: do NOT expose OTPs unless explicitly
 // enabled via EXPOSE_OTP=true. This avoids accidental leaks when
@@ -10,4 +12,13 @@ export function shouldExposeOtpToClient() {
   return expose && !ci;
 }
 
-export default shouldExposeOtpToClient;
+// Helper: Generate 7-char OTP
+export function generateOTP(length) {
+    const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*';
+    let otp = '';
+    for (let i = 0; i < length; i++) {
+        const index = crypto.randomInt(chars.length);
+        otp += chars[index];
+    }
+    return otp;
+}

@@ -29,6 +29,13 @@ const Register = () => {
     const containerRef = useRef(null);
     const modalRef = useRef(null);
     const lastActiveElementRef = useRef(null);
+    const focusTimeoutRef = useRef(null);
+
+    useEffect(() => {
+        return () => {
+            if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
+        };
+    }, []);
 
     useEffect(() => {
         if (containerRef.current) {
@@ -97,16 +104,18 @@ const Register = () => {
             } catch (e) {
                 lastActiveElementRef.current = null;
             }
-            const focusTimeout = setTimeout(() => {
+            if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
+            focusTimeoutRef.current = setTimeout(() => {
                 try {
                     if (modalRef.current && typeof modalRef.current.focus === 'function') {
                         modalRef.current.focus();
                     }
                 } catch (e) {}
+                focusTimeoutRef.current = null;
             }, 50);
 
             return () => {
-                clearTimeout(focusTimeout);
+                if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
             };
         }
 
