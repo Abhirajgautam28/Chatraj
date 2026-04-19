@@ -117,6 +117,18 @@ const ChatRaj = () => {
   const messageEndRef = useRef(null);
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
+  const aiResponseTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (aiResponseTimeoutRef.current) {
+        clearTimeout(aiResponseTimeoutRef.current);
+      }
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+    };
+  }, []);
   useContext(ChatRajThemeContext);
   const { user } = useContext(UserContext);
 
