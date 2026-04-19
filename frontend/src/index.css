@@ -16,7 +16,7 @@ body {
 
 :root {
   --primary-color: #3B82F6;
-  --theme-transition-duration: 1.5s;
+  --theme-transition-duration: 0.5s;
   --button-bg-color: var(--primary-color);
   --robot-icon-color: var(--primary-color);
   --primary-color-transparent: rgba(59, 130, 246, 0.5);

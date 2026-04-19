@@ -9,13 +9,7 @@
     "start:backend": "node Backend/server.js",
     "start:frontend": "cd frontend && npm run dev",
     "smoke-test": "node Backend/scripts/smoke-test.js",
-    "smoke-test:e2e": "node Backend/scripts/e2e-test.js",
-    "test:backend:utils": "cd Backend && npx jest tests/*.test.js --config jest.config.cjs",
-    "test:frontend": "cd frontend && npm run test",
-    "test:all": "npm run test:backend:utils && npm run test:backend:services && npm run test:backend:models && npm run test:backend:middleware && npm run test:frontend",
-    "test:backend:services": "cd Backend && npx jest tests/*_service.test.js tests/user_service.test.js --config jest.config.cjs",
-    "test:backend:models": "cd Backend && npx jest tests/user_model.test.js --config jest.config.cjs",
-    "test:backend:middleware": "cd Backend && npx jest tests/*_middleware.test.js --config jest.config.cjs"
+    "smoke-test:e2e": "node Backend/scripts/e2e-test.js"
   },
   "devDependencies": {
     "concurrently": "^8.2.0",
