@@ -5,12 +5,43 @@ import { sendMailWithRetry } from '../utils/mailer.js';
 
 async function run() {
   try {
-    if (typeof redisClient.keys !== 'function') {
-      console.warn('redisClient.keys not available; ensure REDIS_URL is set in production to run this script. Aborting.');
+    // Collect keys using SCAN where available to avoid blocking Redis on large datasets.
+    let keys = [];
+    const keyPattern = 'pending:registration:*';
+    if (typeof redisClient.scan === 'function') {
+      let cursor = '0';
+      let safety = 0;
+      do {
+        // ioredis typically returns [nextCursor, keys]
+        const res = await redisClient.scan(cursor, 'MATCH', keyPattern, 'COUNT', 100);
+        let nextCursor;
+        let batch;
+        if (Array.isArray(res) && res.length >= 2) {
+          nextCursor = res[0];
+          batch = res[1];
+        } else if (res && typeof res === 'object' && ('cursor' in res) && Array.isArray(res.keys)) {
+          nextCursor = res.cursor;
+          batch = res.keys;
+        } else {
+          console.warn('Unexpected SCAN response shape; aborting scan to avoid silent failure:', res);
+          break;
+        }
+        if (Array.isArray(batch) && batch.length > 0) keys.push(...batch);
+        cursor = String(nextCursor);
+        // safety to avoid potential infinite loops in case of unexpected cursor behavior
+        if (++safety > 10000) {
+          console.warn('SCAN loop exceeded safety limit; aborting');
+          break;
+        }
+      } while (cursor !== '0');
+    } else if (typeof redisClient.keys === 'function') {
+      console.warn('redisClient.scan not available; falling back to KEYS (may block Redis on large datasets)');
+      keys = await redisClient.keys(keyPattern);
+    } else {
+      console.warn('redisClient.scan and keys not available; ensure REDIS_URL is set in production to run this script. Aborting.');
       process.exit(0);
     }
 
-    const keys = await redisClient.keys('pending:registration:*');
     if (!keys || keys.length === 0) {
       console.info('No pending registrations found');
       process.exit(0);
@@ -23,7 +54,14 @@ async function run() {
       try {
         const v = await redisClient.get(k);
         if (!v) continue;
-        const pending = JSON.parse(v);
+        let pending;
+        try {
+          pending = JSON.parse(v);
+        } catch (parseErr) {
+          console.error('Failed to parse pending registration JSON for key', k, parseErr && (parseErr.message || parseErr));
+          // Skip this key to avoid crashing the whole job
+          continue;
+        }
         const sentCount = Number(pending.sentCount || 0);
         if (sentCount >= maxAttempts) {
           console.info('Max attempts reached for', pending.email);
@@ -38,9 +76,49 @@ async function run() {
             text: `Welcome to ChatRaj!\n\nYour OTP is: ${pending.otp}\n\nPlease enter this code in the registration popup to activate your account.`,
           }, { retries: 3 });
 
+          // Update metadata while preserving original TTL where possible.
           pending.lastSentAt = Date.now();
           pending.sentCount = sentCount + 1;
-          await redisClient.set(k, JSON.stringify(pending), 'EX', ttlDefault);
+          const newVal = JSON.stringify(pending);
+
+          // Prefer GETSET which preserves TTL on Redis. If GETSET fails,
+          // log and fall back to TTL-preserving update instead of aborting.
+          let updatedViaGetSet = false;
+          if (typeof redisClient.getset === 'function') {
+            try {
+              await redisClient.getset(k, newVal);
+              updatedViaGetSet = true;
+            } catch (e) {
+              console.warn('redis GETSET failed for', k, '— falling back to TTL-preserving set:', e && e.message ? e.message : e);
+            }
+          }
+
+          if (!updatedViaGetSet) {
+            // Fallback: read remaining TTL and restore it after set
+            let remainingMs = null;
+            if (typeof redisClient.pttl === 'function') {
+              try {
+                remainingMs = await redisClient.pttl(k);
+              } catch (e) { remainingMs = null; }
+            }
+            if (remainingMs == null && typeof redisClient.ttl === 'function') {
+              try {
+                const secs = await redisClient.ttl(k);
+                if (typeof secs === 'number' && secs >= 0) remainingMs = secs * 1000;
+              } catch (e) { remainingMs = null; }
+            }
+            if (remainingMs != null && remainingMs > 0) {
+              await redisClient.set(k, newVal);
+              if (typeof redisClient.pexpire === 'function') {
+                await redisClient.pexpire(k, remainingMs);
+              } else if (typeof redisClient.expire === 'function') {
+                await redisClient.expire(k, Math.ceil(remainingMs / 1000));
+              }
+            } else {
+              console.warn('Could not preserve TTL for', k, '; skipping metadata update to avoid extending OTP lifetime');
+            }
+          }
+
           console.info('Resent OTP to', pending.email);
         } catch (err) {
           console.error('Failed to resend to', pending.email, err && err.message ? err.message : err);
