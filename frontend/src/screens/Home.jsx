@@ -3,8 +3,9 @@ import TextType from '../components/TextType.jsx';
 import ProjectShowcase from '../components/ProjectShowcase.jsx';
 import UserLeaderboard from '../components/UserLeaderboard.jsx';
 import { useContext, useEffect, useState, lazy, Suspense } from 'react';
+import { flushSync } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
@@ -144,8 +145,7 @@ const Home = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showFabMenu, setShowFabMenu] = useState(false);
   const [showAskChatRajModal, setShowAskChatRajModal] = useState(false);
-  const [isAnimatingTheme, setIsAnimatingTheme] = useState(false);
-  const [themeOverlayColor, setThemeOverlayColor] = useState('#ffffff');
+  const shouldReduceMotion = useReducedMotion();
 
 
   useEffect(() => {
@@ -177,13 +177,40 @@ const Home = () => {
   };
 
   const handleThemeToggle = () => {
-    if (isAnimatingTheme) return;
-    setThemeOverlayColor(isDarkMode ? '#f3f4f6' : '#111827');
-    setIsAnimatingTheme(true);
-    setTimeout(() => {
+    if (shouldReduceMotion) {
       setIsDarkMode(!isDarkMode);
-      setIsAnimatingTheme(false);
-    }, 750); // Swap theme exactly halfway through the 1.5s animation and trigger exit animation
+      return;
+    }
+
+    if (!document.startViewTransition) {
+      // Fallback for browsers without View Transitions
+      const durationStr = getComputedStyle(document.documentElement).getPropertyValue('--theme-transition-duration').trim();
+      let durationMs = 1500;
+      if (durationStr.endsWith('ms')) {
+        durationMs = parseFloat(durationStr);
+      } else if (durationStr.endsWith('s')) {
+        durationMs = parseFloat(durationStr) * 1000;
+      }
+
+      document.documentElement.classList.add('theme-transitioning');
+      setIsDarkMode(!isDarkMode);
+      setTimeout(() => {
+        document.documentElement.classList.remove('theme-transitioning');
+      }, durationMs);
+      return;
+    }
+
+    document.documentElement.classList.add('theme-transition');
+
+    const transition = document.startViewTransition(() => {
+      flushSync(() => {
+        setIsDarkMode(!isDarkMode);
+      });
+    });
+
+    transition.finished.finally(() => {
+      document.documentElement.classList.remove('theme-transition');
+    });
   };
 
   const AnimatedBg = () => (
@@ -214,30 +241,6 @@ const Home = () => {
 
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden bg-transparent">
-      <AnimatePresence>
-        {isAnimatingTheme && (
-          <motion.div
-            initial={{ clipPath: 'circle(0% at calc(100% - 40px) 40px)', opacity: 1 }}
-            animate={{ clipPath: 'circle(150% at calc(100% - 40px) 40px)', opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{
-              duration: 0.75,
-              ease: 'easeInOut'
-            }}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 9999, // Extremely high z-index to cover everything
-              backgroundColor: themeOverlayColor, // Target background color based on what it will become
-              pointerEvents: 'auto', // Block interactions during animation
-            }}
-          />
-        )}
-      </AnimatePresence>
-
       <LiquidCursor />
       {typeof window !== "undefined" && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && (
         <AnimatedBg />
