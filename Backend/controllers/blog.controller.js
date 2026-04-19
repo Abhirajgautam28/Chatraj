@@ -50,14 +50,14 @@ export const likeBlog = async (req, res) => {
         const id = req.params.id;
         if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
 
-        // Use req.user._id directly from optimized JWT payload
-        const userId = req.user._id;
+        const user = await User.findOne({ email: req.user.email });
+        if (!user) return res.status(401).json({ error: 'User not found' });
 
         // Atomic toggle logic: try to remove user._id, if not found, add it.
         // First attempt removal.
         let blog = await Blog.findOneAndUpdate(
-            { _id: id, likes: userId },
-            { $pull: { likes: userId } },
+            { _id: id, likes: user._id },
+            { $pull: { likes: user._id } },
             { new: true }
         );
 
@@ -65,7 +65,7 @@ export const likeBlog = async (req, res) => {
             // If removal did nothing, it means user hasn't liked it yet. Add it.
             blog = await Blog.findOneAndUpdate(
                 { _id: id },
-                { $addToSet: { likes: userId } },
+                { $addToSet: { likes: user._id } },
                 { new: true }
             );
         }
@@ -84,10 +84,12 @@ export const commentOnBlog = async (req, res) => {
         const id = req.params.id;
         if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
 
-        // Use req.user._id directly from optimized JWT payload
+        const user = await User.findOne({ email: req.user.email });
+        if (!user) return res.status(401).json({ error: 'User not found' });
+
         const blog = await Blog.findByIdAndUpdate(
             id,
-            { $push: { comments: { user: req.user._id, text } } },
+            { $push: { comments: { user: user._id, text } } },
             { new: true }
         ).populate('author', 'firstName lastName').populate('comments.user', 'firstName lastName');
 
