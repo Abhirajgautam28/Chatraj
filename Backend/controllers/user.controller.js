@@ -33,10 +33,19 @@ import userModel from '../models/user.model.js';
 import { normalizeEmail } from '../utils/email.js';
 import { shouldExposeOtpToClient } from '../utils/security.js';
 import { sendMailWithRetry } from '../utils/mailer.js';
-import { escapeHtml } from '../utils/strings.js';
-import { generateOTP } from '../utils/otp.js';
 import dotenv from 'dotenv';
 dotenv.config();
+
+// Helper: escape user-supplied text before inserting into HTML templates
+function escapeHtml(unsafe) {
+    if (unsafe === undefined || unsafe === null) return '';
+    return String(unsafe)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
 import * as userService from '../services/user.service.js';
 import { validationResult } from 'express-validator';
 import redisClient from '../services/redis.service.js';
@@ -189,6 +198,16 @@ export const createUserController = async (req, res) => {
     }
 }
 
+// Helper: Generate 7-char OTP
+function generateOTP(length) {
+    const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*';
+    let otp = '';
+    for (let i = 0; i < length; i++) {
+        const index = crypto.randomInt(chars.length);
+        otp += chars[index];
+    }
+    return otp;
+}
 
 // Helper: Send OTP email
 async function sendOtpEmail(email, otp) {
