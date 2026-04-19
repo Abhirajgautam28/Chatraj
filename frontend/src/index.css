@@ -16,7 +16,7 @@ body {
 
 :root {
   --primary-color: #3B82F6;
-  --theme-transition-duration: 0.5s;
+  --theme-transition-duration: 1.5s;
   --button-bg-color: var(--primary-color);
   --robot-icon-color: var(--primary-color);
   --primary-color-transparent: rgba(59, 130, 246, 0.5);
@@ -200,9 +200,23 @@ button {
   color: #bbb !important;
 }
 /* View Transitions for theme toggle */
-::view-transition-old(root),
+::view-transition-old(root) {
+  animation: none;
+  z-index: 1;
+}
+
 ::view-transition-new(root) {
-  animation-duration: var(--theme-transition-duration);
+  animation: theme-reveal var(--theme-transition-duration) ease-in-out;
+  z-index: 2;
+}
+
+@keyframes theme-reveal {
+  0% {
+    clip-path: circle(0% at 95% 5%);
+  }
+  100% {
+    clip-path: circle(150% at 95% 5%);
+  }
 }
 
 /* Fallback for browsers that do not support View Transitions */

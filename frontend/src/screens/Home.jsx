@@ -185,7 +185,7 @@ const Home = () => {
     if (!document.startViewTransition) {
       // Fallback for browsers without View Transitions
       const durationStr = getComputedStyle(document.documentElement).getPropertyValue('--theme-transition-duration').trim();
-      let durationMs = 500;
+      let durationMs = 1500;
       if (durationStr.endsWith('ms')) {
         durationMs = parseFloat(durationStr);
       } else if (durationStr.endsWith('s')) {
