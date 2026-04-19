@@ -18,6 +18,13 @@ const formatMessageTime = (timestamp) => {
 const ChatRaj = () => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
+
+  const filteredMessages = useCallback(() => {
+    if (!searchTerm) return messages;
+    const lowerSearch = searchTerm.toLowerCase();
+    return messages.filter(m => m.content.toLowerCase().includes(lowerSearch));
+  }, [messages, searchTerm]);
+
   const [inputMessage, setInputMessage] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -593,12 +600,7 @@ const ChatRaj = () => {
                   </p>
                 </div>
               ) : (
-                (searchTerm 
-                  ? messages.filter(message => 
-                      message.content.toLowerCase().includes(searchTerm.toLowerCase())
-                    )
-                  : messages
-                ).map((message, index) => (
+                filteredMessages().map((message, index) => (
                   <div
                     key={index}
                     className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}

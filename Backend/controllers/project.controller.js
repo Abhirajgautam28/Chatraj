@@ -6,12 +6,12 @@ import { validationResult } from 'express-validator';
 
 export const getAllProject = async (req, res) => {
     try {
-        const loggedInUser = await userModel.findOne({ email: req.user.email });
+        const loggedInUser = await userModel.findOne({ email: req.user.email }).lean();
         if (!loggedInUser) {
             return res.status(401).json({ error: 'User not found' });
         }
         // Find all projects where user is a member
-        const projects = await projectModel.find({ users: { $in: [loggedInUser._id] } });
+        const projects = await projectModel.find({ users: { $in: [loggedInUser._id] } }).lean();
         res.status(200).json({ projects });
     } catch (err) {
         console.error('getAllProject error:', err);
