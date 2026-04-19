@@ -22,14 +22,17 @@ export const subscribeNewsletter = async (req, res) => {
       return res.status(400).json({ error: 'Valid email is required.' });
     }
 
-    // Prevent duplicates against legacy mixed-case records by doing a
-    // case-insensitive lookup. We then store the normalized email (with
-    // domain lowercased) for consistent future inserts.
-    const existing = await Newsletter.findOne({ email: { $regex: `^${escapeRegex(normalizedEmail)}$`, $options: 'i' } });
-    if (existing) {
-      return res.status(409).json({ error: 'Email already subscribed.' });
+    // Prevent duplicates. The model has 'lowercase: true' and 'unique: true',
+    // so we can use an atomic create/find-or-create approach.
+    let subscription;
+    try {
+      subscription = await Newsletter.create({ email: normalizedEmail });
+    } catch (err) {
+      if (err.code === 11000) {
+        return res.status(409).json({ error: 'Email already subscribed.' });
+      }
+      throw err;
     }
-    const subscription = await Newsletter.create({ email: normalizedEmail });
     try {
       const sender = process.env.SMTP_FROM || 'ChatRaj <no-reply@chatraj.com>';
       const mailOptions = {
