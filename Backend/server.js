@@ -150,20 +150,23 @@ io.on('connection', socket => {
 
     socket.on('message-reaction', async (data) => {
         try {
-            const message = await Message.findById(data.messageId);
-            if (message) {
-                message.reactions = message.reactions.filter(r => 
-                    r.userId.toString() !== data.userId.toString()
-                );
+            // Atomic reaction update: first remove any existing reaction from this user
+            let message = await Message.findOneAndUpdate(
+                { _id: data.messageId },
+                { $pull: { reactions: { userId: data.userId } } },
+                { new: true }
+            );
 
-                if (data.emoji) {
-                    message.reactions.push({ 
-                        emoji: data.emoji, 
-                        userId: data.userId 
-                    });
-                }
-                
-                await message.save();
+            if (message && data.emoji) {
+                // If an emoji was provided, add the new reaction
+                message = await Message.findOneAndUpdate(
+                    { _id: data.messageId },
+                    { $push: { reactions: { emoji: data.emoji, userId: data.userId } } },
+                    { new: true }
+                ).lean();
+            }
+
+            if (message) {
                 io.to(socket.roomId).emit('message-reaction', message);
             }
         } catch (error) {

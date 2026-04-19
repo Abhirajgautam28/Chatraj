@@ -582,9 +582,11 @@ const Project = () => {
     });
   }, [messages, user._id]);
 
-  const filteredMessages = searchTerm
-    ? patchedMessages.filter((msg) => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
-    : patchedMessages;
+  const filteredMessages = React.useMemo(() => {
+    return searchTerm
+      ? patchedMessages.filter((msg) => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
+      : patchedMessages;
+  }, [patchedMessages, searchTerm]);
 
   // Fix: define groupedMessages before return
   const groupedMessages = React.useMemo(() => groupMessagesByDate(filteredMessages), [filteredMessages]);
