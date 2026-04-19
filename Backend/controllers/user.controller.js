@@ -6,13 +6,17 @@ export const sendOtpController = async (req, res) => {
         const { email } = req.body;
         const { value: normalizedEmail, isValid } = normalizeEmail(email);
         if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
-        const user = await userModel.findOne({ email: normalizedEmail });
-        if (!user) return res.status(404).json({ message: 'User not found' });
-        // Generate OTP
+
         const otp = generateOTP(7);
-        user.otp = otp;
-        user.isVerified = false;
-        await user.save();
+        // Atomic update: set OTP and unverify in one go
+        const user = await userModel.findOneAndUpdate(
+            { email: normalizedEmail },
+            { $set: { otp, isVerified: false } },
+            { new: true }
+        );
+
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
         await sendOtpEmail(user.email, otp);
         res.status(200).json({ message: 'OTP sent to email.' });
     } catch (error) {
@@ -23,7 +27,7 @@ export const sendOtpController = async (req, res) => {
 
 export const getLeaderboardController = async (req, res) => {
     try {
-        const users = await userModel.find({}).sort({ projects: -1 }).limit(10);
+        const users = await userModel.find({}).sort({ projects: -1 }).limit(10).lean();
         res.status(200).json({ users });
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });

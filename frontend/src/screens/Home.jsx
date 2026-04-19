@@ -145,7 +145,6 @@ const Home = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showFabMenu, setShowFabMenu] = useState(false);
   const [showAskChatRajModal, setShowAskChatRajModal] = useState(false);
-  const shouldReduceMotion = useReducedMotion();
 
 
   useEffect(() => {
@@ -174,37 +173,6 @@ const Home = () => {
       localStorage.setItem('fromTryChatRaj', 'true');
       navigate('/login', { replace: true });
     }
-  };
-
-  const handleThemeToggle = () => {
-    if (shouldReduceMotion) {
-      setIsDarkMode(!isDarkMode);
-      return;
-    }
-
-    if (!document.startViewTransition) {
-      // Fallback for browsers without View Transitions
-      const durationStr = getComputedStyle(document.documentElement).getPropertyValue('--theme-transition-duration').trim();
-      let durationMs = 500;
-      if (durationStr.endsWith('ms')) {
-        durationMs = parseFloat(durationStr);
-      } else if (durationStr.endsWith('s')) {
-        durationMs = parseFloat(durationStr) * 1000;
-      }
-
-      document.documentElement.classList.add('theme-transitioning');
-      setIsDarkMode(!isDarkMode);
-      setTimeout(() => {
-        document.documentElement.classList.remove('theme-transitioning');
-      }, durationMs);
-      return;
-    }
-
-    document.startViewTransition(() => {
-      flushSync(() => {
-        setIsDarkMode(!isDarkMode);
-      });
-    });
   };
 
   const AnimatedBg = () => (
@@ -277,7 +245,7 @@ const Home = () => {
             Try ChatRaj
           </button>
           <button
-            onClick={handleThemeToggle}
+            onClick={() => setIsDarkMode(!isDarkMode)}
             className={`p-2 transition-colors rounded-lg ${isDarkMode ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}
           >
             <i className={`text-xl ${isDarkMode ? 'ri-sun-line' : 'ri-moon-line'}`}></i>
