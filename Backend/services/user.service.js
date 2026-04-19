@@ -3,18 +3,17 @@ import userModel from '../models/user.model.js';
 
 
 export const createUser = async ({
-    firstName, lastName, email, password, googleApiKey, otp, isVerified
+    firstName, lastName, email, passwordHash, googleApiKey, otp, isVerified = false
 }) => {
-    if (!firstName || !lastName || !email || !password || !googleApiKey) {
+    if (!firstName || !lastName || !email || !passwordHash || !googleApiKey) {
         throw new Error('All fields are required');
     }
-    const hashedPassword = await userModel.hashPassword(password);
     // Store googleApiKey in plaintext for Gemini API
     const user = await userModel.create({
         firstName,
         lastName,
         email,
-        password: hashedPassword,
+        password: passwordHash,
         googleApiKey,
         otp,
         isVerified

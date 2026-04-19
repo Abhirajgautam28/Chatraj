@@ -78,10 +78,12 @@ async function connect() {
             setTimeout(connect, 5000);
         });
 
-        process.on('SIGINT', async () => {
+        const shutdown = async () => {
             await mongoose.connection.close();
             process.exit(0);
-        });
+        };
+        process.on('SIGINT', shutdown);
+        process.on('SIGTERM', shutdown);
 
     } catch (error) {
         logger.error('Error connecting to MongoDB:', error && error.stack ? error.stack : (error.message || error));

@@ -119,13 +119,15 @@ io.on('connection', socket => {
         }
     })
 
-    // Delivery event: when a user receives a message, mark as delivered
+    // Delivery event: when a user receives a message, mark as delivered atomically
     socket.on('message-delivered', async ({ messageId, userId }) => {
         try {
-            const message = await Message.findById(messageId);
-            if (message && !message.deliveredTo.includes(userId)) {
-                message.deliveredTo.push(userId);
-                await message.save();
+            if (!mongoose.Types.ObjectId.isValid(messageId)) return;
+            const res = await Message.updateOne(
+                { _id: messageId },
+                { $addToSet: { deliveredTo: userId } }
+            );
+            if (res.modifiedCount > 0) {
                 io.to(socket.roomId).emit('message-delivered', { messageId, userId });
             }
         } catch (err) {
@@ -133,13 +135,15 @@ io.on('connection', socket => {
         }
     });
 
-    // Read event: when a user reads a message, mark as read
+    // Read event: when a user reads a message, mark as read atomically
     socket.on('message-read', async ({ messageId, userId }) => {
         try {
-            const message = await Message.findById(messageId);
-            if (message && !message.readBy.includes(userId)) {
-                message.readBy.push(userId);
-                await message.save();
+            if (!mongoose.Types.ObjectId.isValid(messageId)) return;
+            const res = await Message.updateOne(
+                { _id: messageId },
+                { $addToSet: { readBy: userId } }
+            );
+            if (res.modifiedCount > 0) {
                 io.to(socket.roomId).emit('message-read', { messageId, userId });
             }
         } catch (err) {
@@ -147,23 +151,29 @@ io.on('connection', socket => {
         }
     });
 
+    // Manage reactions atomically
     socket.on('message-reaction', async (data) => {
         try {
-            const message = await Message.findById(data.messageId);
-            if (message) {
-                message.reactions = message.reactions.filter(r => 
-                    r.userId.toString() !== data.userId.toString()
-                );
+            if (!mongoose.Types.ObjectId.isValid(data.messageId)) return;
 
-                if (data.emoji) {
-                    message.reactions.push({ 
-                        emoji: data.emoji, 
-                        userId: data.userId 
-                    });
-                }
-                
-                await message.save();
-                io.to(socket.roomId).emit('message-reaction', message);
+            // Step 1: Remove any existing reaction from this user
+            await Message.updateOne(
+                { _id: data.messageId },
+                { $pull: { reactions: { userId: data.userId } } }
+            );
+
+            // Step 2: If a new emoji is provided, add it
+            if (data.emoji) {
+                await Message.updateOne(
+                    { _id: data.messageId },
+                    { $push: { reactions: { emoji: data.emoji, userId: data.userId } } }
+                );
+            }
+
+            // Step 3: Fetch the updated message to broadcast
+            const updatedMessage = await Message.findById(data.messageId);
+            if (updatedMessage) {
+                io.to(socket.roomId).emit('message-reaction', updatedMessage);
             }
         } catch (error) {
             logger.error("Error handling reaction:", error.message);

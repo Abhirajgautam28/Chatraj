@@ -247,13 +247,13 @@ export const verifyOtpController = async (req, res) => {
 
                 if (pending.otp !== otp) return res.status(401).json({ message: 'Invalid OTP' });
 
-                // Create the real user record from pending values.
+                // Create the real user record from pending values via userService.
                 try {
-                    const created = await userModel.create({
+                    const created = await userService.createUser({
                         firstName: pending.firstName,
                         lastName: pending.lastName,
                         email: pending.email,
-                        password: pending.passwordHash,
+                        passwordHash: pending.passwordHash,
                         googleApiKey: pending.googleApiKey,
                         isVerified: true,
                     });
