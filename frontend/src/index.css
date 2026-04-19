@@ -16,6 +16,7 @@ body {
 
 :root {
   --primary-color: #3B82F6;
+  --theme-transition-duration: 1.5s;
   --button-bg-color: var(--primary-color);
   --robot-icon-color: var(--primary-color);
   --primary-color-transparent: rgba(59, 130, 246, 0.5);
@@ -197,4 +198,40 @@ button {
 .syntax-off-dark .cm-gutters {
   background: #181e29 !important;
   color: #bbb !important;
+}
+/* View Transitions for theme toggle */
+.theme-transition::view-transition-old(root) {
+  animation: theme-fade-out var(--theme-transition-duration) ease-in-out forwards;
+  z-index: 1;
+  mix-blend-mode: normal;
+}
+
+.theme-transition::view-transition-new(root) {
+  animation: theme-fade-in var(--theme-transition-duration) ease-in-out forwards;
+  z-index: 2;
+  mix-blend-mode: normal;
+}
+
+@keyframes theme-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes theme-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Fallback for browsers that do not support View Transitions */
+.theme-transitioning,
+.theme-transitioning * {
+  transition: background-color var(--theme-transition-duration) ease, color var(--theme-transition-duration) ease, border-color var(--theme-transition-duration) ease, fill var(--theme-transition-duration) ease, stroke var(--theme-transition-duration) ease !important;
 }
