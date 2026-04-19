@@ -10,7 +10,7 @@ import useDarkMode from '../hooks/useDarkMode';
 const BlogsContent = () => {
     const [blogs, setBlogs] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [darkMode, setDarkMode] = useDarkMode('blog_dark_mode', false);
+    const [darkMode, setDarkMode, toggleThemeGlobal] = useDarkMode('blog_dark_mode', false);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -45,7 +45,13 @@ const BlogsContent = () => {
                 <button
                     aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
                     className="absolute top-6 right-6 md:top-8 md:right-12 z-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full p-2 shadow hover:shadow-md transition-all duration-200 flex items-center justify-center"
-                    onClick={() => setDarkMode((d) => !d)}
+                    onClick={() => {
+                        if (toggleThemeGlobal) {
+                            toggleThemeGlobal();
+                        } else {
+                            setDarkMode((d) => !d);
+                        }
+                    }}
                 >
                     {darkMode ? (
                         <i className="ri-sun-line text-2xl text-yellow-400" />

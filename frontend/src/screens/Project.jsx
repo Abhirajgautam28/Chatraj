@@ -216,7 +216,7 @@ const Project = () => {
   const [project, setProject] = useState(location.state.project)
   const [message, setMessage] = useState('')
   const { user } = useContext(UserContext)
-  const { isDarkMode, setIsDarkMode } = useContext(ThemeContext)
+  const { isDarkMode, setIsDarkMode, toggleThemeGlobal } = useContext(ThemeContext)
   const messageBox = useRef(null)
   const [users, setUsers] = useState([])
   const [messages, setMessages] = useState([])
@@ -845,7 +845,9 @@ const Project = () => {
 
   useEffect(() => {
     localStorage.setItem('projectSettings', JSON.stringify(settings));
-    setIsDarkMode(settings.display.darkMode);
+    // Since toggleThemeGlobal handles `setIsDarkMode`, we do not want to automatically call
+    // `setIsDarkMode` here because it might double-fire or circumvent the transition.
+    // However, we still need to sync the html class for initial loads.
     document.documentElement.classList.toggle('dark', settings.display.darkMode);
   }, [settings, setIsDarkMode]);
 
@@ -1486,7 +1488,12 @@ const Project = () => {
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-gray-900 dark:text-white">Dark Mode</span>
                       <button
-                        onClick={() => updateSettings('display', 'darkMode', !settings.display.darkMode)}
+                        onClick={() => {
+                          updateSettings('display', 'darkMode', !settings.display.darkMode);
+                          if (toggleThemeGlobal) {
+                             toggleThemeGlobal();
+                          }
+                        }}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.darkMode ? 'bg-blue-600' : 'bg-gray-300'}`}
                       >
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.darkMode ? 'translate-x-6' : 'translate-x-1'}`} />

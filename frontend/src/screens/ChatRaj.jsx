@@ -112,7 +112,7 @@ const ChatRaj = () => {
   const messageEndRef = useRef(null);
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
-  useContext(ChatRajThemeContext);
+  const { toggleThemeGlobal } = useContext(ChatRajThemeContext);
   const { user } = useContext(UserContext);
 
   const [autoCompleteOptions, setAutoCompleteOptions] = useState([]);
@@ -320,6 +320,9 @@ const ChatRaj = () => {
 
   useEffect(() => {
     localStorage.setItem('chatrajSettings', JSON.stringify(settings));
+    // Since toggleThemeGlobal handles `setIsDarkMode`, we do not want to automatically call
+    // `setIsDarkMode` here because it might double-fire or circumvent the transition.
+    // However, we still need to sync the html class for initial loads.
     document.documentElement.classList.toggle('dark', settings.display.darkMode);
   }, [settings]);
 
@@ -791,7 +794,10 @@ const ChatRaj = () => {
                           <p className="text-xs text-gray-500 dark:text-gray-400">Switch between light and dark theme</p>
                         </div>
                         <button
-                          onClick={() => updateSettings('display', 'darkMode', !settings.display.darkMode)}
+                          onClick={() => {
+                            updateSettings('display', 'darkMode', !settings.display.darkMode);
+                            if (toggleThemeGlobal) toggleThemeGlobal();
+                          }}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                             settings.display.darkMode ? 'bg-blue-600' : 'bg-gray-300'
                           }`}
