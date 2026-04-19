@@ -16,7 +16,6 @@ body {
 
 :root {
   --primary-color: #3B82F6;
-  --theme-transition-duration: 1.5s;
   --button-bg-color: var(--primary-color);
   --robot-icon-color: var(--primary-color);
   --primary-color-transparent: rgba(59, 130, 246, 0.5);
@@ -198,55 +197,4 @@ button {
 .syntax-off-dark .cm-gutters {
   background: #181e29 !important;
   color: #bbb !important;
-}
-/* View Transitions for theme toggle */
-.theme-transition::view-transition-old(root) {
-  animation: futuristic-exit var(--theme-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) forwards;
-  z-index: 1;
-  mix-blend-mode: normal;
-}
-
-.theme-transition::view-transition-new(root) {
-  animation: futuristic-enter var(--theme-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) forwards;
-  z-index: 2;
-  mix-blend-mode: normal;
-}
-
-@keyframes futuristic-exit {
-  0% {
-    filter: blur(0px);
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    filter: blur(10px);
-    transform: scale(0.95);
-    opacity: 0.5;
-  }
-  100% {
-    filter: blur(20px);
-    transform: scale(0.9);
-    opacity: 0;
-  }
-}
-
-@keyframes futuristic-enter {
-  0% {
-    clip-path: inset(100% 0 0 0);
-    filter: brightness(2) contrast(1.5);
-  }
-  50% {
-    clip-path: inset(50% 0 0 0);
-    filter: brightness(1.5) contrast(1.2);
-  }
-  100% {
-    clip-path: inset(0 0 0 0);
-    filter: brightness(1) contrast(1);
-  }
-}
-
-/* Fallback for browsers that do not support View Transitions */
-.theme-transitioning,
-.theme-transitioning * {
-  transition: background-color var(--theme-transition-duration) ease, color var(--theme-transition-duration) ease, border-color var(--theme-transition-duration) ease, fill var(--theme-transition-duration) ease, stroke var(--theme-transition-duration) ease !important;
 }

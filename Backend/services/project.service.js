@@ -96,7 +96,7 @@ export const getAllProjectByUserId = async ({ userId, category }) => {
     query.category = category;
   }
 
-  const allUserProjects = await projectModel.find(query);
+  const allUserProjects = await projectModel.find(query).lean();
   return allUserProjects;
 };
 
@@ -189,24 +189,19 @@ export const updateFileTree = async ({ projectId, fileTree, userId }) => {
     // Normalize to plain JSON to strip any unexpected prototypes or non-serializable values
     const safeFileTree = JSON.parse(JSON.stringify(fileTree));
 
-    if (userId) {
-        const project = await projectModel.findOne({
-            _id: projectId,
-            users: userId
-        });
-
-        if (!project) {
-            throw new Error("Unauthorized access");
-        }
-    }
-
+    // Single atomic operation that validates membership AND updates
     const project = await projectModel.findOneAndUpdate({
-        _id: projectId
+        _id: projectId,
+        users: userId
     }, {
         $set: { fileTree: safeFileTree }
     }, {
         new: true
-    })
+    }).lean();
+
+    if (!project) {
+        throw new Error("Unauthorized access or project not found");
+    }
 
     return project;
 }

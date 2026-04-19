@@ -7,12 +7,13 @@ import { withCache, invalidateCache } from '../utils/cache.js';
 
 export const getAllProject = async (req, res) => {
     try {
-        const loggedInUser = await userModel.findOne({ email: req.user.email }).lean();
-        if (!loggedInUser) {
-            return res.status(401).json({ error: 'User not found' });
-        }
-        // Find all projects where user is a member
-        const projects = await projectModel.find({ users: { $in: [loggedInUser._id] } }).lean();
+        const { category } = req.query;
+        // Use req.user._id directly from optimized JWT payload
+        const query = { users: { $in: [req.user._id] } };
+        if (category) query.category = category;
+
+        // Exclude heavy fileTree from project list for performance
+        const projects = await projectModel.find(query).select('-fileTree').lean();
         res.status(200).json({ projects });
     } catch (err) {
         console.error('getAllProject error:', err);
@@ -153,7 +154,8 @@ export const getProjectCountsByCategory = async (req, res) => {
 export const getProjectShowcase = async (req, res) => {
     try {
         const projects = await withCache('project:showcase', 300, async () => {
-            return await projectModel.find({}).sort({ users: -1 }).limit(10).lean();
+            // Exclude heavy fileTree from showcase for performance
+            return await projectModel.find({}).select('-fileTree').sort({ users: -1 }).limit(10).lean();
         });
         res.status(200).json({ projects });
     } catch (error) {
@@ -233,12 +235,15 @@ export const updateProjectSettings = async (req, res) => {
         const { projectId } = req.params;
         const { settings } = req.body;
         if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) return res.status(400).json({ error: 'Invalid projectId' });
-        const project = await projectModel.findById(projectId);
-        if (!project) return res.status(404).json({ error: 'Project not found' });
-        const isMember = project.users && project.users.some(u => u.toString() === req.user._id.toString());
-        if (!isMember) return res.status(401).json({ error: 'Unauthorized' });
-        project.settings = settings;
-        await project.save();
+
+        // Atomic update settings while verifying membership
+        const project = await projectModel.findOneAndUpdate(
+            { _id: projectId, users: req.user._id },
+            { $set: { settings } },
+            { new: true }
+        ).lean();
+
+        if (!project) return res.status(404).json({ error: 'Project not found or Unauthorized' });
         res.status(200).json({ settings: project.settings });
     } catch (err) {
         console.error('updateProjectSettings error:', err);
