@@ -198,3 +198,14 @@ button {
   background: #181e29 !important;
   color: #bbb !important;
 }
+/* View Transitions for theme toggle */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.5s;
+}
+
+/* Fallback for browsers that do not support View Transitions */
+.theme-transitioning,
+.theme-transitioning * {
+  transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease, fill 0.5s ease, stroke 0.5s ease !important;
+}
