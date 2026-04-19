@@ -3,7 +3,6 @@ import { UserContext } from '../context/user.context'
 import { ThemeContext } from '../context/theme.context'
 import { useLocation } from 'react-router-dom'
 import axios from '../config/axios'
-import { initializeSocket, receiveMessage, sendMessage, removeListener, disconnectSocket } from '../config/socket'
 import Markdown from 'markdown-to-jsx'
 import { getWebContainer } from '../config/webContainer'
 import Avatar from '../components/Avatar';
@@ -17,6 +16,13 @@ import { javascript } from '@codemirror/lang-javascript';
 import VimCodeEditor from '../components/VimCodeEditor';
 import ChatMessage from '../components/ChatMessage';
 import ErrorBoundary from '../components/ErrorBoundary';
+import { useSocket } from '../hooks/useSocket';
+import {
+  sanitizeIframeUrl,
+  normalizeFileTree,
+  deduplicateMessages,
+  groupMessagesByDate
+} from '../utils/projectUtils';
 
 const PROJECT_TRANSLATIONS = {
   'en-US': {
@@ -136,15 +142,6 @@ function useProjectTranslation(language) {
   }, [language]);
 }
 
-function deduplicateMessages(messages) {
-  const seen = new Set();
-  return messages.filter(msg => {
-    if (!msg._id) return true;
-    if (seen.has(msg._id)) return false;
-    seen.add(msg._id);
-    return true;
-  });
-}
 
 function SyntaxHighlightedCode(props) {
   const ref = useRef(null)
@@ -162,53 +159,6 @@ SyntaxHighlightedCode.propTypes = {
   children: PropTypes.node
 };
 
-const isSameDay = (d1, d2) => {
-  return (
-    d1.getFullYear() === d2.getFullYear() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getDate() === d2.getDate()
-  )
-}
-
-const getGroupLabel = (date) => {
-  const today = new Date()
-  if (isSameDay(date, today)) return 'Today'
-
-  const yesterday = new Date()
-  yesterday.setDate(today.getDate() - 1)
-  if (isSameDay(date, yesterday)) return 'Yesterday'
-  return date.toLocaleDateString()
-}
-
-const groupMessagesByDate = (messagesArr) => {
-  const groups = {}
-  messagesArr.forEach((msg) => {
-    const d = new Date(msg.createdAt)
-    const label = getGroupLabel(d)
-    if (!groups[label]) {
-      groups[label] = []
-    }
-    groups[label].push(msg)
-  })
-  return groups
-}
-
-// Utility to normalize fileTree structure
-function normalizeFileTree(tree) {
-  if (!tree || typeof tree !== 'object') return {};
-  const normalized = {};
-  for (const [key, value] of Object.entries(tree)) {
-    if (value && typeof value === 'object' && 'file' in value && typeof value.file.contents === 'string') {
-      normalized[key] = value;
-    } else if (typeof value === 'string') {
-      // If value is just a string, wrap it
-      normalized[key] = { file: { contents: value } };
-    } else {
-      // Fallback: skip or handle as needed
-    }
-  }
-  return normalized;
-}
 
 const Project = () => {
   const location = useLocation()
@@ -232,22 +182,8 @@ const Project = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [showSearch, setShowSearch] = useState(false)
   const [showScrollBottom, setShowScrollBottom] = useState(false)
+  const { on, off, emit } = useSocket(project._id);
 
-  const sanitizeIframeUrl = (rawValue) => {
-    if (!rawValue) return null;
-    try {
-      const url = new URL(rawValue, window.location.origin);
-      if (url.origin !== window.location.origin) {
-        return null;
-      }
-      if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-        return null;
-      }
-      return url.toString();
-    } catch {
-      return null;
-    }
-  };
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
@@ -312,10 +248,10 @@ const Project = () => {
   const settingsModalRef = useRef(null);
   const [expandedReplies, setExpandedReplies] = useState({}); // Track expanded replies
 
-  const toggleEmojiPicker = (messageId) => {
+  const toggleEmojiPicker = (messageId, isOpen) => {
     setMessageEmojiPickers(prev => ({
       ...prev,
-      [messageId]: !prev[messageId]
+      [messageId]: isOpen !== undefined ? isOpen : !prev[messageId]
     }));
   };
 
@@ -335,7 +271,7 @@ const Project = () => {
       newReactions.push({ userId, emoji });
     }
 
-    sendMessage("message-reaction", {
+    emit("message-reaction", {
       messageId,
       emoji: !existingReaction || existingReaction.emoji !== emoji ? emoji : null,
       userId,
@@ -391,7 +327,7 @@ const Project = () => {
       parentMessageId: replyingTo ? replyingTo._id : null,
       googleApiKey: user.googleApiKey // send user's Gemini key
     };
-    sendMessage("project-message", payload);
+    emit("project-message", payload);
     setMessage("");
     setReplyingTo(null);
   }
@@ -399,7 +335,7 @@ const Project = () => {
   const handleTyping = () => {
     if (!isTyping) {
       setIsTyping(true);
-      sendMessage('typing', { userId: user._id, projectId: project._id });
+      emit('typing', { userId: user._id, projectId: project._id });
     }
 
     if (typingTimeoutRef.current) {
@@ -408,7 +344,7 @@ const Project = () => {
 
     typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
-      sendMessage('stop-typing', { userId: user._id, projectId: project._id });
+      emit('stop-typing', { userId: user._id, projectId: project._id });
     }, 1000);
   };
 
@@ -430,21 +366,18 @@ const Project = () => {
     if (messages.length && messageBox.current) {
       const lastMsg = messages[messages.length - 1]
       if (lastMsg._id) {
-        sendMessage("message-read", { messageId: lastMsg._id, userId: user._id })
+        emit("message-read", { messageId: lastMsg._id, userId: user._id })
       }
     }
-  }, [messages, user])
+  }, [messages, user, emit])
 
   useEffect(() => {
-    initializeSocket(project._id)
     if (!webContainer) {
       getWebContainer().then((container) => {
         setWebContainer(container)
-        console.log("container started")
       })
     }
     axios.get(`/api/projects/get-project/${location.state.project._id}`).then((res) => {
-      console.log(res.data.project)
       setProject(res.data.project)
       setFileTree(res.data.project.fileTree || {})
     })
@@ -453,12 +386,8 @@ const Project = () => {
       .then((res) => {
         setUsers(res.data.users)
       })
-      .catch((err) => console.log(err))
-
-    return () => {
-      disconnectSocket();
-    };
-  }, [webContainer, project._id, location.state.project._id])
+      .catch((err) => console.error(err))
+  }, [webContainer, location.state.project._id])
 
   useEffect(() => {
     if (messageBox.current)
@@ -508,9 +437,9 @@ const Project = () => {
       });
     }
 
-    receiveMessage("project-message", handleIncomingMessage)
-    return () => removeListener("project-message", handleIncomingMessage);
-  }, [webContainer, project._id])
+    on("project-message", handleIncomingMessage);
+    return () => off("project-message", handleIncomingMessage);
+  }, [on, off, project._id]);
 
   useEffect(() => {
     const handleUserTyping = (data) => {
@@ -527,14 +456,14 @@ const Project = () => {
       });
     };
 
-    receiveMessage('typing', handleUserTyping);
-    receiveMessage('stop-typing', handleStopTyping);
+    on('typing', handleUserTyping);
+    on('stop-typing', handleStopTyping);
 
     return () => {
-      removeListener('typing', handleUserTyping);
-      removeListener('stop-typing', handleStopTyping);
+      off('typing', handleUserTyping);
+      off('stop-typing', handleStopTyping);
     };
-  }, [user._id]);
+  }, [on, off, user._id]);
 
   useEffect(() => {
     const handleReactionUpdate = (updatedMessage) => {
@@ -545,9 +474,9 @@ const Project = () => {
       );
     };
 
-    receiveMessage("message-reaction", handleReactionUpdate);
-    return () => removeListener("message-reaction", handleReactionUpdate);
-  }, []);
+    on("message-reaction", handleReactionUpdate);
+    return () => off("message-reaction", handleReactionUpdate);
+  }, [on, off]);
 
   useEffect(() => {
     setMessages(prev => deduplicateMessages(prev));
