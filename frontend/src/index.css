@@ -201,32 +201,47 @@ button {
 }
 /* View Transitions for theme toggle */
 .theme-transition::view-transition-old(root) {
-  animation: theme-fade-out var(--theme-transition-duration) ease-in-out forwards;
+  animation: futuristic-exit var(--theme-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) forwards;
   z-index: 1;
   mix-blend-mode: normal;
 }
 
 .theme-transition::view-transition-new(root) {
-  animation: theme-fade-in var(--theme-transition-duration) ease-in-out forwards;
+  animation: futuristic-enter var(--theme-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) forwards;
   z-index: 2;
   mix-blend-mode: normal;
 }
 
-@keyframes theme-fade-out {
-  from {
+@keyframes futuristic-exit {
+  0% {
+    filter: blur(0px);
+    transform: scale(1);
     opacity: 1;
   }
-  to {
+  50% {
+    filter: blur(10px);
+    transform: scale(0.95);
+    opacity: 0.5;
+  }
+  100% {
+    filter: blur(20px);
+    transform: scale(0.9);
     opacity: 0;
   }
 }
 
-@keyframes theme-fade-in {
-  from {
-    opacity: 0;
+@keyframes futuristic-enter {
+  0% {
+    clip-path: inset(100% 0 0 0);
+    filter: brightness(2) contrast(1.5);
   }
-  to {
-    opacity: 1;
+  50% {
+    clip-path: inset(50% 0 0 0);
+    filter: brightness(1.5) contrast(1.2);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+    filter: brightness(1) contrast(1);
   }
 }
 
