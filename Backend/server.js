@@ -49,7 +49,7 @@ io.use(async (socket, next) => {
             return next(new Error('Invalid projectId'));
         }
 
-        const project = await projectModel.findById(projectId);
+        const project = await projectModel.findById(projectId).lean();
         if (!project) {
             return next(new Error('Project not found'));
         }
@@ -87,8 +87,8 @@ io.on('connection', socket => {
                 message: messageText,
                 parentMessageId: parentMessageId,
                 createdAt: new Date(),
-                deliveredTo: [], // Track delivery
-                readBy: [] // Track reads
+                deliveredTo: [data.sender._id], // Sender automatically has it 'delivered'
+                readBy: [data.sender._id] // Sender automatically has it 'read'
             });
         } catch (err) {
             console.error("Error saving message:", err);

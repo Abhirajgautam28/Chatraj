@@ -36,16 +36,12 @@ export const createProject = async (req, res) => {
         if (!name || !category) {
             return res.status(400).json({ error: 'Name and category are required' });
         }
-        const loggedInUser = await userModel.findOne({ email: req.user.email });
-        if (!loggedInUser) {
-            return res.status(401).json({ error: 'User not found' });
-        }
-        // Create new project
+        // Use req.user._id directly from optimized JWT payload
         const project = await projectModel.create({
             name,
             category,
-            users: users ? [...users, loggedInUser._id] : [loggedInUser._id],
-            createdBy: loggedInUser._id
+            users: users ? [...users, req.user._id] : [req.user._id],
+            createdBy: req.user._id
         });
         res.status(201).json({ project });
     } catch (err) {
@@ -63,11 +59,11 @@ export const addUserToProject = async (req, res) => {
 
     try {
         const { projectId, users } = req.body;
-        const loggedInUser = await userModel.findOne({ email: req.user.email });
+        // Use req.user._id directly from optimized JWT payload
         const project = await projectService.addUsersToProject({
             projectId,
             users,
-            userId: loggedInUser._id
+            userId: req.user._id
         });
         return res.status(200).json({ project });
     } catch (err) {
@@ -127,14 +123,9 @@ export const getProjectCountsByCategory = async (req, res) => {
       'Documentation Generation',
       'Code Refactoring'
     ];
-    // Get logged-in user
-    const loggedInUser = await userModel.findOne({ email: req.user.email });
-    if (!loggedInUser) {
-      return res.status(401).json({ error: 'User not found' });
-    }
-    // Aggregate project counts by category, filtered by user
+    // Aggregate project counts by category, filtered by user from JWT payload
     const counts = await projectModel.aggregate([
-      { $match: { users: { $in: [loggedInUser._id] } } },
+      { $match: { users: { $in: [new mongoose.Types.ObjectId(req.user._id)] } } },
       {
         $group: {
           _id: "$category",

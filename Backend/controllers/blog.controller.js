@@ -8,16 +8,11 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 export const createBlog = async (req, res) => {
     try {
         const { title, content } = req.body;
-        const author = await User.findOne({ email: req.user.email });
-
-        if (!author) {
-            return res.status(401).json({ error: 'User not found' });
-        }
-
+        // Use req.user._id directly from optimized JWT payload
         const newBlog = new Blog({
             title,
             content,
-            author: author._id
+            author: req.user._id
         });
 
         await newBlog.save();

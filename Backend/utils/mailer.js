@@ -219,11 +219,6 @@ export async function sendMailWithRetry(mailOptions, opts = {}) {
     if (hasSmtp) {
       try {
         const transporter = createTransporter();
-        try {
-          await verifyTransporter(transporter);
-        } catch (vErr) {
-          console.error('SMTP verify failed (continuing to send attempts):', vErr && vErr.message ? vErr.message : vErr);
-        }
         const info = await transporter.sendMail(mailOptions);
         console.info('SMTP: message sent to %s (messageId=%s)', mailOptions.to, info && info.messageId ? info.messageId : 'unknown');
         return info;

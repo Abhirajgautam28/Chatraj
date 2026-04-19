@@ -40,15 +40,12 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    // Always fetch all projects for the user, then filter by category on the frontend
-    axios.get('/api/projects/all')
+    // Use server-side filtering for better performance
+    const url = categoryName ? `/api/projects/all?category=${encodeURIComponent(categoryName)}` : '/api/projects/all';
+    axios.get(url)
       .then((res) => {
         if (Array.isArray(res.data.projects)) {
-          if (categoryName) {
-            setProjects(res.data.projects.filter(p => p.category === categoryName));
-          } else {
-            setProjects(res.data.projects);
-          }
+          setProjects(res.data.projects);
         } else {
           setProjects([]);
         }
