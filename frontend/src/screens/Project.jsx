@@ -10,6 +10,7 @@ import Avatar from '../components/Avatar';
 import EmojiPicker from '../components/EmojiPicker';
 import FileIcon from '../components/FileIcon';
 import 'highlight.js/styles/github.css';
+import { executeThemeTransition } from '../utils/themeTransition';
 import 'highlight.js/styles/github-dark.css';
 import PropTypes from 'prop-types';
 import CodeMirror from '@uiw/react-codemirror';
@@ -1489,10 +1490,10 @@ const Project = () => {
                       <span className="font-semibold text-gray-900 dark:text-white">Dark Mode</span>
                       <button
                         onClick={() => {
-                          updateSettings('display', 'darkMode', !settings.display.darkMode);
-                          if (toggleThemeGlobal) {
-                             toggleThemeGlobal();
-                          }
+                          const shouldReduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                          executeThemeTransition(() => {
+                            updateSettings('display', 'darkMode', !settings.display.darkMode);
+                          }, shouldReduceMotion);
                         }}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.darkMode ? 'bg-blue-600' : 'bg-gray-300'}`}
                       >

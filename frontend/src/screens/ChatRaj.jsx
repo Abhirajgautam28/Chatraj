@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useContext, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { ChatRajThemeContext } from '../context/chatraj-theme.context';
 import { UserContext } from '../context/user.context';
+import { executeThemeTransition } from '../utils/themeTransition';
 import { useNavigate } from 'react-router-dom';
 
 const formatMessageTime = (timestamp) => {
@@ -795,8 +796,10 @@ const ChatRaj = () => {
                         </div>
                         <button
                           onClick={() => {
-                            updateSettings('display', 'darkMode', !settings.display.darkMode);
-                            if (toggleThemeGlobal) toggleThemeGlobal();
+                            const shouldReduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                            executeThemeTransition(() => {
+                              updateSettings('display', 'darkMode', !settings.display.darkMode);
+                            }, shouldReduceMotion);
                           }}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                             settings.display.darkMode ? 'bg-blue-600' : 'bg-gray-300'
