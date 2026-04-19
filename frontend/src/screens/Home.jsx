@@ -176,49 +176,6 @@ const Home = () => {
     }
   };
 
-  const handleThemeToggle = (e) => {
-    if (shouldReduceMotion) {
-      setIsDarkMode(!isDarkMode);
-      return;
-    }
-
-    const x = e?.clientX ?? window.innerWidth;
-    const y = e?.clientY ?? 0;
-
-    document.documentElement.style.setProperty('--x', `${x}px`);
-    document.documentElement.style.setProperty('--y', `${y}px`);
-
-    if (!document.startViewTransition) {
-      // Fallback for browsers without View Transitions
-      const durationStr = getComputedStyle(document.documentElement).getPropertyValue('--theme-transition-duration').trim();
-      let durationMs = 1500;
-      if (durationStr.endsWith('ms')) {
-        durationMs = parseFloat(durationStr);
-      } else if (durationStr.endsWith('s')) {
-        durationMs = parseFloat(durationStr) * 1000;
-      }
-
-      document.documentElement.classList.add('theme-transitioning');
-      setIsDarkMode(!isDarkMode);
-      setTimeout(() => {
-        document.documentElement.classList.remove('theme-transitioning');
-      }, durationMs);
-      return;
-    }
-
-    document.documentElement.classList.add('theme-transition');
-
-    const transition = document.startViewTransition(() => {
-      flushSync(() => {
-        setIsDarkMode(!isDarkMode);
-      });
-    });
-
-    transition.finished.finally(() => {
-      document.documentElement.classList.remove('theme-transition');
-    });
-  };
-
   const AnimatedBg = () => (
     <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
       <motion.div

@@ -122,7 +122,6 @@ const VimCodeEditor = ({
 }) => {
   const editorRef = useRef(null);
   const vimModeRef = useRef(null);
-  const vimStatusTimeoutRef = useRef(null);
   const [status, setStatus] = useState({
     line: 1,
     col: 1,
@@ -157,22 +156,14 @@ const VimCodeEditor = ({
       vimModeRef.current = initVimMode(editor, document.getElementById('vim-status-bar'));
       // Remove broken onDidChangeStatus usage
       // Instead, update Vim status by reading the status bar element's textContent
-      if (vimStatusTimeoutRef.current) clearTimeout(vimStatusTimeoutRef.current);
-      vimStatusTimeoutRef.current = setTimeout(() => {
+      setTimeout(() => {
         const bar = document.getElementById('vim-status-bar');
         if (bar) setStatus((s) => ({ ...s, vimStatus: bar.textContent }));
-        vimStatusTimeoutRef.current = null;
       }, 100);
     }
   }
 
   // Toggle Vim mode and language menu
-  useEffect(() => {
-    return () => {
-      if (vimStatusTimeoutRef.current) clearTimeout(vimStatusTimeoutRef.current);
-    };
-  }, []);
-
   useEffect(() => {
     function handleKeyDown(e) {
       // Command palette
@@ -197,11 +188,9 @@ const VimCodeEditor = ({
         if (vimModeRef.current) vimModeRef.current.dispose();
         vimModeRef.current = initVimMode(editorRef.current, document.getElementById('vim-status-bar'));
         // Remove broken onDidChangeStatus usage
-        if (vimStatusTimeoutRef.current) clearTimeout(vimStatusTimeoutRef.current);
-        vimStatusTimeoutRef.current = setTimeout(() => {
+        setTimeout(() => {
           const bar = document.getElementById('vim-status-bar');
           if (bar) setStatus((s) => ({ ...s, vimStatus: bar.textContent }));
-          vimStatusTimeoutRef.current = null;
         }, 100);
       } else if (vimModeRef.current) {
         vimModeRef.current.dispose();

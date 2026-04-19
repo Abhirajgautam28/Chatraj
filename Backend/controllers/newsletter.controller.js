@@ -2,7 +2,6 @@ import Newsletter from '../models/newsletter.model.js';
 import { normalizeEmail } from '../utils/email.js';
 import { escapeRegex } from '../utils/strings.js';
 import nodemailer from 'nodemailer';
-import { logger } from '../utils/logger.js';
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -17,20 +16,23 @@ const transporter = nodemailer.createTransport({
 export const subscribeNewsletter = async (req, res) => {
   try {
     const { email } = req.body;
-    logger.info('Newsletter: Received subscribe request for:', email);
+    console.log('Newsletter: Received subscribe request for:', email);
     const { value: normalizedEmail, isValid } = normalizeEmail(email);
     if (!isValid) {
       return res.status(400).json({ error: 'Valid email is required.' });
     }
 
-    // Prevent duplicates against legacy mixed-case records by doing a
-    // case-insensitive lookup. We then store the normalized email (with
-    // domain lowercased) for consistent future inserts.
-    const existing = await Newsletter.findOne({ email: { $regex: `^${escapeRegex(normalizedEmail)}$`, $options: 'i' } });
-    if (existing) {
-      return res.status(409).json({ error: 'Email already subscribed.' });
+    // Prevent duplicates. The model has 'lowercase: true' and 'unique: true',
+    // so we can use an atomic create/find-or-create approach.
+    let subscription;
+    try {
+      subscription = await Newsletter.create({ email: normalizedEmail });
+    } catch (err) {
+      if (err.code === 11000) {
+        return res.status(409).json({ error: 'Email already subscribed.' });
+      }
+      throw err;
     }
-    const subscription = await Newsletter.create({ email: normalizedEmail });
     try {
       const sender = process.env.SMTP_FROM || 'ChatRaj <no-reply@chatraj.com>';
       const mailOptions = {
@@ -77,14 +79,14 @@ export const subscribeNewsletter = async (req, res) => {
         text: `Welcome to ChatRaj!\n\nThank you for subscribing to the ChatRaj newsletter.\n\nWhy ChatRaj?\n- AI-Powered Collaboration: Real-time code editing, chat, and project management.\n- Privacy & Security: JWT, role-based access, and encryption.\n- Open Source: Join us on GitHub! https://github.com/Abhirajgautam28/Chatraj\n- Beautiful UI: Modern, themeable, and accessible.\n\nUpcoming Releases:\n- ChatRaj v2.1: Enhanced AI code suggestions, new collaboration tools, and improved performance (August 2025)\n- ChatRaj v2.2: Integrated project analytics, advanced debugging, and more language support (September 2025)\n- ChatRaj v3.0: Full-stack AI assistant, real-time code review, and team dashboards (Late 2025)\n\nCommunity Benefits:\n- Weekly tips, tutorials, and best practices.\n- Early access to new features and beta releases.\n- Direct feedback channel to the ChatRaj team.\n\nThank you for choosing ChatRaj.\nAbhiraj Gautam\nChatRaj Developer\nhttps://abhirajgautam.in\n\nYou’re receiving this email because you subscribed to the ChatRaj newsletter. To unsubscribe, reply to this email with 'unsubscribe'.`,
       };
       let info = await transporter.sendMail(mailOptions);
-      logger.info('Newsletter: Email send response:', info);
+      console.log('Newsletter: Email send response:', info);
       res.status(201).json({ message: 'Subscribed successfully! Confirmation email sent.', subscription });
     } catch (mailErr) {
-      logger.error('Newsletter: Email send failed:', mailErr);
+      console.error('Newsletter: Email send failed:', mailErr);
       res.status(201).json({ message: 'Subscribed, but confirmation email could not be sent.', subscription, emailError: true });
     }
   } catch (err) {
-    logger.error('Newsletter subscribe error:', err);
+    console.error('Newsletter subscribe error:', err);
     res.status(500).json({ error: 'Server error.' });
   }
 };
