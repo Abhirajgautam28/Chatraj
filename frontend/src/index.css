@@ -200,22 +200,24 @@ button {
   color: #bbb !important;
 }
 /* View Transitions for theme toggle */
-::view-transition-old(root) {
+.theme-transition::view-transition-old(root) {
   animation: none;
   z-index: 1;
+  mix-blend-mode: normal;
 }
 
-::view-transition-new(root) {
+.theme-transition::view-transition-new(root) {
   animation: theme-reveal var(--theme-transition-duration) ease-in-out;
   z-index: 2;
+  mix-blend-mode: normal;
 }
 
 @keyframes theme-reveal {
   0% {
-    clip-path: circle(0% at 95% 5%);
+    clip-path: circle(0px at var(--x, 95%) var(--y, 5%));
   }
   100% {
-    clip-path: circle(150% at 95% 5%);
+    clip-path: circle(200vmax at var(--x, 95%) var(--y, 5%));
   }
 }
 
