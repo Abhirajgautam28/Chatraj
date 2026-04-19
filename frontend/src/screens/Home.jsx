@@ -138,7 +138,7 @@ const faqs = [
 
 const Home = () => {
   const { user } = useContext(UserContext);
-  const { isDarkMode, setIsDarkMode } = useContext(ThemeContext);
+  const { isDarkMode, toggleThemeGlobal } = useContext(ThemeContext);
   const navigate = useNavigate();
 
   const [isNavVisible, setIsNavVisible] = useState(true);
@@ -177,40 +177,9 @@ const Home = () => {
   };
 
   const handleThemeToggle = () => {
-    if (shouldReduceMotion) {
-      setIsDarkMode(!isDarkMode);
-      return;
+    if (toggleThemeGlobal) {
+      toggleThemeGlobal(shouldReduceMotion);
     }
-
-    if (!document.startViewTransition) {
-      // Fallback for browsers without View Transitions
-      const durationStr = getComputedStyle(document.documentElement).getPropertyValue('--theme-transition-duration').trim();
-      let durationMs = 1500;
-      if (durationStr.endsWith('ms')) {
-        durationMs = parseFloat(durationStr);
-      } else if (durationStr.endsWith('s')) {
-        durationMs = parseFloat(durationStr) * 1000;
-      }
-
-      document.documentElement.classList.add('theme-transitioning');
-      setIsDarkMode(!isDarkMode);
-      setTimeout(() => {
-        document.documentElement.classList.remove('theme-transitioning');
-      }, durationMs);
-      return;
-    }
-
-    document.documentElement.classList.add('theme-transition');
-
-    const transition = document.startViewTransition(() => {
-      flushSync(() => {
-        setIsDarkMode(!isDarkMode);
-      });
-    });
-
-    transition.finished.finally(() => {
-      document.documentElement.classList.remove('theme-transition');
-    });
   };
 
   const AnimatedBg = () => (

@@ -6,7 +6,7 @@ import { ThemeContext } from '../context/theme.context.jsx';
 
 const Categories = () => {
   const navigate = useNavigate();
-  const { isDarkMode, setIsDarkMode } = useContext(ThemeContext);
+  const { isDarkMode, setIsDarkMode, toggleThemeGlobal } = useContext(ThemeContext);
 
   // State for search/filter and view toggle
   const [search, setSearch] = useState("");
@@ -49,13 +49,15 @@ const Categories = () => {
     if (theme === 'system') {
       // Use Home page's isDarkMode value (from ThemeContext)
       // Do nothing, ThemeContext already provides the value
-    } else if (theme === 'dark') {
-      setIsDarkMode(true);
-    } else {
-      setIsDarkMode(false);
+    } else if (theme === 'dark' && !isDarkMode) {
+      if (toggleThemeGlobal) toggleThemeGlobal();
+      else setIsDarkMode(true);
+    } else if (theme === 'light' && isDarkMode) {
+      if (toggleThemeGlobal) toggleThemeGlobal();
+      else setIsDarkMode(false);
     }
     localStorage.setItem('categoriesThemeMode', theme);
-  }, [theme, setIsDarkMode]);
+  }, [theme, isDarkMode, setIsDarkMode, toggleThemeGlobal]);
 
   // Close dropdowns on outside click
   useEffect(() => {
