@@ -7,12 +7,12 @@ import { logger } from '../utils/logger.js';
 
 export const getAllProject = async (req, res) => {
     try {
-        const loggedInUser = await userModel.findOne({ email: req.user.email });
+        const loggedInUser = await userModel.findOne({ email: req.user.email }).lean();
         if (!loggedInUser) {
             return res.status(401).json({ error: 'User not found' });
         }
         // Find all projects where user is a member
-        const projects = await projectModel.find({ users: { $in: [loggedInUser._id] } });
+        const projects = await projectModel.find({ users: { $in: [loggedInUser._id] } }).lean();
         res.status(200).json({ projects });
     } catch (err) {
         logger.error('getAllProject error:', err);
@@ -125,7 +125,7 @@ export const getProjectCountsByCategory = async (req, res) => {
       'Code Refactoring'
     ];
     // Get logged-in user
-    const loggedInUser = await userModel.findOne({ email: req.user.email });
+    const loggedInUser = await userModel.findOne({ email: req.user.email }).lean();
     if (!loggedInUser) {
       return res.status(401).json({ error: 'User not found' });
     }
@@ -158,7 +158,7 @@ export const getProjectCountsByCategory = async (req, res) => {
 
 export const getProjectShowcase = async (req, res) => {
     try {
-        const projects = await projectModel.find({}).sort({ users: -1 }).limit(10);
+        const projects = await projectModel.find({}).sort({ users: -1 }).limit(10).lean();
         res.status(200).json({ projects });
     } catch (error) {
         logger.error('getProjectShowcase error:', error);
@@ -221,7 +221,7 @@ export const getProjectSettings = async (req, res) => {
     try {
         const { projectId } = req.params;
         if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) return res.status(400).json({ error: 'Invalid projectId' });
-        const project = await projectModel.findById(projectId);
+        const project = await projectModel.findById(projectId).lean();
         if (!project) return res.status(404).json({ error: 'Project not found' });
         const isMember = project.users && project.users.some(u => u.toString() === req.user._id.toString());
         if (!isMember) return res.status(401).json({ error: 'Unauthorized' });

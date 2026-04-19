@@ -37,7 +37,7 @@ export const sendOtpController = async (req, res) => {
 
 export const getLeaderboardController = async (req, res) => {
     try {
-        const users = await userModel.find({}).sort({ projects: -1 }).limit(10);
+        const users = await userModel.find({}).sort({ projects: -1 }).limit(10).lean();
         res.status(200).json({ users });
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
@@ -426,7 +426,7 @@ export const getAllUsersController = async (req, res) => {
     try {
         const loggedInUser = await userModel.findOne({
             email: req.user.email
-        })
+        }).lean()
 
         const allUsers = await userService.getAllUsers({ userId: loggedInUser._id });
         const usersWithNames = allUsers.map(u => ({
