@@ -3,7 +3,7 @@ import { UserContext } from '../context/user.context'
 import { ThemeContext } from '../context/theme.context'
 import { useLocation } from 'react-router-dom'
 import axios from '../config/axios'
-import { initializeSocket, receiveMessage, sendMessage } from '../config/socket'
+import { initializeSocket, receiveMessage, sendMessage, removeListener, disconnectSocket } from '../config/socket'
 import Markdown from 'markdown-to-jsx'
 import { getWebContainer } from '../config/webContainer'
 import Avatar from '../components/Avatar';
@@ -428,8 +428,6 @@ const Project = () => {
   }, [messages, user])
 
   useEffect(() => {
-    if (window.__webcontainerBooted) return;
-    window.__webcontainerBooted = true;
     initializeSocket(project._id)
     if (!webContainer) {
       getWebContainer().then((container) => {
@@ -448,6 +446,10 @@ const Project = () => {
         setUsers(res.data.users)
       })
       .catch((err) => console.log(err))
+
+    return () => {
+      disconnectSocket();
+    };
   }, [webContainer, project._id, location.state.project._id])
 
   useEffect(() => {
@@ -499,6 +501,7 @@ const Project = () => {
     }
 
     receiveMessage("project-message", handleIncomingMessage)
+    return () => removeListener("project-message", handleIncomingMessage);
   }, [webContainer, project._id])
 
   useEffect(() => {
@@ -520,8 +523,8 @@ const Project = () => {
     receiveMessage('stop-typing', handleStopTyping);
 
     return () => {
-      receiveMessage('typing', null);
-      receiveMessage('stop-typing', null);
+      removeListener('typing', handleUserTyping);
+      removeListener('stop-typing', handleStopTyping);
     };
   }, [user._id]);
 
@@ -535,6 +538,7 @@ const Project = () => {
     };
 
     receiveMessage("message-reaction", handleReactionUpdate);
+    return () => removeListener("message-reaction", handleReactionUpdate);
   }, []);
 
   // Fix: Deduplicate messages on every update
