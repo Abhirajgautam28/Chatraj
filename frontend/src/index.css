@@ -16,7 +16,6 @@ body {
 
 :root {
   --primary-color: #3B82F6;
-  --theme-transition-duration: 0.5s;
   --button-bg-color: var(--primary-color);
   --robot-icon-color: var(--primary-color);
   --primary-color-transparent: rgba(59, 130, 246, 0.5);
@@ -198,15 +197,4 @@ button {
 .syntax-off-dark .cm-gutters {
   background: #181e29 !important;
   color: #bbb !important;
-}
-/* View Transitions for theme toggle */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: var(--theme-transition-duration);
-}
-
-/* Fallback for browsers that do not support View Transitions */
-.theme-transitioning,
-.theme-transitioning * {
-  transition: background-color var(--theme-transition-duration) ease, color var(--theme-transition-duration) ease, border-color var(--theme-transition-duration) ease, fill var(--theme-transition-duration) ease, stroke var(--theme-transition-duration) ease !important;
 }
