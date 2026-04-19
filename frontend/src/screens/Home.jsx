@@ -3,9 +3,8 @@ import TextType from '../components/TextType.jsx';
 import ProjectShowcase from '../components/ProjectShowcase.jsx';
 import UserLeaderboard from '../components/UserLeaderboard.jsx';
 import { useContext, useEffect, useState, lazy, Suspense } from 'react';
-import { flushSync } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
@@ -145,7 +144,6 @@ const Home = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showFabMenu, setShowFabMenu] = useState(false);
   const [showAskChatRajModal, setShowAskChatRajModal] = useState(false);
-  const shouldReduceMotion = useReducedMotion();
 
 
   useEffect(() => {
@@ -289,7 +287,7 @@ const Home = () => {
             Try ChatRaj
           </button>
           <button
-            onClick={handleThemeToggle}
+            onClick={() => setIsDarkMode(!isDarkMode)}
             className={`p-2 transition-colors rounded-lg ${isDarkMode ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}
           >
             <i className={`text-xl ${isDarkMode ? 'ri-sun-line' : 'ri-moon-line'}`}></i>
