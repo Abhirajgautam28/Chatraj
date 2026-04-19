@@ -176,8 +176,6 @@ const Home = () => {
     }
   };
 
-  const ANIMATION_DURATION_MS = 500;
-
   const handleThemeToggle = () => {
     if (shouldReduceMotion) {
       setIsDarkMode(!isDarkMode);
@@ -186,11 +184,19 @@ const Home = () => {
 
     if (!document.startViewTransition) {
       // Fallback for browsers without View Transitions
+      const durationStr = getComputedStyle(document.documentElement).getPropertyValue('--theme-transition-duration').trim();
+      let durationMs = 1500;
+      if (durationStr.endsWith('ms')) {
+        durationMs = parseFloat(durationStr);
+      } else if (durationStr.endsWith('s')) {
+        durationMs = parseFloat(durationStr) * 1000;
+      }
+
       document.documentElement.classList.add('theme-transitioning');
       setIsDarkMode(!isDarkMode);
       setTimeout(() => {
         document.documentElement.classList.remove('theme-transitioning');
-      }, ANIMATION_DURATION_MS);
+      }, durationMs);
       return;
     }
 
