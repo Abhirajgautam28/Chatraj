@@ -54,13 +54,13 @@ function createSignedCsrf() {
   const raw = `${Date.now()}:${crypto.randomBytes(12).toString('base64url')}`;
   return signRawToken(raw);
 }
-const allowedOrigins = [
+const allowedOrigins = new Set([
   'https://chatraj-frontend.vercel.app',
   'https://chatraj.vercel.app',
   'http://localhost:5173',
   'http://localhost:5174',
   'https://chatraj-fpo1pa3bz-abhiraj-gautams-projects.vercel.app'
-];
+]);
 
 
 const app = express();
@@ -93,7 +93,7 @@ const dynamicCors = (origin, callback) => {
   const vercelRegex = /^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/;
   if (!origin) return callback(null, true);
   if (
-    allowedOrigins.includes(origin) ||
+    allowedOrigins.has(origin) ||
     vercelRegex.test(origin) ||
     origin === 'null'
   ) {

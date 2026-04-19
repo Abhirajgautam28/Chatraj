@@ -17,4 +17,26 @@ export const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-export default { sensitiveLimiter, authLimiter };
+export const leaderboardLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 leaderboard requests per windowMs
+});
+
+export const usersLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 user list requests per windowMs
+});
+
+export const registrationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 12,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+export const projectLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per window per route group
+});
+
+export default { sensitiveLimiter, authLimiter, leaderboardLimiter, usersLimiter, registrationLimiter, projectLimiter };

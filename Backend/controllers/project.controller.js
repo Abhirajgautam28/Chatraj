@@ -3,15 +3,16 @@ import * as projectService from '../services/project.service.js';
 import userModel from '../models/user.model.js';
 import mongoose from 'mongoose';
 import { validationResult } from 'express-validator';
+import { withCache, invalidateCache } from '../utils/cache.js';
 
 export const getAllProject = async (req, res) => {
     try {
-        const loggedInUser = await userModel.findOne({ email: req.user.email });
-        if (!loggedInUser) {
-            return res.status(401).json({ error: 'User not found' });
-        }
-        // Find all projects where user is a member
-        const projects = await projectModel.find({ users: { $in: [loggedInUser._id] } });
+        const { category } = req.query;
+        // Use req.user._id directly from optimized JWT payload
+        const query = { users: { $in: [req.user._id] } };
+        if (category) query.category = category;
+
+        const projects = await projectModel.find(query).lean();
         res.status(200).json({ projects });
     } catch (err) {
         console.error('getAllProject error:', err);
@@ -27,21 +28,20 @@ export const createProject = async (req, res) => {
 
     try {
         const { name, category, users } = req.body;
+        // Invalidate showcase cache when a new project is created
+        await invalidateCache('project:showcase');
+
         // NOTE: category validation is handled by route validator now,
         // but kept here for safety if validator fails or is bypassed.
         if (!name || !category) {
             return res.status(400).json({ error: 'Name and category are required' });
         }
-        const loggedInUser = await userModel.findOne({ email: req.user.email });
-        if (!loggedInUser) {
-            return res.status(401).json({ error: 'User not found' });
-        }
-        // Create new project
+        // Use req.user._id directly from optimized JWT payload
         const project = await projectModel.create({
             name,
             category,
-            users: users ? [...users, loggedInUser._id] : [loggedInUser._id],
-            createdBy: loggedInUser._id
+            users: users ? [...users, req.user._id] : [req.user._id],
+            createdBy: req.user._id
         });
         res.status(201).json({ project });
     } catch (err) {
@@ -59,11 +59,11 @@ export const addUserToProject = async (req, res) => {
 
     try {
         const { projectId, users } = req.body;
-        const loggedInUser = await userModel.findOne({ email: req.user.email });
+        // Use req.user._id directly from optimized JWT payload
         const project = await projectService.addUsersToProject({
             projectId,
             users,
-            userId: loggedInUser._id
+            userId: req.user._id
         });
         return res.status(200).json({ project });
     } catch (err) {
@@ -72,7 +72,7 @@ export const addUserToProject = async (req, res) => {
     }
 }
 
-// Update only sidebar settings for a project (deep merge)
+// Update only sidebar settings for a project (shallow merge via atomic update)
 export const updateProjectSidebarSettings = async (req, res) => {
     try {
         const { projectId } = req.params;
@@ -81,17 +81,23 @@ export const updateProjectSidebarSettings = async (req, res) => {
             return res.status(400).json({ error: 'Sidebar settings required' });
         }
         if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) return res.status(400).json({ error: 'Invalid projectId' });
-        const project = await projectModel.findById(projectId);
-        if (!project) return res.status(404).json({ error: 'Project not found' });
-        // Authorization: check if requesting user is member
-        const isMember = project.users && project.users.some(u => u.toString() === req.user._id.toString());
-        if (!isMember) return res.status(401).json({ error: 'Unauthorized' });
-        // Deep merge sidebar settings
-        project.settings = project.settings || {};
-        project.settings.sidebar = { ...project.settings.sidebar, ...sidebar };
-        await project.save();
-        res.status(200).json({ sidebar: project.settings.sidebar });
+
+        // Prepare atomic update using dot notation to avoid overwriting entire settings object
+        const update = {};
+        for (const [key, value] of Object.entries(sidebar)) {
+            update[`settings.sidebar.${key}`] = value;
+        }
+
+        const project = await projectModel.findOneAndUpdate(
+            { _id: projectId, users: req.user._id },
+            { $set: update },
+            { new: true }
+        );
+
+        if (!project) return res.status(404).json({ error: 'Project not found or Unauthorized' });
+        res.status(200).json({ sidebar: project.settings?.sidebar || {} });
     } catch (err) {
+        console.error('updateProjectSidebarSettings error:', err);
         res.status(500).json({ error: err.message });
     }
 };
@@ -117,14 +123,9 @@ export const getProjectCountsByCategory = async (req, res) => {
       'Documentation Generation',
       'Code Refactoring'
     ];
-    // Get logged-in user
-    const loggedInUser = await userModel.findOne({ email: req.user.email });
-    if (!loggedInUser) {
-      return res.status(401).json({ error: 'User not found' });
-    }
-    // Aggregate project counts by category, filtered by user
+    // Aggregate project counts by category, filtered by user from JWT payload
     const counts = await projectModel.aggregate([
-      { $match: { users: { $in: [loggedInUser._id] } } },
+      { $match: { users: { $in: [new mongoose.Types.ObjectId(req.user._id)] } } },
       {
         $group: {
           _id: "$category",
@@ -151,7 +152,9 @@ export const getProjectCountsByCategory = async (req, res) => {
 
 export const getProjectShowcase = async (req, res) => {
     try {
-        const projects = await projectModel.find({}).sort({ users: -1 }).limit(10);
+        const projects = await withCache('project:showcase', 300, async () => {
+            return await projectModel.find({}).sort({ users: -1 }).limit(10).lean();
+        });
         res.status(200).json({ projects });
     } catch (error) {
         console.error('getProjectShowcase error:', error);
@@ -214,7 +217,7 @@ export const getProjectSettings = async (req, res) => {
     try {
         const { projectId } = req.params;
         if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) return res.status(400).json({ error: 'Invalid projectId' });
-        const project = await projectModel.findById(projectId);
+        const project = await projectModel.findById(projectId).lean();
         if (!project) return res.status(404).json({ error: 'Project not found' });
         const isMember = project.users && project.users.some(u => u.toString() === req.user._id.toString());
         if (!isMember) return res.status(401).json({ error: 'Unauthorized' });

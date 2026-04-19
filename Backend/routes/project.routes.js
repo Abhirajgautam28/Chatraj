@@ -1,7 +1,7 @@
 
 import { Router } from 'express';
 import { body } from 'express-validator';
-import rateLimit from 'express-rate-limit';
+import { projectLimiter } from '../middleware/rateLimiter.js';
 import {
   getProjectCountsByCategory,
   updateProjectSidebarSettings,
@@ -17,12 +17,6 @@ import {
 import { authUser } from '../middleware/auth.middleware.js';
 
 const router = Router();
-
-// Rate limiter for project-related routes to mitigate abuse and DoS
-const projectLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per window per route group
-});
 
 // Add project counts by category route
 router.get('/category-counts',
