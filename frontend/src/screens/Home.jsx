@@ -144,8 +144,6 @@ const Home = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showFabMenu, setShowFabMenu] = useState(false);
   const [showAskChatRajModal, setShowAskChatRajModal] = useState(false);
-  const [isAnimatingTheme, setIsAnimatingTheme] = useState(false);
-  const [themeOverlayColor, setThemeOverlayColor] = useState('#ffffff');
 
 
   useEffect(() => {
@@ -176,16 +174,6 @@ const Home = () => {
     }
   };
 
-  const handleThemeToggle = () => {
-    if (isAnimatingTheme) return;
-    setThemeOverlayColor(isDarkMode ? '#f3f4f6' : '#111827');
-    setIsAnimatingTheme(true);
-    setTimeout(() => {
-      setIsDarkMode(!isDarkMode);
-      setIsAnimatingTheme(false);
-    }, 750); // Swap theme exactly halfway through the 1.5s animation and trigger exit animation
-  };
-
   const AnimatedBg = () => (
     <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
       <motion.div
@@ -214,30 +202,6 @@ const Home = () => {
 
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden bg-transparent">
-      <AnimatePresence>
-        {isAnimatingTheme && (
-          <motion.div
-            initial={{ clipPath: 'circle(0% at calc(100% - 40px) 40px)', opacity: 1 }}
-            animate={{ clipPath: 'circle(150% at calc(100% - 40px) 40px)', opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{
-              duration: 0.75,
-              ease: 'easeInOut'
-            }}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 9999, // Extremely high z-index to cover everything
-              backgroundColor: themeOverlayColor, // Target background color based on what it will become
-              pointerEvents: 'auto', // Block interactions during animation
-            }}
-          />
-        )}
-      </AnimatePresence>
-
       <LiquidCursor />
       {typeof window !== "undefined" && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && (
         <AnimatedBg />
@@ -280,7 +244,7 @@ const Home = () => {
             Try ChatRaj
           </button>
           <button
-            onClick={handleThemeToggle}
+            onClick={() => setIsDarkMode(!isDarkMode)}
             className={`p-2 transition-colors rounded-lg ${isDarkMode ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}
           >
             <i className={`text-xl ${isDarkMode ? 'ri-sun-line' : 'ri-moon-line'}`}></i>
