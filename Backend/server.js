@@ -150,17 +150,17 @@ io.on('connection', socket => {
         try {
             const message = await Message.findById(data.messageId);
             if (message) {
-                message.reactions = message.reactions.filter(r => 
+                message.reactions = message.reactions.filter(r =>
                     r.userId.toString() !== data.userId.toString()
                 );
 
                 if (data.emoji) {
-                    message.reactions.push({ 
-                        emoji: data.emoji, 
-                        userId: data.userId 
+                    message.reactions.push({
+                        emoji: data.emoji,
+                        userId: data.userId
                     });
                 }
-                
+
                 await message.save();
                 io.to(socket.roomId).emit('message-reaction', message);
             }

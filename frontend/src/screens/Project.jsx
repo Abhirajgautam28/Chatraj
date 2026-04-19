@@ -217,7 +217,7 @@ const Project = () => {
   const [project, setProject] = useState(location.state.project)
   const [message, setMessage] = useState('')
   const { user } = useContext(UserContext)
-  const { isDarkMode, setIsDarkMode } = useContext(ThemeContext)
+  const { isDarkMode, setIsDarkMode, toggleThemeGlobal } = useContext(ThemeContext)
   const messageBox = useRef(null)
   const [users, setUsers] = useState([])
   const [messages, setMessages] = useState([])
@@ -846,7 +846,9 @@ const Project = () => {
 
   useEffect(() => {
     localStorage.setItem('projectSettings', JSON.stringify(settings));
-    setIsDarkMode(settings.display.darkMode);
+    // Since toggleThemeGlobal handles `setIsDarkMode`, we do not want to automatically call
+    // `setIsDarkMode` here because it might double-fire or circumvent the transition.
+    // However, we still need to sync the html class for initial loads.
     document.documentElement.classList.toggle('dark', settings.display.darkMode);
   }, [settings, setIsDarkMode]);
 

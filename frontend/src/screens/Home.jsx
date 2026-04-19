@@ -3,6 +3,7 @@ import TextType from '../components/TextType.jsx';
 import ProjectShowcase from '../components/ProjectShowcase.jsx';
 import UserLeaderboard from '../components/UserLeaderboard.jsx';
 import { useContext, useEffect, useState, lazy, Suspense } from 'react';
+import { flushSync } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { UserContext } from '../context/user.context';
@@ -138,7 +139,7 @@ const faqs = [
 
 const Home = () => {
   const { user } = useContext(UserContext);
-  const { isDarkMode, setIsDarkMode } = useContext(ThemeContext);
+  const { isDarkMode, toggleThemeGlobal } = useContext(ThemeContext);
   const navigate = useNavigate();
 
   const [isNavVisible, setIsNavVisible] = useState(true);
