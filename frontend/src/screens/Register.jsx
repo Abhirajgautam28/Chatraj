@@ -3,6 +3,7 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
+import { useToast } from '../context/toast.context';
 import axios from '../config/axios';
 import anime from 'animejs';
 
@@ -18,6 +19,7 @@ const Register = () => {
     const [userId, setUserId] = useState('');
     const { setUser } = useContext(UserContext);
     const { isDarkMode } = useContext(ThemeContext);
+    const { showToast } = useToast();
     const navigate = useNavigate();
 
     const [errorMsg, setErrorMsg] = useState('');
@@ -29,6 +31,13 @@ const Register = () => {
     const containerRef = useRef(null);
     const modalRef = useRef(null);
     const lastActiveElementRef = useRef(null);
+    const focusTimeoutRef = useRef(null);
+
+    useEffect(() => {
+        return () => {
+            if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
+        };
+    }, []);
 
     useEffect(() => {
         if (containerRef.current) {
@@ -97,16 +106,18 @@ const Register = () => {
             } catch (e) {
                 lastActiveElementRef.current = null;
             }
-            const focusTimeout = setTimeout(() => {
+            if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
+            focusTimeoutRef.current = setTimeout(() => {
                 try {
                     if (modalRef.current && typeof modalRef.current.focus === 'function') {
                         modalRef.current.focus();
                     }
                 } catch (e) {}
+                focusTimeoutRef.current = null;
             }, 50);
 
             return () => {
-                clearTimeout(focusTimeout);
+                if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
             };
         }
 
@@ -157,7 +168,7 @@ const Register = () => {
                 navigate('/categories', { replace: true });
             })
             .catch(() => {
-                alert('Invalid OTP. Please check your email and try again.');
+                showToast('Invalid OTP. Please check your email and try again.', 'error');
             });
     }
 

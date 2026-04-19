@@ -176,11 +176,17 @@ const Home = () => {
     }
   };
 
-  const handleThemeToggle = () => {
+  const handleThemeToggle = (e) => {
     if (shouldReduceMotion) {
       setIsDarkMode(!isDarkMode);
       return;
     }
+
+    const x = e?.clientX ?? window.innerWidth;
+    const y = e?.clientY ?? 0;
+
+    document.documentElement.style.setProperty('--x', `${x}px`);
+    document.documentElement.style.setProperty('--y', `${y}px`);
 
     if (!document.startViewTransition) {
       // Fallback for browsers without View Transitions
