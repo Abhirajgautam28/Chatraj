@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { withCache, invalidateCache } from '../utils/cache.js';
 
 // Send OTP for password reset (used in Login.jsx)
 export const sendOtpController = async (req, res) => {
@@ -7,17 +6,13 @@ export const sendOtpController = async (req, res) => {
         const { email } = req.body;
         const { value: normalizedEmail, isValid } = normalizeEmail(email);
         if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
-
-        const otp = generateOTP(7);
-        // Atomic update: set OTP and unverify in one go
-        const user = await userModel.findOneAndUpdate(
-            { email: normalizedEmail },
-            { $set: { otp, isVerified: false } },
-            { new: true }
-        );
-
+        const user = await userModel.findOne({ email: normalizedEmail });
         if (!user) return res.status(404).json({ message: 'User not found' });
-
+        // Generate OTP
+        const otp = generateOTP(7);
+        user.otp = otp;
+        user.isVerified = false;
+        await user.save();
         await sendOtpEmail(user.email, otp);
         res.status(200).json({ message: 'OTP sent to email.' });
     } catch (error) {
@@ -28,9 +23,7 @@ export const sendOtpController = async (req, res) => {
 
 export const getLeaderboardController = async (req, res) => {
     try {
-        const users = await withCache('user:leaderboard', 600, async () => {
-            return await userModel.find({}).sort({ projects: -1 }).limit(10).lean();
-        });
+        const users = await userModel.find({}).sort({ projects: -1 }).limit(10);
         res.status(200).json({ users });
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
@@ -284,8 +277,6 @@ export const verifyOtpController = async (req, res) => {
                         googleApiKey: pending.googleApiKey,
                         isVerified: true,
                     });
-                    // Invalidate leaderboard cache when a new user is created
-                    await invalidateCache('user:leaderboard');
                     // remove pending key
                     await redisClient.del(pendingKey);
                     // generate token for the newly created user
