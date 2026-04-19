@@ -3,18 +3,19 @@ import * as projectService from '../services/project.service.js';
 import userModel from '../models/user.model.js';
 import mongoose from 'mongoose';
 import { validationResult } from 'express-validator';
+import { logger } from '../utils/logger.js';
 
 export const getAllProject = async (req, res) => {
     try {
-        const loggedInUser = await userModel.findOne({ email: req.user.email });
+        const loggedInUser = await userModel.findOne({ email: req.user.email }).lean();
         if (!loggedInUser) {
             return res.status(401).json({ error: 'User not found' });
         }
         // Find all projects where user is a member
-        const projects = await projectModel.find({ users: { $in: [loggedInUser._id] } });
+        const projects = await projectModel.find({ users: { $in: [loggedInUser._id] } }).lean();
         res.status(200).json({ projects });
     } catch (err) {
-        console.error('getAllProject error:', err);
+        logger.error('getAllProject error:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -32,20 +33,16 @@ export const createProject = async (req, res) => {
         if (!name || !category) {
             return res.status(400).json({ error: 'Name and category are required' });
         }
-        const loggedInUser = await userModel.findOne({ email: req.user.email });
-        if (!loggedInUser) {
-            return res.status(401).json({ error: 'User not found' });
-        }
         // Create new project
         const project = await projectModel.create({
             name,
             category,
-            users: users ? [...users, loggedInUser._id] : [loggedInUser._id],
-            createdBy: loggedInUser._id
+            users: users ? [...users, req.user._id] : [req.user._id],
+            createdBy: req.user._id
         });
         res.status(201).json({ project });
     } catch (err) {
-        console.error('createProject error:', err);
+        logger.error('createProject error:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -59,20 +56,19 @@ export const addUserToProject = async (req, res) => {
 
     try {
         const { projectId, users } = req.body;
-        const loggedInUser = await userModel.findOne({ email: req.user.email });
         const project = await projectService.addUsersToProject({
             projectId,
             users,
-            userId: loggedInUser._id
+            userId: req.user._id
         });
         return res.status(200).json({ project });
     } catch (err) {
-        console.error('addUserToProject error:', err);
+        logger.error('addUserToProject error:', err);
         res.status(400).json({ error: err.message });
     }
 }
 
-// Update only sidebar settings for a project (deep merge)
+// Update only sidebar settings for a project (shallow merge via atomic update)
 export const updateProjectSidebarSettings = async (req, res) => {
     try {
         const { projectId } = req.params;
@@ -81,17 +77,23 @@ export const updateProjectSidebarSettings = async (req, res) => {
             return res.status(400).json({ error: 'Sidebar settings required' });
         }
         if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) return res.status(400).json({ error: 'Invalid projectId' });
-        const project = await projectModel.findById(projectId);
-        if (!project) return res.status(404).json({ error: 'Project not found' });
-        // Authorization: check if requesting user is member
-        const isMember = project.users && project.users.some(u => u.toString() === req.user._id.toString());
-        if (!isMember) return res.status(401).json({ error: 'Unauthorized' });
-        // Deep merge sidebar settings
-        project.settings = project.settings || {};
-        project.settings.sidebar = { ...project.settings.sidebar, ...sidebar };
-        await project.save();
-        res.status(200).json({ sidebar: project.settings.sidebar });
+
+        // Prepare atomic update using dot notation to avoid overwriting entire settings object
+        const update = {};
+        for (const [key, value] of Object.entries(sidebar)) {
+            update[`settings.sidebar.${key}`] = value;
+        }
+
+        const project = await projectModel.findOneAndUpdate(
+            { _id: projectId, users: req.user._id },
+            { $set: update },
+            { new: true }
+        );
+
+        if (!project) return res.status(404).json({ error: 'Project not found or Unauthorized' });
+        res.status(200).json({ sidebar: project.settings?.sidebar || {} });
     } catch (err) {
+        console.error('updateProjectSidebarSettings error:', err);
         res.status(500).json({ error: err.message });
     }
 };
@@ -117,14 +119,9 @@ export const getProjectCountsByCategory = async (req, res) => {
       'Documentation Generation',
       'Code Refactoring'
     ];
-    // Get logged-in user
-    const loggedInUser = await userModel.findOne({ email: req.user.email });
-    if (!loggedInUser) {
-      return res.status(401).json({ error: 'User not found' });
-    }
     // Aggregate project counts by category, filtered by user
     const counts = await projectModel.aggregate([
-      { $match: { users: { $in: [loggedInUser._id] } } },
+      { $match: { users: { $in: [new mongoose.Types.ObjectId(req.user._id)] } } },
       {
         $group: {
           _id: "$category",
@@ -144,17 +141,17 @@ export const getProjectCountsByCategory = async (req, res) => {
     });
     res.status(200).json(result);
   } catch (err) {
-        console.error('getProjectCountsByCategory error:', err);
+        logger.error('getProjectCountsByCategory error:', err);
         res.status(500).json({ error: 'Internal server error' });
   }
 }
 
 export const getProjectShowcase = async (req, res) => {
     try {
-        const projects = await projectModel.find({}).sort({ users: -1 }).limit(10);
+        const projects = await projectModel.find({}).sort({ users: -1 }).limit(10).lean();
         res.status(200).json({ projects });
     } catch (error) {
-        console.error('getProjectShowcase error:', error);
+        logger.error('getProjectShowcase error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 }
@@ -174,7 +171,7 @@ export const getProjectById = async (req, res) => {
         })
 
     } catch (err) {
-        console.error('getProjectById error:', err);
+        logger.error('getProjectById error:', err);
         const status = err.message === 'Unauthorized access' ? 401 : 400;
         res.status(status).json({ error: err.message })
     }
@@ -203,7 +200,7 @@ export const updateFileTree = async (req, res) => {
         })
 
     } catch (err) {
-        console.error('updateFileTree error:', err);
+        logger.error('updateFileTree error:', err);
         const status = err.message === 'Unauthorized access' ? 401 : 400;
         res.status(status).json({ error: err.message })
     }
@@ -214,13 +211,13 @@ export const getProjectSettings = async (req, res) => {
     try {
         const { projectId } = req.params;
         if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) return res.status(400).json({ error: 'Invalid projectId' });
-        const project = await projectModel.findById(projectId);
+        const project = await projectModel.findById(projectId).lean();
         if (!project) return res.status(404).json({ error: 'Project not found' });
         const isMember = project.users && project.users.some(u => u.toString() === req.user._id.toString());
         if (!isMember) return res.status(401).json({ error: 'Unauthorized' });
         res.status(200).json({ settings: project.settings || {} });
     } catch (err) {
-        console.error('getProjectSettings error:', err);
+        logger.error('getProjectSettings error:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -238,7 +235,7 @@ export const updateProjectSettings = async (req, res) => {
         await project.save();
         res.status(200).json({ settings: project.settings });
     } catch (err) {
-        console.error('updateProjectSettings error:', err);
+        logger.error('updateProjectSettings error:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
