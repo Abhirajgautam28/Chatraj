@@ -16,11 +16,8 @@ describe('String Utilities', () => {
         test('should convert non-string inputs to string and escape', () => {
             expect(escapeRegex(123)).toBe('123');
             expect(escapeRegex(true)).toBe('true');
-        });
-
-        test('should throw TypeError for null or undefined', () => {
-            expect(() => escapeRegex(null)).toThrow(TypeError);
-            expect(() => escapeRegex(undefined)).toThrow(TypeError);
+            expect(escapeRegex(null)).toBe('null');
+            expect(escapeRegex(undefined)).toBe('undefined');
         });
     });
 

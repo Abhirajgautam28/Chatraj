@@ -4,7 +4,7 @@ This document provides instructions on how to run various types of tests in the 
 
 ## 🚀 Quick Start: Run All Tests
 
-To run all unit and integration tests (backend utilities, services, models, middleware, controllers, and frontend components):
+To run all unit and integration tests (backend and frontend):
 
 ```bash
 npm run test:all
@@ -17,16 +17,25 @@ npm run test:all
 ### 1. Unit & Integration Tests
 These tests cover pure logic and component interactions in different layers of the backend.
 
-- **Utilities:** `npm run test:backend:utils` (Email, Strings, OTP, Security, AI parsing)
-- **Services:** `npm run test:backend:services` (User, Project, AI, Redis, Ping)
-- **Models:** `npm run test:backend:models` (User, Project, Blog, Message, Newsletter)
-- **Middleware:** `npm run test:backend:middleware` (Auth, Rate Limiting)
-- **Controllers:** `npm run test:backend:controllers` (User, Project, Blog, AI, Newsletter)
-- **Security:** `npm run test:backend:security` (Access control, OTP exposure)
-- **Integration:** `npm run test:backend:integration` (Registration flow, Project management flow)
-- **Mailer:** `npm run test:backend:mailer` (Email delivery logic)
+- **Utilities:** `npm run test:backend:utils`
+- **Services:** `npm run test:backend:services`
+- **Models:** `npm run test:backend:models`
+- **Middleware:** `npm run test:backend:middleware`
+- **Controllers:** `npm run test:backend:controllers`
+- **Security:** `npm run test:backend:security`
+- **Integration:** `npm run test:backend:integration`
+- **Mailer:** `npm run test:backend:mailer`
+- **Socket:** `npm run test:backend:socket`
 
-### 2. Smoke Tests
+### 2. Coverage Reports
+To generate a full test coverage report for the backend:
+
+```bash
+npm run test:coverage
+```
+The report will be available in `Backend/coverage/`.
+
+### 3. Smoke Tests
 Checks if the backend is running and basic endpoints are reachable.
 *Note: Backend server must be running.*
 
@@ -34,7 +43,7 @@ Checks if the backend is running and basic endpoints are reachable.
 npm run smoke-test
 ```
 
-### 3. Lightweight E2E Tests
+### 4. Lightweight E2E Tests
 Runs a registration and public endpoint flow against a live server.
 *Note: Backend server must be running.*
 

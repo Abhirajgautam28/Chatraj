@@ -55,3 +55,29 @@ Most endpoints require a valid JWT token passed in the `Authorization` header as
 `POST /api/blogs/create` (Auth required)
 - **Body:** `{ title, content }`
 - **Response:** `201 Created`
+
+---
+
+## 🔌 Socket.io Events
+
+### Connection
+Connect to the root namespace with `token` in `handshake.auth` and `projectId` in `handshake.query`.
+
+### Inbound Events (Client -> Server)
+- `project-message`: Sends a message to the project.
+    - **Data:** `{ message, sender, parentMessageId?, googleApiKey? }`
+- `message-delivered`: Marks a message as delivered.
+    - **Data:** `{ messageId, userId }`
+- `message-read`: Marks a message as read.
+    - **Data:** `{ messageId, userId }`
+- `message-reaction`: Adds/removes an emoji reaction.
+    - **Data:** `{ messageId, userId, emoji }`
+- `typing` / `stop-typing`: Broadcasts typing status.
+    - **Data:** `{ userId, projectId }`
+
+### Outbound Events (Server -> Client)
+- `project-message`: Broadcasts a new message.
+- `message-delivered`: Broadcasts delivery confirmation.
+- `message-read`: Broadcasts read confirmation.
+- `message-reaction`: Broadcasts updated message reactions.
+- `typing` / `stop-typing`: Broadcasts member typing status.
