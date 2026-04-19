@@ -3,12 +3,7 @@ import 'dotenv/config';
 import './patches/patch-validator-isURL.js';
 import app from './app.js';
 import connect from './db/db.js';
-import { Server } from 'socket.io';
-import jwt from 'jsonwebtoken';
-import mongoose from 'mongoose';
-import projectModel from './models/project.model.js';
-import { generateResult } from './services/ai.service.js';
-import Message from './models/message.model.js';
+import { initializeSocket } from './services/socket.service.js';
 import pingService from './services/ping.service.js';
 
 
