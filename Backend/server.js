@@ -121,11 +121,10 @@ io.on('connection', socket => {
     // Delivery event: when a user receives a message, mark as delivered
     socket.on('message-delivered', async ({ messageId, userId }) => {
         try {
-            const result = await Message.updateOne(
-                { _id: messageId, deliveredTo: { $ne: userId } },
-                { $addToSet: { deliveredTo: userId } }
-            );
-            if (result.modifiedCount > 0) {
+            const message = await Message.findById(messageId);
+            if (message && !message.deliveredTo.includes(userId)) {
+                message.deliveredTo.push(userId);
+                await message.save();
                 io.to(socket.roomId).emit('message-delivered', { messageId, userId });
             }
         } catch (err) {
@@ -136,11 +135,10 @@ io.on('connection', socket => {
     // Read event: when a user reads a message, mark as read
     socket.on('message-read', async ({ messageId, userId }) => {
         try {
-            const result = await Message.updateOne(
-                { _id: messageId, readBy: { $ne: userId } },
-                { $addToSet: { readBy: userId } }
-            );
-            if (result.modifiedCount > 0) {
+            const message = await Message.findById(messageId);
+            if (message && !message.readBy.includes(userId)) {
+                message.readBy.push(userId);
+                await message.save();
                 io.to(socket.roomId).emit('message-read', { messageId, userId });
             }
         } catch (err) {
@@ -150,23 +148,20 @@ io.on('connection', socket => {
 
     socket.on('message-reaction', async (data) => {
         try {
-            // Atomic reaction update: first remove any existing reaction from this user
-            let message = await Message.findOneAndUpdate(
-                { _id: data.messageId },
-                { $pull: { reactions: { userId: data.userId } } },
-                { new: true }
-            );
-
-            if (message && data.emoji) {
-                // If an emoji was provided, add the new reaction
-                message = await Message.findOneAndUpdate(
-                    { _id: data.messageId },
-                    { $push: { reactions: { emoji: data.emoji, userId: data.userId } } },
-                    { new: true }
-                ).lean();
-            }
-
+            const message = await Message.findById(data.messageId);
             if (message) {
+                message.reactions = message.reactions.filter(r =>
+                    r.userId.toString() !== data.userId.toString()
+                );
+
+                if (data.emoji) {
+                    message.reactions.push({
+                        emoji: data.emoji,
+                        userId: data.userId
+                    });
+                }
+
+                await message.save();
                 io.to(socket.roomId).emit('message-reaction', message);
             }
         } catch (error) {

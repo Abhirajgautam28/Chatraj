@@ -9,23 +9,19 @@ const projectSchema = new mongoose.Schema({
         unique: [ true, 'Project name must be unique' ],
     },
 
-    users: {
-        type: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'user'
-            }
-        ],
-        index: true
-    },
+    users: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'user'
+        }
+    ],
     fileTree: {
         type: Object,
         default: {}
     },
     category: {
         type: String,
-        required: true,
-        index: true
+        required: true
     },
     settings: {
         type: Object,

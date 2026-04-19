@@ -3,8 +3,7 @@ import mongoose from 'mongoose';
 const messageSchema = new mongoose.Schema({
   conversationId: {
     type: mongoose.Schema.Types.ObjectId,
-    required: true,
-    index: true
+    required: true
   },
   sender: {
     type: mongoose.Schema.Types.Mixed,
@@ -32,8 +31,7 @@ const messageSchema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    default: Date.now,
-    index: -1
+    default: Date.now
   }
 });
 
