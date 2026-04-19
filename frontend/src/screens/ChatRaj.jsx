@@ -596,8 +596,8 @@ const ChatRaj = () => {
                   </p>
                 </div>
               ) : (
-                (searchTerm 
-                  ? messages.filter(message => 
+                (searchTerm
+                  ? messages.filter(message =>
                       message.content.toLowerCase().includes(searchTerm.toLowerCase())
                     )
                   : messages
