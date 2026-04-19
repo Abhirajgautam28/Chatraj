@@ -6,7 +6,8 @@ import userModel from '../models/user.model.js';
 import * as userService from '../services/user.service.js';
 import redisClient from '../services/redis.service.js';
 import { normalizeEmail } from '../utils/email.js';
-import { shouldExposeOtpToClient, generateOTP } from '../utils/security.js';
+import { shouldExposeOtpToClient } from '../utils/security.js';
+import { generateOTP } from '../utils/otp.js';
 import { sendMailWithRetry } from '../utils/mailer.js';
 import { escapeHtml } from '../utils/strings.js';
 

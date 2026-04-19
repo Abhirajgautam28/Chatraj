@@ -15,7 +15,10 @@ export const getAllProject = async (req, res) => {
         res.status(200).json({ projects });
     } catch (err) {
         console.error('getAllProject error:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({
+            error: 'Failed to fetch projects',
+            details: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
     }
 };
 
@@ -46,7 +49,10 @@ export const createProject = async (req, res) => {
         res.status(201).json({ project });
     } catch (err) {
         console.error('createProject error:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({
+            error: 'Failed to create project',
+            details: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
     }
 };
 

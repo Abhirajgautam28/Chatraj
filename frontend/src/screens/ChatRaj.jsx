@@ -119,6 +119,9 @@ const ChatRaj = () => {
       if (aiResponseTimeoutRef.current) {
         clearTimeout(aiResponseTimeoutRef.current);
       }
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
     };
   }, []);
   useContext(ChatRajThemeContext);

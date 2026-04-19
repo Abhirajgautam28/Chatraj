@@ -1,9 +1,7 @@
 import Blog from '../models/blog.model.js';
 import User from '../models/user.model.js';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateContent } from '../services/ai.service.js';
 import mongoose from 'mongoose';
-
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
 export const createBlog = async (req, res) => {
     try {
@@ -21,8 +19,9 @@ export const createBlog = async (req, res) => {
         });
 
         await newBlog.save();
-        res.status(201).json(newBlog);
+        res.status(201).json({ message: 'Blog created successfully', blog: newBlog });
     } catch (error) {
+        console.error('createBlog error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -32,6 +31,7 @@ export const getAllBlogs = async (req, res) => {
         const blogs = await Blog.find().populate('author', 'firstName lastName').sort({ createdAt: -1 });
         res.status(200).json(blogs);
     } catch (error) {
+        console.error('getAllBlogs error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -46,6 +46,7 @@ export const getBlogById = async (req, res) => {
         }
         res.status(200).json(blog);
     } catch (error) {
+        console.error('getBlogById error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -76,6 +77,7 @@ export const likeBlog = async (req, res) => {
         await blog.save();
         res.status(200).json(blog);
     } catch (error) {
+        console.error('likeBlog error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -105,6 +107,7 @@ export const commentOnBlog = async (req, res) => {
         await blog.save();
         res.status(201).json(blog);
     } catch (error) {
+        console.error('commentOnBlog error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -112,14 +115,20 @@ export const commentOnBlog = async (req, res) => {
 export const generateBlogContent = async (req, res) => {
     try {
         const { topic } = req.body;
-        if (typeof topic !== 'string' || topic.trim().length === 0 || topic.trim().length > 200) return res.status(400).json({ error: 'Invalid topic' });
-        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+        if (typeof topic !== 'string' || topic.trim().length === 0 || topic.trim().length > 200) {
+            return res.status(400).json({ error: 'Invalid topic. Please provide a topic between 1 and 200 characters.' });
+        }
+
         const prompt = `Write a professional blog post of about 100 words on the topic: "${topic.trim().slice(0,200)}".`;
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
-        res.status(200).json({ content: text });
+        const content = await generateContent({
+            prompt,
+            modelName: 'gemini-pro',
+            temperature: 0.7
+        });
+
+        res.status(200).json({ content });
     } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
+        console.error('generateBlogContent error:', error);
+        res.status(500).json({ error: 'Failed to generate blog content. Please try again later.' });
     }
 };

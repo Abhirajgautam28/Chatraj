@@ -1,9 +1,9 @@
 export const escapeRegex = (s) => {
-	if (s === null || s === undefined) {
-		throw new TypeError('escapeRegex: input must not be null or undefined');
-	}
-	const str = typeof s === 'string' ? s : String(s);
-	return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if (s === null || s === undefined) {
+    throw new TypeError('escapeRegex: input must not be null or undefined');
+  }
+  const str = typeof s === 'string' ? s : String(s);
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 };
 
 export const escapeHtml = (unsafe) => {
@@ -17,7 +17,7 @@ export const escapeHtml = (unsafe) => {
 };
 
 export function maskKey(k) {
-	if (!k) return '';
-	if (k.length <= 12) return k.slice(0, 3) + '...' + k.slice(-3);
-	return k.slice(0, 6) + '...' + k.slice(-6);
+  if (!k) return '';
+  if (k.length <= 10) return '*'.repeat(k.length);
+  return k.substring(0, 4) + '*'.repeat(k.length - 8) + k.substring(k.length - 4);
 }
