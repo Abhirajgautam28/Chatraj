@@ -2,6 +2,7 @@ import Newsletter from '../models/newsletter.model.js';
 import { normalizeEmail } from '../utils/email.js';
 import { escapeRegex } from '../utils/strings.js';
 import nodemailer from 'nodemailer';
+import { logger } from '../utils/logger.js';
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -16,7 +17,7 @@ const transporter = nodemailer.createTransport({
 export const subscribeNewsletter = async (req, res) => {
   try {
     const { email } = req.body;
-    console.log('Newsletter: Received subscribe request for:', email);
+    logger.info('Newsletter: Received subscribe request for:', email);
     const { value: normalizedEmail, isValid } = normalizeEmail(email);
     if (!isValid) {
       return res.status(400).json({ error: 'Valid email is required.' });

@@ -3,6 +3,7 @@ import * as projectService from '../services/project.service.js';
 import userModel from '../models/user.model.js';
 import mongoose from 'mongoose';
 import { validationResult } from 'express-validator';
+import { logger } from '../utils/logger.js';
 
 export const getAllProject = async (req, res) => {
     try {
@@ -14,7 +15,7 @@ export const getAllProject = async (req, res) => {
         const projects = await projectModel.find({ users: { $in: [loggedInUser._id] } });
         res.status(200).json({ projects });
     } catch (err) {
-        console.error('getAllProject error:', err);
+        logger.error('getAllProject error:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -45,7 +46,7 @@ export const createProject = async (req, res) => {
         });
         res.status(201).json({ project });
     } catch (err) {
-        console.error('createProject error:', err);
+        logger.error('createProject error:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -67,7 +68,7 @@ export const addUserToProject = async (req, res) => {
         });
         return res.status(200).json({ project });
     } catch (err) {
-        console.error('addUserToProject error:', err);
+        logger.error('addUserToProject error:', err);
         res.status(400).json({ error: err.message });
     }
 }
@@ -144,7 +145,7 @@ export const getProjectCountsByCategory = async (req, res) => {
     });
     res.status(200).json(result);
   } catch (err) {
-        console.error('getProjectCountsByCategory error:', err);
+        logger.error('getProjectCountsByCategory error:', err);
         res.status(500).json({ error: 'Internal server error' });
   }
 }
@@ -154,7 +155,7 @@ export const getProjectShowcase = async (req, res) => {
         const projects = await projectModel.find({}).sort({ users: -1 }).limit(10);
         res.status(200).json({ projects });
     } catch (error) {
-        console.error('getProjectShowcase error:', error);
+        logger.error('getProjectShowcase error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 }
@@ -174,7 +175,7 @@ export const getProjectById = async (req, res) => {
         })
 
     } catch (err) {
-        console.error('getProjectById error:', err);
+        logger.error('getProjectById error:', err);
         const status = err.message === 'Unauthorized access' ? 401 : 400;
         res.status(status).json({ error: err.message })
     }
@@ -203,7 +204,7 @@ export const updateFileTree = async (req, res) => {
         })
 
     } catch (err) {
-        console.error('updateFileTree error:', err);
+        logger.error('updateFileTree error:', err);
         const status = err.message === 'Unauthorized access' ? 401 : 400;
         res.status(status).json({ error: err.message })
     }
@@ -220,7 +221,7 @@ export const getProjectSettings = async (req, res) => {
         if (!isMember) return res.status(401).json({ error: 'Unauthorized' });
         res.status(200).json({ settings: project.settings || {} });
     } catch (err) {
-        console.error('getProjectSettings error:', err);
+        logger.error('getProjectSettings error:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -238,7 +239,7 @@ export const updateProjectSettings = async (req, res) => {
         await project.save();
         res.status(200).json({ settings: project.settings });
     } catch (err) {
-        console.error('updateProjectSettings error:', err);
+        logger.error('updateProjectSettings error:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 };

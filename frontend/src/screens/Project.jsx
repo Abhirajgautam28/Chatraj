@@ -16,124 +16,20 @@ import { javascript } from '@codemirror/lang-javascript';
 import VimCodeEditor from '../components/VimCodeEditor';
 import ChatMessage from '../components/ChatMessage';
 import ErrorBoundary from '../components/ErrorBoundary';
+import AddCollaboratorsModal from '../components/AddCollaboratorsModal';
+import AIAssistantModal from '../components/AIAssistantModal';
+import ProjectSettingsModal from '../components/ProjectSettingsModal';
+import SyntaxHighlightedCode from '../components/SyntaxHighlightedCode';
 import { useSocket } from '../hooks/useSocket';
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useToast } from '../context/toast.context';
 import {
   sanitizeIframeUrl,
   normalizeFileTree,
   deduplicateMessages,
   groupMessagesByDate
 } from '../utils/projectUtils';
-
-const PROJECT_TRANSLATIONS = {
-  'en-US': {
-    addUsers: 'Add Users',
-    collaborators: 'Collaborators',
-    options: 'Options',
-    run: 'Run',
-    noFileSelected: 'No file selected.',
-    noCode: 'No code to display.',
-    settings: 'Settings',
-    language: 'Language',
-    aiAssistant: 'AI Assistant',
-    replyTo: 'Replying to',
-    send: 'Send',
-    searchMessages: 'Search messages...',
-    selectUser: 'Select User',
-    addCollaborators: 'Add Collaborators',
-    previewOptions: 'Preview Options',
-    editorSettings: 'Editor Settings (see main settings for more)',
-  },
-  'hi-IN': {
-    addUsers: 'यूज़र जोड़ें',
-    collaborators: 'सहयोगी',
-    options: 'विकल्प',
-    run: 'चलाएँ',
-    noFileSelected: 'कोई फ़ाइल चयनित नहीं है।',
-    noCode: 'कोड उपलब्ध नहीं है।',
-    settings: 'सेटिंग्स',
-    language: 'भाषा',
-    aiAssistant: 'एआई सहायक',
-    replyTo: 'को उत्तर दे रहे हैं',
-    send: 'भेजें',
-    searchMessages: 'संदेश खोजें...',
-    selectUser: 'यूज़र चुनें',
-    addCollaborators: 'सहयोगी जोड़ें',
-    previewOptions: 'पूर्वावलोकन विकल्प',
-    editorSettings: 'संपादक सेटिंग्स (अधिक के लिए मुख्य सेटिंग्स देखें)',
-  },
-  'es-ES': {
-    addUsers: 'Agregar usuarios',
-    collaborators: 'Colaboradores',
-    options: 'Opciones',
-    run: 'Ejecutar',
-    noFileSelected: 'Ningún archivo seleccionado.',
-    noCode: 'No hay código para mostrar.',
-    settings: 'Configuración',
-    language: 'Idioma',
-    aiAssistant: 'Asistente de IA',
-    replyTo: 'Respondiendo a',
-    send: 'Enviar',
-    searchMessages: 'Buscar mensajes...',
-    selectUser: 'Seleccionar usuario',
-    addCollaborators: 'Agregar colaboradores',
-    previewOptions: 'Opciones de vista previa',
-    editorSettings: 'Configuración del editor (ver configuración principal para más)',
-  },
-  'fr-FR': {
-    addUsers: 'Ajouter des utilisateurs',
-    collaborators: 'Collaborateurs',
-    options: 'Options',
-    run: 'Exécuter',
-    noFileSelected: 'Aucun fichier sélectionné.',
-    noCode: 'Aucun code à afficher.',
-    settings: 'Paramètres',
-    language: 'Langue',
-    aiAssistant: 'Assistant IA',
-    replyTo: 'En réponse à',
-    send: 'Envoyer',
-    searchMessages: 'Rechercher des messages...',
-    selectUser: 'Sélectionner un utilisateur',
-    addCollaborators: 'Ajouter des collaborateurs',
-    previewOptions: 'Options d’aperçu',
-    editorSettings: 'Paramètres de l’éditeur (voir les paramètres principaux pour plus)',
-  },
-  'de-DE': {
-    addUsers: 'Benutzer hinzufügen',
-    collaborators: 'Mitarbeiter',
-    options: 'Optionen',
-    run: 'Ausführen',
-    noFileSelected: 'Keine Datei ausgewählt.',
-    noCode: 'Kein Code zum Anzeigen.',
-    settings: 'Einstellungen',
-    language: 'Sprache',
-    aiAssistant: 'KI-Assistent',
-    replyTo: 'Antwort an',
-    send: 'Senden',
-    searchMessages: 'Nachrichten suchen...',
-    selectUser: 'Benutzer auswählen',
-    addCollaborators: 'Mitarbeiter hinzufügen',
-    previewOptions: 'Vorschauoptionen',
-    editorSettings: 'Editor-Einstellungen (siehe Haupteinstellungen für mehr)',
-  },
-  'ja-JP': {
-    addUsers: 'ユーザーを追加',
-    collaborators: '共同作業者',
-    options: 'オプション',
-    run: '実行',
-    noFileSelected: 'ファイルが選択されていません。',
-    noCode: '表示するコードがありません。',
-    settings: '設定',
-    language: '言語',
-    aiAssistant: 'AIアシスタント',
-    replyTo: '返信先',
-    send: '送信',
-    searchMessages: 'メッセージを検索...',
-    selectUser: 'ユーザーを選択',
-    addCollaborators: '共同作業者を追加',
-    previewOptions: 'プレビューオプション',
-    editorSettings: 'エディター設定（詳細はメイン設定を参照）',
-  },
-};
+import { PROJECT_TRANSLATIONS } from '../config/translations';
 
 function useProjectTranslation(language) {
   return React.useMemo(() => {
@@ -143,21 +39,6 @@ function useProjectTranslation(language) {
 }
 
 
-function SyntaxHighlightedCode(props) {
-  const ref = useRef(null)
-  React.useEffect(() => {
-    if (ref.current && props.className?.includes('lang-') && window.hljs) {
-      window.hljs.highlightElement(ref.current)
-      ref.current.removeAttribute('data-highlighted')
-    }
-  }, [props.className, props.children])
-  return <code {...props} ref={ref} style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word', display: 'block' }} />
-}
-
-SyntaxHighlightedCode.propTypes = {
-  className: PropTypes.string,
-  children: PropTypes.node
-};
 
 
 const Project = () => {
@@ -187,49 +68,34 @@ const Project = () => {
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
-  const [settings, setSettings] = useState(() => {
-    const savedSettings = localStorage.getItem('projectSettings');
-    const defaultSettings = {
-      display: {
-        darkMode: isDarkMode,
-        showAvatars: true,
-        vimMode: false,
-      },
-      behavior: {
-        autoScroll: true,
-        enterToSend: true,
-        showSystemMessages: true, // new
-        collapseReplies: false,   // new
-        showReadReceipts: true,  // new
-      },
-      accessibility: {
-        language: 'en-US',
-      },
-      privacy: {
-        saveHistory: true,
-      },
-      sidebar: {
-        showFileTree: true,
-        showCollaborators: true,
-        pinSidebar: false,
-        sidebarWidth: 240,
-      },
-    };
-    if (savedSettings) {
-      // Deep merge saved settings with defaults
-      const parsed = JSON.parse(savedSettings);
-      return {
-        ...defaultSettings,
-        ...parsed,
-        display: { ...defaultSettings.display, ...parsed.display },
-        behavior: { ...defaultSettings.behavior, ...parsed.behavior },
-        accessibility: { ...defaultSettings.accessibility, ...parsed.accessibility },
-        privacy: { ...defaultSettings.privacy, ...parsed.privacy },
-        sidebar: { ...defaultSettings.sidebar, ...parsed.sidebar },
-      };
-    }
-    return defaultSettings;
-  });
+  const defaultSettings = React.useMemo(() => ({
+    display: {
+      darkMode: isDarkMode,
+      showAvatars: true,
+      vimMode: false,
+    },
+    behavior: {
+      autoScroll: true,
+      enterToSend: true,
+      showSystemMessages: true,
+      collapseReplies: false,
+      showReadReceipts: true,
+    },
+    accessibility: {
+      language: 'en-US',
+    },
+    privacy: {
+      saveHistory: true,
+    },
+    sidebar: {
+      showFileTree: true,
+      showCollaborators: true,
+      pinSidebar: false,
+      sidebarWidth: 240,
+    },
+  }), [isDarkMode]);
+
+  const [settings, setSettings] = useLocalStorage('projectSettings', defaultSettings);
   // Language translation hook for this page (must be after settings is defined)
   const language = settings.accessibility?.language || 'en-US';
   const t = useProjectTranslation(language);
@@ -247,6 +113,7 @@ const Project = () => {
   const [modalPosition, setModalPosition] = useState(null); // null means center
   const settingsModalRef = useRef(null);
   const [expandedReplies, setExpandedReplies] = useState({}); // Track expanded replies
+  const { showToast } = useToast();
 
   const toggleEmojiPicker = (messageId, isOpen) => {
     setMessageEmojiPickers(prev => ({
@@ -386,7 +253,10 @@ const Project = () => {
       .then((res) => {
         setUsers(res.data.users)
       })
-      .catch((err) => console.error(err))
+      .catch((err) => {
+        showToast('Failed to fetch users', 'error');
+        console.error(err);
+      });
   }, [webContainer, location.state.project._id])
 
   useEffect(() => {
@@ -605,38 +475,36 @@ const Project = () => {
       axios.put(`/api/projects/settings/${projectId}`, { settings })
         .catch(() => { });
     }
-    localStorage.setItem('projectSettings', JSON.stringify(settings));
-  }, [settings, projectId, project]);
+  }, [settings, projectId]);
 
   useEffect(() => {
-    localStorage.setItem('projectSettings', JSON.stringify(settings));
     setIsDarkMode(settings.display.darkMode);
     document.documentElement.classList.toggle('dark', settings.display.darkMode);
-  }, [settings, setIsDarkMode]);
+  }, [settings.display.darkMode, setIsDarkMode]);
 
   const updateSettings = (category, key, value) => {
-    setSettings(prev => {
-      const updated = { ...prev };
-      if (!updated[category]) updated[category] = {};
-      updated[category][key] = value;
-      // Persist to localStorage
-      localStorage.setItem('projectSettings', JSON.stringify(updated));
-
-      // If updating sidebar, sync with backend
-      if (category === 'sidebar' && project?._id) {
-        axios.put(`/api/projects/sidebar-settings/${project._id}`,
-          { sidebar: { ...updated.sidebar } })
-          .then(res => {
-            if (res.data && res.data.sidebar) {
-              setSettings(prev2 => ({ ...prev2, sidebar: res.data.sidebar }));
-            }
-          })
-          .catch(err => {
-            console.error('Failed to update sidebar settings:', err);
-          });
+    const updated = {
+      ...settings,
+      [category]: {
+        ...settings[category],
+        [key]: value
       }
-      return updated;
-    });
+    };
+    setSettings(updated);
+
+    // If updating sidebar, sync with backend
+    if (category === 'sidebar' && project?._id) {
+      axios.put(`/api/projects/sidebar-settings/${project._id}`,
+        { sidebar: updated.sidebar })
+        .then(res => {
+          if (res.data && res.data.sidebar) {
+            setSettings({ ...updated, sidebar: res.data.sidebar });
+          }
+        })
+        .catch(err => {
+          console.error('Failed to update sidebar settings:', err);
+        });
+    }
   };
 
   // Update settings when vimMode changes
@@ -961,7 +829,7 @@ const Project = () => {
                         const installExitCode = await new Promise(resolve => {
                           installProcess.output.pipeTo(new WritableStream({
                             write(chunk) {
-                              console.log('Install output:', chunk);
+                              // Optional: stream output to a dedicated console component
                             }
                           }));
                           installProcess.exit.then(resolve);
@@ -969,7 +837,7 @@ const Project = () => {
 
                         if (installExitCode === 0) {
                           installSuccess = true;
-                          console.log('Dependencies installed successfully');
+                  showToast('Dependencies installed successfully', 'success');
                         }
                       } catch (err) {
                         console.log(`Install attempt failed, ${retries - 1} retries left:`, err);
@@ -986,7 +854,7 @@ const Project = () => {
 
                     tempRunProcess.output.pipeTo(new WritableStream({
                       write(chunk) {
-                        console.log('Server output:', chunk);
+                        // Optional: stream output to a dedicated console component
                       }
                     }));
 
@@ -999,13 +867,13 @@ const Project = () => {
                     setRunProcess(tempRunProcess);
 
                     webContainer.on('server-ready', (port, url) => {
-                      console.log('Server ready on:', url);
+                      showToast('Server is ready!', 'success');
                       setIframeUrl(url);
                     });
 
                   } catch (error) {
                     console.error('Error running project:', error);
-                    alert(`Failed to run project: ${error.message}`);
+                    showToast(`Failed to run project: ${error.message}`, 'error');
                   }
                 }}
                 style={{ backgroundColor: settings.display.themeColor || '#3B82F6', color: '#fff' }}
@@ -1129,36 +997,29 @@ const Project = () => {
         )}
       </section>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="relative max-w-full p-4 bg-white rounded-md w-96">
-            <header className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">{t('selectUser')}</h2>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 text-gray-900">
-                <i className="ri-close-fill"></i>
-              </button>
-            </header>
-            <div className="flex flex-col gap-2 mb-16 overflow-auto users-list max-h-96">
-              {users.map((u) => (
-                <div
-                  key={u._id}
-                  className={`user cursor-pointer hover:bg-slate-200 ${Array.from(selectedUserId).includes(u._id) ? "bg-slate-200" : ""} p-2 flex gap-2 items-center`}
-                  onClick={() => handleUserClick(u._id)}
-                >
-                  <Avatar firstName={u.firstName} className="w-12 h-12 text-base" />
-                  <h1 className="text-lg font-semibold text-gray-900">{u.firstName}</h1>
-                </div>
-              ))}
-            </div>
-            <button
-              onClick={addCollaborators}
-              className="absolute px-4 py-2 text-white transform -translate-x-1/2 bg-blue-600 rounded-md hover:bg-blue-700 bottom-4 left-1/2"
-            >
-              {t('addCollaborators')}
-            </button>
-          </div>
-        </div>
-      )}
+      <AddCollaboratorsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        users={users}
+        selectedUserId={selectedUserId}
+        handleUserClick={handleUserClick}
+        addCollaborators={addCollaborators}
+        t={t}
+      />
+
+      <AIAssistantModal
+        isOpen={isAIModalOpen}
+        onClose={() => {
+          setIsAIModalOpen(false);
+          setAiInput("");
+          setAiResponse("");
+        }}
+        aiInput={aiInput}
+        setAiInput={setAiInput}
+        aiResponse={aiResponse}
+        aiLoading={aiLoading}
+        handleAISend={handleAISend}
+      />
 
       {/* Settings Modal (centered dialog) */}
       {isSettingsOpen && (
@@ -1491,49 +1352,6 @@ const Project = () => {
             </div>
           </div>
         </>
-      )}
-      {isAIModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="relative w-full max-w-md p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
-            <button
-              className="absolute text-gray-500 top-2 right-2 hover:text-gray-900 dark:hover:text-white"
-              onClick={() => {
-                setIsAIModalOpen(false);
-                setAiInput("");
-                setAiResponse("");
-              }}
-            >
-              <i className="text-2xl ri-close-line"></i>
-            </button>
-            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">AI Assistant</h2>
-            <input
-              type="text"
-              className="w-full p-2 mb-2 border rounded dark:bg-gray-700 dark:text-white"
-              placeholder="Ask ChatRaj..."
-              value={aiInput}
-              onChange={e => setAiInput(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  if (aiInput.trim()) handleAISend();
-                }
-              }}
-              autoFocus
-            />
-            <button
-              className="w-full py-2 mb-2 text-white bg-blue-600 rounded hover:bg-blue-700"
-              onClick={handleAISend}
-              disabled={aiLoading || !aiInput.trim()}
-            >
-              {aiLoading ? 'Thinking...' : 'Send'}
-            </button>
-            {aiResponse && (
-              <div className="p-2 mt-2 text-gray-800 whitespace-pre-wrap bg-gray-100 rounded dark:bg-gray-700 dark:text-white">
-                {aiResponse}
-              </div>
-            )}
-          </div>
-        </div>
       )}
     </main>
   )
