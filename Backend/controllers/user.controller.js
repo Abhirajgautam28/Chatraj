@@ -389,7 +389,7 @@ export const loginController = async (req, res) => {
         res.status(200).json({ user, token });
     } catch (err) {
         console.error('loginController error:', err);
-        res.status(400).send('Invalid request');
+        res.status(400).json({ message: 'Invalid request' });
     }
 }
 
@@ -416,7 +416,7 @@ export const logoutController = async (req, res) => {
         });
     } catch (err) {
         console.error('logoutController error:', err);
-        res.status(400).send('Invalid request');
+        res.status(400).json({ message: 'Invalid request' });
     }
 }
 

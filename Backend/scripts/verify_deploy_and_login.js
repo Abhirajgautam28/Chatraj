@@ -3,6 +3,7 @@ import { setTimeout as wait } from 'timers/promises';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { extractSetCookieArray, buildCookieHeader } from '../utils/cookies.js';
 
 // Load env relative to script
 const __filename = fileURLToPath(import.meta.url);
@@ -21,23 +22,6 @@ const EMAIL = arg('email', process.env.TEST_USER_EMAIL || 'testuser@example.com'
 const PASSWORD = arg('password', process.env.TEST_USER_PASSWORD || 'TestPass123!');
 const TIMEOUT = Number(arg('timeout', '300000')); // 5 minutes default
 const INTERVAL = Number(arg('interval', '15000'));
-
-function extractSetCookieArray(resp) {
-  // node-fetch / undici gives headers.raw()
-  if (resp.headers && typeof resp.headers.raw === 'function') {
-    const raw = resp.headers.raw();
-    return raw && raw['set-cookie'] ? raw['set-cookie'] : [];
-  }
-  const single = resp.headers && resp.headers.get ? resp.headers.get('set-cookie') : null;
-  if (!single) return [];
-  // split on cookie boundaries
-  return String(single).split(/,(?=\s*[^;]+?=)/g);
-}
-
-function buildCookieHeader(setCookieArray) {
-  if (!Array.isArray(setCookieArray)) return '';
-  return setCookieArray.map(c => c.split(';')[0].trim()).filter(Boolean).join('; ');
-}
 
 async function checkCsrfFlags(api) {
   try {
