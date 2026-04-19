@@ -32,9 +32,11 @@ const messageSchema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    default: Date.now,
-    index: -1
+    default: Date.now
   }
 });
+
+// Compound index for high-performance chat history retrieval
+messageSchema.index({ conversationId: 1, createdAt: -1 });
 
 export default mongoose.model('Message', messageSchema);

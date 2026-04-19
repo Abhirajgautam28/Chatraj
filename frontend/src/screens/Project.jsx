@@ -457,15 +457,6 @@ const Project = () => {
   };
 
   useEffect(() => {
-    if (messages.length && messageBox.current) {
-      const lastMsg = messages[messages.length - 1]
-      if (lastMsg._id) {
-        sendMessage("message-read", { messageId: lastMsg._id, userId: user._id })
-      }
-    }
-  }, [messages, user])
-
-  useEffect(() => {
     if (window.__webcontainerBooted) return;
     window.__webcontainerBooted = true;
     initializeSocket(project._id)
@@ -476,7 +467,6 @@ const Project = () => {
       })
     }
     axios.get(`/api/projects/get-project/${location.state.project._id}`).then((res) => {
-      console.log(res.data.project)
       setProject(res.data.project)
       setFileTree(res.data.project.fileTree || {})
     })
@@ -489,9 +479,17 @@ const Project = () => {
   }, [webContainer, project._id, location.state.project._id])
 
   useEffect(() => {
-    if (messageBox.current)
-      messageBox.current.scrollTop = messageBox.current.scrollHeight
-  }, [messages])
+    if (messages.length && messageBox.current) {
+      // Auto-scroll to bottom
+      messageBox.current.scrollTop = messageBox.current.scrollHeight;
+
+      // Mark last message as read
+      const lastMsg = messages[messages.length - 1]
+      if (lastMsg._id) {
+        sendMessage("message-read", { messageId: lastMsg._id, userId: user._id })
+      }
+    }
+  }, [messages, user._id]);
 
   useEffect(() => {
     const handleIncomingMessage = (data) => {

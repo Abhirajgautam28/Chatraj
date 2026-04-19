@@ -498,17 +498,21 @@ export const updatePasswordController = async (req, res) => {
         newPassword = newPassword.trim();
         if (newPassword.length < 8) return res.status(400).json({ message: 'Valid email and a new password (min 8 chars) required' });
 
-        const user = await userModel.findOne({ email: normalizedEmail });
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        const hashedPassword = await userModel.hashPassword(newPassword);
 
-        // Prevent duplicate password reset emails by using a flag
-        if (user._passwordResetEmailSent) {
-            return res.json({ message: 'Password updated successfully' });
+        // Atomic update with concurrency check using _passwordResetEmailSent flag
+        const user = await userModel.findOneAndUpdate(
+            { email: normalizedEmail, _passwordResetEmailSent: { $ne: true } },
+            { $set: { password: hashedPassword, _passwordResetEmailSent: true } },
+            { new: true }
+        );
+
+        if (!user) {
+            // Check if it failed because user not found or flag already set
+            const exists = await userModel.findOne({ email: normalizedEmail }).lean();
+            if (!exists) return res.status(404).json({ message: 'User not found' });
+            return res.json({ message: 'Password updated successfully' }); // Flag was already true
         }
-
-        user.password = await userModel.hashPassword(newPassword);
-        user._passwordResetEmailSent = true;
-        await user.save();
 
         // Send password reset success email only once
         await sendPasswordResetSuccessEmail(user.email, user.firstName || user.email);
