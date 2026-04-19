@@ -1,24 +1,34 @@
-import React from 'react';
-import { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const ContactUs = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [message, setMessage] = useState('');
     const [status, setStatus] = useState('');
+    const timeoutRef = useRef(null);
+
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        };
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setStatus('Sending...');
         try {
             // Mock API call
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise(resolve => {
+                timeoutRef.current = setTimeout(resolve, 2000);
+            });
             setStatus('Message sent successfully!');
             setName('');
             setEmail('');
             setMessage('');
         } catch {
             setStatus('Failed to send message. Please try again.');
+        } finally {
+            timeoutRef.current = null;
         }
     };
 
