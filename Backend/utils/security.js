@@ -1,91 +1,13 @@
-import crypto from 'crypto';
-
-// CSRF signing secret used for stateless signed tokens (fallback for cross-origin clients)
-const CSRF_SIGNING_SECRET = (() => {
-  if (process.env.CSRF_SIGNING_SECRET) return process.env.CSRF_SIGNING_SECRET;
-  if (process.env.NODE_ENV !== 'production') {
-    return 'dev-csrf-signing-secret';
-  }
-  return null; // Should be handled by the caller or app startup
-})();
-
-/**
- * Checks if sensitive data (like OTPs) should be exposed to the client.
- * @returns {boolean}
- */
+// Utilities around exposing sensitive data in responses.
+// By default we are conservative: do NOT expose OTPs unless explicitly
+// enabled via EXPOSE_OTP=true. This avoids accidental leaks when
+// `NODE_ENV` is unset or misconfigured on hosted environments.
 export function shouldExposeOtpToClient() {
+  // Require an explicit opt-in via EXPOSE_OTP=true and ensure not running
+  // in CI environments. This avoids accidental exposure in staging/dev.
   const expose = String(process.env.EXPOSE_OTP || '').toLowerCase() === 'true';
   const ci = String(process.env.CI || '').toLowerCase() === 'true';
   return expose && !ci;
 }
 
-/**
- * Determines if cookies should be secure based on the request and environment.
- * @param {object} req - Express request object.
- * @returns {boolean}
- */
-export function isSecureFromRequest(req) {
-  if (process.env.FORCE_SECURE_COOKIES === 'true' || process.env.NODE_ENV === 'production') return true;
-  if (!req) return false;
-  try {
-    return Boolean(req.secure || (req.headers && String(req.headers['x-forwarded-proto']) === 'https'));
-  } catch (e) {
-    return false;
-  }
-}
-
-/**
- * Signs a raw CSRF token.
- * @param {string} raw - Raw token string.
- * @returns {string} - Signed token.
- */
-export function signRawToken(raw) {
-  if (!CSRF_SIGNING_SECRET) throw new Error('CSRF_SIGNING_SECRET must be set');
-  return `${raw}.${crypto.createHmac('sha256', CSRF_SIGNING_SECRET).update(raw).digest('base64url')}`;
-}
-
-/**
- * Verifies a signed CSRF token.
- * @param {string} signed - Signed token string.
- * @returns {boolean}
- */
-export function verifySignedCsrfToken(signed) {
-  try {
-    if (!CSRF_SIGNING_SECRET) return false;
-    if (!signed || typeof signed !== 'string') return false;
-    const parts = signed.split('.');
-    if (parts.length !== 2) return false;
-    const [raw, sig] = parts;
-    const expected = crypto.createHmac('sha256', CSRF_SIGNING_SECRET).update(raw).digest('base64url');
-    const a = Buffer.from(sig);
-    const b = Buffer.from(expected);
-    if (a.length !== b.length) return false;
-    if (!crypto.timingSafeEqual(a, b)) return false;
-    const idx = raw.indexOf(':');
-    if (idx === -1) return false;
-    const ts = Number(raw.slice(0, idx));
-    if (Number.isNaN(ts)) return false;
-    // token expiry: 1 hour
-    if (Date.now() - ts > 1000 * 60 * 60) return false;
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
-
-/**
- * Creates a signed stateless CSRF token.
- * @returns {string}
- */
-export function createSignedCsrf() {
-  const raw = `${Date.now()}:${crypto.randomBytes(12).toString('base64url')}`;
-  return signRawToken(raw);
-}
-
-export default {
-  shouldExposeOtpToClient,
-  isSecureFromRequest,
-  signRawToken,
-  verifySignedCsrfToken,
-  createSignedCsrf
-};
+export default shouldExposeOtpToClient;

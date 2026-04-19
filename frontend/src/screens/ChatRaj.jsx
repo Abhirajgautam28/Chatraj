@@ -1,10 +1,8 @@
-import { useState, useRef, useEffect, useContext, useCallback, useMemo } from 'react';
+import { useState, useRef, useEffect, useContext, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { ChatRajThemeContext } from '../context/chatraj-theme.context';
 import { UserContext } from '../context/user.context';
-import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useNavigate } from 'react-router-dom';
-import axios from '../config/axios';
 
 const formatMessageTime = (timestamp) => {
   const date = new Date(timestamp);
@@ -35,100 +33,91 @@ const ChatRaj = () => {
     return messages.filter(m => m.content && typeof m.content === 'string' && m.content.toLowerCase().includes(lowerSearch));
   }, [messages, searchTerm]);
   const [activeSettingsTab, setActiveSettingsTab] = useState('display');
-  const defaultSettings = useMemo(() => ({
-    display: {
-      darkMode: false,
-      theme: {
-        primary: '#3B82F6',
-        secondary: '#1F2937',
-        accent: '#10B981',
-        customColors: false,
-        messageColors: {
-          user: '#3B82F6',
-          ai: '#F3F4F6'
+  const [settings, setSettings] = useState(() => {
+    const savedSettings = localStorage.getItem('chatrajSettings');
+    const defaultSettings = {
+      display: {
+        darkMode: false,
+        theme: {
+          primary: '#3B82F6',
+          secondary: '#1F2937',
+          accent: '#10B981',
+          customColors: false,
+          messageColors: {
+            user: '#3B82F6',
+            ai: '#F3F4F6'
+          }
+        },
+        typography: {
+          fontFamily: 'font-sans',
+          userMessageSize: 'text-sm',
+          aiMessageSize: 'text-sm',
+          headerSize: 'text-xl',
+          fontWeight: 'normal'
+        },
+        chatBubbles: {
+          roundness: 'rounded-lg',
+          padding: 'normal',
+          shadow: true
+        },
+        animations: {
+          messageTransition: true,
+          interfaceTransitions: true,
+          intensity: 'medium'
         }
       },
-      typography: {
-        fontFamily: 'font-sans',
-        userMessageSize: 'text-sm',
-        aiMessageSize: 'text-sm',
-        headerSize: 'text-xl',
-        fontWeight: 'normal'
+      behavior: {
+        enterToSend: true,
+        autoScroll: true,
+        autoSave: true,
+        notifications: true,
+        animations: {
+          messageTransition: true,
+          interfaceTransitions: true,
+          loadingAnimations: true
+        },
+        autoComplete: true,
+        spellCheck: true
       },
-      chatBubbles: {
-        roundness: 'rounded-lg',
-        padding: 'normal',
-        shadow: true
+      accessibility: {
+        language: 'en-US',
+        fontSize: 'medium',
+        reducedMotion: false,
+        screenReader: false,
+        contrastMode: 'normal',
+        keyboardShortcuts: true,
+        textToSpeech: true,
+        speechToText: true
       },
-      animations: {
-        messageTransition: true,
-        interfaceTransitions: true,
-        intensity: 'medium'
+      sidebar: {
+        defaultOpen: true,
+        width: '260px',
+        showUserInfo: true,
+        autoExpand: false,
+        showTimestamps: true,
+        pinnedChats: true,
+        showNotifications: true,
+        compactView: false,
+        sortOrder: 'newest',
+        groupByDate: true,
+        showCategories: true
+      },
+      privacy: {
+        saveHistory: true,
+        clearOnExit: false,
+        shareAnalytics: false,
+        autoDelete: {
+          enabled: false,
+          days: 30
+        }
       }
-    },
-    behavior: {
-      enterToSend: true,
-      autoScroll: true,
-      autoSave: true,
-      notifications: true,
-      animations: {
-        messageTransition: true,
-        interfaceTransitions: true,
-        loadingAnimations: true
-      },
-      autoComplete: true,
-      spellCheck: true
-    },
-    accessibility: {
-      language: 'en-US',
-      fontSize: 'medium',
-      reducedMotion: false,
-      screenReader: false,
-      contrastMode: 'normal',
-      keyboardShortcuts: true,
-      textToSpeech: true,
-      speechToText: true
-    },
-    sidebar: {
-      defaultOpen: true,
-      width: '260px',
-      showUserInfo: true,
-      autoExpand: false,
-      showTimestamps: true,
-      pinnedChats: true,
-      showNotifications: true,
-      compactView: false,
-      sortOrder: 'newest',
-      groupByDate: true,
-      showCategories: true
-    },
-    privacy: {
-      saveHistory: true,
-      clearOnExit: false,
-      shareAnalytics: false,
-      autoDelete: {
-        enabled: false,
-        days: 30
-      }
-    }
-  }), []);
+    };
 
-  const [settings, setSettings] = useLocalStorage('chatrajSettings', defaultSettings);
+    return savedSettings ? { ...defaultSettings, ...JSON.parse(savedSettings) } : defaultSettings;
+  });
   const messageEndRef = useRef(null);
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
-  const aiResponseTimeoutRef = useRef(null);
-
-  useEffect(() => {
-    return () => {
-      if (aiResponseTimeoutRef.current) {
-        clearTimeout(aiResponseTimeoutRef.current);
-      }
-      if (recognitionRef.current) {
-        recognitionRef.current.abort();
-      }
-    };
-  }, []);
   useContext(ChatRajThemeContext);
   const { user } = useContext(UserContext);
 
@@ -292,34 +281,20 @@ const ChatRaj = () => {
     setInputMessage('');
     setIsThinking(true);
 
-    try {
-      // Connect to real AI endpoint
-      const res = await axios.post("/api/ai", { prompt: messageToSend, userApiKey: user?.googleApiKey });
-      const aiResponse = res.data?.response || "I understand and I'm here to help you! 🌟";
-
+    setTimeout(() => {
       const aiMessage = {
         type: 'ai',
-        content: aiResponse,
+        content: "I understand and I'm here to help you! 🌟",
         timestamp: new Date().toISOString()
       };
 
       setMessages(prev => [...prev, aiMessage]);
+      setIsThinking(false);
 
-      if (voiceInput || settings.accessibility.textToSpeech) {
+      if (voiceInput) {
         speakResponse(aiMessage.content);
       }
-    } catch (err) {
-      console.error('AI Chat Error:', err);
-      const errorMessage = {
-        type: 'ai',
-        content: "I'm having trouble connecting to my brain right now. Please try again later.",
-        timestamp: new Date().toISOString(),
-        isError: true
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsThinking(false);
-    }
+    }, 1500);
   }, [inputMessage, speakResponse]);
   useEffect(() => {
     if ('webkitSpeechRecognition' in window) {
@@ -350,8 +325,9 @@ const ChatRaj = () => {
   }, [settings.sidebar.width, isSidebarOpen]);
 
   useEffect(() => {
+    localStorage.setItem('chatrajSettings', JSON.stringify(settings));
     document.documentElement.classList.toggle('dark', settings.display.darkMode);
-  }, [settings.display.darkMode]);
+  }, [settings]);
 
   useEffect(() => {
     if ('webkitSpeechRecognition' in window && recognitionRef.current) {
@@ -410,6 +386,7 @@ const ChatRaj = () => {
           });
           
           if (filteredMessages.length !== prev.length && settings.privacy.saveHistory) {
+            console.log(`Deleted ${prev.length - filteredMessages.length} old messages`);
             localStorage.setItem('chatHistory', JSON.stringify(filteredMessages));
           }
           

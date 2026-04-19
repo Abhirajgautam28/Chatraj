@@ -1,22 +1,28 @@
 import Blog from '../models/blog.model.js';
+import User from '../models/user.model.js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import mongoose from 'mongoose';
-import { logger } from '../utils/logger.js';
+
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
 export const createBlog = async (req, res) => {
     try {
         const { title, content } = req.body;
+        const author = await User.findOne({ email: req.user.email });
+
+        if (!author) {
+            return res.status(401).json({ error: 'User not found' });
+        }
 
         const newBlog = new Blog({
             title,
             content,
-            author: req.user._id
+            author: author._id
         });
 
         await newBlog.save();
-        res.status(201).json({ message: 'Blog created successfully', blog: newBlog });
+        res.status(201).json(newBlog);
     } catch (error) {
-        logger.error('createBlog error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -26,7 +32,6 @@ export const getAllBlogs = async (req, res) => {
         const blogs = await Blog.find().populate('author', 'firstName lastName').sort({ createdAt: -1 }).lean();
         res.status(200).json(blogs);
     } catch (error) {
-        logger.error('getAllBlogs error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -41,7 +46,6 @@ export const getBlogById = async (req, res) => {
         }
         res.status(200).json(blog);
     } catch (error) {
-        logger.error('getBlogById error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -105,20 +109,14 @@ export const commentOnBlog = async (req, res) => {
 export const generateBlogContent = async (req, res) => {
     try {
         const { topic } = req.body;
-        if (typeof topic !== 'string' || topic.trim().length === 0 || topic.trim().length > 200) {
-            return res.status(400).json({ error: 'Invalid topic. Please provide a topic between 1 and 200 characters.' });
-        }
-
+        if (typeof topic !== 'string' || topic.trim().length === 0 || topic.trim().length > 200) return res.status(400).json({ error: 'Invalid topic' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
         const prompt = `Write a professional blog post of about 100 words on the topic: "${topic.trim().slice(0,200)}".`;
-        const content = await generateContent({
-            prompt,
-            modelName: 'gemini-pro',
-            temperature: 0.7
-        });
-
-        res.status(200).json({ content });
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
+        res.status(200).json({ content: text });
     } catch (error) {
-        logger.error('generateBlogContent error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
