@@ -1,23 +1,29 @@
 import mongoose from 'mongoose';
+import userModel from '../models/user.model.js';
+import { normalizeEmail } from '../utils/email.js';
+import { shouldExposeOtpToClient } from '../utils/security.js';
+import { sendMailWithRetry } from '../utils/mailer.js';
+import { escapeHtml } from '../utils/strings.js';
+import { generateOTP } from '../utils/otp.js';
+import dotenv from 'dotenv';
+import * as userService from '../services/user.service.js';
+import { validationResult } from 'express-validator';
+import redisClient from '../services/redis.service.js';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+
+dotenv.config();
 
 // Send OTP for password reset (used in Login.jsx)
 export const sendOtpController = async (req, res) => {
     try {
         const { email } = req.body;
-        const { value: normalizedEmail, isValid } = normalizeEmail(email);
-        if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
-        const user = await userModel.findOne({ email: normalizedEmail });
-        if (!user) return res.status(404).json({ message: 'User not found' });
-        // Generate OTP
-        const otp = generateOTP(7);
-        user.otp = otp;
-        user.isVerified = false;
-        await user.save();
-        await sendOtpEmail(user.email, otp);
-        res.status(200).json({ message: 'OTP sent to email.' });
+        const result = await userService.sendOtp(email);
+        res.status(200).json(result);
     } catch (error) {
-        console.error('sendOtpController error:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        const status = (error.message === 'Valid email is required' || error.message === 'User not found') ? 400 : 500;
+        res.status(status).json({ message: error.message || 'Internal server error' });
     }
 };
 
@@ -29,190 +35,22 @@ export const getLeaderboardController = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
-import userModel from '../models/user.model.js';
-import { normalizeEmail } from '../utils/email.js';
-import { shouldExposeOtpToClient } from '../utils/security.js';
-import { sendMailWithRetry } from '../utils/mailer.js';
-import dotenv from 'dotenv';
-dotenv.config();
-
-// Helper: escape user-supplied text before inserting into HTML templates
-function escapeHtml(unsafe) {
-    if (unsafe === undefined || unsafe === null) return '';
-    return String(unsafe)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
-import * as userService from '../services/user.service.js';
-import { validationResult } from 'express-validator';
-import redisClient from '../services/redis.service.js';
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
 
 export const createUserController = async (req, res) => {
-
     const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
     try {
-        const { firstName, lastName, email, password, googleApiKey } = req.body;
-        const { value: normalizedEmail, isValid } = normalizeEmail(email);
-        if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
-
-        // If a verified user already exists, reject immediately.
-        const existing = await userModel.findOne({ email: normalizedEmail }).select('+isVerified');
-        if (existing && existing.isVerified) {
-            return res.status(409).json({ message: 'Email already registered. Please login to your existing account.' });
-        }
-
-        // If an unverified user exists from an older run, remove it so
-        // we don't block re-registration (we will keep pending state in Redis).
-        if (existing && !existing.isVerified) {
-            try {
-                await userModel.deleteOne({ _id: existing._id });
-            } catch (delErr) {
-                console.warn('Failed to remove stale unverified user:', delErr && delErr.message ? delErr.message : delErr);
-            }
-        }
-
-        // Hash the password now so we can safely persist pending state
-        // in Redis without storing plaintext passwords.
-        const hashedPassword = await userModel.hashPassword(password);
-        const otp = generateOTP(7);
-
-        // Persist pending registration in Redis with TTL so unverified
-        // accounts are not stored in MongoDB until the user verifies.
-        const pendingKey = `pending:registration:${normalizedEmail}`;
-        const pending = {
-            firstName,
-            lastName,
-            email: normalizedEmail,
-            passwordHash: hashedPassword,
-            googleApiKey,
-            otp,
-            createdAt: Date.now()
-        };
-        const ttl = parseInt(process.env.REGISTRATION_OTP_TTL_SECONDS || '900', 10);
-        await redisClient.set(pendingKey, JSON.stringify(pending), 'EX', ttl);
-
-        // Attempt to send OTP email immediately. If sending fails, we keep
-        // the pending registration in Redis and schedule background retries
-        // so the user can still verify once delivery succeeds.
-        try {
-            await sendOtpEmail(normalizedEmail, otp);
-            return res.status(201).json({ message: 'OTP sent to email. Please verify.' });
-        } catch (emailErr) {
-            console.error('sendOtpEmail error (will retry in background):', emailErr && emailErr.message ? emailErr.message : emailErr);
-
-            // Background retry loop (best-effort; survives only while process runs).
-            (async function backgroundResend(attempt) {
-                const maxAttempts = parseInt(process.env.REGISTRATION_SEND_RETRY_ATTEMPTS || '5', 10);
-                const initialBackoff = parseInt(process.env.REGISTRATION_SEND_RETRY_BACKOFF_MS || '2000', 10);
-                try {
-                    if (attempt > maxAttempts) {
-                        console.error(`Background resend exhausted for ${normalizedEmail}`);
-                        return;
-                    }
-                    const wait = initialBackoff * Math.pow(2, attempt - 1);
-                    // wait before retry except on first immediate retry
-                    if (attempt > 1) await new Promise(r => setTimeout(r, wait));
-                    const latestPendingJson = await redisClient.get(pendingKey);
-                    if (!latestPendingJson) {
-                        // pending cleared (maybe user verified)
-                        return;
-                    }
-                    const latest = JSON.parse(latestPendingJson);
-                    await sendOtpEmail(latest.email, latest.otp);
-                    // on success, update pending metadata (do NOT delete - user
-                    // must still be able to verify using the OTP). Preserve TTL.
-                    try {
-                        latest.lastSentAt = Date.now();
-                        latest.sentCount = (latest.sentCount || 0) + 1;
-                        const newVal = JSON.stringify(latest);
-
-                        // Prefer GETSET which preserves TTL on Redis. If GETSET fails
-                        // fall through to TTL-preserving fallback rather than rethrowing.
-                        let updatedViaGetSet = false;
-                        if (typeof redisClient.getset === 'function') {
-                            try {
-                                await redisClient.getset(pendingKey, newVal);
-                                updatedViaGetSet = true;
-                            } catch (e) {
-                                console.warn('redis GETSET failed; falling back to TTL-preserving set:', e && e.message ? e.message : e);
-                            }
-                        }
-
-                        if (!updatedViaGetSet) {
-                            // Fallback: attempt to read remaining TTL and restore it after set
-                            let remainingMs = null;
-                            if (typeof redisClient.pttl === 'function') {
-                                try {
-                                    remainingMs = await redisClient.pttl(pendingKey);
-                                } catch (e) { remainingMs = null; }
-                            }
-                            if (remainingMs == null && typeof redisClient.ttl === 'function') {
-                                try {
-                                    const secs = await redisClient.ttl(pendingKey);
-                                    if (typeof secs === 'number' && secs >= 0) remainingMs = secs * 1000;
-                                } catch (e) { remainingMs = null; }
-                            }
-                            if (remainingMs != null && remainingMs > 0) {
-                                await redisClient.set(pendingKey, newVal);
-                                if (typeof redisClient.pexpire === 'function') {
-                                    await redisClient.pexpire(pendingKey, remainingMs);
-                                } else if (typeof redisClient.expire === 'function') {
-                                    await redisClient.expire(pendingKey, Math.ceil(remainingMs / 1000));
-                                }
-                            } else {
-                                // Couldn't preserve TTL safely; skip metadata update to avoid extending OTP validity
-                                console.warn('Could not preserve TTL for pending registration; skipping metadata update to avoid extending OTP lifetime');
-                            }
-                        }
-                    } catch (updErr) {
-                        console.warn('Failed to update pending registration after resend:', updErr && updErr.message ? updErr.message : updErr);
-                    }
-                    console.info(`Background resend succeeded for ${normalizedEmail}`);
-                } catch (err) {
-                    console.error('Background resend attempt failed:', err && err.message ? err.message : err);
-                    setTimeout(() => backgroundResend(attempt + 1), 0);
-                }
-            })(1);
-
-            return res.status(201).json({ message: 'OTP delivery queued. If you do not receive the email shortly, please check spam or try again.' });
-        }
+        const result = await userService.registerUser(req.body);
+        res.status(201).json(result);
     } catch (error) {
-        console.error('createUserController error:', error && error.message ? error.message : error);
-        // If duplicate key error occurred during a DB op elsewhere, treat
-        // it as a conflict for the client.
-        if (error && (error.code === 11000 || error.name === 'MongoServerError') && error.keyValue && error.keyValue.email) {
-            return res.status(409).json({ message: 'Email already registered. Please login to your existing account.' });
-        }
-
-        return res.status(400).json({ message: 'Invalid request' });
+        const status = error.message === 'Email already registered' ? 409 : 400;
+        res.status(status).json({ message: error.message || 'Invalid request' });
     }
 }
 
-// Helper: Generate 7-char OTP
-function generateOTP(length) {
-    const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*';
-    let otp = '';
-    for (let i = 0; i < length; i++) {
-        const index = crypto.randomInt(chars.length);
-        otp += chars[index];
-    }
-    return otp;
-}
-
-// Helper: Send OTP email
+// Helper: Send OTP email (internal use)
 async function sendOtpEmail(email, otp) {
-    // In test environments skip sending real emails to avoid external
-    // dependencies and flaky failures when SMTP creds are not configured.
     if (process.env.NODE_ENV === 'test') {
         console.log('Skipping email send in test environment');
         return;
@@ -225,8 +63,6 @@ async function sendOtpEmail(email, otp) {
         text: `Welcome to ChatRaj!\n\nYour OTP is: ${otp}\n\nPlease enter this code in the registration popup to activate your account.`,
     };
 
-    // Use robust send with retry/backoff. Any thrown error will be
-    // propagated to the caller so registration flow can respond safely.
     await sendMailWithRetry(mailOptions);
 }
 
@@ -365,17 +201,6 @@ export const adminGetOtpController = async (req, res) => {
                 queried: { email: user.email, userId: user._id }
             };
             console.info('admin-otp-audit', JSON.stringify(audit));
-            // Also append to disk log for persistence
-            try {
-                const fs = await import('fs');
-                const logPath = 'logs/admin_otp_audit.log';
-                const line = JSON.stringify(audit) + '\n';
-                fs.appendFile(logPath, line, (err) => {
-                    if (err) console.warn('Failed to append admin audit log:', err && err.message ? err.message : err);
-                });
-            } catch (fileErr) {
-                console.warn('Unable to write admin audit log file:', fileErr && fileErr.message ? fileErr.message : fileErr);
-            }
         } catch (auditErr) {
             console.warn('Failed to produce admin audit log:', auditErr && auditErr.message ? auditErr.message : auditErr);
         }
@@ -388,39 +213,22 @@ export const adminGetOtpController = async (req, res) => {
 
 export const loginController = async (req, res) => {
     const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
     try {
         const { email, password } = req.body;
-        if (typeof email !== 'string' || typeof password !== 'string') return res.status(400).json({ errors: 'Invalid credentials' });
-        const user = await userModel.findOne({ email: email.trim() }).select('+password +googleApiKey');
-        if (!user) {
-            return res.status(401).json({ errors: 'Invalid credentials' });
-        }
-        const isMatch = await user.isValidPassword(password);
-        if (!isMatch) {
-            return res.status(401).json({ errors: 'Invalid credentials' });
-        }
-        if (!user.isVerified) {
-            return res.status(403).json({ errors: 'Account not verified. Please check your email for OTP.' });
-        }
-        const token = await user.generateJWT();
-        delete user._doc.password;
-        res.status(200).json({ user, token });
+        const result = await userService.loginUser(email, password);
+        res.status(200).json(result);
     } catch (err) {
-        console.error('loginController error:', err);
-        res.status(400).send('Invalid request');
+        const status = err.message === 'Invalid credentials' ? 401 : (err.message === 'Account not verified' ? 403 : 400);
+        res.status(status).json({ errors: err.message });
     }
 }
 
 export const profileController = async (req, res) => {
-
     res.status(200).json({
         user: req.user
     });
-
 }
 
 export const logoutController = async (req, res) => {
