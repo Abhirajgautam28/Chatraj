@@ -28,6 +28,12 @@ const ChatRaj = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredMessagesList = React.useMemo(() => {
+    if (!searchTerm) return messages;
+    const lowerSearch = searchTerm.toLowerCase();
+    return messages.filter(m => m.content && typeof m.content === 'string' && m.content.toLowerCase().includes(lowerSearch));
+  }, [messages, searchTerm]);
   const [activeSettingsTab, setActiveSettingsTab] = useState('display');
   const defaultSettings = useMemo(() => ({
     display: {
@@ -604,12 +610,7 @@ const ChatRaj = () => {
                   </p>
                 </div>
               ) : (
-                (searchTerm 
-                  ? messages.filter(message => 
-                      message.content.toLowerCase().includes(searchTerm.toLowerCase())
-                    )
-                  : messages
-                ).map((message, index) => (
+                filteredMessagesList.map((message, index) => (
                   <div
                     key={index}
                     className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}

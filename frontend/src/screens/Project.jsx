@@ -15,22 +15,117 @@ import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import VimCodeEditor from '../components/VimCodeEditor';
 import ChatMessage from '../components/ChatMessage';
-import ErrorBoundary from '../components/ErrorBoundary';
-import AddCollaboratorsModal from '../components/AddCollaboratorsModal';
-import AIAssistantModal from '../components/AIAssistantModal';
-import ProjectSettingsModal from '../components/ProjectSettingsModal';
-import SyntaxHighlightedCode from '../components/SyntaxHighlightedCode';
-import { useSocket } from '../hooks/useSocket';
-import { useLocalStorage } from '../hooks/useLocalStorage';
-import { useWebContainer } from '../hooks/useWebContainer';
-import { useToast } from '../context/toast.context';
-import {
-  sanitizeIframeUrl,
-  normalizeFileTree,
-  deduplicateMessages,
-  groupMessagesByDate
-} from '../utils/projectUtils';
-import { PROJECT_TRANSLATIONS } from '../config/translations';
+
+const PROJECT_TRANSLATIONS = {
+  'en-US': {
+    addUsers: 'Add Users',
+    collaborators: 'Collaborators',
+    options: 'Options',
+    run: 'Run',
+    noFileSelected: 'No file selected.',
+    noCode: 'No code to display.',
+    settings: 'Settings',
+    language: 'Language',
+    aiAssistant: 'AI Assistant',
+    replyTo: 'Replying to',
+    send: 'Send',
+    searchMessages: 'Search messages...',
+    selectUser: 'Select User',
+    addCollaborators: 'Add Collaborators',
+    previewOptions: 'Preview Options',
+    editorSettings: 'Editor Settings (see main settings for more)',
+  },
+  'hi-IN': {
+    addUsers: 'यूज़र जोड़ें',
+    collaborators: 'सहयोगी',
+    options: 'विकल्प',
+    run: 'चलाएँ',
+    noFileSelected: 'कोई फ़ाइल चयनित नहीं है।',
+    noCode: 'कोड उपलब्ध नहीं है।',
+    settings: 'सेटिंग्स',
+    language: 'भाषा',
+    aiAssistant: 'एआई सहायक',
+    replyTo: 'को उत्तर दे रहे हैं',
+    send: 'भेजें',
+    searchMessages: 'संदेश खोजें...',
+    selectUser: 'यूज़र चुनें',
+    addCollaborators: 'सहयोगी जोड़ें',
+    previewOptions: 'पूर्वावलोकन विकल्प',
+    editorSettings: 'संपादक सेटिंग्स (अधिक के लिए मुख्य सेटिंग्स देखें)',
+  },
+  'es-ES': {
+    addUsers: 'Agregar usuarios',
+    collaborators: 'Colaboradores',
+    options: 'Opciones',
+    run: 'Ejecutar',
+    noFileSelected: 'Ningún archivo seleccionado.',
+    noCode: 'No hay código para mostrar.',
+    settings: 'Configuración',
+    language: 'Idioma',
+    aiAssistant: 'Asistente de IA',
+    replyTo: 'Respondiendo a',
+    send: 'Enviar',
+    searchMessages: 'Buscar mensajes...',
+    selectUser: 'Seleccionar usuario',
+    addCollaborators: 'Agregar colaboradores',
+    previewOptions: 'Opciones de vista previa',
+    editorSettings: 'Configuración del editor (ver configuración principal para más)',
+  },
+  'fr-FR': {
+    addUsers: 'Ajouter des utilisateurs',
+    collaborators: 'Collaborateurs',
+    options: 'Options',
+    run: 'Exécuter',
+    noFileSelected: 'Aucun fichier sélectionné.',
+    noCode: 'Aucun code à afficher.',
+    settings: 'Paramètres',
+    language: 'Langue',
+    aiAssistant: 'Assistant IA',
+    replyTo: 'En réponse à',
+    send: 'Envoyer',
+    searchMessages: 'Rechercher des messages...',
+    selectUser: 'Sélectionner un utilisateur',
+    addCollaborators: 'Ajouter des collaborateurs',
+    previewOptions: 'Options d’aperçu',
+    editorSettings: 'Paramètres de l’éditeur (voir les paramètres principaux pour plus)',
+  },
+  'de-DE': {
+    addUsers: 'Benutzer hinzufügen',
+    collaborators: 'Mitarbeiter',
+    options: 'Optionen',
+    run: 'Ausführen',
+    noFileSelected: 'Keine Datei ausgewählt.',
+    noCode: 'Kein Code zum Anzeigen.',
+    settings: 'Einstellungen',
+    language: 'Sprache',
+    aiAssistant: 'KI-Assistent',
+    replyTo: 'Antwort an',
+    send: 'Senden',
+    searchMessages: 'Nachrichten suchen...',
+    selectUser: 'Benutzer auswählen',
+    addCollaborators: 'Mitarbeiter hinzufügen',
+    previewOptions: 'Vorschauoptionen',
+    editorSettings: 'Editor-Einstellungen (siehe Haupteinstellungen für mehr)',
+  },
+  'ja-JP': {
+    addUsers: 'ユーザーを追加',
+    collaborators: '共同作業者',
+    options: 'オプション',
+    run: '実行',
+    noFileSelected: 'ファイルが選択されていません。',
+    noCode: '表示するコードがありません。',
+    settings: '設定',
+    language: '言語',
+    aiAssistant: 'AIアシスタント',
+    replyTo: '返信先',
+    send: '送信',
+    searchMessages: 'メッセージを検索...',
+    selectUser: 'ユーザーを選択',
+    addCollaborators: '共同作業者を追加',
+    previewOptions: 'プレビューオプション',
+    editorSettings: 'エディター設定（詳細はメイン設定を参照）',
+  },
+};
 
 function useProjectTranslation(language) {
   return React.useMemo(() => {
@@ -51,6 +146,43 @@ const Project = () => {
   const [message, setMessage] = useState('')
   const { user } = useContext(UserContext)
   const { isDarkMode, setIsDarkMode } = useContext(ThemeContext)
+
+  const getUserBubbleStyle = React.useCallback(() => {
+    const bg = settings.display.themeColor || '#3B82F6';
+    let textColor = '#fff';
+    // If user selected white, force black text
+    if (bg.toLowerCase() === '#fff' || bg.toLowerCase() === '#ffffff' || bg.toLowerCase() === 'white') {
+      textColor = '#000';
+    }
+    // If in light mode, always use black text
+    if (!isDarkMode) {
+      textColor = '#000';
+    }
+    // If in dark mode, always use white text
+    if (isDarkMode) {
+      textColor = '#fff';
+    }
+    return {
+      backgroundColor: bg,
+      color: textColor
+    };
+  }, [settings.display.themeColor, isDarkMode]);
+
+  const getMessageStatus = React.useCallback((msg) => {
+    if (!msg || !msg.sender || msg.sender._id !== user._id) return null;
+    const others = (project.users || []).filter(u => u._id !== user._id).map(u => u._id);
+    // Seen: at least one other user in readBy
+    if (Array.isArray(msg.readBy) && msg.readBy.some(uid => uid !== user._id && others.includes(uid))) {
+      return { label: 'Seen', icon: 'double-green' };
+    }
+    // Received: at least one other user in deliveredTo
+    if (Array.isArray(msg.deliveredTo) && msg.deliveredTo.some(uid => uid !== user._id && others.includes(uid))) {
+      return { label: 'Received', icon: 'double' };
+    }
+    // Sent: deliveredTo missing or only contains self
+    return { label: 'Sent', icon: 'single' };
+  }, [user._id, project.users]);
+
   const messageBox = useRef(null)
   const [users, setUsers] = useState([])
   const [messages, setMessages] = useState([])
@@ -114,19 +246,16 @@ const Project = () => {
   const [expandedReplies, setExpandedReplies] = useState({}); // Track expanded replies
   const { showToast } = useToast();
 
-  const toggleEmojiPicker = (messageId, isOpen) => {
+  const toggleEmojiPicker = React.useCallback((messageId, forceState) => {
     setMessageEmojiPickers(prev => ({
       ...prev,
-      [messageId]: isOpen !== undefined ? isOpen : !prev[messageId]
+      [messageId]: forceState !== undefined ? forceState : !prev[messageId]
     }));
-  };
+  }, []);
 
-  const handleReaction = (messageId, emoji, userId) => {
+  const handleReaction = React.useCallback((messageId, emoji, userId) => {
     const message = messages.find(m => m._id === messageId);
-    if (!message) return;
-
-    const senderId = typeof message.sender === 'object' ? message.sender._id : message.sender;
-    if (senderId?.toString() === userId?.toString()) {
+    if (!message || message.sender._id === userId) {
       return;
     }
 
@@ -156,7 +285,7 @@ const Project = () => {
       ...prev,
       [messageId]: false
     }));
-  };
+  }, [messages]);
 
   const handleUserClick = (id) => {
     setSelectedUserId((prev) => {
@@ -276,10 +405,8 @@ const Project = () => {
           }
           // Only show the AI's text in chat if it is not a duplicate
           setMessages((prev) => {
-            // Prevent duplicate messages with the same _id and sender
-            if (prev.some(m => m._id === data._id && m.sender?._id === data.sender?._id)) {
-              return prev;
-            }
+            const exists = prev.some(m => m._id === data._id && m.sender?._id === data.sender?._id);
+            if (exists) return prev;
             return [
               ...prev,
               {
@@ -295,9 +422,8 @@ const Project = () => {
       }
       // Default: just add the message if not a duplicate
       setMessages((prev) => {
-        if (prev.some(m => m._id === data._id && m.sender?._id === data.sender?._id)) {
-          return prev;
-        }
+        const exists = prev.some(m => m._id === data._id && m.sender?._id === data.sender?._id);
+        if (exists) return prev;
         return [...prev, data];
       });
     }
@@ -343,40 +469,22 @@ const Project = () => {
     return () => off("message-reaction", handleReactionUpdate);
   }, [on, off]);
 
-  useEffect(() => {
-    setMessages(prev => deduplicateMessages(prev));
-  }, [messages.length]);
-
   // Patch messages to simulate readBy for current user's messages
   const patchedMessages = React.useMemo(() => {
     return messages.map(msg => {
-      if (msg.sender && msg.sender?._id === user?._id) {
-        return { ...msg, readBy: [user?._id, 'other-user'] };
+      if (msg.sender && msg.sender._id === user._id) {
+        return { ...msg, readBy: [user._id, 'other-user'] };
       }
       return msg;
     });
-  }, [messages, user?._id]);
+  }, [messages, user._id]);
 
-  const filteredMessages = React.useMemo(() => {
-    if (!searchTerm) return patchedMessages;
-    const lowerSearch = searchTerm.toLowerCase();
-    return patchedMessages.filter((msg) => {
-      // Check direct message content
-      if (msg.message.toLowerCase().includes(lowerSearch)) return true;
-      // Also search inside AI JSON response text if applicable
-      if (msg.sender && msg.sender._id === "Chatraj") {
-        try {
-          const parsed = JSON.parse(msg.message);
-          if (parsed.text && parsed.text.toLowerCase().includes(lowerSearch)) return true;
-        } catch { /* ignore */ }
-      }
-      return false;
-    });
-  }, [patchedMessages, searchTerm]);
+  const filteredMessages = searchTerm
+    ? patchedMessages.filter((msg) => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
+    : patchedMessages;
 
-  const groupedMessages = React.useMemo(() => {
-    return groupMessagesByDate(filteredMessages);
-  }, [filteredMessages]);
+  // Fix: define groupedMessages before return
+  const groupedMessages = React.useMemo(() => groupMessagesByDate(filteredMessages), [filteredMessages]);
 
   // Map bubble roundness setting to Tailwind classes
   const bubbleRoundnessClass = {
@@ -391,60 +499,6 @@ const Project = () => {
     medium: 'text-base',
     large: 'text-lg',
   }[settings.display?.messageFontSize || 'medium'];
-
-  // Utility to determine text color based on background and theme
-  const getUserBubbleStyle = () => {
-    const bg = settings.display.themeColor || '#3B82F6';
-    let textColor = '#fff';
-    // If user selected white, force black text
-    if (bg.toLowerCase() === '#fff' || bg.toLowerCase() === '#ffffff' || bg.toLowerCase() === 'white') {
-      textColor = '#000';
-    }
-    // If in light mode, always use black text
-    if (!isDarkMode) {
-      textColor = '#000';
-    }
-    // If in dark mode, always use white text
-    if (isDarkMode) {
-      textColor = '#fff';
-    }
-    return {
-      backgroundColor: bg,
-      color: textColor
-    };
-  };
-
-  const handleScroll = () => {
-    if (!messageBox.current) return;
-    const { scrollTop, scrollHeight, clientHeight } = messageBox.current;
-    // Show button if user is more than 300px from bottom
-    setShowScrollBottom(scrollHeight - scrollTop - clientHeight > 300);
-  };
-
-  const scrollToBottom = () => {
-    if (messageBox.current) {
-      messageBox.current.scrollTo({
-        top: messageBox.current.scrollHeight,
-        behavior: 'smooth'
-      });
-    }
-  };
-
-  // Helper to get message status for current user's messages
-  function getMessageStatus(msg) {
-    if (!msg || !msg.sender || msg.sender._id !== user._id) return null;
-    const others = (project.users || []).filter(u => u._id !== user._id).map(u => u._id);
-    // Seen: at least one other user in readBy
-    if (Array.isArray(msg.readBy) && msg.readBy.some(uid => uid !== user._id && others.includes(uid))) {
-      return { label: 'Seen', icon: 'double-green' };
-    }
-    // Received: at least one other user in deliveredTo
-    if (Array.isArray(msg.deliveredTo) && msg.deliveredTo.some(uid => uid !== user._id && others.includes(uid))) {
-      return { label: 'Received', icon: 'double' };
-    }
-    // Sent: deliveredTo missing or only contains self
-    return { label: 'Sent', icon: 'single' };
-  }
 
   const projectId = project?._id;
 
@@ -583,27 +637,27 @@ const Project = () => {
               <div key={groupLabel}>
                 <div className="py-2 text-sm text-center text-gray-500 dark:text-gray-400">{groupLabel}</div>
                 {groupedMessages[groupLabel].map((msg, idx) => (
-                  <ErrorBoundary key={msg._id ? `${groupLabel}-${msg._id}` : `${groupLabel}-idx-${idx}`} fallbackMessage="Error rendering message">
-                    <ChatMessage
-                      msg={msg}
-                      user={user}
-                      messages={messages}
-                      project={project}
-                      isDarkMode={isDarkMode}
-                      bubbleRoundnessClass={bubbleRoundnessClass}
-                      messageFontSizeClass={messageFontSizeClass}
-                      getUserBubbleStyle={getUserBubbleStyle}
-                      toggleEmojiPicker={toggleEmojiPicker}
-                      messageEmojiPickers={messageEmojiPickers}
-                      handleReaction={handleReaction}
-                      setReplyingTo={setReplyingTo}
-                      expandedReplies={expandedReplies}
-                      setExpandedReplies={setExpandedReplies}
-                      settings={settings}
-                      getMessageStatus={getMessageStatus}
-                      SyntaxHighlightedCode={SyntaxHighlightedCode}
-                    />
-                  </ErrorBoundary>
+                  <ChatMessage
+                    key={msg._id ? `${groupLabel}-${msg._id}` : `${groupLabel}-idx-${idx}`}
+                    msg={msg}
+                    user={user}
+                    isDarkMode={isDarkMode}
+                    bubbleRoundnessClass={bubbleRoundnessClass}
+                    messageFontSizeClass={messageFontSizeClass}
+                    getUserBubbleStyle={getUserBubbleStyle}
+                    settings={settings}
+                    messages={messages}
+                    users={users}
+                    project={project}
+                    expandedReplies={expandedReplies}
+                    setExpandedReplies={setExpandedReplies}
+                    toggleEmojiPicker={toggleEmojiPicker}
+                    messageEmojiPickers={messageEmojiPickers}
+                    handleReaction={handleReaction}
+                    setReplyingTo={setReplyingTo}
+                    SyntaxHighlightedCode={SyntaxHighlightedCode}
+                    getMessageStatus={getMessageStatus}
+                  />
                 ))}
               </div>
             ))}

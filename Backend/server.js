@@ -122,7 +122,7 @@ io.on('connection', socket => {
     socket.on('message-delivered', async ({ messageId, userId }) => {
         try {
             const result = await Message.updateOne(
-                { _id: messageId },
+                { _id: messageId, deliveredTo: { $ne: userId } },
                 { $addToSet: { deliveredTo: userId } }
             );
             if (result.modifiedCount > 0) {
@@ -137,7 +137,7 @@ io.on('connection', socket => {
     socket.on('message-read', async ({ messageId, userId }) => {
         try {
             const result = await Message.updateOne(
-                { _id: messageId },
+                { _id: messageId, readBy: { $ne: userId } },
                 { $addToSet: { readBy: userId } }
             );
             if (result.modifiedCount > 0) {

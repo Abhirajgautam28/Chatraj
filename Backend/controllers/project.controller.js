@@ -7,8 +7,12 @@ import { logger } from '../utils/logger.js';
 
 export const getAllProject = async (req, res) => {
     try {
+        const loggedInUser = await userModel.findOne({ email: req.user.email }).lean();
+        if (!loggedInUser) {
+            return res.status(401).json({ error: 'User not found' });
+        }
         // Find all projects where user is a member
-        const projects = await projectModel.find({ users: { $in: [req.user._id] } });
+        const projects = await projectModel.find({ users: { $in: [loggedInUser._id] } }).lean();
         res.status(200).json({ projects });
     } catch (err) {
         logger.error('getAllProject error:', err);
@@ -64,7 +68,7 @@ export const addUserToProject = async (req, res) => {
     }
 }
 
-// Update only sidebar settings for a project (deep merge)
+// Update only sidebar settings for a project (shallow merge via atomic update)
 export const updateProjectSidebarSettings = async (req, res) => {
     try {
         const { projectId } = req.params;
@@ -73,17 +77,23 @@ export const updateProjectSidebarSettings = async (req, res) => {
             return res.status(400).json({ error: 'Sidebar settings required' });
         }
         if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) return res.status(400).json({ error: 'Invalid projectId' });
-        const project = await projectModel.findById(projectId);
-        if (!project) return res.status(404).json({ error: 'Project not found' });
-        // Authorization: check if requesting user is member
-        const isMember = project.users && project.users.some(u => u.toString() === req.user._id.toString());
-        if (!isMember) return res.status(401).json({ error: 'Unauthorized' });
-        // Deep merge sidebar settings
-        project.settings = project.settings || {};
-        project.settings.sidebar = { ...project.settings.sidebar, ...sidebar };
-        await project.save();
-        res.status(200).json({ sidebar: project.settings.sidebar });
+
+        // Prepare atomic update using dot notation to avoid overwriting entire settings object
+        const update = {};
+        for (const [key, value] of Object.entries(sidebar)) {
+            update[`settings.sidebar.${key}`] = value;
+        }
+
+        const project = await projectModel.findOneAndUpdate(
+            { _id: projectId, users: req.user._id },
+            { $set: update },
+            { new: true }
+        );
+
+        if (!project) return res.status(404).json({ error: 'Project not found or Unauthorized' });
+        res.status(200).json({ sidebar: project.settings?.sidebar || {} });
     } catch (err) {
+        console.error('updateProjectSidebarSettings error:', err);
         res.status(500).json({ error: err.message });
     }
 };
@@ -138,7 +148,7 @@ export const getProjectCountsByCategory = async (req, res) => {
 
 export const getProjectShowcase = async (req, res) => {
     try {
-        const projects = await projectModel.find({}).sort({ users: -1 }).limit(10);
+        const projects = await projectModel.find({}).sort({ users: -1 }).limit(10).lean();
         res.status(200).json({ projects });
     } catch (error) {
         logger.error('getProjectShowcase error:', error);
@@ -201,7 +211,7 @@ export const getProjectSettings = async (req, res) => {
     try {
         const { projectId } = req.params;
         if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) return res.status(400).json({ error: 'Invalid projectId' });
-        const project = await projectModel.findById(projectId);
+        const project = await projectModel.findById(projectId).lean();
         if (!project) return res.status(404).json({ error: 'Project not found' });
         const isMember = project.users && project.users.some(u => u.toString() === req.user._id.toString());
         if (!isMember) return res.status(401).json({ error: 'Unauthorized' });
