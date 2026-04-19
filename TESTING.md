@@ -4,7 +4,7 @@ This document provides instructions on how to run various types of tests in the 
 
 ## 🚀 Quick Start: Run All Tests
 
-To run all unit tests (backend utilities and frontend components):
+To run all unit tests (backend utilities, services, models, middleware, and frontend components):
 
 ```bash
 npm run test:all
@@ -14,12 +14,13 @@ npm run test:all
 
 ## 🏗️ Backend Testing
 
-### 1. Unit Tests (Utilities)
-These tests cover pure logic in `Backend/utils/` including email normalization, string manipulation, OTP generation, and security checks.
+### 1. Unit Tests
+These tests cover pure logic in different layers of the backend.
 
-```bash
-npm run test:backend:utils
-```
+- **Utilities:** `npm run test:backend:utils`
+- **Services:** `npm run test:backend:services`
+- **Models:** `npm run test:backend:models`
+- **Middleware:** `npm run test:backend:middleware`
 
 ### 2. Smoke Tests
 Checks if the backend is running and basic endpoints are reachable.
