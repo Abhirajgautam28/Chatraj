@@ -121,10 +121,11 @@ io.on('connection', socket => {
     // Delivery event: when a user receives a message, mark as delivered
     socket.on('message-delivered', async ({ messageId, userId }) => {
         try {
-            const message = await Message.findById(messageId);
-            if (message && !message.deliveredTo.includes(userId)) {
-                message.deliveredTo.push(userId);
-                await message.save();
+            const result = await Message.updateOne(
+                { _id: messageId },
+                { $addToSet: { deliveredTo: userId } }
+            );
+            if (result.modifiedCount > 0) {
                 io.to(socket.roomId).emit('message-delivered', { messageId, userId });
             }
         } catch (err) {
@@ -135,10 +136,11 @@ io.on('connection', socket => {
     // Read event: when a user reads a message, mark as read
     socket.on('message-read', async ({ messageId, userId }) => {
         try {
-            const message = await Message.findById(messageId);
-            if (message && !message.readBy.includes(userId)) {
-                message.readBy.push(userId);
-                await message.save();
+            const result = await Message.updateOne(
+                { _id: messageId },
+                { $addToSet: { readBy: userId } }
+            );
+            if (result.modifiedCount > 0) {
                 io.to(socket.roomId).emit('message-read', { messageId, userId });
             }
         } catch (err) {

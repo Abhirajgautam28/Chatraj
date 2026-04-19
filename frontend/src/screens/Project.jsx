@@ -22,6 +22,7 @@ import ProjectSettingsModal from '../components/ProjectSettingsModal';
 import SyntaxHighlightedCode from '../components/SyntaxHighlightedCode';
 import { useSocket } from '../hooks/useSocket';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useWebContainer } from '../hooks/useWebContainer';
 import { useToast } from '../context/toast.context';
 import {
   sanitizeIframeUrl,
@@ -56,9 +57,7 @@ const Project = () => {
   const [fileTree, setFileTree] = useState({})
   const [currentFile, setCurrentFile] = useState(null)
   const [openFiles, setOpenFiles] = useState([])
-  const [webContainer, setWebContainer] = useState(null)
-  const [iframeUrl, setIframeUrl] = useState(null)
-  const [runProcess, setRunProcess] = useState(null)
+  const { webContainer, iframeUrl, runProject, isRunning, boot, setIframeUrl } = useWebContainer(fileTree);
   const [replyingTo, setReplyingTo] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [showSearch, setShowSearch] = useState(false)
@@ -239,11 +238,7 @@ const Project = () => {
   }, [messages, user, emit])
 
   useEffect(() => {
-    if (!webContainer) {
-      getWebContainer().then((container) => {
-        setWebContainer(container)
-      })
-    }
+    boot();
     axios.get(`/api/projects/get-project/${location.state.project._id}`).then((res) => {
       setProject(res.data.project)
       setFileTree(res.data.project.fileTree || {})
@@ -257,7 +252,7 @@ const Project = () => {
         showToast('Failed to fetch users', 'error');
         console.error(err);
       });
-  }, [webContainer, location.state.project._id])
+  }, [boot, location.state.project._id])
 
   useEffect(() => {
     if (messageBox.current)
@@ -792,94 +787,12 @@ const Project = () => {
             </div>
             <div className="flex gap-2 actions">
               <button
-                onClick={async () => {
-                  if (!webContainer) {
-                    alert("WebContainer is not ready yet.");
-                    return;
-                  }
-                  try {
-                    await webContainer.mount({
-                      'package.json': {
-                        file: {
-                          contents: JSON.stringify({
-                            name: 'express-app',
-                            version: '1.0.0',
-                            scripts: {
-                              start: 'node app.js'
-                            },
-                            dependencies: {
-                              express: '^4.18.2'
-                            }
-                          })
-                        }
-                      },
-                      ...fileTree
-                    });
-
-                    if (runProcess) {
-                      await runProcess.kill();
-                    }
-
-                    let installSuccess = false;
-                    let retries = 3;
-
-                    while (!installSuccess && retries > 0) {
-                      try {
-                        const installProcess = await webContainer.spawn('npm', ['install']);
-                        const installExitCode = await new Promise(resolve => {
-                          installProcess.output.pipeTo(new WritableStream({
-                            write(chunk) {
-                              // Optional: stream output to a dedicated console component
-                            }
-                          }));
-                          installProcess.exit.then(resolve);
-                        });
-
-                        if (installExitCode === 0) {
-                          installSuccess = true;
-                  showToast('Dependencies installed successfully', 'success');
-                        }
-                      } catch (err) {
-                        console.log(`Install attempt failed, ${retries - 1} retries left:`, err);
-                        retries--;
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                      }
-                    }
-
-                    if (!installSuccess) {
-                      throw new Error('Failed to install dependencies after multiple attempts');
-                    }
-
-                    const tempRunProcess = await webContainer.spawn('npm', ['start']);
-
-                    tempRunProcess.output.pipeTo(new WritableStream({
-                      write(chunk) {
-                        // Optional: stream output to a dedicated console component
-                      }
-                    }));
-
-                    tempRunProcess.exit.then(code => {
-                      if (code !== 0) {
-                        console.error(`Process exited with code ${code}`);
-                      }
-                    });
-
-                    setRunProcess(tempRunProcess);
-
-                    webContainer.on('server-ready', (port, url) => {
-                      showToast('Server is ready!', 'success');
-                      setIframeUrl(url);
-                    });
-
-                  } catch (error) {
-                    console.error('Error running project:', error);
-                    showToast(`Failed to run project: ${error.message}`, 'error');
-                  }
-                }}
+                onClick={() => runProject(showToast)}
+                disabled={isRunning}
                 style={{ backgroundColor: settings.display.themeColor || '#3B82F6', color: '#fff' }}
-                className="p-2 px-4 rounded hover:brightness-90"
+                className={`p-2 px-4 rounded hover:brightness-90 ${isRunning ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                {t('run')}
+                {isRunning ? 'Running...' : t('run')}
               </button>
             </div>
           </div>
