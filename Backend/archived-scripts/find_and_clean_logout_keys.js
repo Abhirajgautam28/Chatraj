@@ -56,6 +56,7 @@ async function run() {
     let cursor = '0';
     let seen = 0;
     let buffer = [];
+    const processedKeys = new Set();
 
     const processBatch = async (keys) => {
       if (!keys || keys.length === 0) return;
@@ -105,11 +106,14 @@ async function run() {
       cursor = res[0];
       const keys = res[1] || [];
       for (const k of keys) {
-        buffer.push(k);
-        seen++;
-        if (buffer.length >= BATCH_SIZE) {
-          await processBatch(buffer);
-          buffer = [];
+        if (!processedKeys.has(k)) {
+          processedKeys.add(k);
+          buffer.push(k);
+          seen++;
+          if (buffer.length >= BATCH_SIZE) {
+            await processBatch(buffer);
+            buffer = [];
+          }
         }
         if (seen >= opts.limit) break;
       }
