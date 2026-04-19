@@ -7,13 +7,13 @@ export const authUser = async (req, res, next) => {
         const token = req.cookies.token || (authHeader && authHeader.split(' ')[1]);
 
         if (!token) {
-            return res.status(401).send({ error: 'Unauthorized User' });
+            return res.status(401).json({ error: 'Unauthorized User' });
         }
 
         const isBlackListed = await redisClient.get(token);
         if (isBlackListed) {
             res.cookie('token', '');
-            return res.status(401).send({ error: 'Unauthorized User' });
+            return res.status(401).json({ error: 'Unauthorized User' });
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -21,6 +21,6 @@ export const authUser = async (req, res, next) => {
         next();
     } catch (error) {
         console.log("Auth middleware error:", error);
-        res.status(401).send({ error: 'Unauthorized User' });
+        res.status(401).json({ error: 'Unauthorized User' });
     }
 }

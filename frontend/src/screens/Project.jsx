@@ -15,6 +15,8 @@ import PropTypes from 'prop-types';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import VimCodeEditor from '../components/VimCodeEditor';
+import ChatMessage from '../components/ChatMessage';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 const PROJECT_TRANSLATIONS = {
   'en-US': {
@@ -229,6 +231,7 @@ const Project = () => {
   const [replyingTo, setReplyingTo] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [showSearch, setShowSearch] = useState(false)
+  const [showScrollBottom, setShowScrollBottom] = useState(false)
 
   const sanitizeIframeUrl = (rawValue) => {
     if (!rawValue) return null;
@@ -318,7 +321,10 @@ const Project = () => {
 
   const handleReaction = (messageId, emoji, userId) => {
     const message = messages.find(m => m._id === messageId);
-    if (message.sender._id === userId) {
+    if (!message) return;
+
+    const senderId = typeof message.sender === 'object' ? message.sender._id : message.sender;
+    if (senderId?.toString() === userId?.toString()) {
       return;
     }
 
@@ -369,8 +375,10 @@ const Project = () => {
         users: Array.from(selectedUserId)
       })
       .then((res) => {
-        console.log(res.data)
-        setIsModalOpen(false)
+        if (res.data.project) {
+          setProject(res.data.project);
+        }
+        setIsModalOpen(false);
       })
       .catch((err) => console.log(err))
   }
@@ -556,9 +564,20 @@ const Project = () => {
   }, [messages, user?._id]);
 
   const filteredMessages = React.useMemo(() => {
-    return searchTerm
-      ? patchedMessages.filter((msg) => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
-      : patchedMessages;
+    if (!searchTerm) return patchedMessages;
+    const lowerSearch = searchTerm.toLowerCase();
+    return patchedMessages.filter((msg) => {
+      // Check direct message content
+      if (msg.message.toLowerCase().includes(lowerSearch)) return true;
+      // Also search inside AI JSON response text if applicable
+      if (msg.sender && msg.sender._id === "Chatraj") {
+        try {
+          const parsed = JSON.parse(msg.message);
+          if (parsed.text && parsed.text.toLowerCase().includes(lowerSearch)) return true;
+        } catch { /* ignore */ }
+      }
+      return false;
+    });
   }, [patchedMessages, searchTerm]);
 
   const groupedMessages = React.useMemo(() => {
@@ -601,212 +620,21 @@ const Project = () => {
     };
   };
 
-  const renderMessage = (msg) => {
-    const isCurrentUser =
-      msg.sender &&
-      typeof msg.sender === "object" &&
-      msg.sender._id &&
-      msg.sender._id.toString() === user._id.toString()
+  const handleScroll = () => {
+    if (!messageBox.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = messageBox.current;
+    // Show button if user is more than 300px from bottom
+    setShowScrollBottom(scrollHeight - scrollTop - clientHeight > 300);
+  };
 
-    const parentMsg = msg.parentMessageId && messages.find((m) => m._id === msg.parentMessageId)
-
-    let reactionGroups = {};
-    if (msg.reactions) {
-      msg.reactions.forEach(r => {
-        if (!reactionGroups[r.emoji]) {
-          reactionGroups[r.emoji] = [];
-        }
-        if (!reactionGroups[r.emoji].includes(r.userId)) {
-          reactionGroups[r.emoji].push(r.userId);
-        }
+  const scrollToBottom = () => {
+    if (messageBox.current) {
+      messageBox.current.scrollTo({
+        top: messageBox.current.scrollHeight,
+        behavior: 'smooth'
       });
     }
-
-    // Robust system message filtering: check type or known system patterns
-    const isSystemMsg = (msg.type === 'system') || (typeof msg.message === 'string' && (
-      /^user (joined|left|removed|added|invited|renamed|deleted|updated)/i.test(msg.message) ||
-      /^file (created|updated|deleted|renamed)/i.test(msg.message) ||
-      /^system:/i.test(msg.message)
-    ));
-    if (isSystemMsg) {
-      if (!settings.behavior.showSystemMessages) return null;
-      // Try to extract user id or name from the message or sender
-      let notificationText = msg.message;
-      // If message is like 'User joined the project', replace 'User' with full name if possible
-      if (/^User joined the project/i.test(msg.message) && msg.sender && msg.sender._id && msg.sender._id !== 'system') {
-        // Try to find user in users list
-        const joinedUser = users.find(u => u._id === msg.sender._id);
-        if (joinedUser) {
-          notificationText = `${joinedUser.firstName}${joinedUser.lastName ? ' ' + joinedUser.lastName : ''} joined the project`;
-        }
-      }
-      // Render as notification bar
-      return (
-        <div key={msg._id} className="flex justify-center my-2">
-          <div className="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-100 rounded shadow dark:bg-blue-900 dark:text-blue-100">
-            {notificationText}
-          </div>
-        </div>
-      );
-    }
-
-    // Collapse replies if toggle is on
-    const isReply = !!msg.parentMessageId;
-    const isReplyCollapsed = settings.behavior.collapseReplies && isReply && !expandedReplies[msg._id];
-
-    return (
-      <div
-        key={msg._id}
-        className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"} mb-2`}
-      >
-        {isReply && !isReplyCollapsed && (
-          <div className="px-2 py-1 mb-1 text-xs italic bg-gray-200 rounded">
-            Replying to: {parentMsg ? (typeof parentMsg.sender === "object" ? parentMsg.sender.firstName : parentMsg.sender) : "Unknown"}
-          </div>
-        )}
-        {isReply && isReplyCollapsed && (
-          <button
-            className="px-2 py-1 mb-1 text-xs italic bg-gray-100 rounded hover:bg-gray-200"
-            onClick={() => setExpandedReplies(prev => ({ ...prev, [msg._id]: true }))}
-          >
-            Show Reply
-          </button>
-        )}
-        <div className="flex items-start gap-2">
-          {/* Only show Avatar before bubble for others */}
-          {!isCurrentUser && settings.display?.showAvatars && msg.sender && (
-            <Avatar firstName={msg.sender.firstName} className="w-8 h-8" />
-          )}
-          <div
-            className={`flex flex-col p-2 max-w-xs break-words ${bubbleRoundnessClass} ${messageFontSizeClass} ${isCurrentUser ? "" : "bg-white text-gray-800 shadow"}`}
-            style={isCurrentUser ? getUserBubbleStyle() : {}}
-          >
-            {!isCurrentUser && (
-              <small className={`mb-1 font-bold text-gray-700 ${messageFontSizeClass}`}>
-                {typeof msg.sender === "object" ? msg.sender.firstName : msg.sender}
-              </small>
-            )}
-            <div className={`whitespace-pre-wrap ${messageFontSizeClass}`}>
-              {msg.sender && msg.sender._id === "Chatraj" ? (
-                <div className={`p-2 rounded ${settings.display.syntaxHighlighting === false
-                  ? (isDarkMode ? "bg-gray-900 text-white" : "bg-slate-200 text-black")
-                  : "text-white bg-slate-950"} ${messageFontSizeClass}`}>
-                  <Markdown options={{
-                    overrides: {
-                      code: settings.display.syntaxHighlighting === false
-                        ? {
-                          component: (props) => <code style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word', display: 'block', background: 'none', color: 'inherit' }}>{props.children}</code>
-                        }
-                        : SyntaxHighlightedCode
-                    }
-                  }}>
-                    {(() => {
-                      try {
-                        const parsedMessage = JSON.parse(msg.message);
-                        return parsedMessage.text || msg.message;
-                      } catch {
-                        return msg.message;
-                      }
-                    })()}
-                  </Markdown>
-                </div>
-              ) : (
-                <p className={messageFontSizeClass}>{msg.message}</p>
-              )}
-            </div>
-          </div>
-          {isCurrentUser && (
-            <Avatar
-              firstName={user.firstName}
-              className="w-8 h-8 text-sm"
-              style={getUserBubbleStyle()}
-            />
-          )}
-        </div>
-        <div className="relative group">
-          <div className="flex items-center gap-2 mt-1">
-            {settings.display?.showTimestamps && (
-              <small className="text-[10px] text-gray-600">
-                {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-              </small>
-            )}
-            {/* Show read receipts if enabled and message is from current user and at least one other user has read it */}
-            {settings.behavior.showReadReceipts && isCurrentUser && (
-              (() => {
-                const status = getMessageStatus(msg);
-                if (!status) return null;
-                return (
-                  <span className="flex items-center gap-1 ml-2 text-xs" style={{ color: status.icon === 'double-green' ? '#22c55e' : status.icon === 'double' ? '#555' : '#555' }}>
-                    {status.icon === 'single' && (
-                      <i className="ri-check-line" title="Sent"></i>
-                    )}
-                    {status.icon === 'double' && (
-                      <>
-                        <i className="ri-check-double-line" title="Received"></i>
-                      </>
-                    )}
-                    {status.icon === 'double-green' && (
-                      <i className="ri-check-double-line" style={{ color: '#22c55e' }} title="Seen"></i>
-                    )}
-                    <span>{status.label}</span>
-                  </span>
-                );
-              })()
-            )}
-            <div className="relative">
-              {!isCurrentUser && (
-                <button
-                  className="p-1 text-xs text-gray-600 rounded opacity-0 dark:text-gray-400 group-hover:opacity-100 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  onClick={() => toggleEmojiPicker(msg._id)}
-                >
-                  <i className="text-base ri-emotion-line"></i>
-                </button>
-              )}
-              <EmojiPicker
-                isOpen={messageEmojiPickers[msg._id]}
-                setIsOpen={(isOpen) => {
-                  setMessageEmojiPickers(prev => ({
-                    ...prev,
-                    [msg._id]: isOpen
-                  }));
-                }}
-                isCurrentUser={isCurrentUser}
-                onSelect={(emoji) => {
-                  if (msg._id && !isCurrentUser) {
-                    handleReaction(msg._id, emoji, user._id);
-                  }
-                }}
-              />
-            </div>
-            {Object.entries(reactionGroups).map(([emoji, users]) => {
-              if (users.length === 0) return null;
-              return (
-                <button
-                  key={emoji}
-                  className={`text-xs px-2 py-1 rounded-full ${users.includes(user._id)
-                    ? 'bg-blue-100 dark:bg-blue-900'
-                    : 'bg-gray-100 dark:bg-gray-700'
-                    }`}
-                  title={users.map(userId => {
-                    const reactingUser = project.users.find(u => u._id === userId);
-                    return reactingUser ? reactingUser.firstName : 'Unknown';
-                  }).join(', ')}
-                >
-                  {emoji} {users.length}
-                </button>
-              );
-            })}
-            <button
-              onClick={() => setReplyingTo(msg)}
-              className="text-xs text-gray-600 opacity-0 group-hover:opacity-100 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
-            >
-              Reply
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  };
 
   // Helper to get message status for current user's messages
   function getMessageStatus(msg) {
@@ -954,6 +782,7 @@ const Project = () => {
         </header>
         <div
           ref={messageBox}
+          onScroll={handleScroll}
           className="flex flex-col flex-grow gap-1 p-1 pb-20 overflow-auto pt-14 message-box scrollbar-hide bg-slate-50 dark:bg-gray-800"
         >
           {Object.keys(groupedMessages)
@@ -962,11 +791,39 @@ const Project = () => {
               <div key={groupLabel}>
                 <div className="py-2 text-sm text-center text-gray-500 dark:text-gray-400">{groupLabel}</div>
                 {groupedMessages[groupLabel].map((msg, idx) => (
-                  <React.Fragment key={msg._id ? `${groupLabel}-${msg._id}` : `${groupLabel}-idx-${idx}`}>{renderMessage(msg)}</React.Fragment>
+                  <ErrorBoundary key={msg._id ? `${groupLabel}-${msg._id}` : `${groupLabel}-idx-${idx}`} fallbackMessage="Error rendering message">
+                    <ChatMessage
+                      msg={msg}
+                      user={user}
+                      messages={messages}
+                      project={project}
+                      isDarkMode={isDarkMode}
+                      bubbleRoundnessClass={bubbleRoundnessClass}
+                      messageFontSizeClass={messageFontSizeClass}
+                      getUserBubbleStyle={getUserBubbleStyle}
+                      toggleEmojiPicker={toggleEmojiPicker}
+                      messageEmojiPickers={messageEmojiPickers}
+                      handleReaction={handleReaction}
+                      setReplyingTo={setReplyingTo}
+                      expandedReplies={expandedReplies}
+                      setExpandedReplies={setExpandedReplies}
+                      settings={settings}
+                      getMessageStatus={getMessageStatus}
+                      SyntaxHighlightedCode={SyntaxHighlightedCode}
+                    />
+                  </ErrorBoundary>
                 ))}
               </div>
             ))}
         </div>
+        {showScrollBottom && (
+          <button
+            onClick={scrollToBottom}
+            className="absolute z-20 flex items-center justify-center w-10 h-10 text-white transition-all bg-blue-600 rounded-full shadow-lg bottom-24 right-6 hover:bg-blue-700 animate-bounce"
+          >
+            <i className="text-xl ri-arrow-down-line"></i>
+          </button>
+        )}
         {replyingTo && (
           <div className="absolute z-20 flex items-center px-3 py-1 rounded-full shadow-md bottom-14 left-2 max-w-max bg-gradient-to-r from-blue-500 to-purple-500">
             <i className="mr-1 text-xs text-white ri-reply-line" />
