@@ -15,7 +15,7 @@ npm run test:all
 ## 🏗️ Backend Testing
 
 ### 1. Unit Tests (Utilities)
-These tests cover pure logic in `Backend/utils/`.
+These tests cover pure logic in `Backend/utils/` including email normalization, string manipulation, OTP generation, and security checks.
 
 ```bash
 npm run test:backend:utils
@@ -79,7 +79,11 @@ The development environment might have broken Babel dependencies, causing Jest t
   ```
 - **String Utility:**
   ```bash
-  node -e 'import { escapeRegex } from "./utils/strings.js"; console.log(escapeRegex(".*+?"))'
+  node -e 'import { escapeRegex, escapeHtml, maskKey } from "./utils/strings.js"; console.log(escapeRegex(".*+?")); console.log(escapeHtml("<script>")); console.log(maskKey("secretkey123"))'
+  ```
+- **OTP Utility:**
+  ```bash
+  node -e 'import { generateOTP } from "./utils/otp.js"; console.log(generateOTP(7))'
   ```
 - **Security Utility:**
   ```bash
