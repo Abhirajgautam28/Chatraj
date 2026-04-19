@@ -472,10 +472,8 @@ const Project = () => {
           }
           // Only show the AI's text in chat if it is not a duplicate
           setMessages((prev) => {
-            // Prevent duplicate messages with the same _id and sender
-            if (prev.some(m => m._id === data._id && m.sender?._id === data.sender?._id)) {
-              return prev;
-            }
+            const exists = prev.some(m => m._id === data._id && m.sender?._id === data.sender?._id);
+            if (exists) return prev;
             return [
               ...prev,
               {
@@ -491,9 +489,8 @@ const Project = () => {
       }
       // Default: just add the message if not a duplicate
       setMessages((prev) => {
-        if (prev.some(m => m._id === data._id && m.sender?._id === data.sender?._id)) {
-          return prev;
-        }
+        const exists = prev.some(m => m._id === data._id && m.sender?._id === data.sender?._id);
+        if (exists) return prev;
         return [...prev, data];
       });
     }
@@ -537,25 +534,24 @@ const Project = () => {
     receiveMessage("message-reaction", handleReactionUpdate);
   }, []);
 
-  // Fix: Deduplicate messages on every update
-  useEffect(() => {
-    setMessages(prev => deduplicateMessages(prev));
-  }, [messages.length]);
-
   // Patch messages to simulate readBy for current user's messages
-  const patchedMessages = messages.map(msg => {
-    if (msg.sender && msg.sender._id === user._id) {
-      return { ...msg, readBy: [user._id, 'other-user'] };
-    }
-    return msg;
-  });
+  const patchedMessages = React.useMemo(() => {
+    return messages.map(msg => {
+      if (msg.sender && msg.sender._id === user._id) {
+        return { ...msg, readBy: [user._id, 'other-user'] };
+      }
+      return msg;
+    });
+  }, [messages, user._id]);
 
-  const filteredMessages = searchTerm
-    ? patchedMessages.filter((msg) => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
-    : patchedMessages;
+  const filteredMessages = React.useMemo(() => {
+    return searchTerm
+      ? patchedMessages.filter((msg) => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
+      : patchedMessages;
+  }, [patchedMessages, searchTerm]);
 
   // Fix: define groupedMessages before return
-  const groupedMessages = groupMessagesByDate(filteredMessages);
+  const groupedMessages = React.useMemo(() => groupMessagesByDate(filteredMessages), [filteredMessages]);
 
   // Map bubble roundness setting to Tailwind classes
   const bubbleRoundnessClass = {

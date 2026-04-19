@@ -72,7 +72,7 @@ export const addUserToProject = async (req, res) => {
     }
 }
 
-// Update only sidebar settings for a project (deep merge)
+// Update only sidebar settings for a project (shallow merge via atomic update)
 export const updateProjectSidebarSettings = async (req, res) => {
     try {
         const { projectId } = req.params;
@@ -81,17 +81,23 @@ export const updateProjectSidebarSettings = async (req, res) => {
             return res.status(400).json({ error: 'Sidebar settings required' });
         }
         if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) return res.status(400).json({ error: 'Invalid projectId' });
-        const project = await projectModel.findById(projectId);
-        if (!project) return res.status(404).json({ error: 'Project not found' });
-        // Authorization: check if requesting user is member
-        const isMember = project.users && project.users.some(u => u.toString() === req.user._id.toString());
-        if (!isMember) return res.status(401).json({ error: 'Unauthorized' });
-        // Deep merge sidebar settings
-        project.settings = project.settings || {};
-        project.settings.sidebar = { ...project.settings.sidebar, ...sidebar };
-        await project.save();
-        res.status(200).json({ sidebar: project.settings.sidebar });
+
+        // Prepare atomic update using dot notation to avoid overwriting entire settings object
+        const update = {};
+        for (const [key, value] of Object.entries(sidebar)) {
+            update[`settings.sidebar.${key}`] = value;
+        }
+
+        const project = await projectModel.findOneAndUpdate(
+            { _id: projectId, users: req.user._id },
+            { $set: update },
+            { new: true }
+        );
+
+        if (!project) return res.status(404).json({ error: 'Project not found or Unauthorized' });
+        res.status(200).json({ sidebar: project.settings?.sidebar || {} });
     } catch (err) {
+        console.error('updateProjectSidebarSettings error:', err);
         res.status(500).json({ error: err.message });
     }
 };
