@@ -9,23 +9,10 @@
     "start:backend": "node Backend/server.js",
     "start:frontend": "cd frontend && npm run dev",
     "smoke-test": "node Backend/scripts/smoke-test.js",
-    "smoke-test:e2e": "node Backend/scripts/e2e-test.js",
-    "test:backend:utils": "cd Backend && npx jest tests/email.test.js tests/strings.test.js tests/otp.test.js tests/security_utils.test.js tests/ai_utils.test.js --config jest.config.cjs",
-    "test:frontend": "cd frontend && npm run test",
-    "test:all": "npm run test:backend:utils && npm run test:backend:services && npm run test:backend:models && npm run test:backend:middleware && npm run test:backend:controllers && npm run test:backend:mailer && npm run test:backend:security && npm run test:backend:integration && npm run test:backend:socket && npm run test:frontend",
-    "test:backend:services": "cd Backend && npx jest tests/*_service.test.js tests/socket_service.test.js --config jest.config.cjs",
-    "test:backend:models": "cd Backend && npx jest tests/*_model.test.js tests/user_model.test.js tests/project_model.test.js tests/blog_model.test.js tests/message_model.test.js tests/newsletter_model.test.js --config jest.config.cjs",
-    "test:backend:middleware": "cd Backend && npx jest tests/*_middleware.test.js --config jest.config.cjs",
-    "test:backend:controllers": "cd Backend && npx jest tests/*_controller.test.js tests/blog_flow.test.js tests/setup_controller.test.js --config jest.config.cjs",
-    "test:backend:mailer": "cd Backend && npx jest tests/mailer.test.js --config jest.config.cjs",
-    "test:backend:security": "cd Backend && npx jest tests/security.test.js tests/security_utils.test.js tests/auth_middleware.test.js --config jest.config.cjs",
-    "test:backend:integration": "cd Backend && npx jest tests/integration_flows.test.js --config jest.config.cjs",
-    "test:backend:socket": "cd Backend && npx jest tests/socket.test.js --config jest.config.cjs",
-    "test:coverage": "cd Backend && npx jest --coverage --config jest.config.cjs"
+    "smoke-test:e2e": "node Backend/scripts/e2e-test.js"
   },
   "devDependencies": {
     "concurrently": "^8.2.0",
-    "cypress": "^13.0.0",
-    "socket.io-client": "^4.8.1"
+    "cypress": "^15.0.0"
   }
 }

@@ -23,6 +23,7 @@ const userSchema = new mongoose.Schema({
         unique: true,
         trim: true,
         lowercase: true,
+        index: true,
         minLength: [ 6, 'Email must be at least 6 characters long' ],
         maxLength: [ 50, 'Email must not be longer than 50 characters' ]
     },
@@ -56,7 +57,7 @@ userSchema.methods.isValidPassword = async function (password) {
 
 userSchema.methods.generateJWT = function () {
     return jwt.sign(
-        { _id: this._id, email: this.email, firstName: this.firstName, lastName: this.lastName },
+        { email: this.email, firstName: this.firstName, lastName: this.lastName },
         process.env.JWT_SECRET,
         { expiresIn: '24h' }
     );

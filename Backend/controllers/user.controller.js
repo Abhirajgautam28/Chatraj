@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { logger } from '../utils/logger.js';
+import { withCache, invalidateCache } from '../utils/cache.js';
 
 // Send OTP for password reset (used in Login.jsx)
 export const sendOtpController = async (req, res) => {
@@ -21,14 +21,16 @@ export const sendOtpController = async (req, res) => {
         await sendOtpEmail(user.email, otp);
         res.status(200).json({ message: 'OTP sent to email.' });
     } catch (error) {
-        logger.error('sendOtpController error:', error);
+        console.error('sendOtpController error:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
 
 export const getLeaderboardController = async (req, res) => {
     try {
-        const users = await userModel.find({}).sort({ projects: -1 }).limit(10).lean();
+        const users = await withCache('user:leaderboard', 600, async () => {
+            return await userModel.find({}).sort({ projects: -1 }).limit(10).lean();
+        });
         res.status(200).json({ users });
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
@@ -38,10 +40,19 @@ import userModel from '../models/user.model.js';
 import { normalizeEmail } from '../utils/email.js';
 import { shouldExposeOtpToClient } from '../utils/security.js';
 import { sendMailWithRetry } from '../utils/mailer.js';
-import { escapeHtml } from '../utils/strings.js';
-import { generateOTP } from '../utils/otp.js';
 import dotenv from 'dotenv';
 dotenv.config();
+
+// Helper: escape user-supplied text before inserting into HTML templates
+function escapeHtml(unsafe) {
+    if (unsafe === undefined || unsafe === null) return '';
+    return String(unsafe)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
 import * as userService from '../services/user.service.js';
 import { validationResult } from 'express-validator';
 import redisClient from '../services/redis.service.js';
@@ -104,7 +115,7 @@ export const createUserController = async (req, res) => {
             await sendOtpEmail(normalizedEmail, otp);
             return res.status(201).json({ message: 'OTP sent to email. Please verify.' });
         } catch (emailErr) {
-            logger.error('sendOtpEmail error (will retry in background):', emailErr && emailErr.message ? emailErr.message : emailErr);
+            console.error('sendOtpEmail error (will retry in background):', emailErr && emailErr.message ? emailErr.message : emailErr);
 
             // Background retry loop (best-effort; survives only while process runs).
             (async function backgroundResend(attempt) {
@@ -112,7 +123,7 @@ export const createUserController = async (req, res) => {
                 const initialBackoff = parseInt(process.env.REGISTRATION_SEND_RETRY_BACKOFF_MS || '2000', 10);
                 try {
                     if (attempt > maxAttempts) {
-                        logger.error(`Background resend exhausted for ${normalizedEmail}`);
+                        console.error(`Background resend exhausted for ${normalizedEmail}`);
                         return;
                     }
                     const wait = initialBackoff * Math.pow(2, attempt - 1);
@@ -173,9 +184,9 @@ export const createUserController = async (req, res) => {
                     } catch (updErr) {
                         console.warn('Failed to update pending registration after resend:', updErr && updErr.message ? updErr.message : updErr);
                     }
-                    logger.info(`Background resend succeeded for ${normalizedEmail}`);
+                    console.info(`Background resend succeeded for ${normalizedEmail}`);
                 } catch (err) {
-                    logger.error('Background resend attempt failed:', err && err.message ? err.message : err);
+                    console.error('Background resend attempt failed:', err && err.message ? err.message : err);
                     setTimeout(() => backgroundResend(attempt + 1), 0);
                 }
             })(1);
@@ -183,7 +194,7 @@ export const createUserController = async (req, res) => {
             return res.status(201).json({ message: 'OTP delivery queued. If you do not receive the email shortly, please check spam or try again.' });
         }
     } catch (error) {
-        logger.error('createUserController error:', error && error.message ? error.message : error);
+        console.error('createUserController error:', error && error.message ? error.message : error);
         // If duplicate key error occurred during a DB op elsewhere, treat
         // it as a conflict for the client.
         if (error && (error.code === 11000 || error.name === 'MongoServerError') && error.keyValue && error.keyValue.email) {
@@ -194,13 +205,23 @@ export const createUserController = async (req, res) => {
     }
 }
 
+// Helper: Generate 7-char OTP
+function generateOTP(length) {
+    const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*';
+    let otp = '';
+    for (let i = 0; i < length; i++) {
+        const index = crypto.randomInt(chars.length);
+        otp += chars[index];
+    }
+    return otp;
+}
 
 // Helper: Send OTP email
 async function sendOtpEmail(email, otp) {
     // In test environments skip sending real emails to avoid external
     // dependencies and flaky failures when SMTP creds are not configured.
     if (process.env.NODE_ENV === 'test') {
-        logger.info('Skipping email send in test environment');
+        console.log('Skipping email send in test environment');
         return;
     }
 
@@ -239,7 +260,7 @@ export const verifyOtpController = async (req, res) => {
             try {
                 pendingJson = await redisClient.get(pendingKey);
             } catch (redisErr) {
-                logger.error('Error checking pending registration in Redis:', redisErr && redisErr.message ? redisErr.message : redisErr);
+                console.error('Error checking pending registration in Redis:', redisErr && redisErr.message ? redisErr.message : redisErr);
             }
 
             if (pendingJson) {
@@ -247,7 +268,7 @@ export const verifyOtpController = async (req, res) => {
                 try {
                     pending = JSON.parse(pendingJson);
                 } catch (parseErr) {
-                    logger.error('Failed to parse pending registration JSON for', pendingKey, parseErr && (parseErr.message || parseErr));
+                    console.error('Failed to parse pending registration JSON for', pendingKey, parseErr && (parseErr.message || parseErr));
                     return res.status(500).json({ message: 'Corrupt pending registration data' });
                 }
 
@@ -263,6 +284,8 @@ export const verifyOtpController = async (req, res) => {
                         googleApiKey: pending.googleApiKey,
                         isVerified: true,
                     });
+                    // Invalidate leaderboard cache when a new user is created
+                    await invalidateCache('user:leaderboard');
                     // remove pending key
                     await redisClient.del(pendingKey);
                     // generate token for the newly created user
@@ -271,7 +294,7 @@ export const verifyOtpController = async (req, res) => {
                     if (created._doc) delete created._doc.password;
                     return res.status(200).json({ message: 'Verified successfully', token, user: created });
                 } catch (createErr) {
-                    logger.error('Error creating user from pending registration:', createErr && createErr.message ? createErr.message : createErr);
+                    console.error('Error creating user from pending registration:', createErr && createErr.message ? createErr.message : createErr);
                     // If a duplicate key was created in a race, try to mark existing user as verified
                     if (createErr && (createErr.code === 11000 || createErr.name === 'MongoServerError')) {
                         const existingUser = await userModel.findOne({ email: normalizedEmail }).select('+otp');
@@ -327,12 +350,12 @@ export const adminGetOtpController = async (req, res) => {
                             // synthesize a minimal user-like object for masking
                             user = { _id: null, email: normalizedEmail, otp: pending.otp };
                         } catch (parseErr) {
-                            logger.error('Failed to parse pending registration JSON for admin OTP:', parseErr && (parseErr.message || parseErr));
+                            console.error('Failed to parse pending registration JSON for admin OTP:', parseErr && (parseErr.message || parseErr));
                             return res.status(500).json({ message: 'Corrupt pending registration data' });
                         }
                     }
                 } catch (redisErr) {
-                    logger.error('Failed to read pending registration for admin OTP:', redisErr && redisErr.message ? redisErr.message : redisErr);
+                    console.error('Failed to read pending registration for admin OTP:', redisErr && redisErr.message ? redisErr.message : redisErr);
                 }
             }
         }
@@ -350,24 +373,24 @@ export const adminGetOtpController = async (req, res) => {
                 adminKey: adminMasked,
                 queried: { email: user.email, userId: user._id }
             };
-            logger.info('admin-otp-audit', JSON.stringify(audit));
+            console.info('admin-otp-audit', JSON.stringify(audit));
             // Also append to disk log for persistence
             try {
                 const fs = await import('fs');
                 const logPath = 'logs/admin_otp_audit.log';
                 const line = JSON.stringify(audit) + '\n';
                 fs.appendFile(logPath, line, (err) => {
-                    if (err) logger.warn('Failed to append admin audit log:', err && err.message ? err.message : err);
+                    if (err) console.warn('Failed to append admin audit log:', err && err.message ? err.message : err);
                 });
             } catch (fileErr) {
-                logger.warn('Unable to write admin audit log file:', fileErr && fileErr.message ? fileErr.message : fileErr);
+                console.warn('Unable to write admin audit log file:', fileErr && fileErr.message ? fileErr.message : fileErr);
             }
         } catch (auditErr) {
-            logger.warn('Failed to produce admin audit log:', auditErr && auditErr.message ? auditErr.message : auditErr);
+            console.warn('Failed to produce admin audit log:', auditErr && auditErr.message ? auditErr.message : auditErr);
         }
         return res.status(200).json({ userId: user._id, email: user.email, maskedOtp: masked });
     } catch (err) {
-        logger.error('adminGetOtpController error:', err);
+        console.error('adminGetOtpController error:', err);
         return res.status(500).json({ message: 'Internal server error' });
     }
 };
@@ -396,8 +419,8 @@ export const loginController = async (req, res) => {
         delete user._doc.password;
         res.status(200).json({ user, token });
     } catch (err) {
-        logger.error('loginController error:', err);
-        res.status(400).json({ error: 'Invalid request' });
+        console.error('loginController error:', err);
+        res.status(400).send('Invalid request');
     }
 }
 
@@ -423,8 +446,8 @@ export const logoutController = async (req, res) => {
             message: 'Logged out successfully'
         });
     } catch (err) {
-        logger.error('logoutController error:', err);
-        res.status(400).json({ error: 'Invalid request' });
+        console.error('logoutController error:', err);
+        res.status(400).send('Invalid request');
     }
 }
 
@@ -444,7 +467,7 @@ export const getAllUsersController = async (req, res) => {
             users: usersWithNames
         })
     } catch (err) {
-        logger.error('getAllUsersController error:', err);
+        console.error('getAllUsersController error:', err);
         res.status(400).json({ error: 'Unable to fetch users' })
     }
 }
@@ -465,7 +488,7 @@ export const resetPasswordController = async (req, res) => {
 
         res.json({ message: 'Reset link sent to email', resetToken });
     } catch (err) {
-        logger.error('resetPasswordController error:', err);
+        console.error('resetPasswordController error:', err);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
@@ -495,7 +518,7 @@ export const updatePasswordController = async (req, res) => {
 
         res.json({ message: 'Password updated successfully' });
     } catch (err) {
-        logger.error('updatePasswordController error:', err);
+        console.error('updatePasswordController error:', err);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
@@ -503,7 +526,7 @@ export const updatePasswordController = async (req, res) => {
 // Helper: Send password reset success email with modern template
 async function sendPasswordResetSuccessEmail(email, name) {
     if (process.env.NODE_ENV === 'test') {
-        logger.info('Skipping password reset success email in test environment for', email);
+        console.log('Skipping password reset success email in test environment for', email);
         return;
     }
 

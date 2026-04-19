@@ -60,7 +60,7 @@ router.get('/sitemap.xml', sitemapLimiter, async (req, res) => {
         res.header('Content-Type', 'application/xml');
         res.send(xml);
     } catch (err) {
-        res.status(500).json({ error: 'Failed to generate sitemap' });
+        res.status(500).send('Failed to generate sitemap');
     }
 });
 

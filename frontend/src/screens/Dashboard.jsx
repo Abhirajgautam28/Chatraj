@@ -2,17 +2,14 @@
 import { useContext, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserContext } from '../context/user.context';
-import { useToast } from '../context/toast.context';
 import axios, { clearCsrfCache } from "../config/axios";
 import { useNavigate, useParams } from 'react-router-dom';
 
 const Dashboard = () => {
   useContext(UserContext);
-  const { showToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectName, setProjectName] = useState('');
   const [projects, setProjects] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
   const { categoryName: rawCategoryName } = useParams();
   const categoryName = rawCategoryName ? decodeURIComponent(rawCategoryName) : undefined;
@@ -24,14 +21,13 @@ const Dashboard = () => {
       category: categoryName
     })
       .then((res) => {
-        showToast('Project created successfully', 'success');
+        console.log(res);
         setProjects(prev => [...prev, res.data.project]);
         setIsModalOpen(false);
         setProjectName('');
       })
       .catch((error) => {
-        showToast('Failed to create project', 'error');
-        console.error(error);
+        console.log(error);
       });
   };
 
@@ -91,18 +87,6 @@ const Dashboard = () => {
           >
             {categoryName ? `${categoryName} Projects` : 'Your Projects'}
           </motion.h1>
-
-          <div className="mb-8 relative">
-            <input
-              type="text"
-              placeholder="Search projects..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full p-3 pl-10 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-            />
-            <i className="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
-          </div>
-
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
             <motion.button
               onClick={() => setIsModalOpen(true)}
@@ -118,7 +102,7 @@ const Dashboard = () => {
             </motion.button>
 
             <AnimatePresence>
-              {projects.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())).map((project, idx) => (
+              {projects.map((project, idx) => (
                 <motion.div
                   key={project._id}
                   onClick={() => {

@@ -3,7 +3,7 @@ import * as projectService from '../services/project.service.js';
 import userModel from '../models/user.model.js';
 import mongoose from 'mongoose';
 import { validationResult } from 'express-validator';
-import { logger } from '../utils/logger.js';
+import { withCache, invalidateCache } from '../utils/cache.js';
 
 export const getAllProject = async (req, res) => {
     try {
@@ -15,7 +15,7 @@ export const getAllProject = async (req, res) => {
         const projects = await projectModel.find({ users: { $in: [loggedInUser._id] } }).lean();
         res.status(200).json({ projects });
     } catch (err) {
-        logger.error('getAllProject error:', err);
+        console.error('getAllProject error:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -28,21 +28,28 @@ export const createProject = async (req, res) => {
 
     try {
         const { name, category, users } = req.body;
+        // Invalidate showcase cache when a new project is created
+        await invalidateCache('project:showcase');
+
         // NOTE: category validation is handled by route validator now,
         // but kept here for safety if validator fails or is bypassed.
         if (!name || !category) {
             return res.status(400).json({ error: 'Name and category are required' });
         }
+        const loggedInUser = await userModel.findOne({ email: req.user.email });
+        if (!loggedInUser) {
+            return res.status(401).json({ error: 'User not found' });
+        }
         // Create new project
         const project = await projectModel.create({
             name,
             category,
-            users: users ? [...users, req.user._id] : [req.user._id],
-            createdBy: req.user._id
+            users: users ? [...users, loggedInUser._id] : [loggedInUser._id],
+            createdBy: loggedInUser._id
         });
         res.status(201).json({ project });
     } catch (err) {
-        logger.error('createProject error:', err);
+        console.error('createProject error:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -56,14 +63,15 @@ export const addUserToProject = async (req, res) => {
 
     try {
         const { projectId, users } = req.body;
+        const loggedInUser = await userModel.findOne({ email: req.user.email });
         const project = await projectService.addUsersToProject({
             projectId,
             users,
-            userId: req.user._id
+            userId: loggedInUser._id
         });
         return res.status(200).json({ project });
     } catch (err) {
-        logger.error('addUserToProject error:', err);
+        console.error('addUserToProject error:', err);
         res.status(400).json({ error: err.message });
     }
 }
@@ -119,9 +127,14 @@ export const getProjectCountsByCategory = async (req, res) => {
       'Documentation Generation',
       'Code Refactoring'
     ];
+    // Get logged-in user
+    const loggedInUser = await userModel.findOne({ email: req.user.email });
+    if (!loggedInUser) {
+      return res.status(401).json({ error: 'User not found' });
+    }
     // Aggregate project counts by category, filtered by user
     const counts = await projectModel.aggregate([
-      { $match: { users: { $in: [new mongoose.Types.ObjectId(req.user._id)] } } },
+      { $match: { users: { $in: [loggedInUser._id] } } },
       {
         $group: {
           _id: "$category",
@@ -141,17 +154,19 @@ export const getProjectCountsByCategory = async (req, res) => {
     });
     res.status(200).json(result);
   } catch (err) {
-        logger.error('getProjectCountsByCategory error:', err);
+        console.error('getProjectCountsByCategory error:', err);
         res.status(500).json({ error: 'Internal server error' });
   }
 }
 
 export const getProjectShowcase = async (req, res) => {
     try {
-        const projects = await projectModel.find({}).sort({ users: -1 }).limit(10).lean();
+        const projects = await withCache('project:showcase', 300, async () => {
+            return await projectModel.find({}).sort({ users: -1 }).limit(10).lean();
+        });
         res.status(200).json({ projects });
     } catch (error) {
-        logger.error('getProjectShowcase error:', error);
+        console.error('getProjectShowcase error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 }
@@ -171,7 +186,7 @@ export const getProjectById = async (req, res) => {
         })
 
     } catch (err) {
-        logger.error('getProjectById error:', err);
+        console.error('getProjectById error:', err);
         const status = err.message === 'Unauthorized access' ? 401 : 400;
         res.status(status).json({ error: err.message })
     }
@@ -200,7 +215,7 @@ export const updateFileTree = async (req, res) => {
         })
 
     } catch (err) {
-        logger.error('updateFileTree error:', err);
+        console.error('updateFileTree error:', err);
         const status = err.message === 'Unauthorized access' ? 401 : 400;
         res.status(status).json({ error: err.message })
     }
@@ -217,7 +232,7 @@ export const getProjectSettings = async (req, res) => {
         if (!isMember) return res.status(401).json({ error: 'Unauthorized' });
         res.status(200).json({ settings: project.settings || {} });
     } catch (err) {
-        logger.error('getProjectSettings error:', err);
+        console.error('getProjectSettings error:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -235,7 +250,7 @@ export const updateProjectSettings = async (req, res) => {
         await project.save();
         res.status(200).json({ settings: project.settings });
     } catch (err) {
-        logger.error('updateProjectSettings error:', err);
+        console.error('updateProjectSettings error:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
