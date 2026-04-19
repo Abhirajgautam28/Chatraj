@@ -4,7 +4,7 @@ This document provides instructions on how to run various types of tests in the 
 
 ## 🚀 Quick Start: Run All Tests
 
-To run all unit tests (backend utilities, services, models, middleware, controllers, and frontend components):
+To run all unit and integration tests (backend utilities, services, models, middleware, controllers, and frontend components):
 
 ```bash
 npm run test:all
@@ -14,15 +14,17 @@ npm run test:all
 
 ## 🏗️ Backend Testing
 
-### 1. Unit Tests
-These tests cover pure logic in different layers of the backend.
+### 1. Unit & Integration Tests
+These tests cover pure logic and component interactions in different layers of the backend.
 
-- **Utilities:** `npm run test:backend:utils`
-- **Services:** `npm run test:backend:services`
-- **Models:** `npm run test:backend:models`
-- **Middleware:** `npm run test:backend:middleware`
-- **Controllers:** `npm run test:backend:controllers`
-- **Mailer:** `npm run test:backend:mailer`
+- **Utilities:** `npm run test:backend:utils` (Email, Strings, OTP, Security, AI parsing)
+- **Services:** `npm run test:backend:services` (User, Project, AI, Redis, Ping)
+- **Models:** `npm run test:backend:models` (User, Project, Blog, Message, Newsletter)
+- **Middleware:** `npm run test:backend:middleware` (Auth, Rate Limiting)
+- **Controllers:** `npm run test:backend:controllers` (User, Project, Blog, AI, Newsletter)
+- **Security:** `npm run test:backend:security` (Access control, OTP exposure)
+- **Integration:** `npm run test:backend:integration` (Registration flow, Project management flow)
+- **Mailer:** `npm run test:backend:mailer` (Email delivery logic)
 
 ### 2. Smoke Tests
 Checks if the backend is running and basic endpoints are reachable.
@@ -33,7 +35,7 @@ npm run smoke-test
 ```
 
 ### 3. Lightweight E2E Tests
-Runs a registration and public endpoint flow.
+Runs a registration and public endpoint flow against a live server.
 *Note: Backend server must be running.*
 
 ```bash
@@ -55,7 +57,7 @@ npm run test:frontend
 
 ## 🎭 End-to-End Testing (Cypress)
 
-Cypress tests are located in the `cypress/` directory.
+Cypress tests are located in the `cypress/` directory and provide full browser automation.
 
 ### Run Cypress in Headless Mode
 
@@ -87,6 +89,10 @@ The development environment might have broken Babel dependencies, causing Jest t
 - **OTP Utility:**
   ```bash
   node -e 'import { generateOTP } from "./utils/otp.js"; console.log(generateOTP(7))'
+  ```
+- **AI Utility:**
+  ```bash
+  node -e 'import { parseAiResponse } from "./utils/ai.js"; console.log(parseAiResponse({text: "OK"}))'
   ```
 - **Security Utility:**
   ```bash
