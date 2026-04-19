@@ -179,7 +179,7 @@ const Home = () => {
 
   const handleThemeToggle = () => {
     executeThemeTransition(() => {
-      setIsDarkMode(!isDarkMode);
+      setIsDarkMode((prev) => !prev);
     }, shouldReduceMotion);
   };
 
