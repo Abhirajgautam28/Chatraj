@@ -3,12 +3,7 @@ import 'dotenv/config';
 import './patches/patch-validator-isURL.js';
 import app from './app.js';
 import connect from './db/db.js';
-import { Server } from 'socket.io';
-import jwt from 'jsonwebtoken';
-import mongoose from 'mongoose';
-import projectModel from './models/project.model.js';
-import { generateResult } from './services/ai.service.js';
-import Message from './models/message.model.js';
+import { initializeSocket } from './services/socket.service.js';
 import pingService from './services/ping.service.js';
 
 
@@ -121,10 +116,11 @@ io.on('connection', socket => {
     // Delivery event: when a user receives a message, mark as delivered
     socket.on('message-delivered', async ({ messageId, userId }) => {
         try {
-            const message = await Message.findById(messageId);
-            if (message && !message.deliveredTo.includes(userId)) {
-                message.deliveredTo.push(userId);
-                await message.save();
+            const result = await Message.updateOne(
+                { _id: messageId, deliveredTo: { $ne: userId } },
+                { $addToSet: { deliveredTo: userId } }
+            );
+            if (result.modifiedCount > 0) {
                 io.to(socket.roomId).emit('message-delivered', { messageId, userId });
             }
         } catch (err) {
@@ -135,10 +131,11 @@ io.on('connection', socket => {
     // Read event: when a user reads a message, mark as read
     socket.on('message-read', async ({ messageId, userId }) => {
         try {
-            const message = await Message.findById(messageId);
-            if (message && !message.readBy.includes(userId)) {
-                message.readBy.push(userId);
-                await message.save();
+            const result = await Message.updateOne(
+                { _id: messageId, readBy: { $ne: userId } },
+                { $addToSet: { readBy: userId } }
+            );
+            if (result.modifiedCount > 0) {
                 io.to(socket.roomId).emit('message-read', { messageId, userId });
             }
         } catch (err) {

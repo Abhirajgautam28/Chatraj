@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import redisClient from "../services/redis.service.js";
+import { logger } from "../utils/logger.js";
 
 export const authUser = async (req, res, next) => {
     try {
@@ -20,7 +21,7 @@ export const authUser = async (req, res, next) => {
         req.user = decoded;
         next();
     } catch (error) {
-        console.log("Auth middleware error:", error);
+        logger.error("Auth middleware error:", error);
         res.status(401).json({ error: 'Unauthorized User' });
     }
 }
