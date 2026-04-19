@@ -543,19 +543,24 @@ const Project = () => {
   }, [messages.length]);
 
   // Patch messages to simulate readBy for current user's messages
-  const patchedMessages = messages.map(msg => {
-    if (msg.sender && msg.sender._id === user._id) {
-      return { ...msg, readBy: [user._id, 'other-user'] };
-    }
-    return msg;
-  });
+  const patchedMessages = React.useMemo(() => {
+    return messages.map(msg => {
+      if (msg.sender && msg.sender._id === user._id) {
+        return { ...msg, readBy: [user._id, 'other-user'] };
+      }
+      return msg;
+    });
+  }, [messages, user._id]);
 
-  const filteredMessages = searchTerm
-    ? patchedMessages.filter((msg) => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
-    : patchedMessages;
+  const filteredMessages = React.useMemo(() => {
+    return searchTerm
+      ? patchedMessages.filter((msg) => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
+      : patchedMessages;
+  }, [patchedMessages, searchTerm]);
 
-  // Fix: define groupedMessages before return
-  const groupedMessages = groupMessagesByDate(filteredMessages);
+  const groupedMessages = React.useMemo(() => {
+    return groupMessagesByDate(filteredMessages);
+  }, [filteredMessages]);
 
   // Map bubble roundness setting to Tailwind classes
   const bubbleRoundnessClass = {
@@ -884,22 +889,6 @@ const Project = () => {
       },
     }));
   }, [vimMode]);
-
-  // In CodeMirror style prop, remove fontFamily:
-  // style={{
-  //   ... remove fontFamily ...
-  //   fontSize: settings.display.messageFontSize === 'large' ? '1.2rem' : settings.display.messageFontSize === 'small' ? '0.9rem' : '1rem',
-  //   background: settings.display.syntaxHighlighting === false && isDarkMode
-  //     ? '#181e29'
-  //     : isDarkMode
-  //     ? '#111827'
-  //     : 'white',
-  //   color: settings.display.syntaxHighlighting === false && isDarkMode ? '#fff' : undefined,
-  //   height: '100%',
-  //   minHeight: 0,
-  // }}
-  // }))
-  // ...existing code...
 
   return (
     <main className="flex w-screen h-screen overflow-hidden bg-transparent">

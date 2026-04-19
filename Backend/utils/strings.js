@@ -6,4 +6,10 @@ export const escapeRegex = (s) => {
 	return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 };
 
+export function maskKey(k) {
+	if (!k) return '';
+	if (k.length <= 12) return k.slice(0, 3) + '...' + k.slice(-3);
+	return k.slice(0, 6) + '...' + k.slice(-6);
+}
+
 export default escapeRegex;
