@@ -4,7 +4,6 @@ import userModel from '../models/user.model.js';
 import mongoose from 'mongoose';
 import { validationResult } from 'express-validator';
 import { logger } from '../utils/logger.js';
-import { PROJECT_CATEGORIES } from '../config/constants.js';
 
 export const getAllProject = async (req, res) => {
     try {
@@ -107,6 +106,24 @@ export const updateProjectSidebarSettings = async (req, res) => {
 // Get project counts by category
 export const getProjectCountsByCategory = async (req, res) => {
   try {
+    // List of all categories as in frontend
+    const allCategories = [
+      'DSA',
+      'Frontend Development',
+      'Backend Development',
+      'Fullstack Development',
+      'Code Review & Optimization',
+      'Testing & QA',
+      'API Development',
+      'Database Engineering',
+      'Software Architecture',
+      'Version Control & Git',
+      'Agile Project Management',
+      'CI/CD Automation',
+      'Debugging & Troubleshooting',
+      'Documentation Generation',
+      'Code Refactoring'
+    ];
     // Get logged-in user
     const loggedInUser = await userModel.findOne({ email: req.user.email }).lean();
     if (!loggedInUser) {
@@ -124,11 +141,11 @@ export const getProjectCountsByCategory = async (req, res) => {
     ]);
     // Convert to { [category]: count }
     const result = {};
-    PROJECT_CATEGORIES.forEach(cat => {
+    allCategories.forEach(cat => {
       result[cat] = 0;
     });
     counts.forEach(item => {
-      if (Object.prototype.hasOwnProperty.call(result, item._id)) {
+      if (result.hasOwnProperty(item._id)) {
         result[item._id] = item.count;
       }
     });

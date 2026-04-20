@@ -2,13 +2,11 @@
 import { useContext, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserContext } from '../context/user.context';
-import { useToast } from '../context/toast.context';
 import axios, { clearCsrfCache } from "../config/axios";
 import { useNavigate, useParams } from 'react-router-dom';
 
 const Dashboard = () => {
   useContext(UserContext);
-  const { showToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectName, setProjectName] = useState('');
   const [projects, setProjects] = useState([]);
@@ -23,14 +21,13 @@ const Dashboard = () => {
       category: categoryName
     })
       .then((res) => {
+        console.log(res);
         setProjects(prev => [...prev, res.data.project]);
-        showToast('Project created successfully!', 'success');
         setIsModalOpen(false);
         setProjectName('');
       })
       .catch((error) => {
-        const msg = error.response?.data?.error || 'Failed to create project';
-        showToast(msg, 'error');
+        console.log(error);
       });
   };
 
@@ -56,7 +53,8 @@ const Dashboard = () => {
           setProjects([]);
         }
       })
-      .catch(() => {
+      .catch(err => {
+        console.log(err);
         setProjects([]);
       });
   }, [categoryName]);

@@ -81,6 +81,7 @@ const Block = ({ id, index, type, content, moveBlock, updateContent, deleteBlock
 import { useState, useCallback } from 'react';
 import useDarkMode from '../hooks/useDarkMode';
 import { BlogThemeProvider } from '../context/blogTheme.context';
+import { useToast } from '../context/ToastContext';
 //
 import axios from '../config/axios';
 import { useNavigate } from 'react-router-dom';
@@ -294,6 +295,7 @@ const CreateBlogFormContent = () => {
     const [title, setTitle] = useState('');
     const [blocks, setBlocks] = useState([{ id: 1, type: 'text', content: '' }]);
     const [darkMode, setDarkMode] = useDarkMode('create_blog_dark_mode', false);
+    const { showToast } = useToast();
     const navigate = useNavigate();
 
     const moveBlock = useCallback((dragIndex, hoverIndex) => {
@@ -327,7 +329,7 @@ const CreateBlogFormContent = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!title.trim()) {
-            alert('Blog title cannot be empty.');
+            showToast('Blog title cannot be empty.', 'warning');
             return;
         }
         const content = JSON.stringify(blocks);

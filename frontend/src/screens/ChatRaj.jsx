@@ -397,6 +397,7 @@ const ChatRaj = () => {
           });
           
           if (filteredMessages.length !== prev.length && settings.privacy.saveHistory) {
+            console.log(`Deleted ${prev.length - filteredMessages.length} old messages`);
             localStorage.setItem('chatHistory', JSON.stringify(filteredMessages));
           }
           

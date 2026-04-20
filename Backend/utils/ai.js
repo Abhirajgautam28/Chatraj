@@ -1,18 +1,31 @@
 /**
- * Centralized utility for parsing AI responses.
- * Handles both stringified JSON and plain text responses from Google AI.
+ * Utility for parsing and cleaning AI-generated responses.
  */
-export const parseAiResponse = (result) => {
-    if (!result) return '';
 
-    let responseText;
-    try {
-        const parsed = typeof result === 'string' ? JSON.parse(result) : result;
-        // If parsed has a 'text' property, use it; else, use the whole parsed object as string
-        responseText = parsed.text || (typeof parsed === 'object' ? JSON.stringify(parsed) : String(parsed));
-    } catch (e) {
-        // Not JSON or parsing failed, treat as plain text
-        responseText = typeof result === 'string' ? result : JSON.stringify(result);
+/**
+ * Attempts to parse a JSON response from the AI.
+ * If the response is wrapped in Markdown code blocks, it extracts and parses the JSON inside.
+ *
+ * @param {string} rawText - The raw response text from the AI.
+ * @returns {Object|null} The parsed JSON object or null if parsing fails.
+ */
+export function parseAIJsonResponse(rawText) {
+  if (!rawText || typeof rawText !== 'string') return null;
+  const cleaned = rawText.trim();
+
+  // Try direct parse
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    // Try to extract from markdown JSON block
+    const match = cleaned.match(/```json\s*([\s\S]*?)\s*```/);
+    if (match && match[1]) {
+      try {
+        return JSON.parse(match[1].trim());
+      } catch {
+        return null;
+      }
     }
-    return responseText;
-};
+  }
+  return null;
+}

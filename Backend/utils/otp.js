@@ -1,16 +1,18 @@
-import crypto from 'crypto';
+/**
+ * OTP (One-Time Password) generation utility.
+ */
 
 /**
- * Centralized OTP generation logic.
- * @param {number} length - Length of the OTP to generate.
- * @returns {string} - The generated OTP string.
+ * Generates a random alphanumeric OTP of a specified length.
+ *
+ * @param {number} [length=6] - The desired length of the OTP.
+ * @returns {string} The generated OTP.
  */
-export function generateOTP(length) {
-    const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*';
+export const generateOTP = (length = 6) => {
+    const characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
     let otp = '';
     for (let i = 0; i < length; i++) {
-        const index = crypto.randomInt(chars.length);
-        otp += chars[index];
+        otp += characters[Math.floor(Math.random() * characters.length)];
     }
     return otp;
-}
+};
