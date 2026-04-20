@@ -14,7 +14,7 @@ import 'highlight.js/styles/github-dark.css';
 import PropTypes from 'prop-types';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
-import VimCodeEditor from '../components/VimCodeEditor';
+const VimCodeEditor = React.lazy(() => import('../components/VimCodeEditor'));
 import ChatMessage from '../components/ChatMessage';
 import { useDebounce } from '../hooks/useDebounce';
 
@@ -418,6 +418,7 @@ const Project = () => {
   const send = () => {
     if (!message.trim()) return;
     const payload = {
+      msgId: crypto.randomUUID(), // Client-side ID for deduplication
       message,
       sender: user,
       parentMessageId: replyingTo ? replyingTo._id : null,
@@ -767,12 +768,14 @@ const Project = () => {
           ref={messageBox}
           className="flex flex-col flex-grow gap-1 p-1 pb-20 overflow-auto pt-14 message-box scrollbar-hide bg-slate-50 dark:bg-gray-800"
         >
+          {/* Performance Optimization: For very large lists, consider react-window.
+              Currently using slice to limit initial DOM nodes if list is massive. */}
           {Object.keys(groupedMessages)
             .sort((a, b) => a.localeCompare(b))
             .map((groupLabel) => (
               <div key={groupLabel}>
                 <div className="py-2 text-sm text-center text-gray-500 dark:text-gray-400">{groupLabel}</div>
-                {groupedMessages[groupLabel].map((msg, idx) => (
+                {groupedMessages[groupLabel].slice(-500).map((msg, idx) => (
                   <ChatMessage
                     key={msg._id ? `${groupLabel}-${msg._id}` : `${groupLabel}-idx-${idx}`}
                     msg={msg}

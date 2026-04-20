@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Markdown from 'markdown-to-jsx';
 import Avatar from './Avatar';
-import EmojiPicker from './EmojiPicker';
+const EmojiPicker = React.lazy(() => import('./EmojiPicker'));
 
 const ChatMessage = React.memo(({
     msg,

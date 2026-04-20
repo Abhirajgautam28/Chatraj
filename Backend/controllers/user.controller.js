@@ -28,11 +28,51 @@ export const sendOtpController = async (req, res) => {
 
 export const getLeaderboardController = async (req, res) => {
     try {
-        const users = await withCache('user:leaderboard', 600, async () => {
-            return await userModel.find({}).sort({ projects: -1 }).limit(10).lean();
+        const cacheKey = 'user:leaderboard:zset';
+        // Try to get from Redis Sorted Set first (O(log N))
+        if (typeof redisClient.zrevrange === 'function') {
+            try {
+                const topIds = await redisClient.zrevrange(cacheKey, 0, 9, 'WITHSCORES');
+                if (topIds && topIds.length > 0) {
+                    const users = [];
+                    // topIds is [id1, score1, id2, score2, ...]
+                    for (let i = 0; i < topIds.length; i += 2) {
+                        const id = topIds[i];
+                        const score = topIds[i + 1];
+                        const user = await withCache(`user:profile:minimal:${id}`, 3600, async () => {
+                             return await userModel.findById(id).select('firstName lastName').lean();
+                        });
+                        if (user) {
+                            users.push({ ...user, projectsCount: parseInt(score, 10) });
+                        }
+                    }
+                    if (users.length > 0) return res.status(200).json({ users });
+                }
+            } catch (zerr) {
+                console.warn('Redis ZSET leaderboard fetch failed, falling back to cache/DB:', zerr);
+            }
+        }
+
+        // Fallback to existing cached DB query
+        const users = await withCache('user:leaderboard:legacy', 600, async () => {
+            // Count projects per user using aggregation
+            const counts = await mongoose.model('project').aggregate([
+                { $unwind: "$users" },
+                { $group: { _id: "$users", count: { $sum: 1 } } },
+                { $sort: { count: -1 } },
+                { $limit: 10 }
+            ]);
+
+            const results = [];
+            for (const item of counts) {
+                const u = await userModel.findById(item._id).select('firstName lastName').lean();
+                if (u) results.push({ ...u, projectsCount: item.count });
+            }
+            return results;
         });
         res.status(200).json({ users });
     } catch (error) {
+        console.error('getLeaderboardController error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };

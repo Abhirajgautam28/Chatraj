@@ -9,7 +9,14 @@ const MaterialBlogCard = ({ blog }) => (
   >
     <div className="p-0">
       {blog.coverImage && (
-        <img src={blog.coverImage} alt={`Cover image for ${blog.title}`} className="rounded-t-xl w-full h-48 object-cover" />
+        <img
+          src={blog.coverImage}
+          alt={`Cover image for ${blog.title}`}
+          className="rounded-t-xl w-full h-48 object-cover"
+          loading="lazy"
+          width="400"
+          height="192"
+        />
       )}
     </div>
     <div className="flex-1 flex flex-col p-5">

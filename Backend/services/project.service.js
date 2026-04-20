@@ -1,5 +1,6 @@
 import projectModel from '../models/project.model.js';
 import mongoose from 'mongoose';
+import redisClient from './redis.service.js';
 
 // Basic recursive validation to ensure fileTree is a plain JSON-like structure
 // and does not contain MongoDB operator-style keys (starting with '$' or containing '.').
@@ -132,6 +133,12 @@ export const addUsersToProject = async ({ projectId, users, userId }) => {
         { $addToSet: { users: { $each: users } } },
         { new: true }
     );
+
+    if (updatedProject && typeof redisClient.zincrby === 'function') {
+        for (const uId of users) {
+            redisClient.zincrby('user:leaderboard:zset', 1, uId.toString()).catch(() => {});
+        }
+    }
 
     if (!updatedProject) {
         throw new Error("User not belong to this project or project not found")

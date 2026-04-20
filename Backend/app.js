@@ -258,6 +258,19 @@ app.use("/api/ai", aiRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/blogs', blogRoutes);
 
+// Optimized static asset serving with long-term caching for production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static('public', {
+    maxAge: '1y',
+    immutable: true,
+    setHeaders: (res, path) => {
+      if (path.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'no-cache');
+      }
+    }
+  }));
+}
+
 app.use((err, req, res, next) => {
   const isDev = process.env.NODE_ENV === 'development';
 

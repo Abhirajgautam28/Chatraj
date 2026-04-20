@@ -8,12 +8,17 @@ import { withCache, invalidateCache } from '../utils/cache.js';
 export const getAllProject = async (req, res) => {
     try {
         const { category } = req.query;
-        // Use req.user._id directly from optimized JWT payload
-        const query = { users: { $in: [req.user._id] } };
-        if (category) query.category = category;
+        const cacheKey = `user:${req.user._id}:projects:${category || 'all'}`;
 
-        // Exclude heavy fileTree from project list for performance
-        const projects = await projectModel.find(query).select('-fileTree').lean();
+        const projects = await withCache(cacheKey, 300, async () => {
+            // Use req.user._id directly from optimized JWT payload
+            const query = { users: { $in: [req.user._id] } };
+            if (category) query.category = category;
+
+            // Exclude heavy fileTree from project list for performance
+            return await projectModel.find(query).select('-fileTree').lean();
+        }, [`user:${req.user._id}:projects`]);
+
         res.status(200).json({ projects });
     } catch (err) {
         console.error('getAllProject error:', err);
@@ -28,10 +33,19 @@ export const createProject = async (req, res) => {
     }
 
     try {
-        const { name, category, users } = req.body;
+        const { name, category, users: collaboratorIds } = req.body;
         // Invalidate caches when a new project is created
         await invalidateCache('project:showcase');
         await invalidateCache(`user:${req.user._id}:project-counts`);
+        await invalidateCache(`user:${req.user._id}:projects`, true);
+
+        // Update Leaderboard ZSET in background
+        if (typeof redisClient.zincrby === 'function') {
+           const allUserIds = collaboratorIds ? [...collaboratorIds, req.user._id] : [req.user._id];
+           for (const uid of allUserIds) {
+               redisClient.zincrby('user:leaderboard:zset', 1, uid.toString()).catch(() => {});
+           }
+        }
 
         // NOTE: category validation is handled by route validator now,
         // but kept here for safety if validator fails or is bypassed.
@@ -42,7 +56,7 @@ export const createProject = async (req, res) => {
         const project = await projectModel.create({
             name,
             category,
-            users: users ? [...users, req.user._id] : [req.user._id],
+            users: collaboratorIds ? [...collaboratorIds, req.user._id] : [req.user._id],
             createdBy: req.user._id
         });
         res.status(201).json({ project });

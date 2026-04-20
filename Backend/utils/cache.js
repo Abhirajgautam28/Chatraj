@@ -4,7 +4,7 @@ import redisClient from '../services/redis.service.js';
 const localCache = new Map();
 const LOCAL_CACHE_TTL = 5000; // 5 seconds for local cache
 
-export const withCache = async (key, ttl, fetchFn) => {
+export const withCache = async (key, ttl, fetchFn, tags = []) => {
     // 1. Try local memory cache (L1)
     const now = Date.now();
     const local = localCache.get(key);
@@ -30,7 +30,15 @@ export const withCache = async (key, ttl, fetchFn) => {
     try {
         // 4. Update both caches
         await redisClient.set(key, JSON.stringify(data), 'EX', ttl);
-        localCache.set(key, { data, timestamp: now });
+        localCache.set(key, { data, timestamp: now, tags });
+
+        // Link tags to key in Redis
+        if (tags && tags.length > 0) {
+            for (const tag of tags) {
+                await redisClient.sadd(`cache:tag:${tag}`, key);
+                await redisClient.expire(`cache:tag:${tag}`, 86400); // Tag mapping TTL 24h
+            }
+        }
     } catch (err) {
         console.error(`Cache write error for key ${key}:`, err);
     }
@@ -38,12 +46,28 @@ export const withCache = async (key, ttl, fetchFn) => {
     return data;
 };
 
-export const invalidateCache = async (key) => {
+export const invalidateCache = async (keyOrTag, isTag = false) => {
     try {
-        localCache.delete(key);
-        await redisClient.del(key);
+        if (!isTag) {
+            localCache.delete(keyOrTag);
+            await redisClient.del(keyOrTag);
+        } else {
+            // Tag-based invalidation
+            // Clear L1
+            for (const [k, v] of localCache.entries()) {
+                if (v.tags && v.tags.includes(keyOrTag)) {
+                    localCache.delete(k);
+                }
+            }
+            // Clear L2
+            const keys = await redisClient.smembers(`cache:tag:${keyOrTag}`);
+            if (keys && keys.length > 0) {
+                await redisClient.del(...keys);
+                await redisClient.del(`cache:tag:${keyOrTag}`);
+            }
+        }
     } catch (err) {
-        console.error(`Cache invalidation error for key ${key}:`, err);
+        console.error(`Cache invalidation error for ${isTag ? 'tag' : 'key'} ${keyOrTag}:`, err);
     }
 };
 

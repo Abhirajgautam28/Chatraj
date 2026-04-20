@@ -1,4 +1,6 @@
 import http from 'http';
+import cluster from 'cluster';
+import os from 'os';
 import 'dotenv/config';
 import './patches/patch-validator-isURL.js';
 import app from './app.js';
@@ -96,6 +98,12 @@ io.on('connection', socket => {
     socket.join(socket.roomId);
 
     socket.on('project-message', async data => {
+        // Message deduplication for cluster mode / client retries
+        if (data.msgId) {
+            const isDuplicate = await redisClient.set(`msg:dedup:${data.msgId}`, '1', 'NX', 'EX', 3600);
+            if (!isDuplicate) return;
+        }
+
         const messageText = data.message;
         const parentMessageId = data.parentMessageId || null;
         const aiIsPresent = messageText.includes('@Chatraj');
@@ -170,24 +178,33 @@ io.on('connection', socket => {
 
     socket.on('message-reaction', async (data) => {
         try {
-            // Atomic reaction update: first remove any existing reaction from this user
-            let message = await Message.findOneAndUpdate(
-                { _id: data.messageId },
-                { $pull: { reactions: { userId: data.userId } } },
-                { new: true }
-            );
+            // Optimization: Single atomic update for toggle (Pull then Push if emoji exists)
+            // To ensure strict atomicity and avoid two round-trips:
+            // 1. Pull the user's existing reaction
+            // 2. If data.emoji is provided, Push the new one
 
-            if (message && data.emoji) {
-                // If an emoji was provided, add the new reaction
-                message = await Message.findOneAndUpdate(
+            // In MongoDB, we can't do $pull and $push on the same field in one update.
+            // But we can $set a filtered array.
+            // Optimized logic:
+            const update = {
+                $pull: { reactions: { userId: data.userId } }
+            };
+
+            await Message.updateOne({ _id: data.messageId }, update);
+
+            let finalMessage;
+            if (data.emoji) {
+                finalMessage = await Message.findOneAndUpdate(
                     { _id: data.messageId },
                     { $push: { reactions: { emoji: data.emoji, userId: data.userId } } },
                     { new: true }
                 ).lean();
+            } else {
+                finalMessage = await Message.findById(data.messageId).lean();
             }
 
-            if (message) {
-                io.to(socket.roomId).emit('message-reaction', message);
+            if (finalMessage) {
+                io.to(socket.roomId).emit('message-reaction', finalMessage);
             }
         } catch (error) {
             console.error("Error handling reaction:", error.message);
@@ -226,10 +243,24 @@ server.on('error', (error) => {
     process.exit(1);
 });
 
-server.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-    if (process.env.NODE_ENV === 'production') {
-        const backendUrl = process.env.BACKEND_URL || `https://${process.env.RENDER_EXTERNAL_HOSTNAME}`;
-        pingService(`${backendUrl}/health`);
+if (cluster.isPrimary && process.env.NODE_ENV === 'production' && process.env.ENABLE_CLUSTER === 'true') {
+    const numCPUs = os.cpus().length;
+    console.log(`Primary ${process.pid} is running. Forking ${numCPUs} workers...`);
+
+    for (let i = 0; i < numCPUs; i++) {
+        cluster.fork();
     }
-});
+
+    cluster.on('exit', (worker, code, signal) => {
+        console.log(`Worker ${worker.process.pid} died. Forking replacement...`);
+        cluster.fork();
+    });
+} else {
+    server.listen(port, () => {
+        console.log(`Worker ${process.pid} started. Server running on port ${port}`);
+        if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
+            const backendUrl = process.env.BACKEND_URL || `https://${process.env.RENDER_EXTERNAL_HOSTNAME}`;
+            pingService(`${backendUrl}/health`);
+        }
+    });
+}

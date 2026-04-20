@@ -119,13 +119,19 @@ export const generateBlogContent = async (req, res) => {
     try {
         const { topic } = req.body;
         if (typeof topic !== 'string' || topic.trim().length === 0 || topic.trim().length > 200) return res.status(400).json({ error: 'Invalid topic' });
-        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-        const prompt = `Write a professional blog post of about 100 words on the topic: "${topic.trim().slice(0,200)}".`;
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
-        res.status(200).json({ content: text });
+
+        const cacheKey = `ai:blog:${Buffer.from(topic.trim()).toString('base64')}`;
+        const content = await withCache(cacheKey, 3600 * 48, async () => {
+            const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+            const prompt = `Write a professional blog post of about 100 words on the topic: "${topic.trim().slice(0,200)}".`;
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            return response.text();
+        }, ['ai:blog']);
+
+        res.status(200).json({ content });
     } catch (error) {
+        console.error('generateBlogContent error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
