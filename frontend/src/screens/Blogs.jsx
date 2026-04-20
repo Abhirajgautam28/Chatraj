@@ -10,7 +10,7 @@ import { executeThemeTransition } from '../utils/themeTransition';
 const BlogsContent = () => {
     const [blogs, setBlogs] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [darkMode, setDarkMode] = useDarkMode('blog_dark_mode', false);
+    const [darkMode, setDarkMode, toggleThemeGlobal] = useDarkMode('blog_dark_mode', false);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
