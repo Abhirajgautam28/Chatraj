@@ -18,6 +18,9 @@ const VimCodeEditor = React.lazy(() => import('../components/VimCodeEditor'));
 import ChatMessage from '../components/ChatMessage';
 import { useDebounce } from '../hooks/useDebounce';
 
+// Initialize Web Worker
+const worker = typeof window !== 'undefined' ? new Worker('/worker.js') : null;
+
 const PROJECT_TRANSLATIONS = {
   'en-US': {
     addUsers: 'Add Users',
@@ -506,22 +509,36 @@ const Project = () => {
   const fileTreeSyncTimeoutRef = useRef(null);
 
   useEffect(() => {
+    if (worker) {
+      worker.onmessage = (e) => {
+        if (e.data.type === 'NORMALIZE_FILE_TREE_RESULT') {
+          const normalizedTree = e.data.data;
+          setFileTree(normalizedTree);
+          // Debounced backend sync to avoid hitting the DB too hard with large fileTree objects
+          if (fileTreeSyncTimeoutRef.current) clearTimeout(fileTreeSyncTimeoutRef.current);
+          fileTreeSyncTimeoutRef.current = setTimeout(() => {
+            axios.put('/api/projects/update-file-tree', {
+              projectId: project._id,
+              fileTree: normalizedTree
+            }).catch(err => console.warn('FileTree sync failed:', err));
+          }, 2000);
+        }
+      };
+    }
+  }, [project._id]);
+
+  useEffect(() => {
     const handleIncomingMessage = (data) => {
       // If the sender is Chatraj and the message is a JSON with fileTree, update the file tree
       if (data.sender && data.sender._id === "Chatraj") {
         try {
           const aiResponse = JSON.parse(data.message);
-          if (aiResponse.fileTree) {
+          if (aiResponse.fileTree && worker) {
+            worker.postMessage({ type: 'NORMALIZE_FILE_TREE', data: aiResponse.fileTree });
+          } else if (aiResponse.fileTree) {
+            // Fallback if worker failed
             const normalizedTree = normalizeFileTree(aiResponse.fileTree);
             setFileTree(normalizedTree);
-            // Debounced backend sync to avoid hitting the DB too hard with large fileTree objects
-            if (fileTreeSyncTimeoutRef.current) clearTimeout(fileTreeSyncTimeoutRef.current);
-            fileTreeSyncTimeoutRef.current = setTimeout(() => {
-              axios.put('/api/projects/update-file-tree', {
-                projectId: project._id,
-                fileTree: normalizedTree
-              }).catch(err => console.warn('FileTree sync failed:', err));
-            }, 2000);
           }
           // Only show the AI's text in chat if it is not a duplicate
           setMessages((prev) => {

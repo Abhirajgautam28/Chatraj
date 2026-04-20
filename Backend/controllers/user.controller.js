@@ -1,5 +1,29 @@
 import mongoose from 'mongoose';
 import { withCache, invalidateCache } from '../utils/cache.js';
+import userModel from '../models/user.model.js';
+import { normalizeEmail } from '../utils/email.js';
+import { shouldExposeOtpToClient } from '../utils/security.js';
+import { sendMailWithRetry } from '../utils/mailer.js';
+import * as userService from '../services/user.service.js';
+import { validationResult } from 'express-validator';
+import redisClient from '../services/redis.service.js';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+// Helper: escape user-supplied text before inserting into HTML templates
+function escapeHtml(unsafe) {
+    if (unsafe === undefined || unsafe === null) return '';
+    return String(unsafe)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
 
 // Send OTP for password reset (used in Login.jsx)
 export const sendOtpController = async (req, res) => {
@@ -76,29 +100,6 @@ export const getLeaderboardController = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
-import userModel from '../models/user.model.js';
-import { normalizeEmail } from '../utils/email.js';
-import { shouldExposeOtpToClient } from '../utils/security.js';
-import { sendMailWithRetry } from '../utils/mailer.js';
-import dotenv from 'dotenv';
-dotenv.config();
-
-// Helper: escape user-supplied text before inserting into HTML templates
-function escapeHtml(unsafe) {
-    if (unsafe === undefined || unsafe === null) return '';
-    return String(unsafe)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
-import * as userService from '../services/user.service.js';
-import { validationResult } from 'express-validator';
-import redisClient from '../services/redis.service.js';
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
 
 export const createUserController = async (req, res) => {
 

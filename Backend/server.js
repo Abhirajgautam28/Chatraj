@@ -5,6 +5,7 @@ import 'dotenv/config';
 import './patches/patch-validator-isURL.js';
 import app from './app.js';
 import connect from './db/db.js';
+import redisClient from './services/redis.service.js';
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';

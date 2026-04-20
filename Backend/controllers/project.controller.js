@@ -4,6 +4,7 @@ import userModel from '../models/user.model.js';
 import mongoose from 'mongoose';
 import { validationResult } from 'express-validator';
 import { withCache, invalidateCache } from '../utils/cache.js';
+import redisClient from '../services/redis.service.js';
 
 export const getAllProject = async (req, res) => {
     try {

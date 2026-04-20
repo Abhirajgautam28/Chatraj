@@ -4,7 +4,7 @@ import redisClient from '../services/redis.service.js';
 // Custom Redis store for cluster-safe rate limiting
 const redisStore = {
   // express-rate-limit 6.x+ store interface
-  incr: async (key) => {
+  increment: async (key) => {
     const hits = await redisClient.incr(`rl:${key}`);
     if (hits === 1) await redisClient.expire(`rl:${key}`, 900); // Default 15m
     return { totalHits: hits, resetTime: undefined };

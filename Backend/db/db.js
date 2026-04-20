@@ -62,8 +62,11 @@ async function connect() {
 
         const conn = await mongoose.connect(process.env.MONGODB_URI, {
             maxPoolSize: 50,
+            minPoolSize: 10, // Maintain a minimum number of connections
             serverSelectionTimeoutMS: 10000,
             socketTimeoutMS: 45000,
+            heartbeatFrequencyMS: 10000, // Faster failure detection
+            waitQueueTimeoutMS: 5000, // Error quickly if pool is exhausted
         });
 
         console.log(`MongoDB Connected: ${conn.connection.host}`);
@@ -127,8 +130,11 @@ async function connect() {
                 console.log('Retrying MongoDB connection using resolved hosts via DNS resolver (custom or system)');
                 const conn2 = await mongoose.connect(resolvedUri, {
                     maxPoolSize: 50,
+                    minPoolSize: 10,
                     serverSelectionTimeoutMS: 10000,
                     socketTimeoutMS: 45000,
+                    heartbeatFrequencyMS: 10000,
+                    waitQueueTimeoutMS: 5000,
                 });
                 console.log(`MongoDB Connected (resolved): ${conn2.connection.host}`);
                 return;
