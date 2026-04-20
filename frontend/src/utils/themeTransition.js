@@ -7,7 +7,7 @@ import { flushSync } from 'react-dom';
  * @param {Function} updateStateCallback - The state setter to execute (e.g. setIsDarkMode)
  * @param {boolean} shouldReduceMotion - Whether the user prefers reduced motion (bypasses animation)
  */
-export const executeThemeTransition = (updateStateCallback, shouldReduceMotion = false) => {
+export const executeThemeTransition = (updateStateCallback, shouldReduceMotion = false, isHome = false) => {
   if (shouldReduceMotion || typeof document === 'undefined') {
     updateStateCallback();
     return;
@@ -30,7 +30,9 @@ export const executeThemeTransition = (updateStateCallback, shouldReduceMotion =
     return;
   }
 
-  document.documentElement.classList.add('theme-transition');
+  const transitionClass = isHome ? 'theme-transition-liquid' : 'theme-transition';
+
+  document.documentElement.classList.add(transitionClass);
 
   const transition = document.startViewTransition(() => {
     flushSync(() => {
@@ -39,6 +41,6 @@ export const executeThemeTransition = (updateStateCallback, shouldReduceMotion =
   });
 
   transition.finished.finally(() => {
-    document.documentElement.classList.remove('theme-transition');
+    document.documentElement.classList.remove(transitionClass);
   });
 };
