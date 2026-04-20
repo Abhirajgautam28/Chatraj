@@ -8,6 +8,7 @@ import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import projectModel from './models/project.model.js';
 import { generateResult } from './services/ai.service.js';
+import { withCache } from './utils/cache.js';
 import Message from './models/message.model.js';
 import pingService from './services/ping.service.js';
 
@@ -49,7 +50,11 @@ io.use(async (socket, next) => {
             return next(new Error('Invalid projectId'));
         }
 
-        const project = await projectModel.findById(projectId).lean();
+        // Cache project metadata for 10 seconds to throttle DB lookups during rapid reconnections
+        const project = await withCache(`project:socket:${projectId}`, 10, async () => {
+            return await projectModel.findById(projectId).lean();
+        });
+
         if (!project) {
             return next(new Error('Project not found'));
         }

@@ -74,8 +74,14 @@ async function connect() {
 
         mongoose.connection.on('disconnected', () => {
             console.log('MongoDB disconnected');
-            setTimeout(connect, 5000);
+            // Use exponential backoff for reconnection
+            const backoff = Math.min(30000, 5000 * Math.pow(2, (global.mongoRetryCount || 0)));
+            global.mongoRetryCount = (global.mongoRetryCount || 0) + 1;
+            setTimeout(connect, backoff);
         });
+
+        // Reset retry count on successful connection
+        global.mongoRetryCount = 0;
 
         process.on('SIGINT', async () => {
             await mongoose.connection.close();

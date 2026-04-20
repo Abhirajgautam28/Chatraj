@@ -16,6 +16,7 @@ import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import VimCodeEditor from '../components/VimCodeEditor';
 import ChatMessage from '../components/ChatMessage';
+import { useDebounce } from '../hooks/useDebounce';
 
 const PROJECT_TRANSLATIONS = {
   'en-US': {
@@ -266,6 +267,7 @@ const Project = () => {
   const [runProcess, setRunProcess] = useState(null)
   const [replyingTo, setReplyingTo] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [showSearch, setShowSearch] = useState(false)
 
   const sanitizeIframeUrl = (rawValue) => {
@@ -457,25 +459,34 @@ const Project = () => {
   };
 
   useEffect(() => {
-    if (window.__webcontainerBooted) return;
-    window.__webcontainerBooted = true;
-    initializeSocket(project._id)
-    if (!webContainer) {
-      getWebContainer().then((container) => {
-        setWebContainer(container)
-        console.log("container started")
-      })
+    const controller = new AbortController();
+    if (!window.__webcontainerBooted) {
+      window.__webcontainerBooted = true;
+      initializeSocket(project._id)
+      if (!webContainer) {
+        getWebContainer().then((container) => {
+          setWebContainer(container)
+          console.log("container started")
+        })
+      }
     }
-    axios.get(`/api/projects/get-project/${location.state.project._id}`).then((res) => {
+    axios.get(`/api/projects/get-project/${location.state.project._id}`, { signal: controller.signal }).then((res) => {
       setProject(res.data.project)
       setFileTree(res.data.project.fileTree || {})
-    })
+    }).catch(err => {
+      if (err.name === 'CanceledError') return;
+      console.error(err);
+    });
     axios
-      .get("/api/users/all")
+      .get("/api/users/all", { signal: controller.signal })
       .then((res) => {
         setUsers(res.data.users)
       })
-      .catch((err) => console.log(err))
+      .catch((err) => {
+        if (err.name === 'CanceledError') return;
+        console.log(err);
+      });
+    return () => controller.abort();
   }, [webContainer, project._id, location.state.project._id])
 
   useEffect(() => {
@@ -491,6 +502,8 @@ const Project = () => {
     }
   }, [messages, user._id]);
 
+  const fileTreeSyncTimeoutRef = useRef(null);
+
   useEffect(() => {
     const handleIncomingMessage = (data) => {
       // If the sender is Chatraj and the message is a JSON with fileTree, update the file tree
@@ -500,11 +513,14 @@ const Project = () => {
           if (aiResponse.fileTree) {
             const normalizedTree = normalizeFileTree(aiResponse.fileTree);
             setFileTree(normalizedTree);
-            // Optionally, update the backend as well:
-            axios.put('/api/projects/update-file-tree', {
-              projectId: project._id,
-              fileTree: normalizedTree
-            });
+            // Debounced backend sync to avoid hitting the DB too hard with large fileTree objects
+            if (fileTreeSyncTimeoutRef.current) clearTimeout(fileTreeSyncTimeoutRef.current);
+            fileTreeSyncTimeoutRef.current = setTimeout(() => {
+              axios.put('/api/projects/update-file-tree', {
+                projectId: project._id,
+                fileTree: normalizedTree
+              }).catch(err => console.warn('FileTree sync failed:', err));
+            }, 2000);
           }
           // Only show the AI's text in chat if it is not a duplicate
           setMessages((prev) => {
@@ -581,10 +597,10 @@ const Project = () => {
   }, [messages, user._id]);
 
   const filteredMessages = React.useMemo(() => {
-    return searchTerm
-      ? patchedMessages.filter((msg) => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
+    return debouncedSearchTerm
+      ? patchedMessages.filter((msg) => msg.message.toLowerCase().includes(debouncedSearchTerm.toLowerCase()))
       : patchedMessages;
-  }, [patchedMessages, searchTerm]);
+  }, [patchedMessages, debouncedSearchTerm]);
 
   // Fix: define groupedMessages before return
   const groupedMessages = React.useMemo(() => groupMessagesByDate(filteredMessages), [filteredMessages]);

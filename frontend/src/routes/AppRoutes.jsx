@@ -1,8 +1,4 @@
-import React from 'react';
-
-// ...existing code...
-import { Route, BrowserRouter, Routes } from 'react-router-dom'
-import { lazy, Suspense } from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Route, BrowserRouter, Routes } from 'react-router-dom';
 import UserAuth from '../auth/UserAuth';
 import LoadingScreen from '../components/LoadingScreen';

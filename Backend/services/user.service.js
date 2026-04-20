@@ -22,9 +22,19 @@ export const createUser = async ({
     return user;
 }
 
-export const getAllUsers = async ({ userId }) => {
-    const users = await userModel.find({
-        _id: { $ne: userId }
-    }).select('firstName lastName').lean();
+export const getAllUsers = async ({ userId, search, limit = 50, skip = 0 }) => {
+    const query = { _id: { $ne: userId } };
+    if (search) {
+        query.$or = [
+            { firstName: { $regex: search, $options: 'i' } },
+            { lastName: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } }
+        ];
+    }
+    const users = await userModel.find(query)
+        .select('firstName lastName')
+        .limit(Math.min(limit, 100))
+        .skip(skip)
+        .lean();
     return users;
 }

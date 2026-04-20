@@ -65,6 +65,12 @@ const allowedOrigins = new Set([
 
 const app = express();
 
+// Production performance tuning
+if (process.env.NODE_ENV === 'production') {
+  app.disable('x-powered-by');
+  app.set('json spaces', 0);
+}
+
 // Helper: determine whether cookies should be marked Secure + SameSite=None
 // based on the incoming request or enforced environment flags. Extracted
 // so the logic can be changed in a single place (proxies/CDNs aware).
@@ -79,6 +85,20 @@ function isSecureFromRequest(req) {
 }
 
 const VERCEL_ORIGIN_REGEX = /^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/;
+
+// Performance monitoring middleware
+const performanceLogger = (req, res, next) => {
+  if (process.env.NODE_ENV === 'production') {
+    const start = Date.now();
+    res.on('finish', () => {
+      const duration = Date.now() - start;
+      if (duration > 500) {
+        console.warn(`[PERF] Slow Request: ${req.method} ${req.originalUrl} took ${duration}ms`);
+      }
+    });
+  }
+  next();
+};
 
 // CORS debug logger
 const corsErrorLogger = (err, req, res, next) => {
@@ -121,7 +141,8 @@ app.use(cors({
 
 app.use(corsErrorLogger);
 
-app.use(morgan('dev'));
+app.use(performanceLogger);
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'tiny' : 'dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());

@@ -4,6 +4,7 @@ import { ChatRajThemeContext } from '../context/chatraj-theme.context';
 import { UserContext } from '../context/user.context';
 import { useNavigate } from 'react-router-dom';
 import ChatRajMessage from '../components/ChatRajMessage';
+import { useDebounce } from '../hooks/useDebounce';
 
 const formatMessageTime = (timestamp) => {
   const date = new Date(timestamp);
@@ -27,12 +28,13 @@ const ChatRaj = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const filteredMessagesList = useMemo(() => {
-    if (!searchTerm) return messages;
-    const lowerSearch = searchTerm.toLowerCase();
+    if (!debouncedSearchTerm) return messages;
+    const lowerSearch = debouncedSearchTerm.toLowerCase();
     return messages.filter(m => m.content && typeof m.content === 'string' && m.content.toLowerCase().includes(lowerSearch));
-  }, [messages, searchTerm]);
+  }, [messages, debouncedSearchTerm]);
   const [activeSettingsTab, setActiveSettingsTab] = useState('display');
   const [settings, setSettings] = useState(() => {
     const savedSettings = localStorage.getItem('chatrajSettings');

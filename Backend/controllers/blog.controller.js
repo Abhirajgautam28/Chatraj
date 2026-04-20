@@ -2,6 +2,7 @@ import Blog from '../models/blog.model.js';
 import User from '../models/user.model.js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import mongoose from 'mongoose';
+import { withCache, invalidateCache } from '../utils/cache.js';
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
@@ -72,7 +73,12 @@ export const likeBlog = async (req, res) => {
                 { _id: id },
                 { $addToSet: { likes: userId } },
                 { new: true }
-            ).populate('author', 'firstName lastName').lean();
+            );
+        }
+
+        if (blog) {
+            // Ensure consistency: lean populate
+            blog = await Blog.findById(id).populate('author', 'firstName lastName').lean();
         }
 
         if (!blog) return res.status(404).json({ error: 'Blog not found' });

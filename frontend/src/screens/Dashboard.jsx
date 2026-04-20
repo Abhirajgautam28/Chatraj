@@ -40,9 +40,10 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
+    const controller = new AbortController();
     // Use server-side filtering for better performance
     const url = categoryName ? `/api/projects/all?category=${encodeURIComponent(categoryName)}` : '/api/projects/all';
-    axios.get(url)
+    axios.get(url, { signal: controller.signal })
       .then((res) => {
         if (Array.isArray(res.data.projects)) {
           setProjects(res.data.projects);
@@ -51,9 +52,11 @@ const Dashboard = () => {
         }
       })
       .catch(err => {
+        if (err.name === 'CanceledError') return;
         console.log(err);
         setProjects([]);
       });
+    return () => controller.abort();
   }, [categoryName]);
 
   return (

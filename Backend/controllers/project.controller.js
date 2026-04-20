@@ -29,8 +29,9 @@ export const createProject = async (req, res) => {
 
     try {
         const { name, category, users } = req.body;
-        // Invalidate showcase cache when a new project is created
+        // Invalidate caches when a new project is created
         await invalidateCache('project:showcase');
+        await invalidateCache(`user:${req.user._id}:project-counts`);
 
         // NOTE: category validation is handled by route validator now,
         // but kept here for safety if validator fails or is bypassed.
@@ -106,6 +107,8 @@ export const updateProjectSidebarSettings = async (req, res) => {
 // Get project counts by category
 export const getProjectCountsByCategory = async (req, res) => {
   try {
+    const cacheKey = `user:${req.user._id}:project-counts`;
+    const result = await withCache(cacheKey, 60, async () => {
     // List of all categories as in frontend
     const allCategories = [
       'DSA',
@@ -143,6 +146,8 @@ export const getProjectCountsByCategory = async (req, res) => {
       if (result.hasOwnProperty(item._id)) {
         result[item._id] = item.count;
       }
+    });
+    return result;
     });
     res.status(200).json(result);
   } catch (err) {

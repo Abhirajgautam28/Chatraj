@@ -453,15 +453,16 @@ export const logoutController = async (req, res) => {
 
 export const getAllUsersController = async (req, res) => {
     try {
+        const { search, limit, skip } = req.query;
         // Use req.user._id directly from optimized JWT payload
-        const allUsers = await userService.getAllUsers({ userId: req.user._id });
-        const usersWithNames = allUsers.map(u => ({
-            _id: u._id,
-            firstName: u.firstName,
-            lastName: u.lastName
-        }));
+        const allUsers = await userService.getAllUsers({
+            userId: req.user._id,
+            search,
+            limit: limit ? parseInt(limit, 10) : 50,
+            skip: skip ? parseInt(skip, 10) : 0
+        });
         return res.status(200).json({
-            users: usersWithNames
+            users: allUsers
         })
     } catch (err) {
         console.error('getAllUsersController error:', err);
