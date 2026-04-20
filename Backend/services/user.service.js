@@ -49,7 +49,8 @@ export const registerUser = async (userData) => {
     const pendingKey = `pending:registration:${normalizedEmail}`;
     const pending = { firstName, lastName, email: normalizedEmail, passwordHash: hashedPassword, googleApiKey, otp, createdAt: Date.now() };
 
-    await redisClient.set(pendingKey, JSON.stringify(pending), 'EX', 900);
+    const ttl = parseInt(process.env.REGISTRATION_OTP_TTL_SECONDS || '900', 10);
+    await redisClient.set(pendingKey, JSON.stringify(pending), 'EX', ttl);
     await sendOtpEmail(normalizedEmail, otp);
     return { message: 'OTP sent to email. Please verify.' };
 };
@@ -83,6 +84,8 @@ export const verifyOtp = async ({ userId, email, otp }) => {
                 const token = await created.generateJWT();
                 const userObj = created.toObject();
                 delete userObj.password;
+                delete userObj.otp;
+                delete userObj.googleApiKey;
                 return { message: 'Verified successfully', token, user: userObj };
             }
         }
@@ -98,7 +101,9 @@ export const verifyOtp = async ({ userId, email, otp }) => {
     let token = null;
     if (userId) token = await user.generateJWT();
     const userObj = user.toObject();
+    delete userObj.password;
     delete userObj.otp;
+    delete userObj.googleApiKey;
     return { message: 'Verified successfully', token, user: userObj };
 };
 
@@ -138,6 +143,8 @@ export const loginUser = async (email, password) => {
     const token = await user.generateJWT();
     const userObj = user.toObject();
     delete userObj.password;
+    delete userObj.googleApiKey;
+    delete userObj.otp;
     return { user: userObj, token };
 };
 
@@ -179,6 +186,7 @@ export const updatePassword = async (email, newPassword) => {
         to: user.email,
         subject: 'Your ChatRaj Password Has Been Reset',
         html: getPasswordResetHtml(user.firstName || user.email),
+        text: `Hi ${user.firstName || user.email},\n\nYour ChatRaj password has been reset successfully.\n\nYou can now login with your new password at: https://chatraj.vercel.app/login\n\nIf you did not request this change, please contact our support team immediately.\n\nThank you,\nAbhiraj Gautam\nChatRaj Developer`,
     };
     await sendMailWithRetry(mailOptions);
 

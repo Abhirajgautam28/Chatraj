@@ -22,7 +22,7 @@ export const subscribe = async (email) => {
         to: normalizedEmail,
         subject: '🚀 Welcome to the ChatRaj Newsletter – Your Gateway to Next-Gen Collaboration!',
         html: getNewsletterHtml(),
-        text: `Welcome to ChatRaj!\n\nThank you for subscribing to our newsletter.`,
+        text: `Welcome to ChatRaj! 🎉\n\nYou’re officially part of a vibrant community of developers, creators, and AI enthusiasts.\n\nWhy ChatRaj?\n- AI-Powered Collaboration\n- Privacy & Security\n- Open Source (https://github.com/Abhirajgautam28/Chatraj)\n- Beautiful UI\n\nUpcoming Releases:\n- ChatRaj v2.1 (August 2025): AI suggestions & collaboration tools\n- ChatRaj v2.2 (September 2025): Project analytics & debugging\n- ChatRaj v3.0 (Late 2025): Full-stack AI assistant\n\nThank you for choosing ChatRaj.\nAbhiraj Gautam\nChatRaj Developer\nhttps://abhirajgautam.in`,
     };
 
     try {

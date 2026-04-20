@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import * as userService from '../services/user.service.js';
 import { validationResult } from 'express-validator';
 import redisClient from '../services/redis.service.js';
+import response from '../utils/response.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -10,32 +11,32 @@ export const sendOtpController = async (req, res) => {
     try {
         const { email } = req.body;
         const result = await userService.sendOtp(email);
-        res.status(200).json(result);
-    } catch (error) {
-        const status = (error.message === 'Valid email is required' || error.message === 'User not found') ? 400 : 500;
-        res.status(status).json({ message: error.message || 'Internal server error' });
+        return response.success(res, result);
+    } catch (err) {
+        const status = (err.message === 'Valid email is required' || err.message === 'User not found') ? 400 : 500;
+        return response.error(res, err.message, status);
     }
 };
 
 export const getLeaderboardController = async (req, res) => {
     try {
         const users = await userService.getLeaderboard();
-        res.status(200).json({ users });
-    } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
+        return response.success(res, { users });
+    } catch (err) {
+        return response.error(res, 'Internal server error');
     }
 };
 
 export const createUserController = async (req, res) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    if (!errors.isEmpty()) return response.error(res, 'Validation failed', 400, errors.array());
 
     try {
         const result = await userService.registerUser(req.body);
-        res.status(201).json(result);
-    } catch (error) {
-        const status = error.message === 'Email already registered' ? 409 : 400;
-        res.status(status).json({ message: error.message || 'Invalid request' });
+        return response.success(res, result, 'Registration pending. OTP sent.', 201);
+    } catch (err) {
+        const status = err.message === 'Email already registered' ? 409 : 400;
+        return response.error(res, err.message, status);
     }
 }
 
@@ -43,10 +44,10 @@ export const createUserController = async (req, res) => {
 export const verifyOtpController = async (req, res) => {
     try {
         const result = await userService.verifyOtp(req.body);
-        res.status(200).json(result);
-    } catch (error) {
-        const status = error.message === 'Invalid OTP' ? 401 : (error.message === 'User not found' ? 404 : 400);
-        res.status(status).json({ message: error.message });
+        return response.success(res, result);
+    } catch (err) {
+        const status = err.message === 'Invalid OTP' ? 401 : (err.message === 'User not found' ? 404 : 400);
+        return response.error(res, err.message, status);
     }
 };
 
@@ -54,38 +55,38 @@ export const verifyOtpController = async (req, res) => {
 export const adminGetOtpController = async (req, res) => {
     try {
         const result = await userService.adminGetOtp(req.get('x-admin-key'), req.query);
-        res.status(200).json(result);
-    } catch (error) {
-        const status = error.message === 'Forbidden' ? 403 : (error.message === 'User not found' ? 404 : 400);
-        res.status(status).json({ message: error.message });
+        return response.success(res, result);
+    } catch (err) {
+        const status = err.message === 'Forbidden' ? 403 : (err.message === 'User not found' ? 404 : 400);
+        return response.error(res, err.message, status);
     }
 };
 
 export const loginController = async (req, res) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    if (!errors.isEmpty()) return response.error(res, 'Validation failed', 400, errors.array());
 
     try {
         const { email, password } = req.body;
         const result = await userService.loginUser(email, password);
-        res.status(200).json(result);
+        return response.success(res, result, 'Login successful');
     } catch (err) {
         const status = err.message === 'Invalid credentials' ? 401 : (err.message === 'Account not verified' ? 403 : 400);
-        res.status(status).json({ errors: err.message });
+        return response.error(res, err.message, status);
     }
 }
 
 export const profileController = async (req, res) => {
-    res.status(200).json({ user: req.user });
+    return response.success(res, { user: req.user });
 }
 
 export const logoutController = async (req, res) => {
     try {
         const token = req.cookies.token || (req.headers.authorization ? req.headers.authorization.split(' ')[1] : null);
         if (token) redisClient.set(token, 'logout', 'EX', 60 * 60 * 24);
-        res.status(200).json({ message: 'Logged out successfully' });
+        return response.success(res, null, 'Logged out successfully');
     } catch (err) {
-        res.status(400).send('Invalid request');
+        return response.error(res, 'Invalid request', 400);
     }
 }
 
@@ -93,9 +94,9 @@ export const getAllUsersController = async (req, res) => {
     try {
         const allUsers = await userService.getAllUsers({ userId: req.user._id });
         const usersWithNames = allUsers.map(u => ({ _id: u._id, firstName: u.firstName, lastName: u.lastName }));
-        return res.status(200).json({ users: usersWithNames })
+        return response.success(res, { users: usersWithNames })
     } catch (err) {
-        res.status(400).json({ error: 'Unable to fetch users' })
+        return response.error(res, 'Unable to fetch users', 400);
     }
 }
 
@@ -103,10 +104,10 @@ export const resetPasswordController = async (req, res) => {
     try {
         const { email } = req.body;
         const result = await userService.resetPassword(email);
-        res.json(result);
+        return response.success(res, result);
     } catch (err) {
         const status = err.message === 'User not found' ? 404 : 500;
-        res.status(status).json({ message: err.message });
+        return response.error(res, err.message, status);
     }
 };
 
@@ -114,8 +115,8 @@ export const updatePasswordController = async (req, res) => {
     try {
         const { email, newPassword } = req.body;
         const result = await userService.updatePassword(email, newPassword);
-        res.json(result);
+        return response.success(res, result);
     } catch (err) {
-        res.status(400).json({ message: err.message });
+        return response.error(res, err.message, 400);
     }
 };

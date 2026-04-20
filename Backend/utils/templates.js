@@ -1,6 +1,7 @@
 /**
  * HTML Templates for emails.
  */
+import { escapeHtml } from './strings.js';
 
 export const getNewsletterHtml = () => {
   return `
@@ -43,11 +44,12 @@ export const getNewsletterHtml = () => {
 };
 
 export const getPasswordResetHtml = (name) => {
+  const safeName = escapeHtml(name);
   return `
       <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f4f8fc; padding: 40px; border-radius: 16px; color: #222; box-shadow: 0 4px 24px rgba(37,99,235,0.08);">
         <div style="text-align:center;">
           <h1 style="color: #2563eb; font-size: 2.2em; margin-bottom: 8px;">Password Reset Successful 🎉</h1>
-          <p style="font-size: 1.15em; color: #444; margin-bottom: 24px;">Hi <b>${name}</b>, your ChatRaj password has been reset successfully.</p>
+          <p style="font-size: 1.15em; color: #444; margin-bottom: 24px;">Hi <b>${safeName}</b>, your ChatRaj password has been reset successfully.</p>
         </div>
         <div style="background: #eaf1fb; border-radius: 10px; padding: 24px; margin-bottom: 24px;">
           <h2 style="color: #2563eb; margin-bottom: 12px;">What's Next?</h2>
