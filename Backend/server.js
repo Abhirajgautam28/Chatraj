@@ -229,14 +229,15 @@ io.on('connection', socket => {
     });
 
     socket.on('typing', (data) => {
-        socket.to(socket.roomId).emit('typing', {
+        // Optimization: Volatile events for high-frequency ephemeral state
+        socket.to(socket.roomId).volatile.emit('typing', {
             userId: data.userId,
             projectId: data.projectId
         });
     });
 
     socket.on('stop-typing', (data) => {
-        socket.to(socket.roomId).emit('stop-typing', {
+        socket.to(socket.roomId).volatile.emit('stop-typing', {
             userId: data.userId,
             projectId: data.projectId
         });

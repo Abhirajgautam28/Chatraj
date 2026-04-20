@@ -71,8 +71,25 @@ const ChatMessage = React.memo(({
     const isReply = !!msg.parentMessageId;
     const isReplyCollapsed = settings.behavior.collapseReplies && isReply && !expandedReplies[msg._id];
 
+    const [isVisible, setIsVisible] = React.useState(false);
+    const domRef = React.useRef();
+
+    React.useEffect(() => {
+        const observer = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting) {
+                setIsVisible(true);
+                observer.unobserve(domRef.current);
+            }
+        }, { rootMargin: '100px' });
+
+        if (domRef.current) observer.observe(domRef.current);
+        return () => observer.disconnect();
+    }, []);
+
+    if (!isVisible) return <div ref={domRef} className="h-10 w-full mb-2" />;
+
     return (
-        <div className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"} mb-2`}>
+        <div ref={domRef} className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"} mb-2`}>
             {isReply && !isReplyCollapsed && (
                 <div className="px-2 py-1 mb-1 text-xs italic bg-gray-200 rounded">
                     Replying to: {parentMsg ? (typeof parentMsg.sender === "object" ? parentMsg.sender.firstName : parentMsg.sender) : "Unknown"}

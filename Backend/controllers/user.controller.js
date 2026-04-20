@@ -77,21 +77,34 @@ export const getLeaderboardController = async (req, res) => {
             }
         }
 
-        // Fallback to existing cached DB query
-        const users = await withCache('user:leaderboard:legacy', 600, async () => {
-            // Count projects per user using aggregation
-            const counts = await mongoose.model('project').aggregate([
+        // Fallback to optimized aggregation (single round-trip for data + profile)
+        const users = await withCache('user:leaderboard:v3', 600, async () => {
+            const results = await mongoose.model('project').aggregate([
                 { $unwind: "$users" },
-                { $group: { _id: "$users", count: { $sum: 1 } } },
-                { $sort: { count: -1 } },
-                { $limit: 10 }
+                { $group: { _id: "$users", projectsCount: { $sum: 1 } } },
+                { $sort: { projectsCount: -1 } },
+                { $limit: 10 },
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: '_id',
+                        foreignField: '_id',
+                        as: 'profile',
+                        pipeline: [
+                             { $project: { firstName: 1, lastName: 1 } }
+                        ]
+                    }
+                },
+                { $unwind: "$profile" },
+                {
+                    $project: {
+                        _id: 1,
+                        projectsCount: 1,
+                        firstName: "$profile.firstName",
+                        lastName: "$profile.lastName"
+                    }
+                }
             ]);
-
-            const results = [];
-            for (const item of counts) {
-                const u = await userModel.findById(item._id).select('firstName lastName').lean();
-                if (u) results.push({ ...u, projectsCount: item.count });
-            }
             return results;
         });
         res.status(200).json({ users });

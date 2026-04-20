@@ -2,8 +2,26 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import 'remixicon/fonts/remixicon.css';
 
-const MaterialBlogCard = ({ blog }) => (
+const MaterialBlogCard = ({ blog }) => {
+  const [isVisible, setIsVisible] = React.useState(false);
+  const domRef = React.useRef();
+
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) {
+        setIsVisible(true);
+        observer.unobserve(domRef.current);
+      }
+    }, { rootMargin: '200px' });
+    if (domRef.current) observer.observe(domRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  if (!isVisible) return <div ref={domRef} className="h-[400px] w-full max-w-md mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />;
+
+  return (
   <div
+    ref={domRef}
     className={`rounded-xl shadow-md bg-white dark:bg-gray-900 hover:shadow-lg transition-shadow duration-200 flex flex-col h-full border border-gray-200 dark:border-gray-800 max-w-md mx-auto`}
     style={{ minWidth: 0 }}
   >
@@ -38,6 +56,7 @@ const MaterialBlogCard = ({ blog }) => (
       </Link>
     </div>
   </div>
-);
+  );
+};
 
 export default MaterialBlogCard;
