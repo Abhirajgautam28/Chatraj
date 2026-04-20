@@ -5,6 +5,7 @@ const BlogThemeContext = createContext();
 
 export const BlogThemeProvider = ({ children }) => {
   const [isBlogDarkMode, setIsBlogDarkMode] = useState(false);
+
   return (
     <BlogThemeContext.Provider value={{ isBlogDarkMode, setIsBlogDarkMode }}>
       {children}
