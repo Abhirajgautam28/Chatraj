@@ -4,9 +4,10 @@ import ProjectShowcase from '../components/ProjectShowcase.jsx';
 import UserLeaderboard from '../components/UserLeaderboard.jsx';
 import { useContext, useEffect, useState, lazy, Suspense } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
+import { executeThemeTransition } from '../utils/themeTransition';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
 import Blog from '../components/Blog.jsx';
 import ContactUs from '../components/ContactUs.jsx';
@@ -144,6 +145,7 @@ const Home = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showFabMenu, setShowFabMenu] = useState(false);
   const [showAskChatRajModal, setShowAskChatRajModal] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
 
 
   useEffect(() => {
@@ -172,6 +174,12 @@ const Home = () => {
       localStorage.setItem('fromTryChatRaj', 'true');
       navigate('/login', { replace: true });
     }
+  };
+
+  const handleThemeToggle = () => {
+    executeThemeTransition(() => {
+      setIsDarkMode((prev) => !prev);
+    }, shouldReduceMotion, true); // true indicating this is the Home screen for the liquid effect
   };
 
   const AnimatedBg = () => (
@@ -244,7 +252,7 @@ const Home = () => {
             Try ChatRaj
           </button>
           <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
+            onClick={handleThemeToggle}
             className={`p-2 transition-colors rounded-lg ${isDarkMode ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}
           >
             <i className={`text-xl ${isDarkMode ? 'ri-sun-line' : 'ri-moon-line'}`}></i>
@@ -309,7 +317,7 @@ function greet(name) {
       </section>
 
       {/* Features */}
-      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
+      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-gray-900/80' : 'bg-gray-100/80'}`}>
         <div className="max-w-6xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Key Features</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
@@ -377,7 +385,7 @@ function greet(name) {
         </div>
       </section>
 
-      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-gray-800/80' : 'bg-gray-100/80'}`}>
         <div className="max-w-6xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Powered By</h2>
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
@@ -445,14 +453,14 @@ function greet(name) {
       </section>
 
       {/* User Leaderboard Section */}
-      <section className={`relative z-10 py-20 ${isDarkMode ? 'bg-gray-100/10' : 'bg-gray-100'}`}>
+      <section className={`relative z-10 py-20 ${isDarkMode ? 'bg-gray-100/10' : 'bg-gray-100/80'}`}>
         <div className="max-w-4xl mx-auto">
           <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-gray-900">User Leaderboard</h2>
           <UserLeaderboard />
         </div>
       </section>
 
-      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-gray-800/80' : 'bg-gray-100'}`}>
+      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-gray-800/80' : 'bg-gray-100/80'}`}>
         <div className="max-w-4xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Frequently Asked Questions</h2>
           <div className="space-y-6">
@@ -477,7 +485,7 @@ function greet(name) {
         <ContactUs />
       </div>
 
-      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-blue-900/80' : 'bg-gray-100'}`}>
+      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-blue-900/80' : 'bg-gray-100/80'}`}>
         <div className="max-w-xl mx-auto text-center">
           <h2 className={`mb-4 text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Stay Updated</h2>
           <p className={`mb-8 text-lg ${isDarkMode ? 'text-blue-100' : 'text-gray-600'}`}>
@@ -646,7 +654,7 @@ function greet(name) {
       </div>
 
       {/* Footer */}
-      <footer className={`relative z-10 px-8 py-6 mt-0 text-center ${isDarkMode ? 'bg-gray-900' : 'bg-gray-200'}`}>
+      <footer className={`relative z-10 px-8 py-6 mt-0 text-center ${isDarkMode ? 'bg-gray-900/90' : 'bg-gray-200/90'}`}>
         <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>© 2026 ChatRaj All rights reserved.</p>
       </footer>
 
