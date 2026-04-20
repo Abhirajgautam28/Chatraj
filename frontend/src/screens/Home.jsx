@@ -174,6 +174,12 @@ const Home = () => {
     }
   };
 
+  const handleThemeToggle = () => {
+    executeThemeTransition(() => {
+      setIsDarkMode((prev) => !prev);
+    }, shouldReduceMotion, true);
+  };
+
   const AnimatedBg = () => (
     <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
       <motion.div
