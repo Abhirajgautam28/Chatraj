@@ -59,6 +59,29 @@ axiosInstance.interceptors.request.use(
   error => Promise.reject(error)
 );
 
+// Response interceptor to unwrap standardized success responses
+axiosInstance.interceptors.response.use(
+  response => {
+    // If backend uses the standardized { success, data, message } format,
+    // unwrap the data for easier consumption in components.
+    if (response.data && response.data.success === true && response.data.data !== undefined) {
+      // Attach the original message to the data if needed, or just return data
+      return { ...response, data: response.data.data };
+    }
+    return response;
+  },
+  error => {
+    // Standardized error handling for 401s or other global errors
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('token');
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default axiosInstance;
 
 // Named export: explicit helper to fetch CSRF token from the API and return it.
