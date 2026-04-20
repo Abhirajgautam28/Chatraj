@@ -7,7 +7,7 @@ import { executeThemeTransition } from '../utils/themeTransition';
 
 const Categories = () => {
   const navigate = useNavigate();
-  const { isDarkMode, setIsDarkMode } = useContext(ThemeContext);
+  const { isDarkMode, setIsDarkMode, toggleThemeGlobal } = useContext(ThemeContext);
 
   // State for search/filter and view toggle
   const [search, setSearch] = useState("");

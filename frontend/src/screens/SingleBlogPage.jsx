@@ -47,7 +47,7 @@ const SingleBlogPageContent = () => {
     const { id } = useParams();
     const heroRef = useRef(null);
     const contentRef = useRef(null);
-    const { isBlogDarkMode, setIsBlogDarkMode } = useBlogTheme();
+    const { isBlogDarkMode, setIsBlogDarkMode, toggleThemeGlobal } = useBlogTheme();
 
     useEffect(() => {
         if (heroRef.current) {

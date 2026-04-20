@@ -138,7 +138,7 @@ const faqs = [
 
 const Home = () => {
   const { user } = useContext(UserContext);
-  const { isDarkMode, setIsDarkMode } = useContext(ThemeContext);
+  const { isDarkMode, toggleThemeGlobal } = useContext(ThemeContext);
   const navigate = useNavigate();
 
   const [isNavVisible, setIsNavVisible] = useState(true);

@@ -113,7 +113,7 @@ const ChatRaj = () => {
   const messageEndRef = useRef(null);
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
-  useContext(ChatRajThemeContext);
+  const { toggleThemeGlobal } = useContext(ChatRajThemeContext);
   const { user } = useContext(UserContext);
 
   const [autoCompleteOptions, setAutoCompleteOptions] = useState([]);
@@ -321,6 +321,9 @@ const ChatRaj = () => {
 
   useEffect(() => {
     localStorage.setItem('chatrajSettings', JSON.stringify(settings));
+    // Since toggleThemeGlobal handles `setIsDarkMode`, we do not want to automatically call
+    // `setIsDarkMode` here because it might double-fire or circumvent the transition.
+    // However, we still need to sync the html class for initial loads.
     document.documentElement.classList.toggle('dark', settings.display.darkMode);
   }, [settings]);
 
@@ -594,8 +597,8 @@ const ChatRaj = () => {
                   </p>
                 </div>
               ) : (
-                (searchTerm 
-                  ? messages.filter(message => 
+                (searchTerm
+                  ? messages.filter(message =>
                       message.content.toLowerCase().includes(searchTerm.toLowerCase())
                     )
                   : messages

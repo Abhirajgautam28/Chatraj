@@ -1,7 +1,11 @@
-import { GoogleGenerativeAI } from "@google/generative-ai"
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-
-// If GOOGLE_AI_KEY is not set, return a fallback response
+/**
+ * Generates a result from the AI service.
+ * @param {string} prompt - The prompt for the AI.
+ * @param {string} userApiKey - Optional user-provided API key.
+ * @returns {Promise<string>} - The AI response text.
+ */
 export const generateResult = async (prompt, userApiKey) => {
     const apiKey = userApiKey || process.env.GOOGLE_AI_KEY;
     if (!apiKey || apiKey === 'YOUR_API_KEY_HERE') {
@@ -110,4 +114,8 @@ export const generateResult = async (prompt, userApiKey) => {
             fileTree: null
         });
     }
-}
+};
+
+export default {
+    generateResult
+};
