@@ -19,7 +19,7 @@
     "test:backend:controllers": "cd Backend && npx jest tests/controllers/*.test.js --config jest.config.cjs",
     "test:backend:mailer": "cd Backend && npx jest tests/mailer.test.js --config jest.config.cjs",
     "test:backend:security": "cd Backend && npx jest tests/security/*.test.js --config jest.config.cjs",
-    "test:backend:integration": "cd Backend && npx jest tests/integration/*.test.js --config jest.config.cjs",
+    "test:backend:integration": "cd Backend && npx jest tests/integration/**/*.test.js --config jest.config.cjs",
     "test:backend:socket": "cd Backend && npx jest tests/socket.test.js --config jest.config.cjs",
     "test:coverage": "cd Backend && npx jest --coverage --config jest.config.cjs",
     "test:backend:unit": "cd Backend && npx jest tests/unit/**/*.test.js --config jest.config.cjs",

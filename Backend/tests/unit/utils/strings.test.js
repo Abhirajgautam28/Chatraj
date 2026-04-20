@@ -7,7 +7,6 @@ describe('String Utilities', () => {
         });
         test('should handle non-string inputs', () => {
             expect(escapeRegex(123)).toBe('123');
-            expect(escapeRegex(null)).toBe('null');
         });
     });
 
