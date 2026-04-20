@@ -244,6 +244,56 @@ button {
   }
 }
 
+/* Liquid Swipe View Transition specifically for Home Screen */
+.theme-transition-liquid::view-transition-group(root) {
+  animation-duration: var(--theme-transition-duration);
+}
+
+.theme-transition-liquid::view-transition-old(root) {
+  animation: liquid-exit var(--theme-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) forwards;
+  z-index: 1;
+}
+
+.theme-transition-liquid::view-transition-new(root) {
+  animation: liquid-enter var(--theme-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) forwards;
+  z-index: 2;
+}
+
+@keyframes liquid-exit {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    clip-path: polygon(100% 0, 100% 100%, 0 100%, 0 0);
+  }
+  100% {
+    opacity: 0.5;
+    transform: scale(0.9);
+    clip-path: polygon(100% 0, 100% 100%, 0 100%, 0 0);
+  }
+}
+
+@keyframes liquid-enter {
+  0% {
+    opacity: 1;
+    transform: scale(1.05);
+    clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);
+  }
+  20% {
+    clip-path: polygon(100% 0, 80% 15%, 85% 85%, 100% 100%);
+  }
+  40% {
+    clip-path: polygon(100% 0, 50% 30%, 60% 70%, 100% 100%);
+  }
+  60% {
+    clip-path: polygon(100% 0, 20% 50%, 30% 90%, 100% 100%);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%);
+  }
+}
+
 /* Fallback for browsers that do not support View Transitions */
 .theme-transitioning,
 .theme-transitioning * {
