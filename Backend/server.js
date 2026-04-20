@@ -36,7 +36,22 @@ const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
         origin: '*'
-    }
+    },
+    // Enable per-message compression for high-volume chat data
+    perMessageDeflate: {
+        threshold: 1024, // only compress messages > 1kb
+        zlibDeflateOptions: {
+            chunkSize: 8 * 1024,
+        },
+        zlibInflateOptions: {
+            windowBits: 14,
+        },
+    },
+    // Faster detection of dead clients to free up server resources
+    pingTimeout: 10000,
+    pingInterval: 5000,
+    // Connect timeout
+    connectTimeout: 20000
 });
 
 io.use(async (socket, next) => {

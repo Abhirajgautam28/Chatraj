@@ -31,6 +31,8 @@ const projectSchema = new mongoose.Schema({
         type: Object,
         default: {}
     }
+}, {
+    versionKey: false
 })
 
 const Project = mongoose.model('project', projectSchema)

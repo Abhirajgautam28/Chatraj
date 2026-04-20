@@ -14,12 +14,17 @@ const commentSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
+}, {
+    _id: false // Sub-documents don't need their own ID to save memory
 });
 
 const blogSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true
+    },
+    summary: {
+        type: String
     },
     content: {
         type: String,
@@ -46,7 +51,11 @@ const blogSchema = new mongoose.Schema({
         default: Date.now,
         index: -1
     }
+}, {
+    versionKey: false
 });
+
+blogSchema.index({ title: 'text', content: 'text' });
 
 const Blog = mongoose.model('Blog', blogSchema);
 

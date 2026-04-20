@@ -90,7 +90,8 @@ function ThreeHero({
       emissive: 0x1565c0,
       emissiveIntensity: 0.15,
     });
-    const nucleus = new THREE.Mesh(new THREE.SphereGeometry(0.55, 48, 48), nucleusMaterial);
+    const segments = window.innerWidth < 768 ? 24 : 48;
+    const nucleus = new THREE.Mesh(new THREE.SphereGeometry(0.55, segments, segments), nucleusMaterial);
     scene.add(nucleus);
     // Orbiting rings
     const ringMaterial = new THREE.MeshPhysicalMaterial({
@@ -110,7 +111,7 @@ function ThreeHero({
     const rings = [];
     for (let i = 0; i < 3; i++) {
       const ring = new THREE.Mesh(
-        new THREE.TorusGeometry(1.1, 0.07, 32, 120),
+        new THREE.TorusGeometry(1.1, 0.07, window.innerWidth < 768 ? 16 : 32, window.innerWidth < 768 ? 64 : 120),
         ringMaterial
       );
       ring.rotation.x = Math.PI / 2 * (i + 1) / 2;

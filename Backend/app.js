@@ -86,10 +86,19 @@ function isSecureFromRequest(req) {
 
 const VERCEL_ORIGIN_REGEX = /^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/;
 
-// Performance monitoring middleware
+// Performance monitoring & Timeout middleware
 const performanceLogger = (req, res, next) => {
-  if (process.env.NODE_ENV === 'production') {
-    const start = Date.now();
+  const isProd = process.env.NODE_ENV === 'production';
+  const start = Date.now();
+
+  // Set a reasonable global timeout for API requests (30s)
+  req.setTimeout(30000, () => {
+    const err = new Error('Request Timeout');
+    err.status = 408;
+    next(err);
+  });
+
+  if (isProd) {
     res.on('finish', () => {
       const duration = Date.now() - start;
       if (duration > 500) {
@@ -250,20 +259,35 @@ app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/blogs', blogRoutes);
 
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  const isDev = process.env.NODE_ENV === 'development';
+
+  // Log full error in dev, but minimal in prod to save log space/privacy
+  if (isDev) {
+    console.error(err);
+  } else {
+    console.error(`[ERROR] ${err.name || 'Error'}: ${err.message || 'Unknown error'} | Path: ${req.path}`);
+  }
+
   // Handle CSRF errors specially
   if (err && (err.code === 'EBADCSRFTOKEN' || err.message === 'invalid csrf token')) {
-    console.error('CSRF validation failed:', err.message);
     return res.status(403).json({
       error: 'Invalid CSRF token',
-      message: process.env.NODE_ENV === 'development' ? err.message : 'Forbidden'
+      message: isDev ? err.message : 'Forbidden'
     });
+  }
+
+  // Mongoose validation errors
+  if (err.name === 'ValidationError') {
+      return res.status(400).json({
+          error: 'Validation Error',
+          details: Object.values(err.errors).map(e => e.message)
+      });
   }
 
   const status = err.status || 500;
   res.status(status).json({ 
-    error: 'Something broke!',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
+    error: status === 500 ? 'Internal Server Error' : 'Error',
+    message: isDev ? err.message : (status === 500 ? 'Something went wrong on our end.' : err.message)
   });
 });
 

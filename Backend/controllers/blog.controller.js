@@ -8,13 +8,14 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
 export const createBlog = async (req, res) => {
     try {
-        const { title, content } = req.body;
+        const { title, content, summary } = req.body;
         // Invalidate blog list cache
         await invalidateCache('blog:all');
         // Use req.user._id directly from optimized JWT payload
         const newBlog = new Blog({
             title,
             content,
+            summary: summary || (content ? content.slice(0, 150) + '...' : ''),
             author: req.user._id
         });
 

@@ -43,7 +43,8 @@ const ThreeBackground = () => {
     }
 
     // Particles - Using InstancedMesh for Spheres
-    const particlesCount = 700;
+    // Responsive particle count based on screen width
+    const particlesCount = window.innerWidth < 768 ? 200 : window.innerWidth < 1200 ? 450 : 700;
     // Slightly larger spheres for better visibility
     const geometry = new THREE.SphereGeometry(0.035, 8, 8);
     // Use vertex colors so each instance can be colored individually

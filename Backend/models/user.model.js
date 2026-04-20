@@ -44,6 +44,8 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     }
+}, {
+    versionKey: false
 });
 
 userSchema.statics.hashPassword = async function (password) {
@@ -62,6 +64,8 @@ userSchema.methods.generateJWT = function () {
         { expiresIn: '24h' }
     );
 };
+
+userSchema.index({ firstName: 'text', lastName: 'text', email: 'text' });
 
 const User = mongoose.model('user', userSchema);
 

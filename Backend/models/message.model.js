@@ -34,6 +34,9 @@ const messageSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
+}, {
+  // Disable __v field for performance and storage savings (internal use only)
+  versionKey: false
 });
 
 // Compound index for high-performance chat history retrieval
