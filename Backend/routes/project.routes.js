@@ -12,7 +12,8 @@ import {
   updateFileTree,
   getProjectSettings,
   updateProjectSettings,
-  getProjectShowcase
+  getProjectShowcase,
+  getProjectMessages
 } from '../controllers/project.controller.js';
 import { authUser } from '../middleware/auth.middleware.js';
 
@@ -75,6 +76,12 @@ router.get('/settings/:projectId',
     projectLimiter,
     authUser,
     getProjectSettings
+)
+
+router.get('/messages/:projectId',
+    projectLimiter,
+    authUser,
+    getProjectMessages
 )
 
 router.put('/settings/:projectId',

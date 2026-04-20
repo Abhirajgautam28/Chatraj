@@ -36,8 +36,13 @@ export const authUser = async (req, res, next) => {
         const now = Date.now();
         const cached = tokenCache.get(token);
         if (cached && (now - cached.timestamp < TOKEN_CACHE_TTL)) {
-            req.user = cached.decoded;
-            return next();
+            // Security: Ensure token is still not expired according to its internal exp claim
+            if (cached.decoded.exp && (cached.decoded.exp * 1000 > now)) {
+                req.user = cached.decoded;
+                return next();
+            } else {
+                tokenCache.delete(token);
+            }
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);

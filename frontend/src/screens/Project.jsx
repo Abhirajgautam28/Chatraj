@@ -477,6 +477,10 @@ const Project = () => {
     axios.get(`/api/projects/get-project/${location.state.project._id}`, { signal: controller.signal }).then((res) => {
       setProject(res.data.project)
       setFileTree(res.data.project.fileTree || {})
+      // Initial load of messages
+      axios.get(`/api/projects/messages/${location.state.project._id}?limit=50`).then(mRes => {
+        setMessages(mRes.data.messages);
+      });
     }).catch(err => {
       if (err.name === 'CanceledError') return;
       console.error(err);
@@ -493,18 +497,30 @@ const Project = () => {
     return () => controller.abort();
   }, [webContainer, project._id, location.state.project._id])
 
+  const readBufferRef = useRef(new Set());
   useEffect(() => {
     if (messages.length && messageBox.current) {
       // Auto-scroll to bottom
       messageBox.current.scrollTop = messageBox.current.scrollHeight;
 
-      // Mark last message as read
-      const lastMsg = messages[messages.length - 1]
+      // Performance Optimization: Batch read status updates
+      const lastMsg = messages[messages.length - 1];
       if (lastMsg._id) {
-        sendMessage("message-read", { messageId: lastMsg._id, userId: user._id })
+        readBufferRef.current.add(lastMsg._id);
       }
     }
-  }, [messages, user._id]);
+  }, [messages]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (readBufferRef.current.size > 0) {
+        const messageIds = Array.from(readBufferRef.current);
+        sendMessage("messages-read-batch", { messageIds, userId: user._id });
+        readBufferRef.current.clear();
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [user._id]);
 
   const fileTreeSyncTimeoutRef = useRef(null);
 

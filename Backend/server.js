@@ -12,6 +12,7 @@ import mongoose from 'mongoose';
 import projectModel from './models/project.model.js';
 import { generateResult } from './services/ai.service.js';
 import { withCache } from './utils/cache.js';
+import { serializeMessage } from './utils/response.js';
 import Message from './models/message.model.js';
 import pingService from './services/ping.service.js';
 
@@ -123,7 +124,7 @@ io.on('connection', socket => {
             console.error("Error saving message:", err);
             savedMessage = { ...data, createdAt: new Date().toISOString(), deliveredTo: [], readBy: [] };
         }
-        io.to(socket.roomId).emit('project-message', savedMessage);
+        io.to(socket.roomId).emit('project-message', serializeMessage(savedMessage));
 
         if (aiIsPresent) {
             const prompt = messageText.replace('@Chatraj', '');
@@ -142,7 +143,7 @@ io.on('connection', socket => {
                 console.error("Error saving AI message:", err);
                 savedAIMessage = { message: result, sender: { _id: 'Chatraj', email: 'Chatraj' }, createdAt: new Date().toISOString() };
             }
-            io.to(socket.roomId).emit('project-message', savedAIMessage);
+            io.to(socket.roomId).emit('project-message', serializeMessage(savedAIMessage));
             return;
         }
     })
@@ -174,6 +175,21 @@ io.on('connection', socket => {
             }
         } catch (err) {
             console.error('Error updating readBy:', err);
+        }
+    });
+
+    // Performance Optimization: Batch read status updates
+    socket.on('messages-read-batch', async ({ messageIds, userId }) => {
+        try {
+            const result = await Message.updateMany(
+                { _id: { $in: messageIds }, readBy: { $ne: userId } },
+                { $addToSet: { readBy: userId } }
+            );
+            if (result.modifiedCount > 0) {
+                io.to(socket.roomId).emit('messages-read-batch', { messageIds, userId });
+            }
+        } catch (err) {
+            console.error('Error updating readBy batch:', err);
         }
     });
 

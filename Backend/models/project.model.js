@@ -35,6 +35,9 @@ const projectSchema = new mongoose.Schema({
     versionKey: false
 })
 
+// Covered index for category counts
+projectSchema.index({ users: 1, category: 1 });
+
 const Project = mongoose.model('project', projectSchema)
 
 export default Project;

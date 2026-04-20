@@ -27,6 +27,33 @@ export const getAllProject = async (req, res) => {
     }
 };
 
+export const getProjectMessages = async (req, res) => {
+    try {
+        const { projectId } = req.params;
+        const { limit = 50, before } = req.query;
+
+        if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
+            return res.status(400).json({ error: 'Invalid projectId' });
+        }
+
+        const query = { conversationId: projectId };
+        if (before) {
+            query.createdAt = { $lt: new Date(before) };
+        }
+
+        // Optimization: Use covered index if possible (conversationId, createdAt)
+        const messages = await mongoose.model('Message').find(query)
+            .sort({ createdAt: -1 })
+            .limit(parseInt(limit, 10))
+            .lean();
+
+        res.status(200).json({ messages: messages.reverse() });
+    } catch (err) {
+        console.error('getProjectMessages error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
 export const createProject = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
