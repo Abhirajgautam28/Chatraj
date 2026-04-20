@@ -1,26 +1,33 @@
-# 🛠️ Development Guide
+# 🚀 Development Guide
 
-This guide provides information on how to develop, debug, and contribute to the ChatRaj project.
+Welcome to ChatRaj! This guide will help you maintain the quality and consistency of the project.
 
-## 💻 Local Setup
+## 🏗️ Backend Architecture
 
-1.  **Environment Variables**: Ensure `Backend/.env` and `frontend/.env` are correctly configured.
-2.  **Start Dev Servers**: Use `npm run dev` in the root directory to start both backend and frontend.
+We follow a layered architecture:
 
-## 📐 Coding Standards
+1.  **Routes**: Define endpoints and apply middleware (auth, rate limits).
+2.  **Controllers**: Handle HTTP requests, validate input, and delegate to services. **Always use the `response` utility** for consistent API outputs.
+3.  **Services**: Contain the core business logic. They should be agnostic of HTTP and can be tested in isolation.
+4.  **Models**: Mongoose schemas and database-level logic.
+5.  **Utils**: Pure, stateless helper functions.
 
-- **Backend**:
-    - Use the **Service Layer** for all business logic.
-    - Keep controllers thin; they should only handle request parsing and response formatting.
-    - Use the `Backend/utils/response.js` utility for consistent JSON responses.
-    - Always add unit tests in `Backend/tests/unit/` for new services or utilities.
-- **Frontend**:
-    - Use functional components and React hooks.
-    - Memoize derived data with `useMemo` where appropriate.
-    - Place shared logic in `frontend/src/utils/` or custom hooks.
+## 🛡️ Security Standards
 
-## 🐛 Debugging Tips
+*   **Sensitive Data**: Never return passwords, OTPs, or API keys in API responses. Explicitly `delete` these fields from objects before sending.
+*   **XSS Protection**: All user-provided strings interpolated into HTML (especially emails) MUST be escaped using the `escapeHtml` utility.
+*   **CSRF**: All non-safe HTTP methods (POST, PUT, DELETE) require a valid CSRF token. The project supports both cookie-based and signed stateless fallback tokens.
+*   **Rate Limiting**: Protect sensitive endpoints (Login, Register) using the `sensitiveLimiter`.
 
-- **Backend**: Use `console.log` or a debugger. Check `Backend/logs/` if applicable.
-- **Frontend**: Use React Developer Tools and the browser's console.
-- **Testing**: Run specific tests using `npx jest path/to/test` to isolate issues.
+## 📝 Coding Conventions
+
+*   **Imports**: Use ES modules. Include `.js` extensions in local imports.
+*   **Error Handling**: Throw descriptive errors in services and catch them in controllers. The `errorHandler` middleware will format them correctly.
+*   **Async/Await**: Always use `try/catch` in controllers and middleware.
+
+## 🧪 Testing
+
+Before submitting a PR, ensure that:
+1. New logic has corresponding unit tests.
+2. `npm run test:all` passes successfully.
+3. No sensitive data is leaked in logs or responses.

@@ -23,7 +23,7 @@ const ContactUs = () => {
     };
 
     return (
-        <section className="py-20 bg-white/80 dark:bg-gray-900/80">
+        <section className="py-20 bg-white dark:bg-gray-900">
             <div className="max-w-6xl mx-auto">
                 <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-white">Contact Us</h2>
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-2">

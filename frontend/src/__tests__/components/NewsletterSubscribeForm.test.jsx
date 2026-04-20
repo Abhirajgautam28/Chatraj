@@ -1,18 +1,18 @@
-import React from 'react';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, test, expect, vi } from 'vitest';
+import React from 'react';
 import NewsletterSubscribeForm from '../../components/NewsletterSubscribeForm';
 
-describe('NewsletterSubscribeForm Component', () => {
-  test('should render email input and subscribe button', () => {
+describe('NewsletterSubscribeForm', () => {
+  it('renders input and button', () => {
     render(<NewsletterSubscribeForm />);
-    expect(screen.getByPlaceholderText(/email/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /subscribe/i })).toBeInTheDocument();
+    expect(screen.getByPlaceholderName(/enter your email/i)).toBeDefined();
+    expect(screen.getByText(/subscribe/i)).toBeDefined();
   });
 
-  test('should update input value on change', () => {
+  it('updates input value on change', () => {
     render(<NewsletterSubscribeForm />);
-    const input = screen.getByPlaceholderText(/email/i);
+    const input = screen.getByPlaceholderName(/enter your email/i);
     fireEvent.change(input, { target: { value: 'test@example.com' } });
     expect(input.value).toBe('test@example.com');
   });

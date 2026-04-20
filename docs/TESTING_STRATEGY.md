@@ -1,28 +1,53 @@
-# 📐 Testing Strategy
+# 🧪 Testing Strategy
 
-ChatRaj employs a "Testing Pyramid" approach to ensure a reliable and maintainable codebase.
+This document outlines the testing standards and procedures for the ChatRaj project.
 
-## 🔼 The Pyramid
+## 🏗️ Backend Testing
 
-1.  **Unit Tests (Base)**:
-    *   Found in `Backend/tests/unit/` and `frontend/src/__tests__/unit/`.
-    *   Fast, isolated tests for utilities and services.
-    *   Goal: 100% logic coverage for core functions.
+We use **Jest** for backend testing. Our tests are categorized into:
 
-2.  **Security Tests**:
-    *   Found in `Backend/tests/security/`.
-    *   Verifies authentication middleware and data protection logic.
+1.  **Unit Tests (`Backend/tests/unit/`)**:
+    *   **Services**: Test business logic in isolation by mocking Mongoose models and third-party services.
+    *   **Utilities**: Pure functions (e.g., `normalizeEmail`, `escapeHtml`) should have 100% test coverage.
+    *   **Middleware**: Test security and error handling logic.
 
-3.  **Integration Tests**:
-    *   Found in `Backend/tests/integration/`.
-    *   Tests multi-component flows using `supertest` and in-memory mocks.
+2.  **Controller Tests (`Backend/tests/controllers/`)**:
+    *   Use `supertest` to verify HTTP status codes, headers, and response formats.
+    *   Mock the underlying service layer.
 
-4.  **End-to-End (E2E) Tests (Top)**:
-    *   Managed by **Cypress**.
-    *   Tests real browser interactions and full system flows.
+3.  **Integration Tests (`Backend/tests/integration/`)**:
+    *   Verify end-to-end flows like user registration -> OTP verification -> login.
 
-## ✅ Verification Policy
+### Running Tests
+```bash
+npm run test:backend:unit        # Run all unit tests
+npm run test:backend:services    # Run service tests
+npm run test:backend:coverage    # Generate coverage report
+```
 
-- All new features **must** include corresponding unit tests.
-- Bug fixes **should** include a regression test.
-- CI/CD pipelines execute the full suite on every pull request.
+---
+
+## 🎨 Frontend Testing
+
+We use **Vitest** and **React Testing Library** for frontend testing.
+
+1.  **Component Tests (`frontend/src/__tests__/components/`)**:
+    *   Verify component rendering, user interactions, and prop behavior.
+    *   Mock API calls using `vi.mock`.
+
+2.  **Hook Tests (`frontend/src/__tests__/unit/hooks/`)**:
+    *   Use `renderHook` to verify custom hook logic and state transitions.
+
+### Running Tests
+```bash
+npm run test:frontend            # Run all vitest tests
+```
+
+---
+
+## 🛡️ Best Practices
+
+*   **Mock Dependencies**: Always mock external services (Redis, Mailer, AI) and database models in unit tests.
+*   **Deterministic Tests**: Ensure tests do not rely on external state or time.
+*   **Safety First**: Use utilities like `escapeHtml` for user-provided data in emails to prevent XSS.
+*   **Clean Up**: Always call `jest.clearAllMocks()` in `afterEach` to prevent test leakage.

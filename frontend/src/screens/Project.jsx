@@ -10,7 +10,6 @@ import Avatar from '../components/Avatar';
 import EmojiPicker from '../components/EmojiPicker';
 import FileIcon from '../components/FileIcon';
 import 'highlight.js/styles/github.css';
-import { executeThemeTransition } from '../utils/themeTransition';
 import 'highlight.js/styles/github-dark.css';
 import PropTypes from 'prop-types';
 import CodeMirror from '@uiw/react-codemirror';
@@ -217,7 +216,7 @@ const Project = () => {
   const [project, setProject] = useState(location.state.project)
   const [message, setMessage] = useState('')
   const { user } = useContext(UserContext)
-  const { isDarkMode, setIsDarkMode, toggleThemeGlobal } = useContext(ThemeContext)
+  const { isDarkMode, setIsDarkMode } = useContext(ThemeContext)
   const messageBox = useRef(null)
   const [users, setUsers] = useState([])
   const [messages, setMessages] = useState([])
@@ -846,9 +845,7 @@ const Project = () => {
 
   useEffect(() => {
     localStorage.setItem('projectSettings', JSON.stringify(settings));
-    // Since toggleThemeGlobal handles `setIsDarkMode`, we do not want to automatically call
-    // `setIsDarkMode` here because it might double-fire or circumvent the transition.
-    // However, we still need to sync the html class for initial loads.
+    setIsDarkMode(settings.display.darkMode);
     document.documentElement.classList.toggle('dark', settings.display.darkMode);
   }, [settings, setIsDarkMode]);
 
@@ -1489,12 +1486,7 @@ const Project = () => {
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-gray-900 dark:text-white">Dark Mode</span>
                       <button
-                        onClick={() => {
-                          const shouldReduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                          executeThemeTransition(() => {
-                            updateSettings('display', 'darkMode', !settings.display.darkMode);
-                          }, shouldReduceMotion);
-                        }}
+                        onClick={() => updateSettings('display', 'darkMode', !settings.display.darkMode)}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.darkMode ? 'bg-blue-600' : 'bg-gray-300'}`}
                       >
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.darkMode ? 'translate-x-6' : 'translate-x-1'}`} />

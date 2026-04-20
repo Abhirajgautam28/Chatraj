@@ -5,12 +5,12 @@ import { Link } from 'react-router-dom';
 import 'remixicon/fonts/remixicon.css';
 import MaterialBlogCard from '../components/MaterialBlogCard';
 import useDarkMode from '../hooks/useDarkMode';
-import { executeThemeTransition } from '../utils/themeTransition';
+
 
 const BlogsContent = () => {
     const [blogs, setBlogs] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [darkMode, setDarkMode, toggleThemeGlobal] = useDarkMode('blog_dark_mode', false);
+    const [darkMode, setDarkMode] = useDarkMode('blog_dark_mode', false);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -45,12 +45,7 @@ const BlogsContent = () => {
                 <button
                     aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
                     className="absolute top-6 right-6 md:top-8 md:right-12 z-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full p-2 shadow hover:shadow-md transition-all duration-200 flex items-center justify-center"
-                    onClick={() => {
-                        const shouldReduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                        executeThemeTransition(() => {
-                            setDarkMode((d) => !d);
-                        }, shouldReduceMotion);
-                    }}
+                    onClick={() => setDarkMode((d) => !d)}
                 >
                     {darkMode ? (
                         <i className="ri-sun-line text-2xl text-yellow-400" />
