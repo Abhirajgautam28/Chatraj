@@ -3,11 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import axios, { clearCsrfCache } from '../config/axios.js';
 import { ThemeContext } from '../context/theme.context.jsx';
-import { executeThemeTransition } from '../utils/themeTransition';
 
 const Categories = () => {
   const navigate = useNavigate();
-  const { isDarkMode, setIsDarkMode, toggleThemeGlobal } = useContext(ThemeContext);
+  const { isDarkMode, setIsDarkMode } = useContext(ThemeContext);
 
   // State for search/filter and view toggle
   const [search, setSearch] = useState("");
@@ -50,15 +49,13 @@ const Categories = () => {
     if (theme === 'system') {
       // Use Home page's isDarkMode value (from ThemeContext)
       // Do nothing, ThemeContext already provides the value
-    } else if (theme === 'dark' && !isDarkMode) {
-      const shouldReduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      executeThemeTransition(() => setIsDarkMode(true), shouldReduceMotion);
-    } else if (theme === 'light' && isDarkMode) {
-      const shouldReduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      executeThemeTransition(() => setIsDarkMode(false), shouldReduceMotion);
+    } else if (theme === 'dark') {
+      setIsDarkMode(true);
+    } else {
+      setIsDarkMode(false);
     }
     localStorage.setItem('categoriesThemeMode', theme);
-  }, [theme, isDarkMode, setIsDarkMode]);
+  }, [theme, setIsDarkMode]);
 
   // Close dropdowns on outside click
   useEffect(() => {

@@ -107,8 +107,8 @@ const ThreeBackground = () => {
     const animate = () => {
       animationId = requestAnimationFrame(animate);
 
-      mesh.rotation.y -= 0.0005;
-      mesh.rotation.x -= 0.00025;
+      mesh.rotation.y -= 0.001;
+      mesh.rotation.x -= 0.0005;
 
       renderer.render(scene, camera);
     };

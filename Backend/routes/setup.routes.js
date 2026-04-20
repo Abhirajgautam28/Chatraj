@@ -2,6 +2,7 @@ import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { requiredKeys } from '../config/required-keys.js';
 import Blog from '../models/blog.model.js';
+import response from '../utils/response.js';
 
 // initialize router
 const router = Router();
@@ -24,9 +25,9 @@ router.get('/config-info', (req, res) => {
             return acc;
         }, {});
         
-        res.json({ keys: safeKeys });
+        return response.success(res, { keys: safeKeys });
     } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch configuration information' });
+        return response.error(res, 'Failed to fetch configuration information');
     }
 });
 
@@ -58,9 +59,9 @@ router.get('/sitemap.xml', sitemapLimiter, async (req, res) => {
         const xmlUrls = allUrls.map(u => `  <url>\n    <loc>${siteUrl.replace(/\/$/, '')}${u}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>`).join('\n');
         const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${xmlUrls}\n</urlset>`;
         res.header('Content-Type', 'application/xml');
-        res.send(xml);
+        return res.send(xml);
     } catch (err) {
-        res.status(500).send('Failed to generate sitemap');
+        return res.status(500).send('Failed to generate sitemap');
     }
 });
 

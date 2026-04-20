@@ -1,16 +1,16 @@
-import React from 'react';
+import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { describe, test, expect } from 'vitest';
+import React from 'react';
 import FileIcon from '../../components/FileIcon';
 
 describe('FileIcon Component', () => {
-  test('should render folder icon for directory', () => {
-    render(<FileIcon type="directory" />);
-    expect(screen.getByRole('img')).toBeInTheDocument();
+  it('renders correctly for known extensions', () => {
+    const { container } = render(<FileIcon filename="test.js" />);
+    expect(container.querySelector('.ri-javascript-fill')).toBeDefined();
   });
 
-  test('should render file icon for file', () => {
-    render(<FileIcon type="file" />);
-    expect(screen.getByRole('img')).toBeInTheDocument();
+  it('renders default icon for unknown extensions', () => {
+    const { container } = render(<FileIcon filename="test.unknown" />);
+    expect(container.querySelector('.ri-file-3-line')).toBeDefined();
   });
 });

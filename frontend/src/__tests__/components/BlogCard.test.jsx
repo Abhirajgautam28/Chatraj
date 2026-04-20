@@ -1,6 +1,6 @@
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { describe, test, expect } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import BlogCard from '../../components/BlogCard';
 
@@ -8,18 +8,31 @@ describe('BlogCard Component', () => {
   const mockBlog = {
     _id: '1',
     title: 'Test Blog',
-    content: 'This is a test content that should be truncated if it is too long.',
+    content: 'Test content',
     author: { firstName: 'John', lastName: 'Doe' },
-    createdAt: new Date().toISOString()
+    likes: [],
+    comments: []
   };
 
-  test('should render blog title and author name', () => {
+  it('renders blog details correctly', () => {
     render(
       <BrowserRouter>
         <BlogCard blog={mockBlog} />
       </BrowserRouter>
     );
-    expect(screen.getByText('Test Blog')).toBeInTheDocument();
-    expect(screen.getByText(/John Doe/)).toBeInTheDocument();
+    expect(screen.getByText('Test Blog')).toBeDefined();
+    expect(screen.getByText('By John Doe')).toBeDefined();
+  });
+
+  it('calls onLike when like button clicked', () => {
+    const onLike = vi.fn();
+    render(
+      <BrowserRouter>
+        <BlogCard blog={mockBlog} onLike={onLike} />
+      </BrowserRouter>
+    );
+    const likeBtn = screen.getByRole('button', { name: /like/i });
+    fireEvent.click(likeBtn);
+    expect(onLike).toHaveBeenCalledWith('1');
   });
 });

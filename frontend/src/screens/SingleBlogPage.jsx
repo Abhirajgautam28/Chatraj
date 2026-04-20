@@ -2,7 +2,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { BlogThemeProvider } from '../context/blogTheme.context';
 import useBlogTheme from '../context/useBlogTheme';
-import { executeThemeTransition } from '../utils/themeTransition';
 import PropTypes from 'prop-types';
 import axios from '../config/axios';
 import { useParams } from 'react-router-dom';
@@ -47,7 +46,7 @@ const SingleBlogPageContent = () => {
     const { id } = useParams();
     const heroRef = useRef(null);
     const contentRef = useRef(null);
-    const { isBlogDarkMode, setIsBlogDarkMode, toggleThemeGlobal } = useBlogTheme();
+    const { isBlogDarkMode, setIsBlogDarkMode } = useBlogTheme();
 
     useEffect(() => {
         if (heroRef.current) {
@@ -103,12 +102,7 @@ const SingleBlogPageContent = () => {
         <div className={isBlogDarkMode ? 'min-h-screen bg-gray-900 text-white transition-colors duration-300' : 'min-h-screen bg-gray-100 text-gray-900 transition-colors duration-300'}>
             <div className="flex justify-end px-4 pt-4">
                 <button
-                    onClick={() => {
-                        const shouldReduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                        executeThemeTransition(() => {
-                            setIsBlogDarkMode((prev) => !prev);
-                        }, shouldReduceMotion);
-                    }}
+                    onClick={() => setIsBlogDarkMode((prev) => !prev)}
                     className="rounded-full p-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 shadow hover:shadow-md transition"
                     aria-label="Toggle blog theme"
                 >

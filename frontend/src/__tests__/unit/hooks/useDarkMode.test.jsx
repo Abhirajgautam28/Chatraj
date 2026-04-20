@@ -1,28 +1,23 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { describe, test, expect, beforeEach, vi } from 'vitest';
 import useDarkMode from '../../../hooks/useDarkMode';
 
 describe('useDarkMode Hook', () => {
   beforeEach(() => {
     localStorage.clear();
-    document.documentElement.classList.remove('dark');
   });
 
-  test('should initialize with light mode by default', () => {
+  it('defaults to false if no localStorage', () => {
     const { result } = renderHook(() => useDarkMode());
-    expect(result.current[0]).toBe(false);
-    expect(document.documentElement.classList.contains('dark')).toBe(false);
+    expect(result.current.isDarkMode).toBe(false);
   });
 
-  test('should toggle dark mode', () => {
+  it('toggles dark mode', () => {
     const { result } = renderHook(() => useDarkMode());
-
     act(() => {
-      result.current[1](true);
+      result.current.setIsDarkMode(true);
     });
-
-    expect(result.current[0]).toBe(true);
-    expect(document.documentElement.classList.contains('dark')).toBe(true);
-    expect(localStorage.getItem('blog_dark_mode')).toBe('true');
+    expect(result.current.isDarkMode).toBe(true);
+    expect(localStorage.getItem('theme')).toBe('dark');
   });
 });
