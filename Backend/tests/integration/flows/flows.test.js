@@ -1,16 +1,16 @@
 import request from 'supertest';
-import app from '../../app.js';
-import userModel from '../../models/user.model.js';
-import Newsletter from '../../models/newsletter.model.js';
-import Blog from '../../models/blog.model.js';
+import app from '../../../app.js';
+import userModel from '../../../models/user.model.js';
+import Newsletter from '../../../models/newsletter.model.js';
+import Blog from '../../../models/blog.model.js';
 import jwt from 'jsonwebtoken';
-import redisClient from '../../services/redis.service.js';
+import redisClient from '../../../services/redis.service.js';
 
-jest.mock('../../models/user.model.js');
-jest.mock('../../models/newsletter.model.js');
-jest.mock('../../models/blog.model.js');
-jest.mock('../../services/redis.service.js');
-jest.mock('../../db/db.js');
+jest.mock('../../../models/user.model.js');
+jest.mock('../../../models/newsletter.model.js');
+jest.mock('../../../models/blog.model.js');
+jest.mock('../../../services/redis.service.js');
+jest.mock('../../../db/db.js');
 
 describe('Integration Flows', () => {
     beforeEach(() => {
