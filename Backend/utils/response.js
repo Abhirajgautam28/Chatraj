@@ -34,9 +34,7 @@ export const serializeMessage = (msg) => {
     pooled.conversationId = msg.conversationId;
     pooled.sender = {
         _id: msg.sender?._id,
-        firstName: msg.sender?.firstName,
-        lastName: msg.sender?.lastName,
-        email: msg.sender?.email
+        firstName: msg.sender?.firstName
     };
     pooled.message = msg.message;
     pooled.parentMessageId = msg.parentMessageId;

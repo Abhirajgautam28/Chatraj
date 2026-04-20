@@ -45,7 +45,8 @@ const userSchema = new mongoose.Schema({
         default: false
     }
 }, {
-    versionKey: false
+    versionKey: false,
+    autoIndex: process.env.NODE_ENV !== 'production'
 });
 
 userSchema.statics.hashPassword = async function (password) {

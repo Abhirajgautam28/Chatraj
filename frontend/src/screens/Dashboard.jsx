@@ -1,5 +1,5 @@
 // ...existing code...
-import { useContext, useState, useEffect } from 'react';
+import { useContext, useState, useEffect, useTransition } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserContext } from '../context/user.context';
 import axios, { clearCsrfCache } from "../config/axios";
@@ -7,6 +7,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 const Dashboard = () => {
   useContext(UserContext);
+  const [isPending, startTransition] = useTransition();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectName, setProjectName] = useState('');
   const [projects, setProjects] = useState([]);
@@ -45,11 +46,13 @@ const Dashboard = () => {
     const url = categoryName ? `/api/projects/all?category=${encodeURIComponent(categoryName)}` : '/api/projects/all';
     axios.get(url, { signal: controller.signal })
       .then((res) => {
-        if (Array.isArray(res.data.projects)) {
-          setProjects(res.data.projects);
-        } else {
-          setProjects([]);
-        }
+        startTransition(() => {
+          if (Array.isArray(res.data.projects)) {
+            setProjects(res.data.projects);
+          } else {
+            setProjects([]);
+          }
+        });
       })
       .catch(err => {
         if (err.name === 'CanceledError') return;

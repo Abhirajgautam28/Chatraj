@@ -52,7 +52,8 @@ const blogSchema = new mongoose.Schema({
         index: -1
     }
 }, {
-    versionKey: false
+    versionKey: false,
+    autoIndex: process.env.NODE_ENV !== 'production'
 });
 
 blogSchema.index({ title: 'text', content: 'text' });

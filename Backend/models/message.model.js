@@ -36,7 +36,8 @@ const messageSchema = new mongoose.Schema({
   }
 }, {
   // Disable __v field for performance and storage savings (internal use only)
-  versionKey: false
+  versionKey: false,
+  autoIndex: process.env.NODE_ENV !== 'production'
 });
 
 // Compound index for high-performance chat history retrieval

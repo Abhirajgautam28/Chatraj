@@ -65,6 +65,17 @@ const allowedOrigins = new Set([
 
 const app = express();
 
+// Manual security & performance headers (Helmet-lite)
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  // Performance: hint browser to keep connection alive
+  res.setHeader('Connection', 'keep-alive');
+  next();
+});
+
 // Production performance tuning
 if (process.env.NODE_ENV === 'production') {
   app.disable('x-powered-by');

@@ -32,7 +32,8 @@ const projectSchema = new mongoose.Schema({
         default: {}
     }
 }, {
-    versionKey: false
+    versionKey: false,
+    autoIndex: process.env.NODE_ENV !== 'production'
 })
 
 // Covered index for category counts

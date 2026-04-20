@@ -270,7 +270,8 @@ const Project = () => {
   const [runProcess, setRunProcess] = useState(null)
   const [replyingTo, setReplyingTo] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
-  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const deferredSearchTerm = React.useDeferredValue(searchTerm);
+  const debouncedSearchTerm = useDebounce(deferredSearchTerm, 300);
   const [showSearch, setShowSearch] = useState(false)
 
   const sanitizeIframeUrl = (rawValue) => {
@@ -631,10 +632,11 @@ const Project = () => {
   }, [messages, user._id]);
 
   const filteredMessages = React.useMemo(() => {
-    return debouncedSearchTerm
-      ? patchedMessages.filter((msg) => msg.message.toLowerCase().includes(debouncedSearchTerm.toLowerCase()))
+    const term = debouncedSearchTerm || deferredSearchTerm;
+    return term
+      ? patchedMessages.filter((msg) => msg.message.toLowerCase().includes(term.toLowerCase()))
       : patchedMessages;
-  }, [patchedMessages, debouncedSearchTerm]);
+  }, [patchedMessages, debouncedSearchTerm, deferredSearchTerm]);
 
   // Fix: define groupedMessages before return
   const groupedMessages = React.useMemo(() => groupMessagesByDate(filteredMessages), [filteredMessages]);
