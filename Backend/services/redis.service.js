@@ -1,5 +1,6 @@
 import Redis from 'ioredis';
 import * as dotenv from 'dotenv';
+import { logger } from '../utils/logger.js';
 dotenv.config();
 
 let redisClient;
@@ -12,11 +13,11 @@ if (process.env.REDIS_URL) {
     });
 
     redisClient.on('error', (err) => {
-        console.error('Redis error:', err && (err.stack || err.message || err));
+        logger.error('Redis error:', err && (err.stack || err.message || err));
     });
 } else {
     // Fallback lightweight in-memory mock for development when no REDIS_URL is provided.
-    console.warn('REDIS_URL not set — using in-memory Redis mock (development only)');
+    logger.warn('REDIS_URL not set — using in-memory Redis mock (development only)');
     const store = new Map();
     const timers = new Map();
 

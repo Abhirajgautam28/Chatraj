@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect, useContext } from 'react'
 import { UserContext } from '../context/user.context'
 import { ThemeContext } from '../context/theme.context'
+import { useToast } from '../context/toast.context'
 import { useLocation } from 'react-router-dom'
 import axios from '../config/axios'
 import { initializeSocket, receiveMessage, sendMessage } from '../config/socket'
@@ -217,6 +218,7 @@ const Project = () => {
   const [message, setMessage] = useState('')
   const { user } = useContext(UserContext)
   const { isDarkMode, setIsDarkMode } = useContext(ThemeContext)
+  const { showToast } = useToast()
   const messageBox = useRef(null)
   const [users, setUsers] = useState([])
   const [messages, setMessages] = useState([])
@@ -248,6 +250,13 @@ const Project = () => {
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
+  }, []);
+
   const [settings, setSettings] = useState(() => {
     const savedSettings = localStorage.getItem('projectSettings');
     const defaultSettings = {
@@ -1148,7 +1157,7 @@ const Project = () => {
               <button
                 onClick={async () => {
                   if (!webContainer) {
-                    alert("WebContainer is not ready yet.");
+                    showToast("WebContainer is not ready yet.", "info");
                     return;
                   }
                   try {
@@ -1227,7 +1236,7 @@ const Project = () => {
 
                   } catch (error) {
                     console.error('Error running project:', error);
-                    alert(`Failed to run project: ${error.message}`);
+                    showToast(`Failed to run project: ${error.message}`, "error");
                   }
                 }}
                 style={{ backgroundColor: settings.display.themeColor || '#3B82F6', color: '#fff' }}

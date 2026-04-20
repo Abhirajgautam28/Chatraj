@@ -116,7 +116,7 @@ async function sendViaSendGrid(mailOptions) {
     req.write(body);
     req.end();
   });
-  console.info('SendGrid: message queued to %s', mailOptions.to);
+  logger.info(`SendGrid: message queued to ${mailOptions.to}`);
 }
 
 async function sendViaEthereal(mailOptions) {
@@ -131,7 +131,7 @@ async function sendViaEthereal(mailOptions) {
   const info = await transporter.sendMail(mailOptions);
   try {
     const url = nodemailer.getTestMessageUrl(info);
-    console.info('Ethereal message URL:', url);
+    logger.info(`Ethereal message URL: ${url}`);
   } catch (e) {
     // ignore
   }
@@ -145,7 +145,7 @@ async function sendWebhookNotification(webhookUrl, payload) {
   const maxConcurrent = parseInt(process.env.SMTP_FAILURE_WEBHOOK_MAX_CONCURRENT || '2', 10);
   const timeoutMs = parseInt(process.env.SMTP_FAILURE_WEBHOOK_TIMEOUT_MS || '5000', 10);
   if (webhookActiveCount >= maxConcurrent) {
-    console.warn('SMTP failure webhook skipped because concurrency limit reached');
+    logger.warn('SMTP failure webhook skipped because concurrency limit reached');
     return;
   }
 
