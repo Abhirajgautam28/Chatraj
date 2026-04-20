@@ -4,6 +4,7 @@ import useTheme from '../context/useTheme';
 import axios from '../config/axios';
 import { useNavigate } from 'react-router-dom';
 import anime from 'animejs';
+import { logger } from '../utils/logger';
 
 function Blog({ user }) {
     const [blogs, setBlogs] = useState([]);
@@ -17,7 +18,7 @@ function Blog({ user }) {
                     setBlogs(response.data.slice(0, 3));
                 }
             } catch (error) {
-                console.error('Error fetching blogs:', error);
+                logger.error('Error fetching blogs:', error);
             }
         };
         fetchBlogs();

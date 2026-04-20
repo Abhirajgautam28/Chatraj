@@ -10,6 +10,7 @@ import projectModel from './models/project.model.js';
 import { generateResult } from './services/ai.service.js';
 import Message from './models/message.model.js';
 import pingService from './services/ping.service.js';
+import { logger } from './utils/logger.js';
 
 
 const port = process.env.PORT || 8080;
@@ -22,14 +23,14 @@ if (missing.length) {
     const enforce = process.env.NODE_ENV === 'production' || process.env.ENFORCE_REQUIRED_ENV === 'true';
     const msg = `Missing required environment variables: ${missing.join(', ')}. Please set them in your .env file or host environment before starting.`;
     if (enforce) {
-        console.error(msg);
+        logger.error(msg);
         process.exit(1);
     } else {
-        console.warn(`${msg} Continuing because NODE_ENV !== 'production'. Set ENFORCE_REQUIRED_ENV=true to enforce in non-production environments.`);
+        logger.warn(`${msg} Continuing because NODE_ENV !== 'production'. Set ENFORCE_REQUIRED_ENV=true to enforce in non-production environments.`);
     }
 }
 
-connect().catch(console.error);
+connect().catch(logger.error);
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -91,7 +92,7 @@ io.on('connection', socket => {
                 readBy: [] // Track reads
             });
         } catch (err) {
-            console.error("Error saving message:", err);
+            logger.error("Error saving message:", err);
             savedMessage = { ...data, createdAt: new Date().toISOString(), deliveredTo: [], readBy: [] };
         }
         io.to(socket.roomId).emit('project-message', savedMessage);
@@ -110,7 +111,7 @@ io.on('connection', socket => {
                     createdAt: new Date()
                 });
             } catch (err) {
-                console.error("Error saving AI message:", err);
+                logger.error("Error saving AI message:", err);
                 savedAIMessage = { message: result, sender: { _id: 'Chatraj', email: 'Chatraj' }, createdAt: new Date().toISOString() };
             }
             io.to(socket.roomId).emit('project-message', savedAIMessage);
@@ -121,28 +122,30 @@ io.on('connection', socket => {
     // Delivery event: when a user receives a message, mark as delivered
     socket.on('message-delivered', async ({ messageId, userId }) => {
         try {
-            const message = await Message.findById(messageId);
-            if (message && !message.deliveredTo.includes(userId)) {
-                message.deliveredTo.push(userId);
-                await message.save();
+            const result = await Message.updateOne(
+                { _id: messageId },
+                { $addToSet: { deliveredTo: userId } }
+            );
+            if (result.modifiedCount > 0) {
                 io.to(socket.roomId).emit('message-delivered', { messageId, userId });
             }
         } catch (err) {
-            console.error('Error updating deliveredTo:', err);
+            logger.error('Error updating deliveredTo:', err);
         }
     });
 
     // Read event: when a user reads a message, mark as read
     socket.on('message-read', async ({ messageId, userId }) => {
         try {
-            const message = await Message.findById(messageId);
-            if (message && !message.readBy.includes(userId)) {
-                message.readBy.push(userId);
-                await message.save();
+            const result = await Message.updateOne(
+                { _id: messageId },
+                { $addToSet: { readBy: userId } }
+            );
+            if (result.modifiedCount > 0) {
                 io.to(socket.roomId).emit('message-read', { messageId, userId });
             }
         } catch (err) {
-            console.error('Error updating readBy:', err);
+            logger.error('Error updating readBy:', err);
         }
     });
 
@@ -165,7 +168,7 @@ io.on('connection', socket => {
                 io.to(socket.roomId).emit('message-reaction', message);
             }
         } catch (error) {
-            console.error("Error handling reaction:", error.message);
+            logger.error("Error handling reaction:", error.message);
         }
     });
 
@@ -184,25 +187,25 @@ io.on('connection', socket => {
     });
 
     socket.on('disconnect', () => {
-        console.log('user disconnected');
+        logger.info('user disconnected');
         socket.leave(socket.roomId)
     });
 });
 
 server.on('error', (error) => {
     if (error.code === 'EADDRINUSE') {
-        console.error(`Port ${port} is already in use. Please try these solutions:`);
-        console.log('1. Stop any running server instances');
-        console.log('2. Choose a different port in .env file');
-        console.log('3. Run: taskkill /F /IM node.exe to force stop all Node processes');
+        logger.error(`Port ${port} is already in use. Please try these solutions:`);
+        logger.info('1. Stop any running server instances');
+        logger.info('2. Choose a different port in .env file');
+        logger.info('3. Run: taskkill /F /IM node.exe to force stop all Node processes');
     } else {
-        console.error('Server error:', error);
+        logger.error('Server error:', error);
     }
     process.exit(1);
 });
 
 server.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+    logger.info(`Server is running on port ${port}`);
     if (process.env.NODE_ENV === 'production') {
         const backendUrl = process.env.BACKEND_URL || `https://${process.env.RENDER_EXTERNAL_HOSTNAME}`;
         pingService(`${backendUrl}/health`);

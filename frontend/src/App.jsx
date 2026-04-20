@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import AppRoutes from './routes/AppRoutes'
 import { UserProvider } from './context/user.context'
 import { ThemeProvider } from './context/theme.context'
+import { ToastProvider } from './context/toast.context'
 import ThreeBackground from './components/ThreeBackground';
 import axios from './config/axios';
 
@@ -17,10 +18,12 @@ const App = () => {
   return (
     <ThemeProvider>
       <UserProvider>
-        <ThreeBackground />
-        <div className="relative z-10">
-          <AppRoutes />
-        </div>
+        <ToastProvider>
+          <ThreeBackground />
+          <div className="relative z-10">
+            <AppRoutes />
+          </div>
+        </ToastProvider>
       </UserProvider>
     </ThemeProvider>
   )
