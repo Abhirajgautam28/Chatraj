@@ -180,7 +180,7 @@ const Home = () => {
   const handleThemeToggle = () => {
     executeThemeTransition(() => {
       setIsDarkMode((prev) => !prev);
-    }, shouldReduceMotion);
+    }, shouldReduceMotion, true); // true indicating this is the Home screen for the liquid effect
   };
 
   const AnimatedBg = () => (
