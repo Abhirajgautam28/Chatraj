@@ -25,6 +25,6 @@ export const createUser = async ({
 export const getAllUsers = async ({ userId }) => {
     const users = await userModel.find({
         _id: { $ne: userId }
-    }).lean();
+    }).select('firstName lastName').lean();
     return users;
 }

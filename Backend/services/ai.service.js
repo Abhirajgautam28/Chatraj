@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
+const genAICache = new Map();
 
 // If GOOGLE_AI_KEY is not set, return a fallback response
 export const generateResult = async (prompt, userApiKey) => {
@@ -11,7 +12,11 @@ export const generateResult = async (prompt, userApiKey) => {
         });
     }
     try {
-        const genAI = new GoogleGenerativeAI(apiKey);
+        let genAI = genAICache.get(apiKey);
+        if (!genAI) {
+            genAI = new GoogleGenerativeAI(apiKey);
+            genAICache.set(apiKey, genAI);
+        }
         const model = genAI.getGenerativeModel({
             model: "gemini-1.5-flash",
             generationConfig: {

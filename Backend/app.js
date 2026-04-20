@@ -78,6 +78,8 @@ function isSecureFromRequest(req) {
   }
 }
 
+const VERCEL_ORIGIN_REGEX = /^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/;
+
 // CORS debug logger
 const corsErrorLogger = (err, req, res, next) => {
   if (err && err.message && err.message.includes('CORS')) {
@@ -90,11 +92,10 @@ const corsErrorLogger = (err, req, res, next) => {
 
 // Improved CORS middleware for Vercel/Render/localhost
 const dynamicCors = (origin, callback) => {
-  const vercelRegex = /^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/;
   if (!origin) return callback(null, true);
   if (
     allowedOrigins.has(origin) ||
-    vercelRegex.test(origin) ||
+    VERCEL_ORIGIN_REGEX.test(origin) ||
     origin === 'null'
   ) {
     return callback(null, true);

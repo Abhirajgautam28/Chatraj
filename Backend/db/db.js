@@ -61,7 +61,7 @@ async function connect() {
         mongoose.set('strictQuery', false);
 
         const conn = await mongoose.connect(process.env.MONGODB_URI, {
-            maxPoolSize: 10,
+            maxPoolSize: 50,
             serverSelectionTimeoutMS: 10000,
             socketTimeoutMS: 45000,
         });
@@ -120,7 +120,7 @@ async function connect() {
 
                 console.log('Retrying MongoDB connection using resolved hosts via DNS resolver (custom or system)');
                 const conn2 = await mongoose.connect(resolvedUri, {
-                    maxPoolSize: 10,
+                    maxPoolSize: 50,
                     serverSelectionTimeoutMS: 10000,
                     socketTimeoutMS: 45000,
                 });
