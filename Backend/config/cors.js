@@ -1,13 +1,6 @@
 import cors from 'cors';
 import { logger } from '../utils/logger.js';
-
-const allowedOrigins = [
-  'https://chatraj-frontend.vercel.app',
-  'https://chatraj.vercel.app',
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'https://chatraj-fpo1pa3bz-abhiraj-gautams-projects.vercel.app'
-];
+import { ALLOWED_ORIGINS } from './constants.js';
 
 /**
  * Improved CORS middleware for Vercel/Render/localhost
@@ -16,7 +9,7 @@ const dynamicCors = (origin, callback) => {
   const vercelRegex = /^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/;
   if (!origin) return callback(null, true);
   if (
-    allowedOrigins.includes(origin) ||
+    ALLOWED_ORIGINS.includes(origin) ||
     vercelRegex.test(origin) ||
     origin === 'null'
   ) {

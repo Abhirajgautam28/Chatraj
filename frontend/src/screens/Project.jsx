@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect, useContext } from 'react'
 import { UserContext } from '../context/user.context'
 import { ThemeContext } from '../context/theme.context'
-import { useToast } from '../context/toast.context'
 import { useLocation } from 'react-router-dom'
 import axios from '../config/axios'
 import { initializeSocket, receiveMessage, sendMessage } from '../config/socket'
@@ -16,117 +15,8 @@ import PropTypes from 'prop-types';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import VimCodeEditor from '../components/VimCodeEditor';
-
-const PROJECT_TRANSLATIONS = {
-  'en-US': {
-    addUsers: 'Add Users',
-    collaborators: 'Collaborators',
-    options: 'Options',
-    run: 'Run',
-    noFileSelected: 'No file selected.',
-    noCode: 'No code to display.',
-    settings: 'Settings',
-    language: 'Language',
-    aiAssistant: 'AI Assistant',
-    replyTo: 'Replying to',
-    send: 'Send',
-    searchMessages: 'Search messages...',
-    selectUser: 'Select User',
-    addCollaborators: 'Add Collaborators',
-    previewOptions: 'Preview Options',
-    editorSettings: 'Editor Settings (see main settings for more)',
-  },
-  'hi-IN': {
-    addUsers: 'यूज़र जोड़ें',
-    collaborators: 'सहयोगी',
-    options: 'विकल्प',
-    run: 'चलाएँ',
-    noFileSelected: 'कोई फ़ाइल चयनित नहीं है।',
-    noCode: 'कोड उपलब्ध नहीं है।',
-    settings: 'सेटिंग्स',
-    language: 'भाषा',
-    aiAssistant: 'एआई सहायक',
-    replyTo: 'को उत्तर दे रहे हैं',
-    send: 'भेजें',
-    searchMessages: 'संदेश खोजें...',
-    selectUser: 'यूज़र चुनें',
-    addCollaborators: 'सहयोगी जोड़ें',
-    previewOptions: 'पूर्वावलोकन विकल्प',
-    editorSettings: 'संपादक सेटिंग्स (अधिक के लिए मुख्य सेटिंग्स देखें)',
-  },
-  'es-ES': {
-    addUsers: 'Agregar usuarios',
-    collaborators: 'Colaboradores',
-    options: 'Opciones',
-    run: 'Ejecutar',
-    noFileSelected: 'Ningún archivo seleccionado.',
-    noCode: 'No hay código para mostrar.',
-    settings: 'Configuración',
-    language: 'Idioma',
-    aiAssistant: 'Asistente de IA',
-    replyTo: 'Respondiendo a',
-    send: 'Enviar',
-    searchMessages: 'Buscar mensajes...',
-    selectUser: 'Seleccionar usuario',
-    addCollaborators: 'Agregar colaboradores',
-    previewOptions: 'Opciones de vista previa',
-    editorSettings: 'Configuración del editor (ver configuración principal para más)',
-  },
-  'fr-FR': {
-    addUsers: 'Ajouter des utilisateurs',
-    collaborators: 'Collaborateurs',
-    options: 'Options',
-    run: 'Exécuter',
-    noFileSelected: 'Aucun fichier sélectionné.',
-    noCode: 'Aucun code à afficher.',
-    settings: 'Paramètres',
-    language: 'Langue',
-    aiAssistant: 'Assistant IA',
-    replyTo: 'En réponse à',
-    send: 'Envoyer',
-    searchMessages: 'Rechercher des messages...',
-    selectUser: 'Sélectionner un utilisateur',
-    addCollaborators: 'Ajouter des collaborateurs',
-    previewOptions: 'Options d’aperçu',
-    editorSettings: 'Paramètres de l’éditeur (voir les paramètres principaux pour plus)',
-  },
-  'de-DE': {
-    addUsers: 'Benutzer hinzufügen',
-    collaborators: 'Mitarbeiter',
-    options: 'Optionen',
-    run: 'Ausführen',
-    noFileSelected: 'Keine Datei ausgewählt.',
-    noCode: 'Kein Code zum Anzeigen.',
-    settings: 'Einstellungen',
-    language: 'Sprache',
-    aiAssistant: 'KI-Assistent',
-    replyTo: 'Antwort an',
-    send: 'Senden',
-    searchMessages: 'Nachrichten suchen...',
-    selectUser: 'Benutzer auswählen',
-    addCollaborators: 'Mitarbeiter hinzufügen',
-    previewOptions: 'Vorschauoptionen',
-    editorSettings: 'Editor-Einstellungen (siehe Haupteinstellungen für mehr)',
-  },
-  'ja-JP': {
-    addUsers: 'ユーザーを追加',
-    collaborators: '共同作業者',
-    options: 'オプション',
-    run: '実行',
-    noFileSelected: 'ファイルが選択されていません。',
-    noCode: '表示するコードがありません。',
-    settings: '設定',
-    language: '言語',
-    aiAssistant: 'AIアシスタント',
-    replyTo: '返信先',
-    send: '送信',
-    searchMessages: 'メッセージを検索...',
-    selectUser: 'ユーザーを選択',
-    addCollaborators: '共同作業者を追加',
-    previewOptions: 'プレビューオプション',
-    editorSettings: 'エディター設定（詳細はメイン設定を参照）',
-  },
-};
+import { groupMessagesByDate, normalizeFileTree } from '../utils/projectUtils';
+import { PROJECT_TRANSLATIONS } from '../config/translations';
 
 function useProjectTranslation(language) {
   return React.useMemo(() => {
@@ -161,53 +51,6 @@ SyntaxHighlightedCode.propTypes = {
   children: PropTypes.node
 };
 
-const isSameDay = (d1, d2) => {
-  return (
-    d1.getFullYear() === d2.getFullYear() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getDate() === d2.getDate()
-  )
-}
-
-const getGroupLabel = (date) => {
-  const today = new Date()
-  if (isSameDay(date, today)) return 'Today'
-
-  const yesterday = new Date()
-  yesterday.setDate(today.getDate() - 1)
-  if (isSameDay(date, yesterday)) return 'Yesterday'
-  return date.toLocaleDateString()
-}
-
-const groupMessagesByDate = (messagesArr) => {
-  const groups = {}
-  messagesArr.forEach((msg) => {
-    const d = new Date(msg.createdAt)
-    const label = getGroupLabel(d)
-    if (!groups[label]) {
-      groups[label] = []
-    }
-    groups[label].push(msg)
-  })
-  return groups
-}
-
-// Utility to normalize fileTree structure
-function normalizeFileTree(tree) {
-  if (!tree || typeof tree !== 'object') return {};
-  const normalized = {};
-  for (const [key, value] of Object.entries(tree)) {
-    if (value && typeof value === 'object' && 'file' in value && typeof value.file.contents === 'string') {
-      normalized[key] = value;
-    } else if (typeof value === 'string') {
-      // If value is just a string, wrap it
-      normalized[key] = { file: { contents: value } };
-    } else {
-      // Fallback: skip or handle as needed
-    }
-  }
-  return normalized;
-}
 
 const Project = () => {
   const location = useLocation()
@@ -218,7 +61,6 @@ const Project = () => {
   const [message, setMessage] = useState('')
   const { user } = useContext(UserContext)
   const { isDarkMode, setIsDarkMode } = useContext(ThemeContext)
-  const { showToast } = useToast()
   const messageBox = useRef(null)
   const [users, setUsers] = useState([])
   const [messages, setMessages] = useState([])
@@ -250,13 +92,6 @@ const Project = () => {
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
-
-  useEffect(() => {
-    return () => {
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-    };
-  }, []);
-
   const [settings, setSettings] = useState(() => {
     const savedSettings = localStorage.getItem('projectSettings');
     const defaultSettings = {
@@ -377,11 +212,10 @@ const Project = () => {
         projectId: location.state.project._id,
         users: Array.from(selectedUserId)
       })
-      .then((res) => {
-        console.log(res.data)
+      .then(() => {
         setIsModalOpen(false)
       })
-      .catch((err) => console.log(err))
+      .catch(() => {})
   }
 
   const send = () => {
@@ -443,11 +277,9 @@ const Project = () => {
     if (!webContainer) {
       getWebContainer().then((container) => {
         setWebContainer(container)
-        console.log("container started")
       })
     }
     axios.get(`/api/projects/get-project/${location.state.project._id}`).then((res) => {
-      console.log(res.data.project)
       setProject(res.data.project)
       setFileTree(res.data.project.fileTree || {})
     })
@@ -456,7 +288,7 @@ const Project = () => {
       .then((res) => {
         setUsers(res.data.users)
       })
-      .catch((err) => console.log(err))
+      .catch(() => {})
   }, [webContainer, project._id, location.state.project._id])
 
   useEffect(() => {
@@ -1157,7 +989,7 @@ const Project = () => {
               <button
                 onClick={async () => {
                   if (!webContainer) {
-                    showToast("WebContainer is not ready yet.", "info");
+                    alert("WebContainer is not ready yet.");
                     return;
                   }
                   try {
@@ -1191,8 +1023,8 @@ const Project = () => {
                         const installProcess = await webContainer.spawn('npm', ['install']);
                         const installExitCode = await new Promise(resolve => {
                           installProcess.output.pipeTo(new WritableStream({
-                            write(chunk) {
-                              console.log('Install output:', chunk);
+                            write() {
+                              // Install progress ignored in production console
                             }
                           }));
                           installProcess.exit.then(resolve);
@@ -1200,10 +1032,8 @@ const Project = () => {
 
                         if (installExitCode === 0) {
                           installSuccess = true;
-                          console.log('Dependencies installed successfully');
                         }
-                      } catch (err) {
-                        console.log(`Install attempt failed, ${retries - 1} retries left:`, err);
+                      } catch {
                         retries--;
                         await new Promise(resolve => setTimeout(resolve, 1000));
                       }
@@ -1216,8 +1046,8 @@ const Project = () => {
                     const tempRunProcess = await webContainer.spawn('npm', ['start']);
 
                     tempRunProcess.output.pipeTo(new WritableStream({
-                      write(chunk) {
-                        console.log('Server output:', chunk);
+                      write() {
+                        // Server output ignored in production console
                       }
                     }));
 
@@ -1230,13 +1060,12 @@ const Project = () => {
                     setRunProcess(tempRunProcess);
 
                     webContainer.on('server-ready', (port, url) => {
-                      console.log('Server ready on:', url);
                       setIframeUrl(url);
                     });
 
                   } catch (error) {
                     console.error('Error running project:', error);
-                    showToast(`Failed to run project: ${error.message}`, "error");
+                    alert(`Failed to run project: ${error.message}`);
                   }
                 }}
                 style={{ backgroundColor: settings.display.themeColor || '#3B82F6', color: '#fff' }}
@@ -1360,7 +1189,7 @@ const Project = () => {
                     doc.head.appendChild(style);
                   }
                 } catch {
-                  console.log("Unable to access iframe content");
+                  // Ignore iframe access errors
                 }
               }}
             />

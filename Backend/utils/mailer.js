@@ -116,7 +116,7 @@ async function sendViaSendGrid(mailOptions) {
     req.write(body);
     req.end();
   });
-  logger.info(`SendGrid: message queued to ${mailOptions.to}`);
+  logger.info('SendGrid: message queued to %s', mailOptions.to);
 }
 
 async function sendViaEthereal(mailOptions) {
@@ -131,7 +131,7 @@ async function sendViaEthereal(mailOptions) {
   const info = await transporter.sendMail(mailOptions);
   try {
     const url = nodemailer.getTestMessageUrl(info);
-    logger.info(`Ethereal message URL: ${url}`);
+    logger.info('Ethereal message URL:', url);
   } catch (e) {
     // ignore
   }

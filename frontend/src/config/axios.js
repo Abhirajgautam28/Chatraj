@@ -59,6 +59,25 @@ axiosInstance.interceptors.request.use(
   error => Promise.reject(error)
 );
 
+axiosInstance.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response && error.response.status === 401) {
+      // Token expired or invalid
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        clearCsrfCache();
+        // Avoid redirecting if we're already on login/register/home
+        const path = window.location.pathname;
+        if (path !== '/login' && path !== '/register' && path !== '/') {
+          window.location.href = '/login';
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default axiosInstance;
 
 // Named export: explicit helper to fetch CSRF token from the API and return it.

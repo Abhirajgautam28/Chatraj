@@ -81,7 +81,6 @@ const Block = ({ id, index, type, content, moveBlock, updateContent, deleteBlock
 import { useState, useCallback } from 'react';
 import useDarkMode from '../hooks/useDarkMode';
 import { BlogThemeProvider } from '../context/blogTheme.context';
-import { useToast } from '../context/toast.context';
 //
 import axios from '../config/axios';
 import { useNavigate } from 'react-router-dom';
@@ -296,7 +295,6 @@ const CreateBlogFormContent = () => {
     const [blocks, setBlocks] = useState([{ id: 1, type: 'text', content: '' }]);
     const [darkMode, setDarkMode] = useDarkMode('create_blog_dark_mode', false);
     const navigate = useNavigate();
-    const { showToast } = useToast();
 
     const moveBlock = useCallback((dragIndex, hoverIndex) => {
         setBlocks((prevBlocks) => {
@@ -329,16 +327,14 @@ const CreateBlogFormContent = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!title.trim()) {
-            showToast('Blog title cannot be empty.', 'error');
+            alert('Blog title cannot be empty.');
             return;
         }
         const content = JSON.stringify(blocks);
         try {
             await axios.post('/api/blogs', { title, content });
-            showToast('Blog created successfully!', 'success');
             navigate('/blogs');
         } catch (error) {
-            showToast('Error creating blog. Please try again.', 'error');
             console.error('Error creating blog:', error);
         }
     };

@@ -361,7 +361,7 @@ export const adminGetOtpController = async (req, res) => {
         }
         return res.status(200).json({ userId: user._id, email: user.email, maskedOtp: masked });
     } catch (err) {
-        console.error('adminGetOtpController error:', err);
+        logger.error('adminGetOtpController error:', err);
         return res.status(500).json({ message: 'Internal server error' });
     }
 };
