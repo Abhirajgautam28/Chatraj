@@ -1,9 +1,11 @@
+import logger from '../utils/logger.js';
+
 /**
  * Centralized error handling middleware.
  */
 export const errorHandler = (err, req, res, next) => {
   if (process.env.NODE_ENV !== 'test') {
-    console.error(err.stack);
+    logger.error(err.stack);
   }
 
   // Handle CSRF errors
@@ -20,6 +22,14 @@ export const errorHandler = (err, req, res, next) => {
       error: 'Validation Error',
       details: Object.values(err.errors).map(e => e.message)
     });
+  }
+
+  // Handle JWT errors
+  if (err.name === 'JsonWebTokenError') {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+  if (err.name === 'TokenExpiredError') {
+    return res.status(401).json({ error: 'Token expired' });
   }
 
   // Handle Unauthorized errors from services

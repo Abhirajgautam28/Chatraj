@@ -9,7 +9,7 @@ describe('Auth Middleware', () => {
     let req, res, next;
     beforeEach(() => {
         req = { cookies: {}, headers: {} };
-        res = { status: jest.fn().mockReturnThis(), send: jest.fn(), cookie: jest.fn() };
+        res = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis(), cookie: jest.fn() };
         next = jest.fn();
         process.env.JWT_SECRET = 'secret';
     });
