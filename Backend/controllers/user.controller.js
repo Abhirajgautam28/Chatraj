@@ -92,14 +92,9 @@ export const verifyOtpController = async (req, res) => {
                 console.error('Error checking pending registration in Redis:', redisErr && redisErr.message ? redisErr.message : redisErr);
             }
 
-            if (pendingJson) {
-                let pending;
-                try {
-                    pending = JSON.parse(pendingJson);
-                } catch (parseErr) {
-                    console.error('Failed to parse pending registration JSON for', pendingKey, parseErr && (parseErr.message || parseErr));
-                    return res.status(500).json({ message: 'Corrupt pending registration data' });
-                }
+                    if (pendingJson) {
+                const pending = safeParsePendingRegistration(pendingJson, pendingKey);
+                if (!pending) return res.status(500).json({ message: 'Corrupt pending registration data' });
 
                 if (pending.otp !== otp) return res.status(401).json({ message: 'Invalid OTP' });
 
@@ -172,14 +167,10 @@ export const adminGetOtpController = async (req, res) => {
                     const pendingKey = `pending:registration:${normalizedEmail}`;
                     const pendingJson = await redisClient.get(pendingKey);
                     if (pendingJson) {
-                        try {
-                            const pending = JSON.parse(pendingJson);
-                            // synthesize a minimal user-like object for masking
-                            user = { _id: null, email: normalizedEmail, otp: pending.otp };
-                        } catch (parseErr) {
-                            console.error('Failed to parse pending registration JSON for admin OTP:', parseErr && (parseErr.message || parseErr));
-                            return res.status(500).json({ message: 'Corrupt pending registration data' });
-                        }
+                        const pending = safeParsePendingRegistration(pendingJson, pendingKey);
+                        if (!pending) return res.status(500).json({ message: 'Corrupt pending registration data' });
+                        // synthesize a minimal user-like object for masking
+                        user = { _id: null, email: normalizedEmail, otp: pending.otp };
                     }
                 } catch (redisErr) {
                     console.error('Failed to read pending registration for admin OTP:', redisErr && redisErr.message ? redisErr.message : redisErr);

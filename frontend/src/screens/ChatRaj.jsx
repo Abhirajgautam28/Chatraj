@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useContext, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { ChatRajThemeContext } from '../context/chatraj-theme.context';
 import { UserContext } from '../context/user.context';
+import { executeThemeTransition } from '../utils/themeTransition';
 import { useNavigate } from 'react-router-dom';
 
 const formatMessageTime = (timestamp) => {
@@ -112,7 +113,7 @@ const ChatRaj = () => {
   const messageEndRef = useRef(null);
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
-  useContext(ChatRajThemeContext);
+  const { toggleThemeGlobal } = useContext(ChatRajThemeContext);
   const { user } = useContext(UserContext);
 
   const [autoCompleteOptions, setAutoCompleteOptions] = useState([]);
@@ -320,6 +321,9 @@ const ChatRaj = () => {
 
   useEffect(() => {
     localStorage.setItem('chatrajSettings', JSON.stringify(settings));
+    // Since toggleThemeGlobal handles `setIsDarkMode`, we do not want to automatically call
+    // `setIsDarkMode` here because it might double-fire or circumvent the transition.
+    // However, we still need to sync the html class for initial loads.
     document.documentElement.classList.toggle('dark', settings.display.darkMode);
   }, [settings]);
 
@@ -791,7 +795,12 @@ const ChatRaj = () => {
                           <p className="text-xs text-gray-500 dark:text-gray-400">Switch between light and dark theme</p>
                         </div>
                         <button
-                          onClick={() => updateSettings('display', 'darkMode', !settings.display.darkMode)}
+                          onClick={() => {
+                            const shouldReduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                            executeThemeTransition(() => {
+                              updateSettings('display', 'darkMode', !settings.display.darkMode);
+                            }, shouldReduceMotion);
+                          }}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                             settings.display.darkMode ? 'bg-blue-600' : 'bg-gray-300'
                           }`}

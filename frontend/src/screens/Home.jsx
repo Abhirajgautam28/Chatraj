@@ -8,6 +8,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
+import { executeThemeTransition } from '../utils/themeTransition';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
 import Blog from '../components/Blog.jsx';
 import ContactUs from '../components/ContactUs.jsx';
@@ -138,7 +139,7 @@ const faqs = [
 
 const Home = () => {
   const { user } = useContext(UserContext);
-  const { isDarkMode, setIsDarkMode } = useContext(ThemeContext);
+  const { isDarkMode, toggleThemeGlobal } = useContext(ThemeContext);
   const navigate = useNavigate();
 
   const [isNavVisible, setIsNavVisible] = useState(true);
@@ -177,40 +178,9 @@ const Home = () => {
   };
 
   const handleThemeToggle = () => {
-    if (shouldReduceMotion) {
-      setIsDarkMode(!isDarkMode);
-      return;
-    }
-
-    if (!document.startViewTransition) {
-      // Fallback for browsers without View Transitions
-      const durationStr = getComputedStyle(document.documentElement).getPropertyValue('--theme-transition-duration').trim();
-      let durationMs = 1500;
-      if (durationStr.endsWith('ms')) {
-        durationMs = parseFloat(durationStr);
-      } else if (durationStr.endsWith('s')) {
-        durationMs = parseFloat(durationStr) * 1000;
-      }
-
-      document.documentElement.classList.add('theme-transitioning');
-      setIsDarkMode(!isDarkMode);
-      setTimeout(() => {
-        document.documentElement.classList.remove('theme-transitioning');
-      }, durationMs);
-      return;
-    }
-
-    document.documentElement.classList.add('theme-transition');
-
-    const transition = document.startViewTransition(() => {
-      flushSync(() => {
-        setIsDarkMode(!isDarkMode);
-      });
-    });
-
-    transition.finished.finally(() => {
-      document.documentElement.classList.remove('theme-transition');
-    });
+    executeThemeTransition(() => {
+      setIsDarkMode((prev) => !prev);
+    }, shouldReduceMotion);
   };
 
   const AnimatedBg = () => (
@@ -348,7 +318,7 @@ function greet(name) {
       </section>
 
       {/* Features */}
-      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
+      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-gray-900/80' : 'bg-gray-100/80'}`}>
         <div className="max-w-6xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Key Features</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
@@ -416,7 +386,7 @@ function greet(name) {
         </div>
       </section>
 
-      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-gray-800/80' : 'bg-gray-100/80'}`}>
         <div className="max-w-6xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Powered By</h2>
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
@@ -484,14 +454,14 @@ function greet(name) {
       </section>
 
       {/* User Leaderboard Section */}
-      <section className={`relative z-10 py-20 ${isDarkMode ? 'bg-gray-100/10' : 'bg-gray-100'}`}>
+      <section className={`relative z-10 py-20 ${isDarkMode ? 'bg-gray-100/10' : 'bg-gray-100/80'}`}>
         <div className="max-w-4xl mx-auto">
           <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-gray-900">User Leaderboard</h2>
           <UserLeaderboard />
         </div>
       </section>
 
-      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-gray-800/80' : 'bg-gray-100'}`}>
+      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-gray-800/80' : 'bg-gray-100/80'}`}>
         <div className="max-w-4xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Frequently Asked Questions</h2>
           <div className="space-y-6">
@@ -516,7 +486,7 @@ function greet(name) {
         <ContactUs />
       </div>
 
-      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-blue-900/80' : 'bg-gray-100'}`}>
+      <section className={`relative z-10 px-4 py-20 ${isDarkMode ? 'bg-blue-900/80' : 'bg-gray-100/80'}`}>
         <div className="max-w-xl mx-auto text-center">
           <h2 className={`mb-4 text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Stay Updated</h2>
           <p className={`mb-8 text-lg ${isDarkMode ? 'text-blue-100' : 'text-gray-600'}`}>
@@ -685,7 +655,7 @@ function greet(name) {
       </div>
 
       {/* Footer */}
-      <footer className={`relative z-10 px-8 py-6 mt-0 text-center ${isDarkMode ? 'bg-gray-900' : 'bg-gray-200'}`}>
+      <footer className={`relative z-10 px-8 py-6 mt-0 text-center ${isDarkMode ? 'bg-gray-900/90' : 'bg-gray-200/90'}`}>
         <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>© 2026 ChatRaj All rights reserved.</p>
       </footer>
 

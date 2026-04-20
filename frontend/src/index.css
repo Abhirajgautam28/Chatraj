@@ -16,7 +16,7 @@ body {
 
 :root {
   --primary-color: #3B82F6;
-  --theme-transition-duration: 1.5s;
+  --theme-transition-duration: 0.75s;
   --button-bg-color: var(--primary-color);
   --robot-icon-color: var(--primary-color);
   --primary-color-transparent: rgba(59, 130, 246, 0.5);
@@ -226,12 +226,10 @@ button {
   0% {
     opacity: 1;
     transform: scale(1) translateZ(0) rotateX(0deg) rotateY(0deg);
-    filter: blur(0px) brightness(1);
   }
   100% {
     opacity: 0;
     transform: scale(3) translateZ(800px) rotateX(15deg) rotateY(-15deg);
-    filter: blur(15px) brightness(2);
   }
 }
 
@@ -239,12 +237,10 @@ button {
   0% {
     opacity: 0;
     transform: scale(0.2) translateZ(-800px) rotateX(-15deg) rotateY(15deg);
-    filter: blur(20px) brightness(0.5);
   }
   100% {
     opacity: 1;
     transform: scale(1) translateZ(0) rotateX(0deg) rotateY(0deg);
-    filter: blur(0px) brightness(1);
   }
 }
 
