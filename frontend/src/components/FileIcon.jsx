@@ -1,9 +1,10 @@
+import React from "react";
 import PropTypes from 'prop-types';
 
 const FileIcon = ({ fileName }) => {
   const getIcon = (fileName) => {
     const ext = fileName.split('.').pop().toLowerCase();
-    
+
     const iconMap = {
       // Web Development
       html: 'ri-html5-line',
@@ -17,7 +18,7 @@ const FileIcon = ({ fileName }) => {
       tsx: 'ri-reactjs-line',
       vue: 'ri-vuejs-line',
       php: 'ri-code-s-slash-line',
-      
+
       // Backend & Server
       py: 'ri-python-line',
       java: 'ri-code-box-line',
@@ -36,7 +37,7 @@ const FileIcon = ({ fileName }) => {
       c: 'ri-code-s-line',
       h: 'ri-code-s-line',
       hpp: 'ri-code-s-line',
-      
+
       // Data & Config
       json: 'ri-braces-line',
       yaml: 'ri-file-list-2-line',
@@ -45,7 +46,7 @@ const FileIcon = ({ fileName }) => {
       toml: 'ri-file-list-line',
       ini: 'ri-file-settings-line',
       env: 'ri-key-2-line',
-      
+
       // Documentation
       md: 'ri-markdown-line',
       mdx: 'ri-markdown-line',
@@ -53,45 +54,45 @@ const FileIcon = ({ fileName }) => {
       doc: 'ri-file-word-line',
       docx: 'ri-file-word-line',
       pdf: 'ri-file-pdf-line',
-      
+
       // Database
       sql: 'ri-database-2-line',
       mysql: 'ri-database-2-line',
       pgsql: 'ri-database-2-line',
       mongo: 'ri-database-2-line',
       redis: 'ri-database-line',
-      
+
       // Package Managers
       json5: 'ri-npmjs-line',
       lock: 'ri-lock-line',
       yarn: 'ri-yarn-line',
-      
+
       // Shell & Scripts
       sh: 'ri-terminal-line',
       bash: 'ri-terminal-line',
       zsh: 'ri-terminal-line',
       bat: 'ri-terminal-window-line',
       ps1: 'ri-terminal-window-line',
-      
+
       // Mobile Development
       swift: 'ri-apple-line',
       kt: 'ri-android-line',
       gradle: 'ri-android-line',
       xcodeproj: 'ri-apple-line',
-      
+
       // Version Control
       git: 'ri-git-branch-line',
       gitignore: 'ri-git-repository-line',
-      
+
       // Build & Deploy
       dockerfile: 'ri-window-line',
       docker: 'ri-window-line',
       jenkinsfile: 'ri-server-line',
-      
+
       // Testing
       test: 'ri-test-tube-line',
       spec: 'ri-test-tube-line',
-      
+
       // Graphics & Assets
       svg: 'ri-image-line',
       png: 'ri-image-line',
@@ -100,43 +101,43 @@ const FileIcon = ({ fileName }) => {
       gif: 'ri-image-2-line',
       ico: 'ri-image-line',
       webp: 'ri-image-line',
-      
+
       // Fonts
       ttf: 'ri-font-size',
       otf: 'ri-font-size',
       woff: 'ri-font-size',
       woff2: 'ri-font-size',
-      
+
       // 3D & Game Development
       unity: 'ri-gamepad-line',
       blend: 'ri-shapes-line',
       fbx: 'ri-shapes-line',
       obj: 'ri-shapes-line',
-      
+
       // Cloud & Infrastructure
       tf: 'ri-cloud-line',
       cfn: 'ri-cloud-line',
-      
+
       // State Management
       redux: 'ri-database-line',
       zustand: 'ri-database-line',
       mobx: 'ri-database-line',
-      
+
       // Web Assembly
       wasm: 'ri-code-box-line',
       wat: 'ri-code-box-line',
-      
+
       // Security
       key: 'ri-key-line',
       pem: 'ri-key-2-line',
       crt: 'ri-shield-check-line',
       cer: 'ri-shield-check-line',
-      
+
       // IDL & Schema
       proto: 'ri-file-paper-line',
       graphql: 'ri-flow-chart',
       gql: 'ri-flow-chart',
-      
+
       // Project Config
       eslintrc: 'ri-settings-line',
       prettierrc: 'ri-settings-4-line',
@@ -144,12 +145,12 @@ const FileIcon = ({ fileName }) => {
       webpack: 'ri-settings-2-line',
       rollup: 'ri-settings-5-line',
       vite: 'ri-settings-6-line',
-      
+
       // Package Definitions
       gemfile: 'ri-gem-line',
       podfile: 'ri-copper-coin-line',
       cargo: 'ri-ship-line',
-      
+
       // Others
       log: 'ri-file-list-3-line',
       csv: 'ri-file-excel-line',
@@ -158,7 +159,7 @@ const FileIcon = ({ fileName }) => {
       rar: 'ri-file-zip-line',
       tar: 'ri-file-zip-line',
       gz: 'ri-file-zip-line',
-      
+
       // Default
       default: 'ri-file-line'
     };
