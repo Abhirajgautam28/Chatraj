@@ -15,6 +15,9 @@ import PropTypes from 'prop-types';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import VimCodeEditor from '../components/VimCodeEditor';
+import ChatMessage from '../components/ChatMessage';
+import FileTree from '../components/FileTree';
+import ProjectSettingsModal from '../components/ProjectSettingsModal';
 
 const PROJECT_TRANSLATIONS = {
   'en-US': {
@@ -970,7 +973,22 @@ const Project = () => {
               <div key={groupLabel}>
                 <div className="py-2 text-sm text-center text-gray-500 dark:text-gray-400">{groupLabel}</div>
                 {groupedMessages[groupLabel].map((msg, idx) => (
-                  <React.Fragment key={msg._id ? `${groupLabel}-${msg._id}` : `${groupLabel}-idx-${idx}`}>{renderMessage(msg)}</React.Fragment>
+                  <ChatMessage
+                    key={msg._id || idx}
+                    msg={msg}
+                    user={user}
+                    isDarkMode={isDarkMode}
+                    settings={settings}
+                    onReply={setReplyingTo}
+                    onReaction={handleReaction}
+                    messageFontSizeClass={messageFontSizeClass}
+                    bubbleRoundnessClass={bubbleRoundnessClass}
+                    getUserBubbleStyle={getUserBubbleStyle}
+                    SyntaxHighlightedCode={SyntaxHighlightedCode}
+                    toggleEmojiPicker={toggleEmojiPicker}
+                    isEmojiPickerOpen={messageEmojiPickers[msg._id]}
+                    getMessageStatus={getMessageStatus}
+                  />
                 ))}
               </div>
             ))}
@@ -1091,25 +1109,15 @@ const Project = () => {
             </button>
             {/* Show File Tree Option */}
             {settings.sidebar?.showFileTree !== false && (
-              <div className="file-tree">
-                {fileTree && Object.keys(fileTree).length > 0 ? (
-                  Object.keys(fileTree).map((file) => (
-                    <button
-                      key={file}
-                      onClick={() => {
-                        setCurrentFile(file);
-                        setOpenFiles([...new Set([...openFiles, file])]);
-                      }}
-                      className="flex items-center w-full gap-2 p-2 px-4 cursor-pointer tree-element hover:bg-slate-400 dark:hover:bg-gray-600 bg-slate-300 dark:bg-gray-700 dark:text-white"
-                    >
-                      <FileIcon fileName={file} />
-                      <p className="text-lg font-semibold">{file}</p>
-                    </button>
-                  ))
-                ) : (
-                  <div className="text-gray-500 dark:text-gray-300 p-4">No files found in this project.</div>
-                )}
-              </div>
+              <FileTree
+                fileTree={fileTree}
+                onFileClick={(file) => {
+                  setCurrentFile(file);
+                  setOpenFiles([...new Set([...openFiles, file])]);
+                }}
+                currentFile={currentFile}
+                isDarkMode={isDarkMode}
+              />
             )}
             {/* Show Collaborators Option */}
             {settings.sidebar?.showCollaborators && project.users && (
@@ -1390,338 +1398,18 @@ const Project = () => {
         </div>
       )}
 
-      {/* Settings Modal (centered dialog) */}
-      {isSettingsOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-50 bg-black bg-opacity-50"
-            onClick={() => setIsSettingsOpen(false)}
-          />
-          <div
-            ref={settingsModalRef}
-            className="fixed z-50 w-full max-w-md bg-white border border-gray-200 shadow-2xl dark:bg-gray-800 rounded-xl dark:border-gray-700"
-            style={modalPosition ? {
-              left: modalPosition.x,
-              top: modalPosition.y,
-              transform: 'none',
-              maxHeight: 'calc(100vh - 80px)',
-              overflow: 'hidden',
-              cursor: isDragging ? 'grabbing' : 'default',
-            } : {
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              maxHeight: 'calc(100vh - 80px)',
-              overflow: 'hidden',
-            }}
-            onMouseUp={() => setIsDragging(false)}
-            onMouseMove={e => {
-              if (isDragging) {
-                setModalPosition({
-                  x: e.clientX - dragOffset.x,
-                  y: e.clientY - dragOffset.y
-                });
-              }
-            }}
-          >
-            <div
-              className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-white border-b cursor-move select-none dark:bg-gray-800 dark:border-gray-700"
-              style={{ userSelect: 'none' }}
-              onMouseDown={e => {
-                // Only start drag on left click
-                if (e.button !== 0) return;
-                const rect = settingsModalRef.current.getBoundingClientRect();
-                setIsDragging(true);
-                setDragOffset({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-                // If modal is centered, set its position to current center
-                if (!modalPosition) {
-                  setModalPosition({
-                    x: rect.left,
-                    y: rect.top
-                  });
-                }
-              }}
-              onMouseUp={() => setIsDragging(false)}
-            >
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('settings')}</h2>
-              <button
-                onClick={() => setIsSettingsOpen(false)}
-                className="p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-              >
-                <i className="text-2xl ri-close-line"></i>
-              </button>
-            </div>
-            <div className="flex px-6 bg-gray-100 border-b dark:border-gray-700 dark:bg-gray-700">
-              {['display', 'behavior', 'accessibility', 'sidebar'].map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveSettingsTab(tab)}
-                  className={`px-4 py-2 text-base font-semibold border-b-4 transition-colors duration-150 focus:outline-none ${activeSettingsTab === tab
-                    ? 'border-blue-600 text-blue-600 bg-white dark:bg-gray-800 dark:text-blue-400'
-                    : 'border-transparent text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 bg-transparent'
-                    }`}
-                  style={{ marginBottom: '-1px', borderRadius: '10px 10px 0 0' }}
-                >
-                  {tab === 'accessibility' ? t('language') : tab.charAt(0).toUpperCase() + tab.slice(1)}
-                </button>
-              ))}
-            </div>
-            {/* Make this area scrollable! */}
-            <div className="flex-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 220px)' }}>
-              <div className="p-6 space-y-7">
-                {/* Display Settings */}
-                {activeSettingsTab === 'display' && (
-                  <div className="space-y-4">
-                    {/* Vim Mode (Editor) - moved to top for visibility */}
-                    <div className="flex items-center justify-between" title="Enable or disable Vim keybindings in the code editor.">
-                      <span className="font-semibold text-gray-900 dark:text-white">Vim Mode (Editor)</span>
-                      <button
-                        onClick={() => setVimMode(v => !v)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${vimMode ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${vimMode ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Dark Mode */}
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-gray-900 dark:text-white">Dark Mode</span>
-                      <button
-                        onClick={() => updateSettings('display', 'darkMode', !settings.display.darkMode)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.darkMode ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.darkMode ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Theme Color */}
-                    <div>
-                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Theme Color</span>
-                      <input
-                        type="color"
-                        value={settings.display.themeColor || '#3B82F6'}
-                        onChange={e => updateSettings('display', 'themeColor', e.target.value)}
-                        className="w-12 h-8 p-0 bg-transparent border-0"
-                      />
-                    </div>
-                    {/* Chat Bubble Roundness */}
-                    <div>
-                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Chat Bubble Roundness</span>
-                      <select
-                        value={settings.display.bubbleRoundness || 'large'}
-                        onChange={e => updateSettings('display', 'bubbleRoundness', e.target.value)}
-                        className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                      >
-                        <option value="small">Small</option>
-                        <option value="medium">Medium</option>
-                        <option value="large">Large</option>
-                        <option value="extra-large">Extra Large</option>
-                      </select>
-                    </div>
-                    {/* Message Font Size */}
-                    <div>
-                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Message Font Size</span>
-                      <select
-                        value={settings.display.messageFontSize || 'medium'}
-                        onChange={e => updateSettings('display', 'messageFontSize', e.target.value)}
-                        className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                      >
-                        <option value="small">Small</option>
-                        <option value="medium">Medium</option>
-                        <option value="large">Large</option>
-                      </select>
-                    </div>
-                    {/* Enable Syntax Highlighting */}
-                    <div>
-                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Enable Syntax Highlighting</span>
-                      <button
-                        onClick={() => updateSettings('display', 'syntaxHighlighting', !settings.display.syntaxHighlighting)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.syntaxHighlighting ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.syntaxHighlighting ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Show Avatars */}
-                    <div>
-                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Show Avatars</span>
-                      <button
-                        onClick={() => updateSettings('display', 'showAvatars', !settings.display.showAvatars)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.showAvatars ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.showAvatars ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Show Timestamps */}
-                    <div>
-                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Show Timestamps</span>
-                      <button
-                        onClick={() => updateSettings('display', 'showTimestamps', !settings.display.showTimestamps)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.showTimestamps ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.showTimestamps ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Enable AI Assistant */}
-                    <div>
-                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Enable AI Assistant</span>
-                      <button
-                        onClick={() => updateSettings('display', 'aiAssistant', !settings.display.aiAssistant)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.aiAssistant ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.aiAssistant ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                  </div>
-                )}
-                {/* Behavior Tab */}
-                {activeSettingsTab === 'behavior' && (
-                  <div className="space-y-4">
-                    {/* Auto Scroll toggle */}
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">Auto Scroll</span>
-                      <button
-                        onClick={() => setSettings(prev => {
-                          const updated = { ...prev, behavior: { ...prev.behavior, autoScroll: !prev.behavior.autoScroll } };
-                          localStorage.setItem('projectSettings', JSON.stringify(updated));
-                          return updated;
-                        })}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.autoScroll ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.autoScroll ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Show System Messages toggle */}
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">Show System Messages</span>
-                      <button
-                        onClick={() => setSettings(prev => {
-                          const updated = { ...prev, behavior: { ...prev.behavior, showSystemMessages: !prev.behavior.showSystemMessages } };
-                          localStorage.setItem('projectSettings', JSON.stringify(updated));
-                          return updated;
-                        })}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.showSystemMessages ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.showSystemMessages ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Collapse Replies by Default toggle */}
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">Collapse Replies by Default</span>
-                      <button
-                        onClick={() => setSettings(prev => {
-                          const updated = { ...prev, behavior: { ...prev.behavior, collapseReplies: !prev.behavior.collapseReplies } };
-                          localStorage.setItem('projectSettings', JSON.stringify(updated));
-                          return updated;
-                        })}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.collapseReplies ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.collapseReplies ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Show Message Read Receipts toggle */}
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">Show Message Read Receipts</span>
-                      <button
-                        onClick={() => setSettings(prev => {
-                          const updated = { ...prev, behavior: { ...prev.behavior, showReadReceipts: !prev.behavior.showReadReceipts } };
-                          localStorage.setItem('projectSettings', JSON.stringify(updated));
-                          return updated;
-                        })}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.showReadReceipts ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.showReadReceipts ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Enter to Send toggle */}
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">Enter to Send</span>
-                      <button
-                        onClick={() => setSettings(prev => {
-                          const updated = { ...prev, behavior: { ...prev.behavior, enterToSend: !prev.behavior.enterToSend } };
-                          localStorage.setItem('projectSettings', JSON.stringify(updated));
-                          return updated;
-                        })}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.enterToSend ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.enterToSend ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                  </div>
-                )}
-                {/* Accessibility Tab */}
-                {activeSettingsTab === 'accessibility' && (
-                  <div className="space-y-4">
-                    <div>
-                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Language</span>
-                      <select
-                        value={settings.accessibility?.language || 'en-US'}
-                        onChange={e => updateSettings('accessibility', 'language', e.target.value)}
-                        className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                      >
-                        <option value="en-US">English (US)</option>
-                        <option value="hi-IN">हिंदी (Hindi)</option>
-                        <option value="es-ES">Español (Spanish)</option>
-                        <option value="fr-FR">Français (French)</option>
-                        <option value="de-DE">Deutsch (German)</option>
-                        <option value="ja-JP">日本語 (Japanese)</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-                {/* Sidebar Tab */}
-                {activeSettingsTab === 'sidebar' && (
-                  <div className="space-y-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-inner border dark:border-gray-700">
-                    {/* Show File Tree */}
-                    <div className="flex items-center justify-between py-2 border-b dark:border-gray-700">
-                      <span className="font-medium text-gray-900 dark:text-white">Show File Tree</span>
-                      <button
-                        onClick={() => updateSettings('sidebar', 'showFileTree', !settings.sidebar?.showFileTree)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${settings.sidebar?.showFileTree ? 'bg-blue-600' : 'bg-gray-300'}`}
-                        aria-pressed={settings.sidebar?.showFileTree}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${settings.sidebar?.showFileTree ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Show Collaborators List */}
-                    <div className="flex items-center justify-between py-2 border-b dark:border-gray-700">
-                      <span className="font-medium text-gray-900 dark:text-white">Show Collaborators List</span>
-                      <button
-                        onClick={() => updateSettings('sidebar', 'showCollaborators', !settings.sidebar?.showCollaborators)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${settings.sidebar?.showCollaborators ? 'bg-blue-600' : 'bg-gray-300'}`}
-                        aria-pressed={settings.sidebar?.showCollaborators}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${settings.sidebar?.showCollaborators ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Pin Sidebar */}
-                    <div className="flex items-center justify-between py-2 border-b dark:border-gray-700">
-                      <span className="font-medium text-gray-900 dark:text-white">Pin Sidebar</span>
-                      <button
-                        onClick={() => updateSettings('sidebar', 'pinSidebar', !settings.sidebar?.pinSidebar)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${settings.sidebar?.pinSidebar ? 'bg-blue-600' : 'bg-gray-300'}`}
-                        aria-pressed={settings.sidebar?.pinSidebar}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${settings.sidebar?.pinSidebar ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Sidebar Width */}
-                    <div className="py-2">
-                      <span className="block mb-2 font-medium text-gray-900 dark:text-white">Sidebar Width</span>
-                      <input
-                        type="range"
-                        min={180}
-                        max={400}
-                        value={settings.sidebar?.sidebarWidth || 240}
-                        onChange={e => updateSettings('sidebar', 'sidebarWidth', Number(e.target.value))}
-                        className="w-full accent-blue-600"
-                      />
-                      <span className="text-xs text-gray-600 dark:text-gray-300">{settings.sidebar?.sidebarWidth || 240}px</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+      <ProjectSettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        settings={settings}
+        updateSettings={updateSettings}
+        activeTab={activeSettingsTab}
+        setActiveTab={setActiveSettingsTab}
+        t={t}
+        isDarkMode={isDarkMode}
+        vimMode={vimMode}
+        setVimMode={setVimMode}
+      />
       {isAIModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="relative w-full max-w-md p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">

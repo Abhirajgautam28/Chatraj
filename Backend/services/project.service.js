@@ -1,5 +1,6 @@
 import projectModel from '../models/project.model.js';
 import userModel from '../models/user.model.js';
+import { withCache } from '../utils/cache.js';
 import mongoose from 'mongoose';
 
 // Basic recursive validation to ensure fileTree is a plain JSON-like structure
@@ -177,7 +178,9 @@ export const getCountsByCategory = async (userEmail) => {
 };
 
 export const getShowcase = async () => {
-    return await projectModel.find({}).sort({ users: -1 }).limit(10);
+    return await withCache('projects:showcase', 600, async () => {
+        return await projectModel.find({}).sort({ users: -1 }).limit(10);
+    });
 };
 
 export const getSettings = async (projectId, userId) => {

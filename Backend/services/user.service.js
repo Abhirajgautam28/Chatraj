@@ -4,6 +4,7 @@ import { normalizeEmail } from '../utils/email.js';
 import { generateOTP } from '../utils/otp.js';
 import { sendMailWithRetry } from '../utils/mailer.js';
 import { getPasswordResetHtml } from '../utils/templates.js';
+import { withCache } from '../utils/cache.js';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 
@@ -149,7 +150,9 @@ export const loginUser = async (email, password) => {
 };
 
 export const getAllUsers = async ({ userId }) => {
-    return await userModel.find({ _id: { $ne: userId } });
+    return await withCache(`users:all:exclude:${userId}`, 60, async () => {
+        return await userModel.find({ _id: { $ne: userId } }).select('firstName lastName _id');
+    });
 };
 
 export const resetPassword = async (email) => {
@@ -194,5 +197,7 @@ export const updatePassword = async (email, newPassword) => {
 };
 
 export const getLeaderboard = async () => {
-    return await userModel.find({}).sort({ projects: -1 }).limit(10);
+    return await withCache('leaderboard:top10', 300, async () => {
+        return await userModel.find({}).sort({ projects: -1 }).limit(10).select('firstName lastName projects _id');
+    });
 };
