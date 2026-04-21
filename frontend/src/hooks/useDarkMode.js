@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { flushSync } from 'react-dom';
 
 const useDarkMode = (key = 'blog_dark_mode', defaultValue = false) => {
   const [darkMode, setDarkMode] = useState(() => {
@@ -39,7 +40,42 @@ const useDarkMode = (key = 'blog_dark_mode', defaultValue = false) => {
     }
   }, [key]);
 
-  return [darkMode, setDarkMode];
+  const toggleThemeGlobal = (shouldReduceMotion = false) => {
+    if (shouldReduceMotion || typeof document === 'undefined') {
+      setDarkMode((prev) => !prev);
+      return;
+    }
+
+    if (!document.startViewTransition) {
+      const durationStr = getComputedStyle(document.documentElement).getPropertyValue('--theme-transition-duration').trim();
+      let durationMs = 750;
+      if (durationStr.endsWith('ms')) {
+        durationMs = parseFloat(durationStr);
+      } else if (durationStr.endsWith('s')) {
+        durationMs = parseFloat(durationStr) * 1000;
+      }
+
+      document.documentElement.classList.add('theme-transitioning');
+      setDarkMode((prev) => !prev);
+      setTimeout(() => {
+        document.documentElement.classList.remove('theme-transitioning');
+      }, durationMs);
+      return;
+    }
+
+    document.documentElement.classList.add('theme-transition');
+    const transition = document.startViewTransition(() => {
+      flushSync(() => {
+        setDarkMode((prev) => !prev);
+      });
+    });
+
+    transition.finished.finally(() => {
+      document.documentElement.classList.remove('theme-transition');
+    });
+  };
+
+  return [darkMode, setDarkMode, toggleThemeGlobal];
 };
 
 export default useDarkMode;

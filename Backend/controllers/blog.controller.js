@@ -1,82 +1,50 @@
-import Blog from '../models/blog.model.js';
-import User from '../models/user.model.js';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import * as blogService from '../services/blog.service.js';
 import mongoose from 'mongoose';
-
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+import response from '../utils/response.js';
 
 export const createBlog = async (req, res) => {
     try {
         const { title, content } = req.body;
-        const author = await User.findOne({ email: req.user.email });
-
-        if (!author) {
-            return res.status(401).json({ error: 'User not found' });
-        }
-
-        const newBlog = new Blog({
-            title,
-            content,
-            author: author._id
-        });
-
-        await newBlog.save();
-        res.status(201).json(newBlog);
-    } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
+        const newBlog = await blogService.createBlog({ title, content, userEmail: req.user.email });
+        return response.success(res, newBlog, 'Blog created successfully', 201);
+    } catch (err) {
+        const status = err.message === 'User not found' ? 401 : 500;
+        return response.error(res, err.message, status);
     }
 };
 
 export const getAllBlogs = async (req, res) => {
     try {
-        const blogs = await Blog.find().populate('author', 'firstName lastName').sort({ createdAt: -1 });
-        res.status(200).json(blogs);
-    } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
+        const blogs = await blogService.getAllBlogs();
+        return response.success(res, blogs);
+    } catch (err) {
+        return response.error(res, 'Internal server error');
     }
 };
 
 export const getBlogById = async (req, res) => {
     try {
         const id = req.params.id;
-        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
-        const blog = await Blog.findById(id).populate('author', 'firstName lastName').populate('comments.user', 'firstName lastName');
+        if (!mongoose.Types.ObjectId.isValid(id)) return response.error(res, 'Invalid blog id', 400);
+        const blog = await blogService.getBlogById(id);
         if (!blog) {
-            return res.status(404).json({ error: 'Blog not found' });
+            return response.error(res, 'Blog not found', 404);
         }
-        res.status(200).json(blog);
-    } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
+        return response.success(res, blog);
+    } catch (err) {
+        return response.error(res, 'Internal server error');
     }
 };
 
 export const likeBlog = async (req, res) => {
     try {
         const id = req.params.id;
-        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
-        const blog = await Blog.findById(id);
-        const user = await User.findOne({ email: req.user.email });
-
-        if (!blog) {
-            return res.status(404).json({ error: 'Blog not found' });
-        }
-
-        if (!user) {
-            return res.status(401).json({ error: 'User not found' });
-        }
-
-        const likedIndex = blog.likes.indexOf(user._id);
-
-        if (likedIndex > -1) {
-            blog.likes.splice(likedIndex, 1);
-        } else {
-            blog.likes.push(user._id);
-        }
-
-        await blog.save();
-        res.status(200).json(blog);
-    } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
+        if (!mongoose.Types.ObjectId.isValid(id)) return response.error(res, 'Invalid blog id', 400);
+        const blog = await blogService.likeBlog(id, req.user.email);
+        return response.success(res, blog, 'Success');
+    } catch (err) {
+        const status = err.message === 'Blog not found' ? 404 : (err.message === 'User not found' ? 401 : 500);
+        return response.error(res, err.message, status);
     }
 };
 
@@ -84,42 +52,22 @@ export const commentOnBlog = async (req, res) => {
     try {
         const { text } = req.body;
         const id = req.params.id;
-        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
-        const blog = await Blog.findById(id);
-        const user = await User.findOne({ email: req.user.email });
-
-        if (!blog) {
-            return res.status(404).json({ error: 'Blog not found' });
-        }
-
-        if (!user) {
-            return res.status(401).json({ error: 'User not found' });
-        }
-
-        const newComment = {
-            user: user._id,
-            text
-        };
-
-        blog.comments.push(newComment);
-        await blog.save();
-        res.status(201).json(blog);
-    } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
+        if (!mongoose.Types.ObjectId.isValid(id)) return response.error(res, 'Invalid blog id', 400);
+        const blog = await blogService.commentOnBlog(id, req.user.email, text);
+        return response.success(res, blog, 'Comment added successfully', 201);
+    } catch (err) {
+        const status = err.message === 'Blog not found' ? 404 : (err.message === 'User not found' ? 401 : 500);
+        return response.error(res, err.message, status);
     }
 };
 
 export const generateBlogContent = async (req, res) => {
     try {
         const { topic } = req.body;
-        if (typeof topic !== 'string' || topic.trim().length === 0 || topic.trim().length > 200) return res.status(400).json({ error: 'Invalid topic' });
-        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-        const prompt = `Write a professional blog post of about 100 words on the topic: "${topic.trim().slice(0,200)}".`;
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
-        res.status(200).json({ content: text });
-    } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
+        const content = await blogService.generateBlogContent(topic);
+        return response.success(res, { content });
+    } catch (err) {
+        const status = err.message === 'Invalid topic' ? 400 : 500;
+        return response.error(res, err.message, status);
     }
 };
