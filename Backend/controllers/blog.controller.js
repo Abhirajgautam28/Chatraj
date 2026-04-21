@@ -25,7 +25,7 @@ export const createBlog = async (req, res) => {
 
 export const getAllBlogs = async (req, res) => {
     try {
-        const blogs = await Blog.find().populate('author', 'firstName lastName').sort({ createdAt: -1 });
+        const blogs = await Blog.find().populate('author', 'firstName lastName').sort({ createdAt: -1 }).lean();
         res.status(200).json(blogs);
     } catch (error) {
         logger.error('getAllBlogs error:', error);
@@ -37,7 +37,7 @@ export const getBlogById = async (req, res) => {
     try {
         const id = req.params.id;
         if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
-        const blog = await Blog.findById(id).populate('author', 'firstName lastName').populate('comments.user', 'firstName lastName');
+        const blog = await Blog.findById(id).populate('author', 'firstName lastName').populate('comments.user', 'firstName lastName').lean();
         if (!blog) {
             return res.status(404).json({ error: 'Blog not found' });
         }

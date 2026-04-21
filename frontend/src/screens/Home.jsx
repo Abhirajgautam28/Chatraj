@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useContext, useEffect, Suspense, lazy, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';

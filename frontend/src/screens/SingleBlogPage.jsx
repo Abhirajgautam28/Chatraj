@@ -1,4 +1,4 @@
-// ...existing code...
+import React from 'react';
 import { useEffect, useState, useRef } from 'react';
 import { BlogThemeProvider } from '../context/blogTheme.context';
 import useBlogTheme from '../context/useBlogTheme';

@@ -1,3 +1,4 @@
+import React from 'react';
 import { useEffect, useState } from 'react';
 import { BlogThemeProvider } from '../context/blogTheme.context';
 import axios from '../config/axios';

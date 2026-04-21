@@ -8,7 +8,7 @@ import { logger } from '../utils/logger.js';
 export const getAllProject = async (req, res) => {
     try {
         // Find all projects where user is a member
-        const projects = await projectModel.find({ users: { $in: [req.user._id] } });
+        const projects = await projectModel.find({ users: { $in: [req.user._id] } }).lean();
         res.status(200).json({ projects });
     } catch (err) {
         logger.error('getAllProject error:', err);

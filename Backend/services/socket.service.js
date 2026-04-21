@@ -24,7 +24,7 @@ export const initializeSocket = (server) => {
                 return next(new Error('Invalid projectId'));
             }
 
-            const project = await projectModel.findById(projectId);
+            const project = await projectModel.findById(projectId).lean();
             if (!project) {
                 return next(new Error('Project not found'));
             }
@@ -121,21 +121,22 @@ export const initializeSocket = (server) => {
 
         socket.on('message-reaction', async (data) => {
             try {
-                const message = await Message.findById(data.messageId);
-                if (message) {
-                    message.reactions = message.reactions.filter(r =>
-                        r.userId.toString() !== data.userId.toString()
+                // Use atomic toggle pattern for reactions
+                const pullRes = await Message.updateOne(
+                    { _id: data.messageId, 'reactions.userId': data.userId },
+                    { $pull: { reactions: { userId: data.userId } } }
+                );
+
+                if (data.emoji) {
+                    await Message.updateOne(
+                        { _id: data.messageId },
+                        { $push: { reactions: { emoji: data.emoji, userId: data.userId } } }
                     );
+                }
 
-                    if (data.emoji) {
-                        message.reactions.push({
-                            emoji: data.emoji,
-                            userId: data.userId
-                        });
-                    }
-
-                    await message.save();
-                    io.to(socket.roomId).emit('message-reaction', message);
+                const updatedMessage = await Message.findById(data.messageId).lean();
+                if (updatedMessage) {
+                    io.to(socket.roomId).emit('message-reaction', updatedMessage);
                 }
             } catch (error) {
                 logger.error("Error handling reaction:", error.message);
