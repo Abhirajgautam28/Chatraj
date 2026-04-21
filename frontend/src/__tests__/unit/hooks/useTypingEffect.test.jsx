@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
-import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { useTypingEffect } from '../../../hooks/useTypingEffect';
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import useTypingEffect from '../../../hooks/useTypingEffect';
 
 describe('useTypingEffect Hook', () => {
   beforeEach(() => {
@@ -12,8 +12,7 @@ describe('useTypingEffect Hook', () => {
   });
 
   test('should type text sequentially', () => {
-    const textArray = ['Hello'];
-    const { result } = renderHook(() => useTypingEffect(textArray, { typingSpeed: 100 }));
+    const { result } = renderHook(() => useTypingEffect('Hello', 100));
 
     expect(result.current).toBe('');
 

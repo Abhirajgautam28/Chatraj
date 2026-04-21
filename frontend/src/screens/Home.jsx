@@ -177,9 +177,9 @@ const Home = () => {
   };
 
   const handleThemeToggle = () => {
-    executeThemeTransition(() => {
-      setIsDarkMode((prev) => !prev);
-    }, shouldReduceMotion, true);
+    if (toggleThemeGlobal) {
+      toggleThemeGlobal(shouldReduceMotion, true);
+    }
   };
 
   const AnimatedBg = () => (
