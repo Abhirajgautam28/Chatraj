@@ -36,16 +36,34 @@ export const getProjectMessages = async (req, res) => {
             return res.status(400).json({ error: 'Invalid projectId' });
         }
 
-        const query = { conversationId: projectId };
+        const query = { conversationId: new mongoose.Types.ObjectId(projectId) };
         if (before) {
             query.createdAt = { $lt: new Date(before) };
         }
 
-        // Optimization: Use covered index if possible (conversationId, createdAt)
-        const messages = await mongoose.model('Message').find(query)
-            .sort({ createdAt: -1 })
-            .limit(parseInt(limit, 10))
-            .lean();
+        // Optimization: Single Optimized MongoDB Aggregation for Chat History
+        const messages = await mongoose.model('Message').aggregate([
+            { $match: query },
+            { $sort: { createdAt: -1 } },
+            { $limit: parseInt(limit, 10) },
+            {
+                $project: {
+                    _id: 1,
+                    message: 1,
+                    parentMessageId: 1,
+                    reactions: 1,
+                    deliveredTo: 1,
+                    readBy: 1,
+                    createdAt: 1,
+                    sender: {
+                        _id: "$sender._id",
+                        firstName: "$sender.firstName",
+                        lastName: "$sender.lastName",
+                        email: "$sender.email"
+                    }
+                }
+            }
+        ]);
 
         res.status(200).json({ messages: messages.reverse() });
     } catch (err) {

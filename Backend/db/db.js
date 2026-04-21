@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 import dns from 'dns/promises';
 
 let mongoRetryCount = 0;
-const dnsCache = new Map();
 
 function shouldAttemptSrvFallback(mongoUri, error) {
     if (!mongoUri || !mongoUri.startsWith('mongodb+srv://')) return false;
@@ -64,15 +63,6 @@ async function connect() {
 
         mongoose.set('strictQuery', false);
 
-        // Optimization: Custom DNS caching for MongoDB to reduce connection latency
-        const lookup = (hostname, opts, cb) => {
-          if (dnsCache.has(hostname)) return cb(null, dnsCache.get(hostname), 4);
-          dns.lookup(hostname).then(res => {
-            dnsCache.set(hostname, res.address);
-            cb(null, res.address, 4);
-          }).catch(err => cb(err));
-        };
-
         const conn = await mongoose.connect(uri, {
             maxPoolSize: 50,
             minPoolSize: 10,
@@ -80,7 +70,6 @@ async function connect() {
             socketTimeoutMS: 45000,
             heartbeatFrequencyMS: 10000,
             waitQueueTimeoutMS: 5000,
-            lookup: uri.startsWith('mongodb+srv://') ? undefined : lookup
         });
 
         console.log(`MongoDB Connected: ${conn.connection.host}`);

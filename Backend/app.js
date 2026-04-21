@@ -66,7 +66,34 @@ const allowedOrigins = new Set([
 const app = express();
 
 // Manual security & performance headers (Helmet-lite)
+const assetCache = new Map();
+const hotAssets = ['/chatraj-icon.svg', '/favicon.ico', '/manifest.json'];
+
+// Warm up static asset cache at startup
+hotAssets.forEach(async (asset) => {
+    try {
+        const fs = await import('fs/promises');
+        const path = await import('path');
+        const filePath = path.join(process.cwd(), 'public', asset);
+        const data = await fs.readFile(filePath);
+        const ext = path.extname(asset);
+        const type = ext === '.svg' ? 'image/svg+xml' : ext === '.json' ? 'application/json' : 'image/x-icon';
+        assetCache.set(asset, { data, type });
+    } catch (e) { /* ignore load errors */ }
+});
+
 app.use((req, res, next) => {
+  // Strategic In-Memory Cache for high-frequency small static assets
+  if (req.method === 'GET' && hotAssets.includes(req.path)) {
+      if (assetCache.has(req.path)) {
+          const { data, type } = assetCache.get(req.path);
+          res.setHeader('Content-Type', type);
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+          return res.send(data);
+      }
+      // Optimization: No dynamic imports in middleware to avoid overhead
+  }
+
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');

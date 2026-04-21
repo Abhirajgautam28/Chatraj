@@ -9,8 +9,11 @@ import useDarkMode from '../hooks/useDarkMode';
 
 const BlogsContent = () => {
     const [blogs, setBlogs] = useState([]);
+    const [total, setTotal] = useState(0);
+    const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(true);
     const [darkMode, setDarkMode] = useDarkMode('blog_dark_mode', false);
+    const limit = 9;
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -25,9 +28,16 @@ const BlogsContent = () => {
 
     useEffect(() => {
         const fetchBlogs = async () => {
+            setLoading(true);
             try {
-                const response = await axios.get('/api/blogs');
-                setBlogs(response.data);
+                const skip = (page - 1) * limit;
+                const response = await axios.get(`/api/blogs?limit=${limit}&skip=${skip}`);
+                if (response.data && Array.isArray(response.data.blogs)) {
+                    setBlogs(response.data.blogs);
+                    setTotal(response.data.total || 0);
+                } else {
+                    setBlogs([]);
+                }
                 setLoading(false);
             } catch (error) {
                 setLoading(false);
@@ -35,7 +45,7 @@ const BlogsContent = () => {
             }
         };
         fetchBlogs();
-    }, []);
+    }, [page]);
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-300">
@@ -77,11 +87,33 @@ const BlogsContent = () => {
                         <div className="text-gray-400 dark:text-gray-500 mt-1">Be the first to create a new post!</div>
                     </div>
                 ) : (
+                    <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 justify-center">
                         {blogs.map((blog) => (
                             <MaterialBlogCard key={blog._id} blog={blog} />
                         ))}
                     </div>
+                    {/* Pagination UI */}
+                    {total > limit && (
+                        <div className="flex justify-center mt-12 gap-2">
+                             <button
+                                disabled={page === 1}
+                                onClick={() => setPage(p => p - 1)}
+                                className="px-4 py-2 bg-white dark:bg-gray-800 border rounded-lg disabled:opacity-50"
+                             >
+                                Previous
+                             </button>
+                             <span className="px-4 py-2">Page {page} of {Math.ceil(total / limit)}</span>
+                             <button
+                                disabled={page >= Math.ceil(total / limit)}
+                                onClick={() => setPage(p => p + 1)}
+                                className="px-4 py-2 bg-white dark:bg-gray-800 border rounded-lg disabled:opacity-50"
+                             >
+                                Next
+                             </button>
+                        </div>
+                    )}
+                    </>
                 )}
             </section>
         </div>

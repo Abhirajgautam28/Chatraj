@@ -24,11 +24,15 @@ export const generateResult = async (prompt, userApiKey) => {
             genAI = new GoogleGenerativeAI(apiKey);
             genAICache.set(apiKey, genAI);
         }
+        // Optimization: Dynamic temperature based on prompt intent (heuristics)
+        const isCreative = prompt.length > 500 || /write|story|blog|creative/i.test(prompt);
+        const temperature = isCreative ? 0.7 : 0.2; // Lower temp for code/logic, higher for text
+
         const model = genAI.getGenerativeModel({
             model: "gemini-1.5-flash",
             generationConfig: {
                 responseMimeType: "application/json",
-                temperature: 0.4,
+                temperature,
             },
             systemInstruction: `Expert MERN dev (10yrs). Write modular, documented, scalable code. Handle errors. Examples:
 <example>

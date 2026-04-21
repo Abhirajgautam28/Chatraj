@@ -9,8 +9,6 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 export const createBlog = async (req, res) => {
     try {
         const { title, content, summary } = req.body;
-        // Invalidate blog list cache
-        await invalidateCache('blog:all');
         // Use req.user._id directly from optimized JWT payload
         const newBlog = new Blog({
             title,
@@ -20,6 +18,8 @@ export const createBlog = async (req, res) => {
         });
 
         await newBlog.save();
+        // Invalidate blog list cache using tag AFTER successful save
+        await invalidateCache('blog:all', true);
         res.status(201).json(newBlog);
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
@@ -28,12 +28,30 @@ export const createBlog = async (req, res) => {
 
 export const getAllBlogs = async (req, res) => {
     try {
-        const blogs = await withCache('blog:all', 300, async () => {
-            // Exclude large content and comments fields for list view performance
-            return await Blog.find().select('-content -comments').populate('author', 'firstName lastName').sort({ createdAt: -1 }).lean();
-        });
-        res.status(200).json(blogs);
+        const { limit = 20, skip = 0, search } = req.query;
+        const cacheKey = `blog:list:${limit}:${skip}:${search || 'none'}`;
+
+        const data = await withCache(cacheKey, 300, async () => {
+            const query = {};
+            if (search) {
+                query.$text = { $search: search };
+            }
+
+            const blogs = await Blog.find(query, search ? { score: { $meta: 'textScore' } } : {})
+                .select('-content -comments')
+                .populate('author', 'firstName lastName')
+                .sort(search ? { score: { $meta: 'textScore' } } : { createdAt: -1 })
+                .limit(Math.min(parseInt(limit, 10), 50))
+                .skip(parseInt(skip, 10))
+                .lean();
+
+            const total = await Blog.countDocuments(query);
+            return { blogs, total };
+        }, ['blog:all']);
+
+        res.status(200).json(data);
     } catch (error) {
+        console.error('getAllBlogs error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -83,8 +101,8 @@ export const likeBlog = async (req, res) => {
         }
 
         if (!blog) return res.status(404).json({ error: 'Blog not found' });
-        // Invalidate list cache as like count might be displayed
-        await invalidateCache('blog:all');
+        // Invalidate list cache as like count might be displayed using tag
+        await invalidateCache('blog:all', true);
         res.status(200).json(blog);
     } catch (error) {
         console.error('likeBlog error:', error);
@@ -106,8 +124,8 @@ export const commentOnBlog = async (req, res) => {
         ).populate('author', 'firstName lastName').populate('comments.user', 'firstName lastName').lean();
 
         if (!blog) return res.status(404).json({ error: 'Blog not found' });
-        // Invalidate list cache as comment count might be displayed
-        await invalidateCache('blog:all');
+        // Invalidate list cache AFTER successful update
+        await invalidateCache('blog:all', true);
         res.status(201).json(blog);
     } catch (error) {
         console.error('commentOnBlog error:', error);

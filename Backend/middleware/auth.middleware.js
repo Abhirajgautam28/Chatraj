@@ -3,6 +3,8 @@ import redisClient from "../services/redis.service.js";
 import mongoose from "mongoose";
 
 const tokenCache = new Map();
+const emailExistsCache = new Map(); // Sliding window for email existence
+const MAX_EMAIL_CACHE = 10000;
 const TOKEN_CACHE_TTL = 300000; // 5 minutes
 
 // Simple memory leak protection: periodic cleanup
@@ -53,9 +55,18 @@ export const authUser = async (req, res, next) => {
             if (user) {
                 decoded._id = user;
             } else {
+                // Pre-check with in-memory set (simulated bloom filter)
+                const knownMissing = emailExistsCache.size > 0 && !emailExistsCache.has(decoded.email);
+                if (knownMissing) return res.status(401).send({ error: 'Unauthorized User' });
+
                 const userDoc = await mongoose.model('user').findOne({ email: decoded.email }).select('_id').lean();
                 if (userDoc) {
                     decoded._id = userDoc._id.toString();
+                    emailExistsCache.set(decoded.email, Date.now());
+                    if (emailExistsCache.size > MAX_EMAIL_CACHE) {
+                        const oldest = emailExistsCache.keys().next().value;
+                        emailExistsCache.delete(oldest);
+                    }
                     await redisClient.set(`user:email_to_id:${decoded.email}`, decoded._id, 'EX', 3600);
                 }
             }

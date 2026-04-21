@@ -312,7 +312,7 @@ export const verifyOtpController = async (req, res) => {
                         isVerified: true,
                     });
                     // Invalidate leaderboard cache when a new user is created
-                    await invalidateCache('user:leaderboard');
+                    await invalidateCache('user:leaderboard', true);
                     // remove pending key
                     await redisClient.del(pendingKey);
                     // generate token for the newly created user

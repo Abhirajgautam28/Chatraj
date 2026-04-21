@@ -123,10 +123,7 @@ io.on('connection', socket => {
             savedMessage = { ...data, createdAt: new Date().toISOString(), deliveredTo: [], readBy: [] };
         }
 
-        const serialized = serializeMessage(savedMessage);
-        io.to(socket.roomId).emit('project-message', serialized);
-        // Release to pool if it was a pooled object
-        if (typeof serialized.release === 'function') serialized.release();
+        io.to(socket.roomId).emit('project-message', serializeMessage(savedMessage));
 
         if (aiIsPresent) {
             const prompt = messageText.replace('@Chatraj', '');
@@ -145,9 +142,7 @@ io.on('connection', socket => {
                 console.error("Error saving AI message:", err);
                 savedAIMessage = { message: result, sender: { _id: 'Chatraj', email: 'Chatraj' }, createdAt: new Date().toISOString() };
             }
-            const aiSerialized = serializeMessage(savedAIMessage);
-            io.to(socket.roomId).emit('project-message', aiSerialized);
-            if (typeof aiSerialized.release === 'function') aiSerialized.release();
+            io.to(socket.roomId).emit('project-message', serializeMessage(savedAIMessage));
             return;
         }
     })
