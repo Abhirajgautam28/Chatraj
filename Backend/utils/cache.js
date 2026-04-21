@@ -2,6 +2,7 @@ import redisClient from '../services/redis.service.js';
 
 // Simple in-memory LRU-like cache for extremely hot keys
 const localCache = new Map();
+const inflightRequests = new Map();
 const LOCAL_CACHE_TTL = 5000; // 5 seconds for local cache
 
 export const withCache = async (key, ttl, fetchFn, tags = []) => {
@@ -24,8 +25,13 @@ export const withCache = async (key, ttl, fetchFn, tags = []) => {
         console.error(`Cache read error for key ${key}:`, err);
     }
 
-    // 3. Fetch from source
-    const data = await fetchFn();
+    // 3. Fetch from source with Thundering Herd Protection (Request Collapsing)
+    let inflight = inflightRequests.get(key);
+    if (!inflight) {
+        inflight = fetchFn().finally(() => inflightRequests.delete(key));
+        inflightRequests.set(key, inflight);
+    }
+    const data = await inflight;
 
     try {
         // 4. Update both caches

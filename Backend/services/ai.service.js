@@ -42,7 +42,8 @@ response:{"text":"Hello, how can I help?"}
 IMPORTANT:No routes/index.js`
         });
         const result = await model.generateContent(prompt);
-        return result.response.text();
+        const response = await result.response;
+        return response.text();
     } catch (err) {
         // Do not cache error responses
         throw err;

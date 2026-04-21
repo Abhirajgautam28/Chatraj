@@ -56,7 +56,8 @@ async function run() {
     let cursor = '0';
     let seen = 0;
     let buffer = [];
-    const processedKeys = new Set();
+    const processedKeys = new Map();
+    const MAX_PROCESSED_KEYS = 50000; // Limit size to prevent OOM
 
     const processBatch = async (keys) => {
       if (!keys || keys.length === 0) return;
@@ -107,7 +108,15 @@ async function run() {
       const keys = res[1] || [];
       for (const k of keys) {
         if (!processedKeys.has(k)) {
-          processedKeys.add(k);
+          // Optimization: Sliding window deduplication using Map for deterministic cleanup
+          processedKeys.set(k, Date.now());
+
+          // Clear oldest keys if limit reached
+          if (processedKeys.size > MAX_PROCESSED_KEYS) {
+              const oldestKey = processedKeys.keys().next().value;
+              processedKeys.delete(oldestKey);
+          }
+
           buffer.push(k);
           seen++;
           if (buffer.length >= BATCH_SIZE) {

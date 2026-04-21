@@ -24,6 +24,8 @@ async function sync() {
 
     for (const item of counts) {
         pipeline.zadd('user:leaderboard:zset', item.count, item._id.toString());
+        // Also update MongoDB denormalized count
+        await mongoose.model('user').updateOne({ _id: item._id }, { $set: { projectsCount: item.count } });
     }
 
     await pipeline.exec();

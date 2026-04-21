@@ -1,6 +1,4 @@
 import http from 'http';
-import cluster from 'cluster';
-import os from 'os';
 import 'dotenv/config';
 import './patches/patch-validator-isURL.js';
 import app from './app.js';
@@ -124,7 +122,11 @@ io.on('connection', socket => {
             console.error("Error saving message:", err);
             savedMessage = { ...data, createdAt: new Date().toISOString(), deliveredTo: [], readBy: [] };
         }
-        io.to(socket.roomId).emit('project-message', serializeMessage(savedMessage));
+
+        const serialized = serializeMessage(savedMessage);
+        io.to(socket.roomId).emit('project-message', serialized);
+        // Release to pool if it was a pooled object
+        if (typeof serialized.release === 'function') serialized.release();
 
         if (aiIsPresent) {
             const prompt = messageText.replace('@Chatraj', '');
@@ -143,7 +145,9 @@ io.on('connection', socket => {
                 console.error("Error saving AI message:", err);
                 savedAIMessage = { message: result, sender: { _id: 'Chatraj', email: 'Chatraj' }, createdAt: new Date().toISOString() };
             }
-            io.to(socket.roomId).emit('project-message', serializeMessage(savedAIMessage));
+            const aiSerialized = serializeMessage(savedAIMessage);
+            io.to(socket.roomId).emit('project-message', aiSerialized);
+            if (typeof aiSerialized.release === 'function') aiSerialized.release();
             return;
         }
     })
@@ -160,6 +164,21 @@ io.on('connection', socket => {
             }
         } catch (err) {
             console.error('Error updating deliveredTo:', err);
+        }
+    });
+
+    // Performance Optimization: Batch delivery status updates
+    socket.on('messages-delivered-batch', async ({ messageIds, userId }) => {
+        try {
+            const result = await Message.updateMany(
+                { _id: { $in: messageIds }, deliveredTo: { $ne: userId } },
+                { $addToSet: { deliveredTo: userId } }
+            );
+            if (result.modifiedCount > 0) {
+                io.to(socket.roomId).emit('messages-delivered-batch', { messageIds, userId });
+            }
+        } catch (err) {
+            console.error('Error updating deliveredTo batch:', err);
         }
     });
 
@@ -261,24 +280,10 @@ server.on('error', (error) => {
     process.exit(1);
 });
 
-if (cluster.isPrimary && process.env.NODE_ENV === 'production' && process.env.ENABLE_CLUSTER === 'true') {
-    const numCPUs = os.cpus().length;
-    console.log(`Primary ${process.pid} is running. Forking ${numCPUs} workers...`);
-
-    for (let i = 0; i < numCPUs; i++) {
-        cluster.fork();
+server.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+    if (process.env.NODE_ENV === 'production') {
+        const backendUrl = process.env.BACKEND_URL || `https://${process.env.RENDER_EXTERNAL_HOSTNAME}`;
+        pingService(`${backendUrl}/health`);
     }
-
-    cluster.on('exit', (worker, code, signal) => {
-        console.log(`Worker ${worker.process.pid} died. Forking replacement...`);
-        cluster.fork();
-    });
-} else {
-    server.listen(port, () => {
-        console.log(`Worker ${process.pid} started. Server running on port ${port}`);
-        if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
-            const backendUrl = process.env.BACKEND_URL || `https://${process.env.RENDER_EXTERNAL_HOSTNAME}`;
-            pingService(`${backendUrl}/health`);
-        }
-    });
-}
+});

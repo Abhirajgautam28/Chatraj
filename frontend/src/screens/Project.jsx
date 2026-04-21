@@ -16,6 +16,7 @@ import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 const VimCodeEditor = React.lazy(() => import('../components/VimCodeEditor'));
 import ChatMessage from '../components/ChatMessage';
+import ChatErrorBoundary from '../components/ChatErrorBoundary';
 import { useDebounce } from '../hooks/useDebounce';
 
 // Initialize Web Worker
@@ -499,12 +500,14 @@ const Project = () => {
   }, [webContainer, project._id, location.state.project._id])
 
   const readBufferRef = useRef(new Set());
+  const deliveryBufferRef = useRef(new Set());
+
   useEffect(() => {
     if (messages.length && messageBox.current) {
       // Auto-scroll to bottom
       messageBox.current.scrollTop = messageBox.current.scrollHeight;
 
-      // Performance Optimization: Batch read status updates
+      // Performance Optimization: Batch status updates
       const lastMsg = messages[messages.length - 1];
       if (lastMsg._id) {
         readBufferRef.current.add(lastMsg._id);
@@ -518,6 +521,11 @@ const Project = () => {
         const messageIds = Array.from(readBufferRef.current);
         sendMessage("messages-read-batch", { messageIds, userId: user._id });
         readBufferRef.current.clear();
+      }
+      if (deliveryBufferRef.current.size > 0) {
+        const messageIds = Array.from(deliveryBufferRef.current);
+        sendMessage("messages-delivered-batch", { messageIds, userId: user._id });
+        deliveryBufferRef.current.clear();
       }
     }, 3000);
     return () => clearInterval(interval);
@@ -546,6 +554,11 @@ const Project = () => {
 
   useEffect(() => {
     const handleIncomingMessage = (data) => {
+      // Mark as delivered in batch
+      if (data._id && data.sender?._id !== user._id) {
+        deliveryBufferRef.current.add(data._id);
+      }
+
       // If the sender is Chatraj and the message is a JSON with fileTree, update the file tree
       if (data.sender && data.sender._id === "Chatraj") {
         try {
@@ -803,35 +816,36 @@ const Project = () => {
           ref={messageBox}
           className="flex flex-col flex-grow gap-1 p-1 pb-20 overflow-auto pt-14 message-box scrollbar-hide bg-slate-50 dark:bg-gray-800"
         >
-          {/* Performance Optimization: For very large lists, consider react-window.
-              Currently using slice to limit initial DOM nodes if list is massive. */}
+          {/* Performance Optimization: Virtualized rendering via IntersectionObserver
+              Each message component now self-manages visibility. */}
           {Object.keys(groupedMessages)
             .sort((a, b) => a.localeCompare(b))
             .map((groupLabel) => (
               <div key={groupLabel}>
                 <div className="py-2 text-sm text-center text-gray-500 dark:text-gray-400">{groupLabel}</div>
-                {groupedMessages[groupLabel].slice(-500).map((msg, idx) => (
-                  <ChatMessage
-                    key={msg._id ? `${groupLabel}-${msg._id}` : `${groupLabel}-idx-${idx}`}
-                    msg={msg}
-                    user={user}
-                    isDarkMode={isDarkMode}
-                    bubbleRoundnessClass={bubbleRoundnessClass}
-                    messageFontSizeClass={messageFontSizeClass}
-                    getUserBubbleStyle={getUserBubbleStyle}
-                    settings={settings}
-                    messages={messages}
-                    users={users}
-                    project={project}
-                    expandedReplies={expandedReplies}
-                    setExpandedReplies={setExpandedReplies}
-                    toggleEmojiPicker={toggleEmojiPicker}
-                    messageEmojiPickers={messageEmojiPickers}
-                    handleReaction={handleReaction}
-                    setReplyingTo={setReplyingTo}
-                    SyntaxHighlightedCode={SyntaxHighlightedCode}
-                    getMessageStatus={getMessageStatus}
-                  />
+                {groupedMessages[groupLabel].map((msg, idx) => (
+                  <ChatErrorBoundary key={msg._id ? `${groupLabel}-${msg._id}` : `${groupLabel}-idx-${idx}`}>
+                    <ChatMessage
+                      msg={msg}
+                      user={user}
+                      isDarkMode={isDarkMode}
+                      bubbleRoundnessClass={bubbleRoundnessClass}
+                      messageFontSizeClass={messageFontSizeClass}
+                      getUserBubbleStyle={getUserBubbleStyle}
+                      settings={settings}
+                      messages={messages}
+                      users={users}
+                      project={project}
+                      expandedReplies={expandedReplies}
+                      setExpandedReplies={setExpandedReplies}
+                      toggleEmojiPicker={toggleEmojiPicker}
+                      messageEmojiPickers={messageEmojiPickers}
+                      handleReaction={handleReaction}
+                      setReplyingTo={setReplyingTo}
+                      SyntaxHighlightedCode={SyntaxHighlightedCode}
+                      getMessageStatus={getMessageStatus}
+                    />
+                  </ChatErrorBoundary>
                 ))}
               </div>
             ))}

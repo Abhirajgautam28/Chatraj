@@ -43,6 +43,11 @@ const userSchema = new mongoose.Schema({
     isVerified: {
         type: Boolean,
         default: false
+    },
+    projectsCount: {
+        type: Number,
+        default: 0,
+        index: true
     }
 }, {
     versionKey: false,

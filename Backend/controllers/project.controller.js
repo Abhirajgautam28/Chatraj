@@ -87,6 +87,10 @@ export const createProject = async (req, res) => {
             users: collaboratorIds ? [...collaboratorIds, req.user._id] : [req.user._id],
             createdBy: req.user._id
         });
+
+        // Denormalized project count update
+        const allUserIds = collaboratorIds ? [...collaboratorIds, req.user._id] : [req.user._id];
+        await userModel.updateMany({ _id: { $in: allUserIds } }, { $inc: { projectsCount: 1 } });
         res.status(201).json({ project });
     } catch (err) {
         console.error('createProject error:', err);

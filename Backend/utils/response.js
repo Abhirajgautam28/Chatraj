@@ -43,7 +43,8 @@ export const serializeMessage = (msg) => {
     pooled.readBy = msg.readBy || [];
     pooled.createdAt = msg.createdAt;
 
-    // In a real high-perf scenario, we'd release this after emit.
-    // For now, we return it as a plain object to maintain compatibility.
+    // Attachment for manual release to pool
+    pooled.release = () => releaseToPool(pooled);
+
     return pooled;
 };

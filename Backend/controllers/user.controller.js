@@ -2,17 +2,12 @@ import mongoose from 'mongoose';
 import { withCache, invalidateCache } from '../utils/cache.js';
 import userModel from '../models/user.model.js';
 import { normalizeEmail } from '../utils/email.js';
-import { shouldExposeOtpToClient } from '../utils/security.js';
 import { sendMailWithRetry } from '../utils/mailer.js';
 import * as userService from '../services/user.service.js';
 import { validationResult } from 'express-validator';
 import redisClient from '../services/redis.service.js';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 // Helper: escape user-supplied text before inserting into HTML templates
 function escapeHtml(unsafe) {
@@ -77,35 +72,13 @@ export const getLeaderboardController = async (req, res) => {
             }
         }
 
-        // Fallback to optimized aggregation (single round-trip for data + profile)
-        const users = await withCache('user:leaderboard:v3', 600, async () => {
-            const results = await mongoose.model('project').aggregate([
-                { $unwind: "$users" },
-                { $group: { _id: "$users", projectsCount: { $sum: 1 } } },
-                { $sort: { projectsCount: -1 } },
-                { $limit: 10 },
-                {
-                    $lookup: {
-                        from: 'users',
-                        localField: '_id',
-                        foreignField: '_id',
-                        as: 'profile',
-                        pipeline: [
-                             { $project: { firstName: 1, lastName: 1 } }
-                        ]
-                    }
-                },
-                { $unwind: "$profile" },
-                {
-                    $project: {
-                        _id: 1,
-                        projectsCount: 1,
-                        firstName: "$profile.firstName",
-                        lastName: "$profile.lastName"
-                    }
-                }
-            ]);
-            return results;
+        // Fallback to indexed denormalized field (super fast indexed query)
+        const users = await withCache('user:leaderboard:v4', 600, async () => {
+            return await userModel.find({})
+                .select('firstName lastName projectsCount')
+                .sort({ projectsCount: -1 })
+                .limit(10)
+                .lean();
         });
         res.status(200).json({ users });
     } catch (error) {
@@ -251,7 +224,7 @@ export const createUserController = async (req, res) => {
         console.error('createUserController error:', error && error.message ? error.message : error);
         // If duplicate key error occurred during a DB op elsewhere, treat
         // it as a conflict for the client.
-        if (error && (error.code === 11000 || error.name === 'MongoServerError') && error.keyValue && error.keyValue.email) {
+        if (error && (error.code === 11000 || error.name === 'MongoServerError')) {
             return res.status(409).json({ message: 'Email already registered. Please login to your existing account.' });
         }
 
@@ -428,17 +401,6 @@ export const adminGetOtpController = async (req, res) => {
                 queried: { email: user.email, userId: user._id }
             };
             console.info('admin-otp-audit', JSON.stringify(audit));
-            // Also append to disk log for persistence
-            try {
-                const fs = await import('fs');
-                const logPath = 'logs/admin_otp_audit.log';
-                const line = JSON.stringify(audit) + '\n';
-                fs.appendFile(logPath, line, (err) => {
-                    if (err) console.warn('Failed to append admin audit log:', err && err.message ? err.message : err);
-                });
-            } catch (fileErr) {
-                console.warn('Unable to write admin audit log file:', fileErr && fileErr.message ? fileErr.message : fileErr);
-            }
         } catch (auditErr) {
             console.warn('Failed to produce admin audit log:', auditErr && auditErr.message ? auditErr.message : auditErr);
         }

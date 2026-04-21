@@ -5,8 +5,17 @@ import redisClient from '../services/redis.service.js';
 const redisStore = {
   // express-rate-limit 6.x+ store interface
   increment: async (key) => {
-    const hits = await redisClient.incr(`rl:${key}`);
-    if (hits === 1) await redisClient.expire(`rl:${key}`, 900); // Default 15m
+    // Atomic INCR + EXPIRE using Lua script to prevent orphaned keys
+    const lua = `
+      local current = redis.call("INCR", KEYS[1])
+      if current == 1 then
+        redis.call("EXPIRE", KEYS[1], ARGV[1])
+      end
+      return current
+    `;
+
+    // ioredis supports eval
+    const hits = await redisClient.eval(lua, 1, `rl:${key}`, 900);
     return { totalHits: hits, resetTime: undefined };
   },
   decrement: async (key) => {

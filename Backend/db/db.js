@@ -1,6 +1,9 @@
 import mongoose from "mongoose";
 import dns from 'dns/promises';
 
+let mongoRetryCount = 0;
+const dnsCache = new Map();
+
 function shouldAttemptSrvFallback(mongoUri, error) {
     if (!mongoUri || !mongoUri.startsWith('mongodb+srv://')) return false;
     if (!error) return false;
@@ -54,19 +57,30 @@ async function mergeTxtParams(baseParams, cluster, resolver) {
 
 async function connect() {
     try {
-        if (!process.env.MONGODB_URI) {
+        const uri = process.env.MONGODB_URI;
+        if (!uri) {
             throw new Error('MONGODB_URI is not defined in environment variables');
         }
 
         mongoose.set('strictQuery', false);
 
-        const conn = await mongoose.connect(process.env.MONGODB_URI, {
+        // Optimization: Custom DNS caching for MongoDB to reduce connection latency
+        const lookup = (hostname, opts, cb) => {
+          if (dnsCache.has(hostname)) return cb(null, dnsCache.get(hostname), 4);
+          dns.lookup(hostname).then(res => {
+            dnsCache.set(hostname, res.address);
+            cb(null, res.address, 4);
+          }).catch(err => cb(err));
+        };
+
+        const conn = await mongoose.connect(uri, {
             maxPoolSize: 50,
-            minPoolSize: 10, // Maintain a minimum number of connections
+            minPoolSize: 10,
             serverSelectionTimeoutMS: 10000,
             socketTimeoutMS: 45000,
-            heartbeatFrequencyMS: 10000, // Faster failure detection
-            waitQueueTimeoutMS: 5000, // Error quickly if pool is exhausted
+            heartbeatFrequencyMS: 10000,
+            waitQueueTimeoutMS: 5000,
+            lookup: uri.startsWith('mongodb+srv://') ? undefined : lookup
         });
 
         console.log(`MongoDB Connected: ${conn.connection.host}`);
@@ -78,13 +92,13 @@ async function connect() {
         mongoose.connection.on('disconnected', () => {
             console.log('MongoDB disconnected');
             // Use exponential backoff for reconnection
-            const backoff = Math.min(30000, 5000 * Math.pow(2, (global.mongoRetryCount || 0)));
-            global.mongoRetryCount = (global.mongoRetryCount || 0) + 1;
+            const backoff = Math.min(30000, 5000 * Math.pow(2, mongoRetryCount));
+            mongoRetryCount++;
             setTimeout(connect, backoff);
         });
 
         // Reset retry count on successful connection
-        global.mongoRetryCount = 0;
+        mongoRetryCount = 0;
 
         process.on('SIGINT', async () => {
             await mongoose.connection.close();

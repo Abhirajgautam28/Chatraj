@@ -134,9 +134,14 @@ export const addUsersToProject = async ({ projectId, users, userId }) => {
         { new: true }
     );
 
-    if (updatedProject && typeof redisClient.zincrby === 'function') {
-        for (const uId of users) {
-            redisClient.zincrby('user:leaderboard:zset', 1, uId.toString()).catch(() => {});
+    if (updatedProject) {
+        // Atomic MongoDB denormalized count
+        await mongoose.model('user').updateMany({ _id: { $in: users } }, { $inc: { projectsCount: 1 } });
+
+        if (typeof redisClient.zincrby === 'function') {
+            for (const uId of users) {
+                redisClient.zincrby('user:leaderboard:zset', 1, uId.toString()).catch(() => {});
+            }
         }
     }
 
