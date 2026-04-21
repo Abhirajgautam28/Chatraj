@@ -3,6 +3,7 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
+import { useToast } from '../context/toast.context';
 import axios from '../config/axios';
 import anime from 'animejs';
 
@@ -18,6 +19,7 @@ const Register = () => {
     const [userId, setUserId] = useState('');
     const { setUser } = useContext(UserContext);
     const { isDarkMode } = useContext(ThemeContext);
+    const { showToast } = useToast();
     const navigate = useNavigate();
 
     const [errorMsg, setErrorMsg] = useState('');
@@ -157,7 +159,7 @@ const Register = () => {
                 navigate('/categories', { replace: true });
             })
             .catch(() => {
-                alert('Invalid OTP. Please check your email and try again.');
+                showToast('Invalid OTP. Please check your email and try again.', 'error');
             });
     }
 

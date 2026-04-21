@@ -1,3 +1,4 @@
+import { logger } from "../utils/logger.js";
 import validator from 'validator';
 
 const originalIsURL = validator.isURL && validator.isURL.bind(validator);
@@ -33,7 +34,7 @@ try {
     validator.isURL = safeIsURL;
   }
 } catch (err) {
-  console.error('Failed to apply validator.isURL patch:', err && err.message ? err.message : err);
+  logger.error('Failed to apply validator.isURL patch:', err && err.message ? err.message : err);
 }
 
 export default validator;

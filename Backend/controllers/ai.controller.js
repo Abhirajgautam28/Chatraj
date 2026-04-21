@@ -1,4 +1,5 @@
 import * as ai from '../services/ai.service.js';
+import { logger } from '../utils/logger.js';
 
 
 export const getResult = async (req, res) => {
@@ -17,8 +18,8 @@ export const getResult = async (req, res) => {
         }
         res.json({ response: responseText });
     } catch (error) {
-        console.error('getResult error:', error);
-        res.status(500).send({ message: 'Internal server error' });
+        logger.error('getResult error:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 }
 
@@ -41,7 +42,7 @@ export const postResult = async (req, res) => {
         }
         res.json({ response: responseText });
     } catch (error) {
-        console.error('postResult error:', error);
+        logger.error('postResult error:', error);
         res.status(500).json({ response: 'Internal server error' });
     }
 }
