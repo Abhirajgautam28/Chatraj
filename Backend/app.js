@@ -1,5 +1,5 @@
 import express from 'express';
-import fs from 'fs';
+import fs from 'fs/promises';
 import morgan from 'morgan';
 import connect from './db/db.js';
 import userRoutes from './routes/user.routes.js';
@@ -70,10 +70,9 @@ const assetCache = new Map();
 const hotAssets = ['/chatraj-icon.svg', '/favicon.ico', '/manifest.json'];
 
 // Warm up static asset cache at startup
+import path from 'path';
 hotAssets.forEach(async (asset) => {
     try {
-        const fs = await import('fs/promises');
-        const path = await import('path');
         const filePath = path.join(process.cwd(), 'public', asset);
         const data = await fs.readFile(filePath);
         const ext = path.extname(asset);

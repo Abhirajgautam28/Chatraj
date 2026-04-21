@@ -55,10 +55,7 @@ export const authUser = async (req, res, next) => {
             if (user) {
                 decoded._id = user;
             } else {
-                // Pre-check with in-memory set (simulated bloom filter)
-                const knownMissing = emailExistsCache.size > 0 && !emailExistsCache.has(decoded.email);
-                if (knownMissing) return res.status(401).send({ error: 'Unauthorized User' });
-
+                // Security check for invalid users
                 const userDoc = await mongoose.model('user').findOne({ email: decoded.email }).select('_id').lean();
                 if (userDoc) {
                     decoded._id = userDoc._id.toString();

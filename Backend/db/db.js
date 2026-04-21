@@ -70,6 +70,8 @@ async function connect() {
             socketTimeoutMS: 45000,
             heartbeatFrequencyMS: 10000,
             waitQueueTimeoutMS: 5000,
+            maxIdleTimeMS: 30000, // Close idle connections after 30s
+            compressors: ['zlib'], // Enable standard wire protocol compression (built-in)
         });
 
         console.log(`MongoDB Connected: ${conn.connection.host}`);
@@ -138,6 +140,8 @@ async function connect() {
                     socketTimeoutMS: 45000,
                     heartbeatFrequencyMS: 10000,
                     waitQueueTimeoutMS: 5000,
+                    maxIdleTimeMS: 30000,
+                    compressors: ['zlib'],
                 });
                 console.log(`MongoDB Connected (resolved): ${conn2.connection.host}`);
                 return;

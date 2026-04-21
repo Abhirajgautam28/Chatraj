@@ -171,7 +171,7 @@ const SPECIAL_FILES = {
   'makefile': 'ri-terminal-box-line'
 };
 
-const FileIcon = ({ fileName }) => {
+const FileIcon = React.memo(({ fileName }) => {
   const getIcon = (name) => {
     const lowerName = name.toLowerCase();
 
@@ -190,7 +190,7 @@ const FileIcon = ({ fileName }) => {
   return (
     <i className={`${getIcon(fileName)} text-lg mr-2`}></i>
   );
-};
+}, (prev, next) => prev.fileName === next.fileName);
 
 FileIcon.propTypes = {
     fileName: PropTypes.string.isRequired,

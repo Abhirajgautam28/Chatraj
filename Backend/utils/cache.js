@@ -4,6 +4,7 @@ import redisClient from '../services/redis.service.js';
 const localCache = new Map();
 const inflightRequests = new Map();
 const LOCAL_CACHE_TTL = 5000; // 5 seconds for local cache
+const MAX_LOCAL_CACHE_SIZE = 1000; // Strictly limit memory footprint
 
 export const withCache = async (key, ttl, fetchFn, tags = []) => {
     // 1. Try local memory cache (L1)
@@ -36,6 +37,12 @@ export const withCache = async (key, ttl, fetchFn, tags = []) => {
     try {
         // 4. Update both caches
         await redisClient.set(key, JSON.stringify(data), 'EX', ttl);
+
+        // Size-limited FIFO eviction for L1
+        if (localCache.size >= MAX_LOCAL_CACHE_SIZE) {
+            const firstKey = localCache.keys().next().value;
+            localCache.delete(firstKey);
+        }
         localCache.set(key, { data, timestamp: now, tags });
 
         // Link tags to key in Redis

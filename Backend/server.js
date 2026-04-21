@@ -35,6 +35,10 @@ if (missing.length) {
 connect().catch(console.error);
 
 const server = http.createServer(app);
+
+// Node.js Runtime performance tuning
+server.keepAliveTimeout = 65000; // Slightly higher than LB timeout
+server.headersTimeout = 66000;
 const io = new Server(server, {
     cors: {
         origin: '*'

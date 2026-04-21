@@ -1,6 +1,7 @@
+import React from 'react';
 import PropTypes from 'prop-types';
 
-const Avatar = ({ firstName = "", className = "" }) => {
+const Avatar = React.memo(({ firstName = "", className = "" }) => {
   const getInitials = () => {
     if (firstName) return firstName[0].toUpperCase();
     return "?";
@@ -10,7 +11,7 @@ const Avatar = ({ firstName = "", className = "" }) => {
       {getInitials()}
     </div>
   );
-};
+});
 
 Avatar.propTypes = {
   firstName: PropTypes.string,

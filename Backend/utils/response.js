@@ -16,7 +16,7 @@ export const errorResponse = (res, message, status = 500, details = null) => {
 // Specialized, pre-compiled-like serialization for high-frequency Message objects
 // Optimization: Returns an object with only necessary fields to reduce Socket.io payload size
 export const serializeMessage = (msg) => {
-    return {
+    const serialized = {
         _id: msg._id,
         conversationId: msg.conversationId,
         sender: {
@@ -24,10 +24,14 @@ export const serializeMessage = (msg) => {
             firstName: msg.sender?.firstName
         },
         message: msg.message,
-        parentMessageId: msg.parentMessageId,
-        reactions: msg.reactions || [],
-        deliveredTo: msg.deliveredTo || [],
-        readBy: msg.readBy || [],
         createdAt: msg.createdAt
     };
+
+    // Payload Pruning: Only include optional fields if they have data
+    if (msg.parentMessageId) serialized.parentMessageId = msg.parentMessageId;
+    if (msg.reactions?.length) serialized.reactions = msg.reactions;
+    if (msg.deliveredTo?.length) serialized.deliveredTo = msg.deliveredTo;
+    if (msg.readBy?.length) serialized.readBy = msg.readBy;
+
+    return serialized;
 };

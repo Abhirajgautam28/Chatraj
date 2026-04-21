@@ -8,6 +8,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
+import '../models/project.model.js';
+import '../models/user.model.js';
+
 async function sync() {
     console.log('Starting Leaderboard ZSET synchronization...');
     const redis = new Redis(process.env.REDIS_URL);
