@@ -4,6 +4,7 @@ import userModel from '../models/user.model.js';
 import mongoose from 'mongoose';
 import { validationResult } from 'express-validator';
 import { logger } from '../utils/logger.js';
+import { withCache, invalidateCache } from '../utils/cache.js';
 
 export const getAllProject = async (req, res) => {
     try {
@@ -138,7 +139,9 @@ export const getProjectCountsByCategory = async (req, res) => {
 
 export const getProjectShowcase = async (req, res) => {
     try {
-        const projects = await projectModel.find({}).sort({ users: -1 }).limit(10);
+        const projects = await withCache('project_showcase', 600, async () => {
+            return await projectModel.find({}).sort({ users: -1 }).limit(10).lean();
+        });
         res.status(200).json({ projects });
     } catch (error) {
         logger.error('getProjectShowcase error:', error);

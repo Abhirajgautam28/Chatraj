@@ -1,70 +1,69 @@
-import { useEffect, useState } from 'react';
-import { BlogThemeProvider } from '../context/blogTheme.context';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import axios from '../config/axios';
-import { Link } from 'react-router-dom';
 import 'remixicon/fonts/remixicon.css';
 import MaterialBlogCard from '../components/MaterialBlogCard';
 import useDarkMode from '../hooks/useDarkMode';
+import { useToast } from '../context/toast.context';
 import { logger } from '../utils/logger';
+import { Link } from 'react-router-dom';
 
-
-const BlogsContent = () => {
+const Blogs = () => {
     const [blogs, setBlogs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [pagination, setPagination] = useState({ page: 1, pages: 1 });
     const [darkMode, setDarkMode] = useDarkMode('blog_dark_mode', false);
+    const { showToast } = useToast();
+
+    const fetchBlogs = useCallback(async (page = 1) => {
+        setLoading(true);
+        try {
+            const response = await axios.get(`/api/blogs?page=${page}&limit=9`);
+            if (response.data && response.data.blogs) {
+                setBlogs(response.data.blogs);
+                setPagination(response.data.pagination);
+            }
+        } catch (error) {
+            logger.error('Error fetching blogs:', error);
+            showToast('Failed to load blogs', 'error');
+        } finally {
+            setLoading(false);
+        }
+    }, [showToast]);
 
     useEffect(() => {
-        if (typeof window !== 'undefined') {
-            if (darkMode) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-            localStorage.setItem('blog_dark_mode', darkMode);
-        }
+        fetchBlogs();
+    }, [fetchBlogs]);
+
+    useEffect(() => {
+        document.documentElement.classList.toggle('dark', darkMode);
+        localStorage.setItem('blog_dark_mode', darkMode);
     }, [darkMode]);
 
-    useEffect(() => {
-        const fetchBlogs = async () => {
-            try {
-                const response = await axios.get('/api/blogs');
-                setBlogs(response.data);
-                setLoading(false);
-            } catch (error) {
-                setLoading(false);
-                logger.error('Error fetching blogs:', error);
-            }
-        };
-        fetchBlogs();
-    }, []);
+    const memoizedBlogs = useMemo(() => blogs.map(blog => (
+        <MaterialBlogCard key={blog._id} blog={blog} />
+    )), [blogs]);
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-300">
-            {/* Material UI Hero Section */}
             <section className="w-full flex flex-col items-center justify-center py-16 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 border-b border-gray-200 dark:border-gray-800 relative overflow-hidden" style={{ minHeight: '340px' }}>
-                {/* Dark mode switch button */}
                 <button
                     aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
                     className="absolute top-6 right-6 md:top-8 md:right-12 z-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full p-2 shadow hover:shadow-md transition-all duration-200 flex items-center justify-center"
-                    onClick={() => setDarkMode((d) => !d)}
+                    onClick={() => setDarkMode(!darkMode)}
                 >
-                    {darkMode ? (
-                        <i className="ri-sun-line text-2xl text-yellow-400" />
-                    ) : (
-                        <i className="ri-moon-line text-2xl text-blue-700" />
-                    )}
+                    {darkMode ? <i className="ri-sun-line text-2xl text-yellow-400" /> : <i className="ri-moon-line text-2xl text-blue-700" />}
                 </button>
-                <div className="relative z-10 flex flex-col items-center justify-center h-full text-center">
+                <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
                     <h1 className="text-5xl font-bold mb-2 text-blue-800 dark:text-blue-200 tracking-tight">Discover Blogs</h1>
-                    <p className="text-lg text-gray-600 dark:text-gray-300 mb-6 max-w-xl">Explore the latest posts, insights, and stories from our vibrant community. Stay inspired and informed!</p>
+                    <p className="text-lg text-gray-600 dark:text-gray-300 mb-6 max-w-xl">Explore the latest posts, insights, and stories from our vibrant community.</p>
                     <Link to="/blogs/create">
-                        <button className="mt-2 px-7 py-3 font-semibold text-white bg-blue-600 rounded-full shadow-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-all duration-200 flex items-center gap-2">
+                        <button className="px-7 py-3 font-semibold text-white bg-blue-600 rounded-full shadow-lg hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-all duration-200 flex items-center gap-2">
                             <i className="ri-add-line text-xl"></i> Create New Post
                         </button>
                     </Link>
                 </div>
             </section>
-            {/* Blog Cards Grid */}
+
             <section className="w-full max-w-7xl mx-auto px-4 py-14">
                 {loading ? (
                     <div className="flex flex-col items-center justify-center py-20">
@@ -75,24 +74,31 @@ const BlogsContent = () => {
                     <div className="flex flex-col items-center justify-center py-20">
                         <i className="ri-file-list-3-line text-5xl text-blue-200 dark:text-gray-700 mb-3"></i>
                         <div className="text-xl font-semibold text-gray-500 dark:text-gray-300">No blog posts found</div>
-                        <div className="text-gray-400 dark:text-gray-500 mt-1">Be the first to create a new post!</div>
+                        <Link to="/blogs/create" className="text-blue-600 mt-2 hover:underline">Be the first to create a post!</Link>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 justify-center">
-                        {blogs.map((blog) => (
-                            <MaterialBlogCard key={blog._id} blog={blog} />
-                        ))}
-                    </div>
+                    <>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                            {memoizedBlogs}
+                        </div>
+                        {pagination.pages > 1 && (
+                            <div className="flex justify-center mt-12 gap-2">
+                                {Array.from({ length: pagination.pages }, (_, i) => i + 1).map(p => (
+                                    <button
+                                        key={p}
+                                        onClick={() => fetchBlogs(p)}
+                                        className={`px-4 py-2 rounded-lg transition-all ${pagination.page === p ? 'bg-blue-600 text-white shadow-md' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50'}`}
+                                    >
+                                        {p}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </>
                 )}
             </section>
         </div>
     );
 };
-
-const Blogs = () => (
-    <BlogThemeProvider>
-        <BlogsContent />
-    </BlogThemeProvider>
-);
 
 export default Blogs;

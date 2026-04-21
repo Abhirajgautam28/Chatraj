@@ -37,4 +37,4 @@ ProjectCard.propTypes = {
   onClick: PropTypes.func.isRequired,
 };
 
-export default ProjectCard;
+export default React.memo(ProjectCard);

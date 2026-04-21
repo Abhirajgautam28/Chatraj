@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { logger } from '../utils/logger.js';
+import { withCache, invalidateCache } from '../utils/cache.js';
 
 // Send OTP for password reset (used in Login.jsx)
 export const sendOtpController = async (req, res) => {
@@ -24,9 +25,12 @@ export const sendOtpController = async (req, res) => {
 
 export const getLeaderboardController = async (req, res) => {
     try {
-        const users = await userModel.find({}).sort({ projects: -1 }).limit(10);
+        const users = await withCache('leaderboard', 300, async () => {
+            return await userModel.find({}).sort({ projects: -1 }).limit(10).lean();
+        });
         res.status(200).json({ users });
     } catch (error) {
+        logger.error('getLeaderboardController error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };

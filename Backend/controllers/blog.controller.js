@@ -25,8 +25,28 @@ export const createBlog = async (req, res) => {
 
 export const getAllBlogs = async (req, res) => {
     try {
-        const blogs = await Blog.find().populate('author', 'firstName lastName').sort({ createdAt: -1 });
-        res.status(200).json(blogs);
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const blogs = await Blog.find()
+            .populate('author', 'firstName lastName')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
+        const total = await Blog.countDocuments();
+
+        res.status(200).json({
+            blogs,
+            pagination: {
+                total,
+                page,
+                limit,
+                pages: Math.ceil(total / limit)
+            }
+        });
     } catch (error) {
         logger.error('getAllBlogs error:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -53,19 +73,25 @@ export const likeBlog = async (req, res) => {
         const id = req.params.id;
         if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
 
-        const blog = await Blog.findById(id);
-        if (!blog) return res.status(404).json({ error: 'Blog not found' });
+        const userId = req.user._id;
 
-        const userId = req.user._id.toString();
-        const likedIndex = blog.likes.findIndex(id => id.toString() === userId);
+        // Use atomic operations to toggle like
+        let blog = await Blog.findOneAndUpdate(
+            { _id: id, likes: userId },
+            { $pull: { likes: userId } },
+            { new: true }
+        );
 
-        if (likedIndex > -1) {
-            blog.likes.splice(likedIndex, 1);
-        } else {
-            blog.likes.push(req.user._id);
+        if (!blog) {
+            blog = await Blog.findOneAndUpdate(
+                { _id: id },
+                { $addToSet: { likes: userId } },
+                { new: true }
+            );
         }
 
-        await blog.save();
+        if (!blog) return res.status(404).json({ error: 'Blog not found' });
+
         res.status(200).json(blog);
     } catch (error) {
         logger.error('likeBlog error:', error);
@@ -78,19 +104,17 @@ export const commentOnBlog = async (req, res) => {
         const { text } = req.body;
         const id = req.params.id;
         if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
-        const blog = await Blog.findById(id);
+
+        const blog = await Blog.findByIdAndUpdate(
+            id,
+            { $push: { comments: { user: req.user._id, text } } },
+            { new: true }
+        ).populate('comments.user', 'firstName lastName');
 
         if (!blog) {
             return res.status(404).json({ error: 'Blog not found' });
         }
 
-        const newComment = {
-            user: req.user._id,
-            text
-        };
-
-        blog.comments.push(newComment);
-        await blog.save();
         res.status(201).json(blog);
     } catch (error) {
         logger.error('commentOnBlog error:', error);

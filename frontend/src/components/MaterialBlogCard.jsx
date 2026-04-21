@@ -48,4 +48,4 @@ MaterialBlogCard.propTypes = {
   }).isRequired,
 };
 
-export default MaterialBlogCard;
+export default React.memo(MaterialBlogCard);
