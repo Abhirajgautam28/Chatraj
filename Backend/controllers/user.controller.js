@@ -11,6 +11,7 @@ import { generateOTP } from '../utils/otp.js';
 import { sendMailWithRetry } from '../utils/mailer.js';
 import { escapeHtml } from '../utils/strings.js';
 import { logger } from '../utils/logger.js';
+import { sendSuccess, sendError } from '../utils/response.utils.js';
 
 dotenv.config();
 
@@ -19,28 +20,28 @@ export const sendOtpController = async (req, res) => {
     try {
         const { email } = req.body;
         const { value: normalizedEmail, isValid } = normalizeEmail(email);
-        if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
+        if (!isValid) return sendError(res, 400, 'Valid email is required');
         const user = await userModel.findOne({ email: normalizedEmail });
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        if (!user) return sendError(res, 404, 'User not found');
         // Generate OTP
         const otp = generateOTP(7);
         user.otp = otp;
         user.isVerified = false;
         await user.save();
         await sendOtpEmail(user.email, otp);
-        res.status(200).json({ message: 'OTP sent to email.' });
+        sendSuccess(res, 200, {}, 'OTP sent to email.');
     } catch (error) {
         logger.error('sendOtpController error:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        sendError(res, 500, 'Internal server error');
     }
 };
 
 export const getLeaderboardController = async (req, res) => {
     try {
         const users = await userModel.find({}).sort({ projects: -1 }).limit(10).lean();
-        res.status(200).json({ users });
+        sendSuccess(res, 200, { users });
     } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
+        sendError(res, 500, 'Internal server error');
     }
 };
 
@@ -49,17 +50,17 @@ export const createUserController = async (req, res) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        return sendError(res, 400, 'Validation failed', errors.array());
     }
     try {
         const { firstName, lastName, email, password, googleApiKey } = req.body;
         const { value: normalizedEmail, isValid } = normalizeEmail(email);
-        if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
+        if (!isValid) return sendError(res, 400, 'Valid email is required');
 
         // If a verified user already exists, reject immediately.
         const existing = await userModel.findOne({ email: normalizedEmail }).select('+isVerified');
         if (existing && existing.isVerified) {
-            return res.status(409).json({ message: 'Email already registered. Please login to your existing account.' });
+            return sendError(res, 409, 'Email already registered. Please login to your existing account.');
         }
 
         // If an unverified user exists from an older run, remove it so
@@ -97,7 +98,7 @@ export const createUserController = async (req, res) => {
         // so the user can still verify once delivery succeeds.
         try {
             await sendOtpEmail(normalizedEmail, otp);
-            return res.status(201).json({ message: 'OTP sent to email. Please verify.' });
+            return sendSuccess(res, 201, {}, 'OTP sent to email. Please verify.');
         } catch (emailErr) {
             logger.error('sendOtpEmail error (will retry in background):', emailErr && emailErr.message ? emailErr.message : emailErr);
 
@@ -175,17 +176,17 @@ export const createUserController = async (req, res) => {
                 }
             })(1);
 
-            return res.status(201).json({ message: 'OTP delivery queued. If you do not receive the email shortly, please check spam or try again.' });
+            return sendSuccess(res, 201, {}, 'OTP delivery queued. If you do not receive the email shortly, please check spam or try again.');
         }
     } catch (error) {
         logger.error('createUserController error:', error && error.message ? error.message : error);
         // If duplicate key error occurred during a DB op elsewhere, treat
         // it as a conflict for the client.
         if (error && (error.code === 11000 || error.name === 'MongoServerError') && error.keyValue && error.keyValue.email) {
-            return res.status(409).json({ message: 'Email already registered. Please login to your existing account.' });
+            return sendError(res, 409, 'Email already registered. Please login to your existing account.');
         }
 
-        return res.status(400).json({ message: 'Invalid request' });
+        return sendError(res, 400, 'Invalid request');
     }
 }
 
@@ -213,17 +214,17 @@ async function sendOtpEmail(email, otp) {
 // OTP verification for both registration (userId) and password reset (email)
 export const verifyOtpController = async (req, res) => {
     const { userId, email, otp } = req.body;
-    if ((!userId && !email) || !otp) return res.status(400).json({ message: 'User ID or email and OTP required' });
+    if ((!userId && !email) || !otp) return sendError(res, 400, 'User ID or email and OTP required');
     let user;
     if (userId) {
         // Validate userId to prevent NoSQL injection and malformed identifiers
         if (typeof userId !== 'string' || !mongoose.Types.ObjectId.isValid(userId)) {
-            return res.status(400).json({ message: 'Invalid User ID' });
+            return sendError(res, 400, 'Invalid User ID');
         }
         user = await userModel.findById(userId).select('+otp');
     } else if (email) {
         const { value: normalizedEmail, isValid } = normalizeEmail(email);
-        if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
+        if (!isValid) return sendError(res, 400, 'Valid email is required');
         user = await userModel.findOne({ email: normalizedEmail }).select('+otp');
         // If user not found in DB, check for a pending registration stored in Redis
         // (we persist pending registrations there until the user verifies via OTP).
@@ -242,10 +243,10 @@ export const verifyOtpController = async (req, res) => {
                     pending = JSON.parse(pendingJson);
                 } catch (parseErr) {
                     logger.error('Failed to parse pending registration JSON for', pendingKey, parseErr && (parseErr.message || parseErr));
-                    return res.status(500).json({ message: 'Corrupt pending registration data' });
+                    return sendError(res, 500, 'Corrupt pending registration data');
                 }
 
-                if (pending.otp !== otp) return res.status(401).json({ message: 'Invalid OTP' });
+                if (pending.otp !== otp) return sendError(res, 401, 'Invalid OTP');
 
                 // Create the real user record from pending values via userService.
                 try {
@@ -263,7 +264,7 @@ export const verifyOtpController = async (req, res) => {
                     const token = await created.generateJWT();
                     // hide password before returning
                     if (created._doc) delete created._doc.password;
-                    return res.status(200).json({ message: 'Verified successfully', token, user: created });
+                    return sendSuccess(res, 200, { token, user: created }, 'Verified successfully');
                 } catch (createErr) {
                     logger.error('Error creating user from pending registration:', createErr && createErr.message ? createErr.message : createErr);
                     // If a duplicate key was created in a race, try to mark existing user as verified
@@ -274,41 +275,41 @@ export const verifyOtpController = async (req, res) => {
                             existingUser.otp = undefined;
                             await existingUser.save();
                             const token = await existingUser.generateJWT();
-                            return res.status(200).json({ message: 'Verified successfully', token, user: existingUser });
+                            return sendSuccess(res, 200, { token, user: existingUser }, 'Verified successfully');
                         }
                     }
-                    return res.status(500).json({ message: 'Failed to create account' });
+                    return sendError(res, 500, 'Failed to create account');
                 }
             }
         }
     }
-    if (!user) return res.status(404).json({ message: 'User not found' });
-    if (user.otp !== otp) return res.status(401).json({ message: 'Invalid OTP' });
+    if (!user) return sendError(res, 404, 'User not found');
+    if (user.otp !== otp) return sendError(res, 401, 'Invalid OTP');
     user.isVerified = true;
     user.otp = undefined;
     await user.save();
     let token = null;
     if (userId) token = await user.generateJWT();
-    res.status(200).json({ message: 'Verified successfully', token, user });
+    sendSuccess(res, 200, { token, user }, 'Verified successfully');
 };
 
 // Admin-only: retrieve masked OTP for debugging. Requires `ADMIN_API_KEY`
 export const adminGetOtpController = async (req, res) => {
     try {
         const adminKey = req.get('x-admin-key');
-        if (!process.env.ADMIN_API_KEY) return res.status(403).json({ message: 'Admin API key not configured on server' });
-        if (!adminKey || adminKey !== process.env.ADMIN_API_KEY) return res.status(403).json({ message: 'Forbidden' });
+        if (!process.env.ADMIN_API_KEY) return sendError(res, 403, 'Admin API key not configured on server');
+        if (!adminKey || adminKey !== process.env.ADMIN_API_KEY) return sendError(res, 403, 'Forbidden');
 
         const { email, userId } = req.query;
-        if (!email && !userId) return res.status(400).json({ message: 'Provide email or userId' });
+        if (!email && !userId) return sendError(res, 400, 'Provide email or userId');
 
         let user;
         if (userId) {
-            if (typeof userId !== 'string' || !mongoose.Types.ObjectId.isValid(userId)) return res.status(400).json({ message: 'Invalid userId' });
+            if (typeof userId !== 'string' || !mongoose.Types.ObjectId.isValid(userId)) return sendError(res, 400, 'Invalid userId');
             user = await userModel.findById(userId).select('+otp');
         } else {
             const { value: normalizedEmail, isValid } = normalizeEmail(email);
-            if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
+            if (!isValid) return sendError(res, 400, 'Valid email is required');
             user = await userModel.findOne({ email: normalizedEmail }).select('+otp');
             // If not in DB, check for a pending registration in Redis
             if (!user) {
@@ -322,7 +323,7 @@ export const adminGetOtpController = async (req, res) => {
                             user = { _id: null, email: normalizedEmail, otp: pending.otp };
                         } catch (parseErr) {
                             logger.error('Failed to parse pending registration JSON for admin OTP:', parseErr && (parseErr.message || parseErr));
-                            return res.status(500).json({ message: 'Corrupt pending registration data' });
+                            return sendError(res, 500, 'Corrupt pending registration data');
                         }
                     }
                 } catch (redisErr) {
@@ -330,7 +331,7 @@ export const adminGetOtpController = async (req, res) => {
                 }
             }
         }
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        if (!user) return sendError(res, 404, 'User not found');
         const otp = user.otp;
         const masked = typeof otp === 'string' && otp.length > 2 ? `${otp[0]}***${otp[otp.length - 1]}` : '<redacted>';
 
@@ -359,10 +360,10 @@ export const adminGetOtpController = async (req, res) => {
         } catch (auditErr) {
             logger.warn('Failed to produce admin audit log:', auditErr && auditErr.message ? auditErr.message : auditErr);
         }
-        return res.status(200).json({ userId: user._id, email: user.email, maskedOtp: masked });
+        return sendSuccess(res, 200, { userId: user._id, email: user.email, maskedOtp: masked });
     } catch (err) {
         logger.error('adminGetOtpController error:', err);
-        return res.status(500).json({ message: 'Internal server error' });
+        return sendError(res, 500, 'Internal server error');
     }
 };
 
@@ -370,34 +371,34 @@ export const loginController = async (req, res) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        return sendError(res, 400, 'Validation failed', errors.array());
     }
     try {
         const { email, password } = req.body;
-        if (typeof email !== 'string' || typeof password !== 'string') return res.status(400).json({ errors: 'Invalid credentials' });
+        if (typeof email !== 'string' || typeof password !== 'string') return sendError(res, 400, 'Invalid credentials');
         const user = await userModel.findOne({ email: email.trim() }).select('+password +googleApiKey');
         if (!user) {
-            return res.status(401).json({ errors: 'Invalid credentials' });
+            return sendError(res, 401, 'Invalid credentials');
         }
         const isMatch = await user.isValidPassword(password);
         if (!isMatch) {
-            return res.status(401).json({ errors: 'Invalid credentials' });
+            return sendError(res, 401, 'Invalid credentials');
         }
         if (!user.isVerified) {
-            return res.status(403).json({ errors: 'Account not verified. Please check your email for OTP.' });
+            return sendError(res, 403, 'Account not verified. Please check your email for OTP.');
         }
         const token = await user.generateJWT();
         delete user._doc.password;
-        res.status(200).json({ user, token });
+        sendSuccess(res, 200, { user, token });
     } catch (err) {
         logger.error('loginController error:', err);
-        res.status(400).json({ message: 'Invalid request' });
+        sendError(res, 400, 'Invalid request');
     }
 }
 
 export const profileController = async (req, res) => {
 
-    res.status(200).json({
+    sendSuccess(res, 200, {
         user: req.user
     });
 
@@ -413,12 +414,10 @@ export const logoutController = async (req, res) => {
             redisClient.set(token, 'logout', 'EX', 60 * 60 * 24);
         }
 
-        res.status(200).json({
-            message: 'Logged out successfully'
-        });
+        sendSuccess(res, 200, {}, 'Logged out successfully');
     } catch (err) {
         logger.error('logoutController error:', err);
-        res.status(400).json({ message: 'Invalid request' });
+        sendError(res, 400, 'Invalid request');
     }
 }
 
@@ -434,12 +433,12 @@ export const getAllUsersController = async (req, res) => {
             firstName: u.firstName,
             lastName: u.lastName
         }));
-        return res.status(200).json({
+        return sendSuccess(res, 200, {
             users: usersWithNames
         })
     } catch (err) {
         logger.error('getAllUsersController error:', err);
-        return res.status(400).json({ error: 'Unable to fetch users' });
+        return sendError(res, 400, 'Unable to fetch users');
     }
 }
 
@@ -447,9 +446,9 @@ export const resetPasswordController = async (req, res) => {
     try {
         const { email } = req.body;
         const { value: normalizedEmail, isValid } = normalizeEmail(email);
-        if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
+        if (!isValid) return sendError(res, 400, 'Valid email is required');
         const user = await userModel.findOne({ email: normalizedEmail });
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        if (!user) return sendError(res, 404, 'User not found');
 
         const resetToken = jwt.sign(
             { email: user.email },
@@ -457,10 +456,10 @@ export const resetPasswordController = async (req, res) => {
             { expiresIn: '15m' }
         );
 
-        res.json({ message: 'Reset link sent to email', resetToken });
+        sendSuccess(res, 200, { resetToken }, 'Reset link sent to email');
     } catch (err) {
         logger.error('resetPasswordController error:', err);
-        res.status(500).json({ message: 'Internal server error' });
+        sendError(res, 500, 'Internal server error');
     }
 };
 
@@ -468,16 +467,16 @@ export const updatePasswordController = async (req, res) => {
     try {
         let { email, newPassword } = req.body;
         const { value: normalizedEmail, isValid } = normalizeEmail(email);
-        if (!isValid || typeof newPassword !== 'string') return res.status(400).json({ message: 'Valid email and a new password (min 8 chars) required' });
+        if (!isValid || typeof newPassword !== 'string') return sendError(res, 400, 'Valid email and a new password (min 8 chars) required');
         newPassword = newPassword.trim();
-        if (newPassword.length < 8) return res.status(400).json({ message: 'Valid email and a new password (min 8 chars) required' });
+        if (newPassword.length < 8) return sendError(res, 400, 'Valid email and a new password (min 8 chars) required');
 
         const user = await userModel.findOne({ email: normalizedEmail });
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        if (!user) return sendError(res, 404, 'User not found');
 
         // Prevent duplicate password reset emails by using a flag
         if (user._passwordResetEmailSent) {
-            return res.json({ message: 'Password updated successfully' });
+            return sendSuccess(res, 200, {}, 'Password updated successfully');
         }
 
         user.password = await userModel.hashPassword(newPassword);
@@ -487,10 +486,10 @@ export const updatePasswordController = async (req, res) => {
         // Send password reset success email only once
         await sendPasswordResetSuccessEmail(user.email, user.firstName || user.email);
 
-        res.json({ message: 'Password updated successfully' });
+        sendSuccess(res, 200, {}, 'Password updated successfully');
     } catch (err) {
         logger.error('updatePasswordController error:', err);
-        res.status(500).json({ message: 'Internal server error' });
+        sendError(res, 500, 'Internal server error');
     }
 };
 

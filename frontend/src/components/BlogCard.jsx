@@ -1,5 +1,4 @@
 import React from 'react';
-
 import { useNavigate } from 'react-router-dom';
 import 'remixicon/fonts/remixicon.css';
 import PropTypes from 'prop-types';

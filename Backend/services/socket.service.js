@@ -18,7 +18,7 @@ export const handleSocketConnection = (io, socket) => {
         try {
             savedMessage = await Message.create({
                 conversationId: socket.project._id,
-                sender: data.sender,
+                sender: socket.user, // Use authenticated user from socket
                 message: messageText,
                 parentMessageId: parentMessageId,
                 createdAt: new Date(),

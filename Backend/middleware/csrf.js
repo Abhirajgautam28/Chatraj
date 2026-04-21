@@ -5,6 +5,7 @@ import {
   isSecureFromRequest
 } from '../utils/security.js';
 import { logger } from '../utils/logger.js';
+import { sendSuccess, sendError } from '../utils/response.utils.js';
 
 // CSRF protection middleware using cookies
 export const csrfProtection = csurf({
@@ -33,9 +34,9 @@ export const getCsrfTokenController = (req, res) => {
       // strict privacy modes, etc.) can use this token as a fallback. The
       // signed token is time-limited and verified server-side.
       const signed = createSignedCsrf();
-      res.status(200).json({ csrfToken: token, signedCsrf: signed });
+      sendSuccess(res, 200, { csrfToken: token, signedCsrf: signed });
     } catch (err) {
-      res.status(500).json({ error: 'Failed to generate CSRF token' });
+      sendError(res, 500, 'Failed to generate CSRF token');
     }
 };
 
@@ -89,10 +90,7 @@ export const csrfErrorHandler = (err, req, res, next) => {
     // Handle CSRF errors specially
     if (err && (err.code === 'EBADCSRFTOKEN' || err.message === 'invalid csrf token')) {
       logger.error('CSRF validation failed:', err.message);
-      return res.status(403).json({
-        error: 'Invalid CSRF token',
-        message: process.env.NODE_ENV === 'development' ? err.message : 'Forbidden'
-      });
+      return sendError(res, 403, 'Invalid CSRF token', process.env.NODE_ENV === 'development' ? err.message : 'Forbidden');
     }
     next(err);
 };

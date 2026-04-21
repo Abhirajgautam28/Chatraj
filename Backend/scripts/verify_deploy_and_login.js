@@ -1,27 +1,17 @@
 #!/usr/bin/env node
 import { setTimeout as wait } from 'timers/promises';
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { extractSetCookieArray, buildCookieHeader } from '../utils/cookies.js';
+import { loadEnv, parseArgs } from './script-utils.js';
 
-// Load env relative to script
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
+loadEnv();
 
-const args = process.argv.slice(2);
-function arg(name, def) {
-  const f = args.find(a => a.startsWith(`--${name}=`));
-  if (f) return f.split('=')[1];
-  return def;
-}
+const args = parseArgs();
 
-const API = arg('api', process.env.BACKEND_URL || 'https://chatraj-backend.onrender.com');
-const EMAIL = arg('email', process.env.TEST_USER_EMAIL || 'testuser@example.com');
-const PASSWORD = arg('password', process.env.TEST_USER_PASSWORD || 'TestPass123!');
-const TIMEOUT = Number(arg('timeout', '300000')); // 5 minutes default
-const INTERVAL = Number(arg('interval', '15000'));
+const API = args.api || process.env.BACKEND_URL || 'https://chatraj-backend.onrender.com';
+const EMAIL = args.email || process.env.TEST_USER_EMAIL || 'testuser@example.com';
+const PASSWORD = args.password || process.env.TEST_USER_PASSWORD || 'TestPass123!';
+const TIMEOUT = Number(args.timeout) || 300000;
+const INTERVAL = Number(args.interval) || 15000;
 
 async function checkCsrfFlags(api) {
   try {

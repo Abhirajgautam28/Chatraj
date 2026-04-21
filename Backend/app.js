@@ -62,7 +62,7 @@ app.use((err, req, res, next) => {
   csrfErrorHandler(err, req, res, (nextErr) => {
     const status = nextErr.status || 500;
     res.status(status).json({
-      error: 'Something broke!',
+      success: false,
       message: process.env.NODE_ENV === 'development' ? nextErr.message : 'Internal Server Error'
     });
   });

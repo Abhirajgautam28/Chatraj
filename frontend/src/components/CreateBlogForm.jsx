@@ -1,6 +1,7 @@
 
-import { useDrag, useDrop } from 'react-dnd';
-import { useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
+import { useDrag, useDrop, DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 const ItemType = 'BLOCK';
 
@@ -78,158 +79,13 @@ const Block = ({ id, index, type, content, moveBlock, updateContent, deleteBlock
     );
 };
 
-import { useState, useCallback } from 'react';
 import useDarkMode from '../hooks/useDarkMode';
-import { BlogThemeProvider } from '../context/blogTheme.context';
+import { useTheme } from '../context/theme.context';
 import { useToast } from '../context/ToastContext';
-//
 import axios from '../config/axios';
 import { useNavigate } from 'react-router-dom';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import 'remixicon/fonts/remixicon.css';
-//
-
-
-const getYouTubeEmbedUrl = (urlString) => {
-    if (!urlString) return '';
-    try {
-        const url = new URL(urlString);
-        // Only allow http/https schemes
-        if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-            return '';
-        }
-        const hostname = url.hostname.toLowerCase();
-        const isYoutubeHost =
-            hostname === 'youtube.com' ||
-            hostname === 'www.youtube.com' ||
-            hostname === 'm.youtube.com';
-        const isShortHost =
-            hostname === 'youtu.be' ||
-            hostname === 'www.youtu.be';
-
-        let videoId = '';
-
-        if (isShortHost) {
-            videoId = url.pathname.slice(1);
-        } else if (['youtube.com', 'www.youtube.com', 'm.youtube.com'].includes(url.hostname)) {
-            if (url.pathname === '/watch' && url.searchParams.has('v')) {
-                videoId = url.searchParams.get('v') || '';
-            } else if (url.pathname.startsWith('/embed/')) {
-                videoId = url.pathname.split('/embed/')[1].split(/[/?]/)[0];
-            } else if (url.pathname.startsWith('/v/')) {
-                videoId = url.pathname.split('/v/')[1].split(/[/?]/)[0];
-            }
-        }
-
-        // Fallback: extract from string only if it looks like a YouTube URL
-        if (!videoId) {
-            const match = urlString.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/i);
-            if (match && match[1]) {
-                videoId = match[1];
-            }
-        }
-
-        // Ensure videoId is in expected format
-        if (videoId && /^[A-Za-z0-9_-]{11}$/.test(videoId)) {
-            return `https://www.youtube.com/embed/${videoId}`;
-        }
-    } catch {
-        // Invalid URL or parsing error, fall through to empty string
-    }
-    return '';
-};
-
-// Validate that a URL is safe. Allow http/https absolute URLs and
-// same-origin relative paths like `/uploads/foo.jpg` or `images/foo.jpg`.
-// Policy: guardrail sizes and decode limits. These are conservative
-// values chosen to prevent attacker-controlled large inputs and limit
-// repeated decoding attempts (e.g. `%252e%252e` chains). Adjust these
-// if you have a reasoned case for larger user-provided paths.
-const MAX_URL_LENGTH_BEFORE_DECODE = 2048; // reject very long raw inputs early
-const MAX_URL_LENGTH_AFTER_DECODE = 4096; // cap decoded length to avoid blowup
-const MAX_DECODE_DEPTH = 3; // bounded iterative decoding depth
-const TRAVERSAL_RE = /(^|[\/\\])\.\.([\/\\]|$)/;
-/**
- * Iteratively percent-decode `value` up to `maxDepth` times, capping the
- * decoded length to `maxLength`. Returns a normalized result object:
- * { value, status, depth } where `status` is one of the values in
- * `DECODE_STATUS`.
- * - value: decoded string or null on overflow
- * - status: DECODE_STATUS.OK when fully decoded,
- *   DECODE_STATUS.OVERFLOW when decoded length exceeded `maxLength`, or
- *   DECODE_STATUS.MALFORMED when percent-decoding failed (last good decoded
- *   value is returned).
- * - depth: number of decoding iterations attempted
- */
-
-const DECODE_STATUS = {
-    OK: 'ok',
-    OVERFLOW: 'overflow',
-    MALFORMED: 'malformed',
-};
-function safeDecodeLimited(value, maxDepth, maxLength) {
-    let decoded = value;
-    let status = DECODE_STATUS.OK;
-    let depth = 0;
-
-    for (let i = 0; i < maxDepth; i++) {
-        depth++;
-        try {
-            const next = decodeURIComponent(decoded);
-            if (next === decoded) {
-                break; // no further progress
-            }
-            decoded = next;
-            if (decoded.length > maxLength) {
-                status = DECODE_STATUS.OVERFLOW;
-                decoded = null;
-                break;
-            }
-        } catch (_) {
-            // malformed percent-encoding: keep last successfully decoded
-            // value and mark as malformed so callers can decide.
-            status = DECODE_STATUS.MALFORMED;
-            break;
-        }
-    }
-
-    return { value: decoded, status, depth };
-}
-
-const isSafeUrl = (urlString) => {
-    if (!urlString || typeof urlString !== 'string') return false;
-    try {
-        const url = new URL(urlString);
-        const protocol = url.protocol.toLowerCase();
-        return protocol === 'http:' || protocol === 'https:';
-    } catch (e) {
-        // If URL constructor fails, this may be a relative URL. Allow
-        // same-origin relative paths (starting with '/') or simple
-        // relative paths without a protocol (no ':' char) and no spaces.
-        // Explicitly disallow path-traversal patterns like "../", "/../" or "..\".
-        if (urlString.startsWith('//')) return false; // protocol-relative URLs are disallowed
-
-        // Reject extremely long inputs early to avoid DoS via huge attacker-controlled strings
-        if (urlString.length > MAX_URL_LENGTH_BEFORE_DECODE) return false;
-
-        const decodedInfo = safeDecodeLimited(urlString, MAX_DECODE_DEPTH, MAX_URL_LENGTH_AFTER_DECODE);
-        // Reject outright on any non-OK status to avoid accepting truncated,
-        // partially-decoded, or otherwise ambiguous inputs.
-        if (decodedInfo.status !== DECODE_STATUS.OK) return false;
-        const decoded = decodedInfo.value;
-        if (decoded === null) return false;
-        if (decoded.trim() === '') return false; // reject empty or whitespace-only decoded values
-
-        // Validate decoded value for traversal, colon, whitespace, and allowed chars.
-        if (TRAVERSAL_RE.test(decoded)) return false;
-        if (decoded.includes(':')) return false; // disallow strings containing a colon
-        if (/\s/.test(decoded)) return false;
-        if (!(decoded.startsWith('/') || /^[A-Za-z0-9_./~-]+$/.test(decoded))) return false;
-
-        return true;
-    }
-};
+import { getYouTubeEmbedUrl, isSafeUrl } from '../utils/url.utils';
 
 const DarkModeToggle = ({ darkMode, setDarkMode }) => (
     <button
@@ -401,10 +257,6 @@ const CreateBlogFormContent = () => {
     );
 };
 
-const CreateBlogForm = (props) => (
-    <BlogThemeProvider>
-        <CreateBlogFormContent {...props} />
-    </BlogThemeProvider>
-);
+const CreateBlogForm = (props) => <CreateBlogFormContent {...props} />;
 
 export default CreateBlogForm;

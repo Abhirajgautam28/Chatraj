@@ -1,15 +1,10 @@
 #!/usr/bin/env node
-import dotenv from 'dotenv';
-import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
 import Redis from 'ioredis';
 import { maskKey } from '../utils/strings.js';
+import { loadEnv, parseArgs } from './script-utils.js';
 
-// Load Backend .env relative to this script file
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
+loadEnv();
 
 const REDIS_URL = process.env.REDIS_URL;
 if (!REDIS_URL) {
@@ -17,31 +12,14 @@ if (!REDIS_URL) {
   process.exit(1);
 }
 
-function parseArgs() {
-  const args = process.argv.slice(2);
-  return {
-    delete: args.includes('--delete') || args.includes('-d'),
-    dryRun: args.includes('--dry-run') || (!args.includes('--delete') && !args.includes('-d')),
-    pattern: (() => {
-      const p = args.find(a => a.startsWith('--pattern='));
-      if (p) return p.split('=')[1];
-      const idx = args.indexOf('--pattern');
-      if (idx !== -1 && args[idx+1]) return args[idx+1];
-      return '*';
-    })(),
-    limit: (() => {
-      const l = args.find(a => a.startsWith('--limit='));
-      if (l) {
-        const n = Number(l.split('=')[1]);
-        return Number.isNaN(n) ? 10000 : n;
-      }
-      return 10000;
-    })()
-  };
-}
-
 async function run() {
-  const opts = parseArgs();
+  const rawArgs = parseArgs();
+  const opts = {
+    delete: rawArgs.delete || rawArgs.d || false,
+    dryRun: rawArgs['dry-run'] || (!rawArgs.delete && !rawArgs.d) || false,
+    pattern: rawArgs.pattern || '*',
+    limit: Number(rawArgs.limit) || 10000
+  };
   console.log(`Connecting to Redis (dryRun=${opts.dryRun})`);
   const redis = new Redis(REDIS_URL, { maxRetriesPerRequest: 2 });
 

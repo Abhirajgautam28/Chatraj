@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { BlogThemeProvider } from '../context/blogTheme.context';
+import React, { useEffect, useState } from 'react';
 import axios from '../config/axios';
 import { Link } from 'react-router-dom';
 import 'remixicon/fonts/remixicon.css';
@@ -88,10 +87,6 @@ const BlogsContent = () => {
     );
 };
 
-const Blogs = () => (
-    <BlogThemeProvider>
-        <BlogsContent />
-    </BlogThemeProvider>
-);
+const Blogs = () => <BlogsContent />;
 
 export default Blogs;

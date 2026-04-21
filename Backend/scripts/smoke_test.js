@@ -1,6 +1,7 @@
-import dotenv from 'dotenv';
+import { loadEnv } from './script-utils.js';
+import { extractSetCookieArray, buildCookieHeader } from '../utils/cookies.js';
 
-dotenv.config({ path: process.cwd() + '/Backend/.env' });
+loadEnv();
 
 const API = process.env.BACKEND_URL || 'http://localhost:8080';
 
@@ -9,7 +10,7 @@ async function run() {
 
   // 1) GET CSRF token
   const r1 = await fetch(`${API}/csrf-token`, { method: 'GET' });
-  const setCookie = r1.headers.get('set-cookie');
+  const cookies = extractSetCookieArray(r1);
   let token = null;
   try {
     const json = await r1.json();
@@ -19,7 +20,7 @@ async function run() {
   }
 
   console.log('-- GET /csrf-token headers --');
-  console.log('set-cookie:', setCookie);
+  console.log('set-cookie:', cookies);
   console.log('csrfToken:', token ? '[OK]' : '[MISSING]');
 
   if (!token) {
@@ -31,29 +32,7 @@ async function run() {
   const email = process.env.TEST_USER_EMAIL || 'testuser@example.com';
   const password = process.env.TEST_USER_PASSWORD || 'TestPass123!';
 
-  // Build a robust Cookie header from potential multiple Set-Cookie header values.
-  // Handles:
-  //   - An array of Set-Cookie header strings (when available via headers.raw())
-  //   - A single combined string with commas inside attributes (e.g. Expires)
-  const cookieHeader = (() => {
-    if (!setCookie) return '';
-
-    // If the underlying headers implementation exposes the raw() function, use it.
-    if (typeof r1.headers.raw === 'function') {
-      const raw = r1.headers.raw();
-      const arr = raw && raw['set-cookie'];
-      if (Array.isArray(arr) && arr.length > 0) {
-        return arr.map(c => c.split(';')[0].trim()).filter(Boolean).join('; ');
-      }
-    }
-
-    // Fallback: split a combined header string only on 'real' cookie boundaries.
-    // We split on commas that are followed by optional spaces and then a token
-    // containing an '=' before the next semicolon, which indicates a new cookie.
-    const pieces = String(setCookie).split(/,(?=\s*[^;]+?=)/g);
-
-    return pieces.map(c => c.split(';')[0].trim()).filter(Boolean).join('; ');
-  })();
+  const cookieHeader = buildCookieHeader(cookies);
 
   const r2 = await fetch(`${API}/api/users/login`, {
     method: 'POST',

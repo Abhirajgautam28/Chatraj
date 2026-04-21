@@ -2,25 +2,26 @@
 // This script updates all users in the database to set the googleApiKey to the real Gemini API key.
 // You must set the REAL_KEY below before running!
 
-import mongoose from 'mongoose';
 import User from '../models/user.model.js';
+import { loadEnv, connectDB, closeDBAndExit } from './script-utils.js';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/ChatRaj';
+loadEnv();
+
 const REAL_KEY = 'YOUR_REAL_GEMINI_API_KEY_HERE'; // <-- CHANGE THIS!
 
 async function updateAllUsers() {
-  await mongoose.connect(MONGODB_URI);
+  await connectDB();
   const users = await User.find({});
   for (const user of users) {
     user.googleApiKey = REAL_KEY;
     await user.save();
     console.log(`Updated user: ${user.email}`);
   }
-  await mongoose.disconnect();
   console.log('All users updated.');
+  await closeDBAndExit(0);
 }
 
-updateAllUsers().catch(err => {
+updateAllUsers().catch(async err => {
   console.error(err);
-  process.exit(1);
+  await closeDBAndExit(1);
 });

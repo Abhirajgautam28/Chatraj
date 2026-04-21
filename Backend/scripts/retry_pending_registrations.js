@@ -1,7 +1,8 @@
-import dotenv from 'dotenv';
-dotenv.config();
 import redisClient from '../services/redis.service.js';
 import { sendMailWithRetry } from '../utils/mailer.js';
+import { loadEnv } from './script-utils.js';
+
+loadEnv();
 
 async function run() {
   try {

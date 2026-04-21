@@ -1,8 +1,9 @@
-import { useState, useRef, useEffect, useContext, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useContext, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { ChatRajThemeContext } from '../context/chatraj-theme.context';
+import { useTheme } from '../context/theme.context';
 import { UserContext } from '../context/user.context';
 import { useNavigate } from 'react-router-dom';
+import Modal from '../components/Modal';
 
 const formatMessageTime = (timestamp) => {
   const date = new Date(timestamp);
@@ -21,17 +22,18 @@ const ChatRaj = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [, setIsSpeaking] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeSettingsTab, setActiveSettingsTab] = useState('display');
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const { isChatDarkMode: darkMode, setIsChatDarkMode: setDarkMode } = useTheme();
   const [settings, setSettings] = useState(() => {
     const savedSettings = localStorage.getItem('chatrajSettings');
     const defaultSettings = {
       display: {
-        darkMode: false,
+        darkMode: darkMode,
         theme: {
           primary: '#3B82F6',
           secondary: '#1F2937',
@@ -122,9 +124,11 @@ const ChatRaj = () => {
       if (recognitionRef.current) {
         recognitionRef.current.abort();
       }
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
     };
   }, []);
-  useContext(ChatRajThemeContext);
   const { user } = useContext(UserContext);
 
   const [autoCompleteOptions, setAutoCompleteOptions] = useState([]);
@@ -231,9 +235,8 @@ const ChatRaj = () => {
 
   // Move speakResponse above handleSubmit to avoid ReferenceError
   const speakResponse = useCallback((text) => {
-    if ('speechSynthesis' in window) {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      setIsSpeaking(true);
 
       const utterance = new SpeechSynthesisUtterance(text);
 
@@ -259,17 +262,9 @@ const ChatRaj = () => {
       }
       loadVoices();
 
-      utterance.onstart = () => {
-        setIsSpeaking(true);
-      };
-
-      utterance.onend = () => {
-        setIsSpeaking(false);
-      };
-
       window.speechSynthesis.speak(utterance);
     }
-  }, [setIsSpeaking]);
+  }, []);
 
   const handleSubmit = useCallback(async (e, voiceInput = null) => {
     e?.preventDefault();
@@ -338,7 +333,8 @@ const ChatRaj = () => {
   useEffect(() => {
     localStorage.setItem('chatrajSettings', JSON.stringify(settings));
     document.documentElement.classList.toggle('dark', settings.display.darkMode);
-  }, [settings, settings.display.darkMode]);
+    setDarkMode(settings.display.darkMode);
+  }, [settings, settings.display.darkMode, setDarkMode]);
 
   useEffect(() => {
     if ('webkitSpeechRecognition' in window && recognitionRef.current) {
@@ -1052,11 +1048,7 @@ const ChatRaj = () => {
 
                       <div className="pt-4 border-t dark:border-gray-700">
                         <button
-                          onClick={() => {
-                            if (window.confirm('Are you sure you want to clear all chat history? This cannot be undone.')) {
-                              clearChatHistory();
-                            }
-                          }}
+                          onClick={() => setIsConfirmModalOpen(true)}
                           className="w-full px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600"
                         >
                           Clear All Chat History
@@ -1069,6 +1061,32 @@ const ChatRaj = () => {
             </div>
           </>
         )}
+      <Modal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        title="Clear Chat History"
+        footer={
+          <>
+            <button
+              onClick={() => setIsConfirmModalOpen(false)}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                clearChatHistory();
+                setIsConfirmModalOpen(false);
+              }}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600"
+            >
+              Clear History
+            </button>
+          </>
+        }
+      >
+        Are you sure you want to clear all chat history? This action cannot be undone.
+      </Modal>
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { normalizeEmail } from '../utils/email.js';
 import { escapeRegex } from '../utils/strings.js';
 import { sendMailWithRetry } from '../utils/mailer.js';
 import { logger } from '../utils/logger.js';
+import { sendSuccess, sendError } from '../utils/response.utils.js';
 
 export const subscribeNewsletter = async (req, res) => {
   try {
@@ -10,7 +11,7 @@ export const subscribeNewsletter = async (req, res) => {
     logger.info('Newsletter: Received subscribe request for:', email);
     const { value: normalizedEmail, isValid } = normalizeEmail(email);
     if (!isValid) {
-      return res.status(400).json({ error: 'Valid email is required.' });
+      return sendError(res, 400, 'Valid email is required.');
     }
 
     // Prevent duplicates against legacy mixed-case records by doing a
@@ -18,7 +19,7 @@ export const subscribeNewsletter = async (req, res) => {
     // domain lowercased) for consistent future inserts.
     const existing = await Newsletter.findOne({ email: { $regex: `^${escapeRegex(normalizedEmail)}$`, $options: 'i' } });
     if (existing) {
-      return res.status(409).json({ error: 'Email already subscribed.' });
+      return sendError(res, 409, 'Email already subscribed.');
     }
     const subscription = await Newsletter.create({ email: normalizedEmail });
     try {
@@ -66,15 +67,15 @@ export const subscribeNewsletter = async (req, res) => {
         `,
         text: `Welcome to ChatRaj!\n\nThank you for subscribing to the ChatRaj newsletter.\n\nWhy ChatRaj?\n- AI-Powered Collaboration: Real-time code editing, chat, and project management.\n- Privacy & Security: JWT, role-based access, and encryption.\n- Open Source: Join us on GitHub! https://github.com/Abhirajgautam28/Chatraj\n- Beautiful UI: Modern, themeable, and accessible.\n\nUpcoming Releases:\n- ChatRaj v2.1: Enhanced AI code suggestions, new collaboration tools, and improved performance (August 2025)\n- ChatRaj v2.2: Integrated project analytics, advanced debugging, and more language support (September 2025)\n- ChatRaj v3.0: Full-stack AI assistant, real-time code review, and team dashboards (Late 2025)\n\nCommunity Benefits:\n- Weekly tips, tutorials, and best practices.\n- Early access to new features and beta releases.\n- Direct feedback channel to the ChatRaj team.\n\nThank you for choosing ChatRaj.\nAbhiraj Gautam\nChatRaj Developer\nhttps://abhirajgautam.in\n\nYou’re receiving this email because you subscribed to the ChatRaj newsletter. To unsubscribe, reply to this email with 'unsubscribe'.`,
       };
-      let info = await sendMailWithRetry(mailOptions);
+      await sendMailWithRetry(mailOptions);
       logger.info('Newsletter: Email sent successfully via mailer utility');
-      res.status(201).json({ message: 'Subscribed successfully! Confirmation email sent.', subscription });
+      sendSuccess(res, 201, { subscription }, 'Subscribed successfully! Confirmation email sent.');
     } catch (mailErr) {
       logger.error('Newsletter: Email send failed:', mailErr);
-      res.status(201).json({ message: 'Subscribed, but confirmation email could not be sent.', subscription, emailError: true });
+      sendSuccess(res, 201, { subscription, emailError: true }, 'Subscribed, but confirmation email could not be sent.');
     }
   } catch (err) {
     logger.error('Newsletter subscribe error:', err);
-    res.status(500).json({ error: 'Server error.' });
+    sendError(res, 500, 'Server error.');
   }
 };

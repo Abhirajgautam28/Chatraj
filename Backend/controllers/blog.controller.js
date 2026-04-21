@@ -3,83 +3,73 @@ import User from '../models/user.model.js';
 import { generateContent } from '../services/ai.service.js';
 import mongoose from 'mongoose';
 import { logger } from '../utils/logger.js';
+import { sendSuccess, sendError } from '../utils/response.utils.js';
 
 export const createBlog = async (req, res) => {
     try {
         const { title, content } = req.body;
-        const author = await User.findOne({ email: req.user.email });
-
-        if (!author) {
-            return res.status(401).json({ error: 'User not found' });
-        }
 
         const newBlog = new Blog({
             title,
             content,
-            author: author._id
+            author: req.user._id
         });
 
         await newBlog.save();
-        res.status(201).json({ message: 'Blog created successfully', blog: newBlog });
+        sendSuccess(res, 201, { blog: newBlog }, 'Blog created successfully');
     } catch (error) {
         logger.error('createBlog error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        sendError(res, 500, 'Internal server error');
     }
 };
 
 export const getAllBlogs = async (req, res) => {
     try {
         const blogs = await Blog.find().populate('author', 'firstName lastName').sort({ createdAt: -1 }).lean();
-        res.status(200).json(blogs);
+        sendSuccess(res, 200, { blogs });
     } catch (error) {
         logger.error('getAllBlogs error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        sendError(res, 500, 'Internal server error');
     }
 };
 
 export const getBlogById = async (req, res) => {
     try {
         const id = req.params.id;
-        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
+        if (!mongoose.Types.ObjectId.isValid(id)) return sendError(res, 400, 'Invalid blog id');
         const blog = await Blog.findById(id).populate('author', 'firstName lastName').populate('comments.user', 'firstName lastName').lean();
         if (!blog) {
-            return res.status(404).json({ error: 'Blog not found' });
+            return sendError(res, 404, 'Blog not found');
         }
-        res.status(200).json(blog);
+        sendSuccess(res, 200, { blog });
     } catch (error) {
         logger.error('getBlogById error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        sendError(res, 500, 'Internal server error');
     }
 };
 
 export const likeBlog = async (req, res) => {
     try {
         const id = req.params.id;
-        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
+        if (!mongoose.Types.ObjectId.isValid(id)) return sendError(res, 400, 'Invalid blog id');
+
+        // Find the blog first to check if it exists and determine the current like state
         const blog = await Blog.findById(id);
-        const user = await User.findOne({ email: req.user.email });
+        if (!blog) return sendError(res, 404, 'Blog not found');
 
-        if (!blog) {
-            return res.status(404).json({ error: 'Blog not found' });
-        }
+        const userId = req.user._id;
+        const isLiked = blog.likes.includes(userId);
 
-        if (!user) {
-            return res.status(401).json({ error: 'User not found' });
-        }
+        const updatedBlog = await blogModel.findByIdAndUpdate(
+            id,
+            isLiked ? { $pull: { likes: userId } } : { $addToSet: { likes: userId } },
+            { new: true }
+        );
 
-        const likedIndex = blog.likes.indexOf(user._id);
-
-        if (likedIndex > -1) {
-            blog.likes.splice(likedIndex, 1);
-        } else {
-            blog.likes.push(user._id);
-        }
-
-        await blog.save();
-        res.status(200).json(blog);
+        sendSuccess(res, 200, { blog: updatedBlog });
     } catch (error) {
         logger.error('likeBlog error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        sendError(res, 500, 'Internal server error');
     }
 };
 
@@ -87,49 +77,45 @@ export const commentOnBlog = async (req, res) => {
     try {
         const { text } = req.body;
         const id = req.params.id;
-        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
-        const blog = await Blog.findById(id);
-        const user = await User.findOne({ email: req.user.email });
-
-        if (!blog) {
-            return res.status(404).json({ error: 'Blog not found' });
-        }
-
-        if (!user) {
-            return res.status(401).json({ error: 'User not found' });
-        }
+        if (!mongoose.Types.ObjectId.isValid(id)) return sendError(res, 400, 'Invalid blog id');
 
         const newComment = {
-            user: user._id,
+            user: req.user._id,
             text
         };
 
-        blog.comments.push(newComment);
-        await blog.save();
-        res.status(201).json(blog);
+        const updatedBlog = await blogModel.findByIdAndUpdate(
+            id,
+            { $push: { comments: newComment } },
+            { new: true }
+        );
+
+        if (!updatedBlog) return sendError(res, 404, 'Blog not found');
+
+        sendSuccess(res, 201, { blog: updatedBlog });
     } catch (error) {
         logger.error('commentOnBlog error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        sendError(res, 500, 'Internal server error');
     }
 };
 
 export const generateBlogContent = async (req, res) => {
     try {
         const { topic } = req.body;
-        if (typeof topic !== 'string' || topic.trim().length === 0 || topic.trim().length > 200) {
-            return res.status(400).json({ error: 'Invalid topic. Please provide a topic between 1 and 200 characters.' });
+        if (!topic || typeof topic !== 'string' || topic.trim().length === 0 || topic.trim().length > 200) {
+            return sendError(res, 400, 'Invalid topic. Please provide a topic between 1 and 200 characters.');
         }
 
-        const prompt = `Write a professional blog post of about 100 words on the topic: "${topic.trim().slice(0,200)}".`;
+        const prompt = `Write a professional blog post of about 100 words on the topic: "${topic.trim().slice(0, 200)}".`;
         const content = await generateContent({
             prompt,
             modelName: 'gemini-pro',
             temperature: 0.7
         });
 
-        res.status(200).json({ content });
+        sendSuccess(res, 200, { content });
     } catch (error) {
         logger.error('generateBlogContent error:', error);
-        res.status(500).json({ error: 'Failed to generate blog content. Please try again later.' });
+        sendError(res, 500, 'Failed to generate blog content. Please try again later.');
     }
 };

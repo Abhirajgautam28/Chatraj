@@ -1,19 +1,14 @@
-import dotenv from 'dotenv';
-import path from 'path';
-import connect from '../db/db.js';
 import User from '../models/user.model.js';
-import mongoose from 'mongoose';
+import { loadEnv, connectDB, closeDBAndExit } from './script-utils.js';
 
-// Load the backend .env using the repository working directory so running
-// the script from the project root picks up Backend/.env correctly.
-dotenv.config({ path: path.resolve(process.cwd(), 'Backend/.env') });
+loadEnv();
 
 const TEST_USER_EMAIL = process.env.TEST_USER_EMAIL || 'testuser@example.com';
 const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD || 'TestPass123!';
 
 async function run() {
   try {
-    await connect();
+    await connectDB();
     console.log('Connected to MongoDB for test user creation');
 
     // Remove existing test user if present
@@ -37,12 +32,10 @@ async function run() {
     console.log('  email:', TEST_USER_EMAIL);
     console.log('  password:', TEST_USER_PASSWORD);
 
-    // Close mongoose connection
-    await mongoose.connection.close();
-    process.exit(0);
+    await closeDBAndExit(0);
   } catch (err) {
     console.error('Failed to create test user:', err && (err.stack || err.message || err));
-    process.exit(1);
+    await closeDBAndExit(1);
   }
 }
 

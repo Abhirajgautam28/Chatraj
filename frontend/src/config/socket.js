@@ -27,11 +27,15 @@ export const initializeSocket = (projectId) => {
 }
 
 export const receiveMessage = (eventName, cb) => {
-    socketInstance.on(eventName, cb);
+    if (socketInstance) socketInstance.on(eventName, cb);
+}
+
+export const offMessage = (eventName, cb) => {
+    if (socketInstance) socketInstance.off(eventName, cb);
 }
 
 export const sendMessage = (eventName, data) => {
-    socketInstance.emit(eventName, data);
+    if (socketInstance) socketInstance.emit(eventName, data);
 }
 
 // Add these event emitters

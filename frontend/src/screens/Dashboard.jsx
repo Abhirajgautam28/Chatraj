@@ -1,5 +1,5 @@
 // ...existing code...
-import { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserContext } from '../context/user.context';
 import axios, { clearCsrfCache } from "../config/axios";
