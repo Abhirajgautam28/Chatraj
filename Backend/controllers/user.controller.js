@@ -24,43 +24,17 @@ export const sendOtpController = async (req, res) => {
 
 export const getLeaderboardController = async (req, res) => {
     try {
-        const users = await userModel.find({}).sort({ projects: -1 }).limit(10);
-        res.status(200).json({ users });
-    } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
+        const users = await userService.getLeaderboard();
+        return response.success(res, { users });
+    } catch (err) {
+        return response.error(res, 'Internal server error');
     }
 };
-import userModel from '../models/user.model.js';
-import { normalizeEmail } from '../utils/email.js';
-import { shouldExposeOtpToClient } from '../utils/security.js';
-import { sendMailWithRetry } from '../utils/mailer.js';
-import dotenv from 'dotenv';
-dotenv.config();
-
-// Helper: escape user-supplied text before inserting into HTML templates
-function escapeHtml(unsafe) {
-    if (unsafe === undefined || unsafe === null) return '';
-    return String(unsafe)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
-import * as userService from '../services/user.service.js';
-import { validationResult } from 'express-validator';
-import redisClient from '../services/redis.service.js';
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
 
 export const createUserController = async (req, res) => {
-
     const errors = validationResult(req);
+    if (!errors.isEmpty()) return response.error(res, 'Validation failed', 400, errors.array());
 
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
     try {
         const { firstName, lastName, email, password, googleApiKey } = req.body;
         const { value: normalizedEmail, isValid } = normalizeEmail(email);
@@ -218,17 +192,6 @@ async function sendOtpEmail(email, otp) {
         logger.info('Skipping email send in test environment');
         return;
     }
-
-    const mailOptions = {
-        from: process.env.SMTP_FROM || 'ChatRaj <no-reply@chatraj.com>',
-        to: email,
-        subject: 'Your ChatRaj OTP Verification',
-        text: `Welcome to ChatRaj!\n\nYour OTP is: ${otp}\n\nPlease enter this code in the registration popup to activate your account.`,
-    };
-
-    // Use robust send with retry/backoff. Any thrown error will be
-    // propagated to the caller so registration flow can respond safely.
-    await sendMailWithRetry(mailOptions);
 }
 
 // OTP verification for both registration (userId) and password reset (email)
@@ -303,14 +266,6 @@ export const verifyOtpController = async (req, res) => {
             }
         }
     }
-    if (!user) return res.status(404).json({ message: 'User not found' });
-    if (user.otp !== otp) return res.status(401).json({ message: 'Invalid OTP' });
-    user.isVerified = true;
-    user.otp = undefined;
-    await user.save();
-    let token = null;
-    if (userId) token = await user.generateJWT();
-    res.status(200).json({ message: 'Verified successfully', token, user });
 };
 
 // Admin-only: retrieve masked OTP for debugging. Requires `ADMIN_API_KEY`
@@ -389,27 +344,12 @@ export const adminGetOtpController = async (req, res) => {
 
 export const loginController = async (req, res) => {
     const errors = validationResult(req);
+    if (!errors.isEmpty()) return response.error(res, 'Validation failed', 400, errors.array());
 
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
     try {
         const { email, password } = req.body;
-        if (typeof email !== 'string' || typeof password !== 'string') return res.status(400).json({ errors: 'Invalid credentials' });
-        const user = await userModel.findOne({ email: email.trim() }).select('+password +googleApiKey');
-        if (!user) {
-            return res.status(401).json({ errors: 'Invalid credentials' });
-        }
-        const isMatch = await user.isValidPassword(password);
-        if (!isMatch) {
-            return res.status(401).json({ errors: 'Invalid credentials' });
-        }
-        if (!user.isVerified) {
-            return res.status(403).json({ errors: 'Account not verified. Please check your email for OTP.' });
-        }
-        const token = await user.generateJWT();
-        delete user._doc.password;
-        res.status(200).json({ user, token });
+        const result = await userService.loginUser(email, password);
+        return response.success(res, result, 'Login successful');
     } catch (err) {
         logger.error('loginController error:', err);
         res.status(400).json({ error: 'Invalid request' });
@@ -417,26 +357,14 @@ export const loginController = async (req, res) => {
 }
 
 export const profileController = async (req, res) => {
-
-    res.status(200).json({
-        user: req.user
-    });
-
+    return response.success(res, { user: req.user });
 }
 
 export const logoutController = async (req, res) => {
     try {
-        const token =
-            req.cookies.token ||
-            (req.headers.authorization ? req.headers.authorization.split(' ')[1] : null);
-
-        if (token) {
-            redisClient.set(token, 'logout', 'EX', 60 * 60 * 24);
-        }
-
-        res.status(200).json({
-            message: 'Logged out successfully'
-        });
+        const token = req.cookies.token || (req.headers.authorization ? req.headers.authorization.split(' ')[1] : null);
+        if (token) redisClient.set(token, 'logout', 'EX', 60 * 60 * 24);
+        return response.success(res, null, 'Logged out successfully');
     } catch (err) {
         logger.error('logoutController error:', err);
         res.status(400).json({ error: 'Invalid request' });
@@ -445,19 +373,9 @@ export const logoutController = async (req, res) => {
 
 export const getAllUsersController = async (req, res) => {
     try {
-        const loggedInUser = await userModel.findOne({
-            email: req.user.email
-        })
-
-        const allUsers = await userService.getAllUsers({ userId: loggedInUser._id });
-        const usersWithNames = allUsers.map(u => ({
-            _id: u._id,
-            firstName: u.firstName,
-            lastName: u.lastName
-        }));
-        return res.status(200).json({
-            users: usersWithNames
-        })
+        const allUsers = await userService.getAllUsers({ userId: req.user._id });
+        const usersWithNames = allUsers.map(u => ({ _id: u._id, firstName: u.firstName, lastName: u.lastName }));
+        return response.success(res, { users: usersWithNames })
     } catch (err) {
         logger.error('getAllUsersController error:', err);
         res.status(400).json({ error: 'Unable to fetch users' })
@@ -467,18 +385,8 @@ export const getAllUsersController = async (req, res) => {
 export const resetPasswordController = async (req, res) => {
     try {
         const { email } = req.body;
-        const { value: normalizedEmail, isValid } = normalizeEmail(email);
-        if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
-        const user = await userModel.findOne({ email: normalizedEmail });
-        if (!user) return res.status(404).json({ message: 'User not found' });
-
-        const resetToken = jwt.sign(
-            { email: user.email },
-            process.env.JWT_SECRET,
-            { expiresIn: '15m' }
-        );
-
-        res.json({ message: 'Reset link sent to email', resetToken });
+        const result = await userService.resetPassword(email);
+        return response.success(res, result);
     } catch (err) {
         logger.error('resetPasswordController error:', err);
         res.status(500).json({ message: 'Internal server error' });
@@ -487,28 +395,9 @@ export const resetPasswordController = async (req, res) => {
 
 export const updatePasswordController = async (req, res) => {
     try {
-        let { email, newPassword } = req.body;
-        const { value: normalizedEmail, isValid } = normalizeEmail(email);
-        if (!isValid || typeof newPassword !== 'string') return res.status(400).json({ message: 'Valid email and a new password (min 8 chars) required' });
-        newPassword = newPassword.trim();
-        if (newPassword.length < 8) return res.status(400).json({ message: 'Valid email and a new password (min 8 chars) required' });
-
-        const user = await userModel.findOne({ email: normalizedEmail });
-        if (!user) return res.status(404).json({ message: 'User not found' });
-
-        // Prevent duplicate password reset emails by using a flag
-        if (user._passwordResetEmailSent) {
-            return res.json({ message: 'Password updated successfully' });
-        }
-
-        user.password = await userModel.hashPassword(newPassword);
-        user._passwordResetEmailSent = true;
-        await user.save();
-
-        // Send password reset success email only once
-        await sendPasswordResetSuccessEmail(user.email, user.firstName || user.email);
-
-        res.json({ message: 'Password updated successfully' });
+        const { email, newPassword } = req.body;
+        const result = await userService.updatePassword(email, newPassword);
+        return response.success(res, result);
     } catch (err) {
         logger.error('updatePasswordController error:', err);
         res.status(500).json({ message: 'Internal server error' });
