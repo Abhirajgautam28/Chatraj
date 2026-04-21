@@ -1,4 +1,5 @@
 import logger from '../utils/logger.js';
+import response from '../utils/response.js';
 
 /**
  * Centralized error handling middleware.
@@ -10,38 +11,29 @@ export const errorHandler = (err, req, res, next) => {
 
   // Handle CSRF errors
   if (err && (err.code === 'EBADCSRFTOKEN' || err.message === 'invalid csrf token')) {
-    return res.status(403).json({
-      error: 'Invalid CSRF token',
-      message: process.env.NODE_ENV === 'development' ? err.message : 'Forbidden'
-    });
+    return response.error(res, 'Invalid CSRF token', 403, process.env.NODE_ENV === 'development' ? err.message : 'Forbidden');
   }
 
   // Handle Mongoose validation errors
   if (err.name === 'ValidationError') {
-    return res.status(400).json({
-      error: 'Validation Error',
-      details: Object.values(err.errors).map(e => e.message)
-    });
+    return response.error(res, 'Validation Error', 400, Object.values(err.errors).map(e => e.message));
   }
 
   // Handle JWT errors
   if (err.name === 'JsonWebTokenError') {
-    return res.status(401).json({ error: 'Invalid token' });
+    return response.error(res, 'Invalid token', 401);
   }
   if (err.name === 'TokenExpiredError') {
-    return res.status(401).json({ error: 'Token expired' });
+    return response.error(res, 'Token expired', 401);
   }
 
   // Handle Unauthorized errors from services
   if (err.message === 'Unauthorized access' || err.message === 'Unauthorized User') {
-    return res.status(401).json({ error: err.message });
+    return response.error(res, err.message, 401);
   }
 
   const status = err.status || 500;
-  res.status(status).json({
-    error: err.message || 'Something broke!',
-    message: process.env.NODE_ENV === 'development' ? err.stack : 'Internal Server Error'
-  });
+  return response.error(res, err.message || 'Something broke!', status, process.env.NODE_ENV === 'development' ? err.stack : 'Internal Server Error');
 };
 
 export default errorHandler;
