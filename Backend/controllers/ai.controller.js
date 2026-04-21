@@ -1,6 +1,6 @@
 import * as ai from '../services/ai.service.js';
-import { parseAiResponse } from '../utils/ai.js';
-import response from '../utils/response.js';
+import { logger } from '../utils/logger.js';
+
 
 export const getResult = async (req, res) => {
     try {
@@ -8,12 +8,10 @@ export const getResult = async (req, res) => {
         if (typeof prompt !== 'string' || prompt.trim().length === 0) {
             return response.error(res, 'Prompt is required', 400);
         }
-        const result = await ai.generateResult(prompt);
-        const responseText = parseAiResponse(result);
-        return response.success(res, { response: responseText });
-    } catch (err) {
-        console.error('getResult error:', err);
-        return response.error(res, 'Internal server error');
+        res.json({ response: responseText });
+    } catch (error) {
+        logger.error('getResult error:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 }
 
@@ -24,10 +22,18 @@ export const postResult = async (req, res) => {
             return response.error(res, 'Prompt is required', 400);
         }
         const result = await ai.generateResult(prompt, userApiKey);
-        const responseText = parseAiResponse(result);
-        return response.success(res, { response: responseText });
-    } catch (err) {
-        console.error('postResult error:', err);
-        return response.error(res, 'Internal server error');
+        // If result is a stringified object, parse it
+        let responseText;
+        try {
+            const parsed = typeof result === 'string' ? JSON.parse(result) : result;
+            // If parsed has a 'text' property, use it; else, use the whole parsed object as string
+            responseText = parsed.text || JSON.stringify(parsed);
+        } catch (e) {
+            responseText = typeof result === 'string' ? result : JSON.stringify(result);
+        }
+        res.json({ response: responseText });
+    } catch (error) {
+        logger.error('postResult error:', error);
+        res.status(500).json({ response: 'Internal server error' });
     }
 }

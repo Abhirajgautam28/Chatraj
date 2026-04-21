@@ -11,12 +11,13 @@ import blogRoutes from './routes/blog.routes.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import csurf from 'csurf';
+import { logger } from './utils/logger.js';
 import {
-  createSignedCsrf,
   verifySignedCsrfToken,
+  createSignedCsrf,
   isSecureFromRequest
 } from './utils/security.js';
-import errorHandler from './middleware/error.middleware.js';
+
 const allowedOrigins = [
   'https://chatraj-frontend.vercel.app',
   'https://chatraj.vercel.app',
@@ -28,11 +29,10 @@ const allowedOrigins = [
 
 const app = express();
 
-
 // CORS debug logger
 const corsErrorLogger = (err, req, res, next) => {
   if (err && err.message && err.message.includes('CORS')) {
-    console.error('CORS error:', err.message, 'Origin:', req.headers.origin);
+    logger.error('CORS error:', err.message, 'Origin:', req.headers.origin);
     res.status(403).json({ error: 'CORS error', details: err.message });
   } else {
     next(err);
@@ -178,6 +178,24 @@ app.use("/api/ai", aiRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/blogs', blogRoutes);
 
-app.use(errorHandler);
+app.use((err, req, res, next) => {
+  logger.error(err.stack);
+  // Handle CSRF errors specially
+  if (err && (err.code === 'EBADCSRFTOKEN' || err.message === 'invalid csrf token')) {
+    logger.error('CSRF validation failed:', err.message);
+    return res.status(403).json({
+      error: 'Invalid CSRF token',
+      message: process.env.NODE_ENV === 'development' ? err.message : 'Forbidden'
+    });
+  }
+
+  const status = err.status || 500;
+  if (!res.headersSent) {
+    res.status(status).json({
+      error: 'Something broke!',
+      message: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
+    });
+  }
+});
 
 export default app;

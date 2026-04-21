@@ -4,11 +4,10 @@ import mongoose from 'mongoose';
 import projectModel from '../models/project.model.js';
 import Message from '../models/message.model.js';
 import { generateResult } from './ai.service.js';
-
-let io;
+import { logger } from '../utils/logger.js';
 
 export const initializeSocket = (server) => {
-    io = new Server(server, {
+    const io = new Server(server, {
         cors: {
             origin: '*'
         }
@@ -67,7 +66,7 @@ export const initializeSocket = (server) => {
                     readBy: []
                 });
             } catch (err) {
-                console.error("Error saving message:", err);
+                logger.error("Error saving message:", err);
                 savedMessage = { ...data, createdAt: new Date().toISOString(), deliveredTo: [], readBy: [] };
             }
             io.to(socket.roomId).emit('project-message', savedMessage);
@@ -85,7 +84,7 @@ export const initializeSocket = (server) => {
                         createdAt: new Date()
                     });
                 } catch (err) {
-                    console.error("Error saving AI message:", err);
+                    logger.error("Error saving AI message:", err);
                     savedAIMessage = { message: result, sender: { _id: 'Chatraj', email: 'Chatraj' }, createdAt: new Date().toISOString() };
                 }
                 io.to(socket.roomId).emit('project-message', savedAIMessage);
@@ -94,27 +93,29 @@ export const initializeSocket = (server) => {
 
         socket.on('message-delivered', async ({ messageId, userId }) => {
             try {
-                const message = await Message.findById(messageId);
-                if (message && !message.deliveredTo.includes(userId)) {
-                    message.deliveredTo.push(userId);
-                    await message.save();
+                const result = await Message.updateOne(
+                    { _id: messageId },
+                    { $addToSet: { deliveredTo: userId } }
+                );
+                if (result.modifiedCount > 0) {
                     io.to(socket.roomId).emit('message-delivered', { messageId, userId });
                 }
             } catch (err) {
-                console.error('Error updating deliveredTo:', err);
+                logger.error('Error updating deliveredTo:', err);
             }
         });
 
         socket.on('message-read', async ({ messageId, userId }) => {
             try {
-                const message = await Message.findById(messageId);
-                if (message && !message.readBy.includes(userId)) {
-                    message.readBy.push(userId);
-                    await message.save();
+                const result = await Message.updateOne(
+                    { _id: messageId },
+                    { $addToSet: { readBy: userId } }
+                );
+                if (result.modifiedCount > 0) {
                     io.to(socket.roomId).emit('message-read', { messageId, userId });
                 }
             } catch (err) {
-                console.error('Error updating readBy:', err);
+                logger.error('Error updating readBy:', err);
             }
         });
 
@@ -125,14 +126,19 @@ export const initializeSocket = (server) => {
                     message.reactions = message.reactions.filter(r =>
                         r.userId.toString() !== data.userId.toString()
                     );
+
                     if (data.emoji) {
-                        message.reactions.push({ emoji: data.emoji, userId: data.userId });
+                        message.reactions.push({
+                            emoji: data.emoji,
+                            userId: data.userId
+                        });
                     }
+
                     await message.save();
                     io.to(socket.roomId).emit('message-reaction', message);
                 }
             } catch (error) {
-                console.error("Error handling reaction:", error.message);
+                logger.error("Error handling reaction:", error.message);
             }
         });
 
@@ -151,16 +157,10 @@ export const initializeSocket = (server) => {
         });
 
         socket.on('disconnect', () => {
+            logger.info('user disconnected');
             socket.leave(socket.roomId);
         });
     });
 
-    return io;
-};
-
-export const getIO = () => {
-    if (!io) {
-        throw new Error('Socket.io not initialized');
-    }
     return io;
 };
