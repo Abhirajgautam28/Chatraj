@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { UserContext } from '../context/user.context'
 import PropTypes from 'prop-types';
+import LoadingScreen from '../components/LoadingScreen';
 
 const UserAuth = ({ children }) => {
 
@@ -24,7 +25,7 @@ const UserAuth = ({ children }) => {
     if (loading) {
         // While loading, we can show a spinner or a blank screen.
         // This prevents the child components from rendering prematurely.
-        return <div className="flex items-center justify-center h-screen bg-gray-900 text-white">Loading...</div>;
+        return <LoadingScreen />;
     }
 
     return (
