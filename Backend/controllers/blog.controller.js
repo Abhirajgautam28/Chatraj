@@ -39,7 +39,7 @@ export const getBlogById = async (req, res) => {
         if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
         const blog = await Blog.findById(id).populate('author', 'firstName lastName').populate('comments.user', 'firstName lastName').lean();
         if (!blog) {
-            return res.status(404).json({ error: 'Blog not found' });
+            return response.error(res, 'Blog not found', 404);
         }
         res.status(200).json(blog);
     } catch (error) {
