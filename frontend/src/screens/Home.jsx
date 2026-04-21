@@ -7,6 +7,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
+import { executeThemeTransition } from '../utils/themeTransition';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
 import Blog from '../components/Blog.jsx';
 import ContactUs from '../components/ContactUs.jsx';
