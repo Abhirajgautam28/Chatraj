@@ -1,24 +1,7 @@
 import dotenv from 'dotenv';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-// Load .env from Backend/.env when running from repo root
-try {
-  const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const candidates = [
-    path.resolve(process.cwd(), '.env'),
-    path.resolve(__dirname, '..', '.env')
-  ];
-  for (const p of candidates) {
-    if (fs.existsSync(p)) { dotenv.config({ path: p }); break; }
-  }
-} catch (e) { dotenv.config(); }
-
+dotenv.config();
 import redisClient from '../services/redis.service.js';
 import { sendMailWithRetry } from '../utils/mailer.js';
-import { safeParsePendingRegistration, maskEmailForLogs } from '../utils/pendingRegistration.js';
-
-const SCAN_SAFETY_LIMIT = parseInt(process.env.REDIS_SCAN_SAFETY_LIMIT || '10000', 10);
 
 async function run() {
   try {
@@ -40,13 +23,13 @@ async function run() {
           nextCursor = res.cursor;
           batch = res.keys;
         } else {
-          console.warn('Unexpected SCAN response shape; aborting scan to avoid silent failure');
+          console.warn('Unexpected SCAN response shape; aborting scan to avoid silent failure:', res);
           break;
         }
         if (Array.isArray(batch) && batch.length > 0) keys.push(...batch);
         cursor = String(nextCursor);
         // safety to avoid potential infinite loops in case of unexpected cursor behavior
-        if (++safety > SCAN_SAFETY_LIMIT) {
+        if (++safety > 10000) {
           console.warn('SCAN loop exceeded safety limit; aborting');
           break;
         }
@@ -71,9 +54,12 @@ async function run() {
       try {
         const v = await redisClient.get(k);
         if (!v) continue;
-        const pending = safeParsePendingRegistration(v, k);
-        if (!pending) {
-          // Skip corrupted entry
+        let pending;
+        try {
+          pending = JSON.parse(v);
+        } catch (parseErr) {
+          console.error('Failed to parse pending registration JSON for key', k, parseErr && (parseErr.message || parseErr));
+          // Skip this key to avoid crashing the whole job
           continue;
         }
         const sentCount = Number(pending.sentCount || 0);
@@ -133,9 +119,9 @@ async function run() {
             }
           }
 
-          console.info('Resent OTP to', maskEmailForLogs(pending.email));
+          console.info('Resent OTP to', pending.email);
         } catch (err) {
-          console.error('Failed to resend to', maskEmailForLogs(pending.email), err && err.message ? err.message : err);
+          console.error('Failed to resend to', pending.email, err && err.message ? err.message : err);
         }
       } catch (err) {
         console.error('Error processing pending key', k, err && err.message ? err.message : err);

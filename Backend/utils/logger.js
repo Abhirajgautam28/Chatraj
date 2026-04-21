@@ -1,25 +1,21 @@
-/**
- * Simple environment-aware logger for the backend.
- */
-const logger = {
-  info: (...args) => {
-    if (process.env.NODE_ENV !== 'test') {
-      console.info('[INFO]', ...args);
-    }
-  },
-  error: (...args) => {
-    console.error('[ERROR]', ...args);
-  },
-  warn: (...args) => {
-    if (process.env.NODE_ENV !== 'test') {
-      console.warn('[WARN]', ...args);
-    }
-  },
-  debug: (...args) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('[DEBUG]', ...args);
-    }
-  }
-};
+const isProduction = process.env.NODE_ENV === 'production';
 
-export default logger;
+export const logger = {
+    info: (...args) => {
+        if (!isProduction) {
+            console.info('[INFO]', ...args);
+        }
+    },
+    error: (...args) => {
+        // Errors are always logged, but can be enhanced here
+        console.error('[ERROR]', ...args);
+    },
+    warn: (...args) => {
+        console.warn('[WARN]', ...args);
+    },
+    debug: (...args) => {
+        if (!isProduction) {
+            console.debug('[DEBUG]', ...args);
+        }
+    }
+};

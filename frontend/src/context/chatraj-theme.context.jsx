@@ -1,5 +1,4 @@
 import { createContext, useState, useEffect } from 'react';
-import { flushSync } from 'react-dom';
 import PropTypes from 'prop-types';
 
 export const ChatRajThemeContext = createContext();
@@ -26,7 +25,7 @@ export function ChatRajThemeProvider({ children }) {
   };
 
   return (
-    <ChatRajThemeContext.Provider value={{ isDarkMode, setIsDarkMode, toggleThemeGlobal }}>
+    <ChatRajThemeContext.Provider value={{ isDarkMode, setIsDarkMode }}>
       {children}
     </ChatRajThemeContext.Provider>
   );

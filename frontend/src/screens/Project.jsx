@@ -3,130 +3,35 @@ import { UserContext } from '../context/user.context'
 import { ThemeContext } from '../context/theme.context'
 import { useLocation } from 'react-router-dom'
 import axios from '../config/axios'
-import { initializeSocket, receiveMessage, sendMessage } from '../config/socket'
 import Markdown from 'markdown-to-jsx'
 import { getWebContainer } from '../config/webContainer'
 import Avatar from '../components/Avatar';
 import EmojiPicker from '../components/EmojiPicker';
 import FileIcon from '../components/FileIcon';
 import 'highlight.js/styles/github.css';
-import { executeThemeTransition } from '../utils/themeTransition';
 import 'highlight.js/styles/github-dark.css';
 import PropTypes from 'prop-types';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import VimCodeEditor from '../components/VimCodeEditor';
-
-const PROJECT_TRANSLATIONS = {
-  'en-US': {
-    addUsers: 'Add Users',
-    collaborators: 'Collaborators',
-    options: 'Options',
-    run: 'Run',
-    noFileSelected: 'No file selected.',
-    noCode: 'No code to display.',
-    settings: 'Settings',
-    language: 'Language',
-    aiAssistant: 'AI Assistant',
-    replyTo: 'Replying to',
-    send: 'Send',
-    searchMessages: 'Search messages...',
-    selectUser: 'Select User',
-    addCollaborators: 'Add Collaborators',
-    previewOptions: 'Preview Options',
-    editorSettings: 'Editor Settings (see main settings for more)',
-  },
-  'hi-IN': {
-    addUsers: 'यूज़र जोड़ें',
-    collaborators: 'सहयोगी',
-    options: 'विकल्प',
-    run: 'चलाएँ',
-    noFileSelected: 'कोई फ़ाइल चयनित नहीं है।',
-    noCode: 'कोड उपलब्ध नहीं है।',
-    settings: 'सेटिंग्स',
-    language: 'भाषा',
-    aiAssistant: 'एआई सहायक',
-    replyTo: 'को उत्तर दे रहे हैं',
-    send: 'भेजें',
-    searchMessages: 'संदेश खोजें...',
-    selectUser: 'यूज़र चुनें',
-    addCollaborators: 'सहयोगी जोड़ें',
-    previewOptions: 'पूर्वावलोकन विकल्प',
-    editorSettings: 'संपादक सेटिंग्स (अधिक के लिए मुख्य सेटिंग्स देखें)',
-  },
-  'es-ES': {
-    addUsers: 'Agregar usuarios',
-    collaborators: 'Colaboradores',
-    options: 'Opciones',
-    run: 'Ejecutar',
-    noFileSelected: 'Ningún archivo seleccionado.',
-    noCode: 'No hay código para mostrar.',
-    settings: 'Configuración',
-    language: 'Idioma',
-    aiAssistant: 'Asistente de IA',
-    replyTo: 'Respondiendo a',
-    send: 'Enviar',
-    searchMessages: 'Buscar mensajes...',
-    selectUser: 'Seleccionar usuario',
-    addCollaborators: 'Agregar colaboradores',
-    previewOptions: 'Opciones de vista previa',
-    editorSettings: 'Configuración del editor (ver configuración principal para más)',
-  },
-  'fr-FR': {
-    addUsers: 'Ajouter des utilisateurs',
-    collaborators: 'Collaborateurs',
-    options: 'Options',
-    run: 'Exécuter',
-    noFileSelected: 'Aucun fichier sélectionné.',
-    noCode: 'Aucun code à afficher.',
-    settings: 'Paramètres',
-    language: 'Langue',
-    aiAssistant: 'Assistant IA',
-    replyTo: 'En réponse à',
-    send: 'Envoyer',
-    searchMessages: 'Rechercher des messages...',
-    selectUser: 'Sélectionner un utilisateur',
-    addCollaborators: 'Ajouter des collaborateurs',
-    previewOptions: 'Options d’aperçu',
-    editorSettings: 'Paramètres de l’éditeur (voir les paramètres principaux pour plus)',
-  },
-  'de-DE': {
-    addUsers: 'Benutzer hinzufügen',
-    collaborators: 'Mitarbeiter',
-    options: 'Optionen',
-    run: 'Ausführen',
-    noFileSelected: 'Keine Datei ausgewählt.',
-    noCode: 'Kein Code zum Anzeigen.',
-    settings: 'Einstellungen',
-    language: 'Sprache',
-    aiAssistant: 'KI-Assistent',
-    replyTo: 'Antwort an',
-    send: 'Senden',
-    searchMessages: 'Nachrichten suchen...',
-    selectUser: 'Benutzer auswählen',
-    addCollaborators: 'Mitarbeiter hinzufügen',
-    previewOptions: 'Vorschauoptionen',
-    editorSettings: 'Editor-Einstellungen (siehe Haupteinstellungen für mehr)',
-  },
-  'ja-JP': {
-    addUsers: 'ユーザーを追加',
-    collaborators: '共同作業者',
-    options: 'オプション',
-    run: '実行',
-    noFileSelected: 'ファイルが選択されていません。',
-    noCode: '表示するコードがありません。',
-    settings: '設定',
-    language: '言語',
-    aiAssistant: 'AIアシスタント',
-    replyTo: '返信先',
-    send: '送信',
-    searchMessages: 'メッセージを検索...',
-    selectUser: 'ユーザーを選択',
-    addCollaborators: '共同作業者を追加',
-    previewOptions: 'プレビューオプション',
-    editorSettings: 'エディター設定（詳細はメイン設定を参照）',
-  },
-};
+import ChatMessage from '../components/ChatMessage';
+import ErrorBoundary from '../components/ErrorBoundary';
+import AddCollaboratorsModal from '../components/AddCollaboratorsModal';
+import AIAssistantModal from '../components/AIAssistantModal';
+import ProjectSettingsModal from '../components/ProjectSettingsModal';
+import SyntaxHighlightedCode from '../components/SyntaxHighlightedCode';
+import { useSocket } from '../hooks/useSocket';
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useWebContainer } from '../hooks/useWebContainer';
+import { useToast } from '../context/toast.context';
+import { logger } from '../utils/logger';
+import {
+  sanitizeIframeUrl,
+  normalizeFileTree,
+  deduplicateMessages,
+  groupMessagesByDate
+} from '../utils/projectUtils';
+import { PROJECT_TRANSLATIONS } from '../config/translations';
 
 function useProjectTranslation(language) {
   return React.useMemo(() => {
@@ -135,79 +40,8 @@ function useProjectTranslation(language) {
   }, [language]);
 }
 
-function deduplicateMessages(messages) {
-  const seen = new Set();
-  return messages.filter(msg => {
-    if (!msg._id) return true;
-    if (seen.has(msg._id)) return false;
-    seen.add(msg._id);
-    return true;
-  });
-}
 
-function SyntaxHighlightedCode(props) {
-  const ref = useRef(null)
-  React.useEffect(() => {
-    if (ref.current && props.className?.includes('lang-') && window.hljs) {
-      window.hljs.highlightElement(ref.current)
-      ref.current.removeAttribute('data-highlighted')
-    }
-  }, [props.className, props.children])
-  return <code {...props} ref={ref} style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word', display: 'block' }} />
-}
 
-SyntaxHighlightedCode.propTypes = {
-  className: PropTypes.string,
-  children: PropTypes.node
-};
-
-const isSameDay = (d1, d2) => {
-  return (
-    d1.getFullYear() === d2.getFullYear() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getDate() === d2.getDate()
-  )
-}
-
-const getGroupLabel = (date) => {
-  const today = new Date()
-  if (isSameDay(date, today)) return 'Today'
-
-  const yesterday = new Date()
-  yesterday.setDate(today.getDate() - 1)
-  if (isSameDay(date, yesterday)) return 'Yesterday'
-  return date.toLocaleDateString()
-}
-
-const groupMessagesByDate = (messagesArr) => {
-  const groups = {}
-  messagesArr.forEach((msg) => {
-    const d = new Date(msg.createdAt)
-    const label = getGroupLabel(d)
-    if (!groups[label]) {
-      groups[label] = []
-    }
-    groups[label].push(msg)
-  })
-  return groups
-}
-
-// Utility to normalize fileTree structure
-function normalizeFileTree(tree) {
-  if (!tree || typeof tree !== 'object') return {};
-  const normalized = {};
-  for (const [key, value] of Object.entries(tree)) {
-    if (value && typeof value === 'object' && 'file' in value && typeof value.file.contents === 'string') {
-      normalized[key] = value;
-    } else if (typeof value === 'string') {
-      // If value is just a string, wrap it
-      normalized[key] = { file: { contents: value } };
-    } else {
-      // Fallback: skip or handle as needed
-    }
-  }
-  return normalized;
-}
 
 const Project = () => {
   const location = useLocation()
@@ -217,81 +51,51 @@ const Project = () => {
   const [project, setProject] = useState(location.state.project)
   const [message, setMessage] = useState('')
   const { user } = useContext(UserContext)
-  const { isDarkMode, setIsDarkMode, toggleThemeGlobal } = useContext(ThemeContext)
+  const { isDarkMode, setIsDarkMode } = useContext(ThemeContext)
   const messageBox = useRef(null)
   const [users, setUsers] = useState([])
   const [messages, setMessages] = useState([])
   const [fileTree, setFileTree] = useState({})
   const [currentFile, setCurrentFile] = useState(null)
   const [openFiles, setOpenFiles] = useState([])
-  const [webContainer, setWebContainer] = useState(null)
-  const [iframeUrl, setIframeUrl] = useState(null)
-  const [runProcess, setRunProcess] = useState(null)
+  const { webContainer, iframeUrl, runProject, isRunning, boot, setIframeUrl } = useWebContainer(fileTree);
   const [replyingTo, setReplyingTo] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [showSearch, setShowSearch] = useState(false)
+  const [showScrollBottom, setShowScrollBottom] = useState(false)
+  const { on, off, emit } = useSocket(project._id);
 
-  const sanitizeIframeUrl = (rawValue) => {
-    if (!rawValue) return null;
-    try {
-      const url = new URL(rawValue, window.location.origin);
-      if (url.origin !== window.location.origin) {
-        return null;
-      }
-      if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-        return null;
-      }
-      return url.toString();
-    } catch {
-      return null;
-    }
-  };
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
-  const [settings, setSettings] = useState(() => {
-    const savedSettings = localStorage.getItem('projectSettings');
-    const defaultSettings = {
-      display: {
-        darkMode: isDarkMode,
-        showAvatars: true,
-        vimMode: false,
-      },
-      behavior: {
-        autoScroll: true,
-        enterToSend: true,
-        showSystemMessages: true, // new
-        collapseReplies: false,   // new
-        showReadReceipts: true,  // new
-      },
-      accessibility: {
-        language: 'en-US',
-      },
-      privacy: {
-        saveHistory: true,
-      },
-      sidebar: {
-        showFileTree: true,
-        showCollaborators: true,
-        pinSidebar: false,
-        sidebarWidth: 240,
-      },
-    };
-    if (savedSettings) {
-      // Deep merge saved settings with defaults
-      const parsed = JSON.parse(savedSettings);
-      return {
-        ...defaultSettings,
-        ...parsed,
-        display: { ...defaultSettings.display, ...parsed.display },
-        behavior: { ...defaultSettings.behavior, ...parsed.behavior },
-        accessibility: { ...defaultSettings.accessibility, ...parsed.accessibility },
-        privacy: { ...defaultSettings.privacy, ...parsed.privacy },
-        sidebar: { ...defaultSettings.sidebar, ...parsed.sidebar },
-      };
-    }
-    return defaultSettings;
-  });
+  const defaultSettings = React.useMemo(() => ({
+    display: {
+      darkMode: isDarkMode,
+      showAvatars: true,
+      vimMode: false,
+    },
+    behavior: {
+      autoScroll: true,
+      enterToSend: true,
+      showSystemMessages: true,
+      collapseReplies: false,
+      showReadReceipts: true,
+    },
+    accessibility: {
+      language: 'en-US',
+    },
+    privacy: {
+      saveHistory: true,
+    },
+    sidebar: {
+      showFileTree: true,
+      showCollaborators: true,
+      pinSidebar: false,
+      sidebarWidth: 240,
+    },
+  }), [isDarkMode]);
+
+  const [settings, setSettings] = useLocalStorage('projectSettings', defaultSettings);
   // Language translation hook for this page (must be after settings is defined)
   const language = settings.accessibility?.language || 'en-US';
   const t = useProjectTranslation(language);
@@ -309,17 +113,21 @@ const Project = () => {
   const [modalPosition, setModalPosition] = useState(null); // null means center
   const settingsModalRef = useRef(null);
   const [expandedReplies, setExpandedReplies] = useState({}); // Track expanded replies
+  const { showToast } = useToast();
 
-  const toggleEmojiPicker = (messageId) => {
+  const toggleEmojiPicker = (messageId, isOpen) => {
     setMessageEmojiPickers(prev => ({
       ...prev,
-      [messageId]: !prev[messageId]
+      [messageId]: isOpen !== undefined ? isOpen : !prev[messageId]
     }));
   };
 
   const handleReaction = (messageId, emoji, userId) => {
     const message = messages.find(m => m._id === messageId);
-    if (message.sender._id === userId) {
+    if (!message) return;
+
+    const senderId = typeof message.sender === 'object' ? message.sender._id : message.sender;
+    if (senderId?.toString() === userId?.toString()) {
       return;
     }
 
@@ -330,7 +138,7 @@ const Project = () => {
       newReactions.push({ userId, emoji });
     }
 
-    sendMessage("message-reaction", {
+    emit("message-reaction", {
       messageId,
       emoji: !existingReaction || existingReaction.emoji !== emoji ? emoji : null,
       userId,
@@ -370,10 +178,15 @@ const Project = () => {
         users: Array.from(selectedUserId)
       })
       .then((res) => {
-        console.log(res.data)
-        setIsModalOpen(false)
+        if (res.data.project) {
+          setProject(res.data.project);
+        }
+        setIsModalOpen(false);
       })
-      .catch((err) => console.log(err))
+      .catch((err) => {
+        showToast('Failed to add collaborators', 'error');
+        logger.error(err);
+      })
   }
 
   const send = () => {
@@ -384,7 +197,7 @@ const Project = () => {
       parentMessageId: replyingTo ? replyingTo._id : null,
       googleApiKey: user.googleApiKey // send user's Gemini key
     };
-    sendMessage("project-message", payload);
+    emit("project-message", payload);
     setMessage("");
     setReplyingTo(null);
   }
@@ -392,7 +205,7 @@ const Project = () => {
   const handleTyping = () => {
     if (!isTyping) {
       setIsTyping(true);
-      sendMessage('typing', { userId: user._id, projectId: project._id });
+      emit('typing', { userId: user._id, projectId: project._id });
     }
 
     if (typingTimeoutRef.current) {
@@ -401,7 +214,7 @@ const Project = () => {
 
     typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
-      sendMessage('stop-typing', { userId: user._id, projectId: project._id });
+      emit('stop-typing', { userId: user._id, projectId: project._id });
     }, 1000);
   };
 
@@ -423,23 +236,14 @@ const Project = () => {
     if (messages.length && messageBox.current) {
       const lastMsg = messages[messages.length - 1]
       if (lastMsg._id) {
-        sendMessage("message-read", { messageId: lastMsg._id, userId: user._id })
+        emit("message-read", { messageId: lastMsg._id, userId: user._id })
       }
     }
-  }, [messages, user])
+  }, [messages, user, emit])
 
   useEffect(() => {
-    if (window.__webcontainerBooted) return;
-    window.__webcontainerBooted = true;
-    initializeSocket(project._id)
-    if (!webContainer) {
-      getWebContainer().then((container) => {
-        setWebContainer(container)
-        console.log("container started")
-      })
-    }
+    boot();
     axios.get(`/api/projects/get-project/${location.state.project._id}`).then((res) => {
-      console.log(res.data.project)
       setProject(res.data.project)
       setFileTree(res.data.project.fileTree || {})
     })
@@ -448,8 +252,11 @@ const Project = () => {
       .then((res) => {
         setUsers(res.data.users)
       })
-      .catch((err) => console.log(err))
-  }, [webContainer, project._id, location.state.project._id])
+      .catch((err) => {
+        showToast('Failed to fetch users', 'error');
+        logger.error(err);
+      });
+  }, [boot, location.state.project._id])
 
   useEffect(() => {
     if (messageBox.current)
@@ -499,8 +306,9 @@ const Project = () => {
       });
     }
 
-    receiveMessage("project-message", handleIncomingMessage)
-  }, [webContainer, project._id])
+    on("project-message", handleIncomingMessage);
+    return () => off("project-message", handleIncomingMessage);
+  }, [on, off, project._id]);
 
   useEffect(() => {
     const handleUserTyping = (data) => {
@@ -517,14 +325,14 @@ const Project = () => {
       });
     };
 
-    receiveMessage('typing', handleUserTyping);
-    receiveMessage('stop-typing', handleStopTyping);
+    on('typing', handleUserTyping);
+    on('stop-typing', handleStopTyping);
 
     return () => {
-      receiveMessage('typing', null);
-      receiveMessage('stop-typing', null);
+      off('typing', handleUserTyping);
+      off('stop-typing', handleStopTyping);
     };
-  }, [user._id]);
+  }, [on, off, user._id]);
 
   useEffect(() => {
     const handleReactionUpdate = (updatedMessage) => {
@@ -535,28 +343,44 @@ const Project = () => {
       );
     };
 
-    receiveMessage("message-reaction", handleReactionUpdate);
-  }, []);
+    on("message-reaction", handleReactionUpdate);
+    return () => off("message-reaction", handleReactionUpdate);
+  }, [on, off]);
 
-  // Fix: Deduplicate messages on every update
   useEffect(() => {
     setMessages(prev => deduplicateMessages(prev));
   }, [messages.length]);
 
   // Patch messages to simulate readBy for current user's messages
-  const patchedMessages = messages.map(msg => {
-    if (msg.sender && msg.sender._id === user._id) {
-      return { ...msg, readBy: [user._id, 'other-user'] };
-    }
-    return msg;
-  });
+  const patchedMessages = React.useMemo(() => {
+    return messages.map(msg => {
+      if (msg.sender && msg.sender?._id === user?._id) {
+        return { ...msg, readBy: [user?._id, 'other-user'] };
+      }
+      return msg;
+    });
+  }, [messages, user?._id]);
 
-  const filteredMessages = searchTerm
-    ? patchedMessages.filter((msg) => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
-    : patchedMessages;
+  const filteredMessages = React.useMemo(() => {
+    if (!searchTerm) return patchedMessages;
+    const lowerSearch = searchTerm.toLowerCase();
+    return patchedMessages.filter((msg) => {
+      // Check direct message content
+      if (msg.message.toLowerCase().includes(lowerSearch)) return true;
+      // Also search inside AI JSON response text if applicable
+      if (msg.sender && msg.sender._id === "Chatraj") {
+        try {
+          const parsed = JSON.parse(msg.message);
+          if (parsed.text && parsed.text.toLowerCase().includes(lowerSearch)) return true;
+        } catch { /* ignore */ }
+      }
+      return false;
+    });
+  }, [patchedMessages, searchTerm]);
 
-  // Fix: define groupedMessages before return
-  const groupedMessages = groupMessagesByDate(filteredMessages);
+  const groupedMessages = React.useMemo(() => {
+    return groupMessagesByDate(filteredMessages);
+  }, [filteredMessages]);
 
   // Map bubble roundness setting to Tailwind classes
   const bubbleRoundnessClass = {
@@ -594,212 +418,21 @@ const Project = () => {
     };
   };
 
-  const renderMessage = (msg) => {
-    const isCurrentUser =
-      msg.sender &&
-      typeof msg.sender === "object" &&
-      msg.sender._id &&
-      msg.sender._id.toString() === user._id.toString()
+  const handleScroll = () => {
+    if (!messageBox.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = messageBox.current;
+    // Show button if user is more than 300px from bottom
+    setShowScrollBottom(scrollHeight - scrollTop - clientHeight > 300);
+  };
 
-    const parentMsg = msg.parentMessageId && messages.find((m) => m._id === msg.parentMessageId)
-
-    let reactionGroups = {};
-    if (msg.reactions) {
-      msg.reactions.forEach(r => {
-        if (!reactionGroups[r.emoji]) {
-          reactionGroups[r.emoji] = [];
-        }
-        if (!reactionGroups[r.emoji].includes(r.userId)) {
-          reactionGroups[r.emoji].push(r.userId);
-        }
+  const scrollToBottom = () => {
+    if (messageBox.current) {
+      messageBox.current.scrollTo({
+        top: messageBox.current.scrollHeight,
+        behavior: 'smooth'
       });
     }
-
-    // Robust system message filtering: check type or known system patterns
-    const isSystemMsg = (msg.type === 'system') || (typeof msg.message === 'string' && (
-      /^user (joined|left|removed|added|invited|renamed|deleted|updated)/i.test(msg.message) ||
-      /^file (created|updated|deleted|renamed)/i.test(msg.message) ||
-      /^system:/i.test(msg.message)
-    ));
-    if (isSystemMsg) {
-      if (!settings.behavior.showSystemMessages) return null;
-      // Try to extract user id or name from the message or sender
-      let notificationText = msg.message;
-      // If message is like 'User joined the project', replace 'User' with full name if possible
-      if (/^User joined the project/i.test(msg.message) && msg.sender && msg.sender._id && msg.sender._id !== 'system') {
-        // Try to find user in users list
-        const joinedUser = users.find(u => u._id === msg.sender._id);
-        if (joinedUser) {
-          notificationText = `${joinedUser.firstName}${joinedUser.lastName ? ' ' + joinedUser.lastName : ''} joined the project`;
-        }
-      }
-      // Render as notification bar
-      return (
-        <div key={msg._id} className="flex justify-center my-2">
-          <div className="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-100 rounded shadow dark:bg-blue-900 dark:text-blue-100">
-            {notificationText}
-          </div>
-        </div>
-      );
-    }
-
-    // Collapse replies if toggle is on
-    const isReply = !!msg.parentMessageId;
-    const isReplyCollapsed = settings.behavior.collapseReplies && isReply && !expandedReplies[msg._id];
-
-    return (
-      <div
-        key={msg._id}
-        className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"} mb-2`}
-      >
-        {isReply && !isReplyCollapsed && (
-          <div className="px-2 py-1 mb-1 text-xs italic bg-gray-200 rounded">
-            Replying to: {parentMsg ? (typeof parentMsg.sender === "object" ? parentMsg.sender.firstName : parentMsg.sender) : "Unknown"}
-          </div>
-        )}
-        {isReply && isReplyCollapsed && (
-          <button
-            className="px-2 py-1 mb-1 text-xs italic bg-gray-100 rounded hover:bg-gray-200"
-            onClick={() => setExpandedReplies(prev => ({ ...prev, [msg._id]: true }))}
-          >
-            Show Reply
-          </button>
-        )}
-        <div className="flex items-start gap-2">
-          {/* Only show Avatar before bubble for others */}
-          {!isCurrentUser && settings.display?.showAvatars && msg.sender && (
-            <Avatar firstName={msg.sender.firstName} className="w-8 h-8" />
-          )}
-          <div
-            className={`flex flex-col p-2 max-w-xs break-words ${bubbleRoundnessClass} ${messageFontSizeClass} ${isCurrentUser ? "" : "bg-white text-gray-800 shadow"}`}
-            style={isCurrentUser ? getUserBubbleStyle() : {}}
-          >
-            {!isCurrentUser && (
-              <small className={`mb-1 font-bold text-gray-700 ${messageFontSizeClass}`}>
-                {typeof msg.sender === "object" ? msg.sender.firstName : msg.sender}
-              </small>
-            )}
-            <div className={`whitespace-pre-wrap ${messageFontSizeClass}`}>
-              {msg.sender && msg.sender._id === "Chatraj" ? (
-                <div className={`p-2 rounded ${settings.display.syntaxHighlighting === false
-                  ? (isDarkMode ? "bg-gray-900 text-white" : "bg-slate-200 text-black")
-                  : "text-white bg-slate-950"} ${messageFontSizeClass}`}>
-                  <Markdown options={{
-                    overrides: {
-                      code: settings.display.syntaxHighlighting === false
-                        ? {
-                          component: (props) => <code style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word', display: 'block', background: 'none', color: 'inherit' }}>{props.children}</code>
-                        }
-                        : SyntaxHighlightedCode
-                    }
-                  }}>
-                    {(() => {
-                      try {
-                        const parsedMessage = JSON.parse(msg.message);
-                        return parsedMessage.text || msg.message;
-                      } catch {
-                        return msg.message;
-                      }
-                    })()}
-                  </Markdown>
-                </div>
-              ) : (
-                <p className={messageFontSizeClass}>{msg.message}</p>
-              )}
-            </div>
-          </div>
-          {isCurrentUser && (
-            <Avatar
-              firstName={user.firstName}
-              className="w-8 h-8 text-sm"
-              style={getUserBubbleStyle()}
-            />
-          )}
-        </div>
-        <div className="relative group">
-          <div className="flex items-center gap-2 mt-1">
-            {settings.display?.showTimestamps && (
-              <small className="text-[10px] text-gray-600">
-                {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-              </small>
-            )}
-            {/* Show read receipts if enabled and message is from current user and at least one other user has read it */}
-            {settings.behavior.showReadReceipts && isCurrentUser && (
-              (() => {
-                const status = getMessageStatus(msg);
-                if (!status) return null;
-                return (
-                  <span className="flex items-center gap-1 ml-2 text-xs" style={{ color: status.icon === 'double-green' ? '#22c55e' : status.icon === 'double' ? '#555' : '#555' }}>
-                    {status.icon === 'single' && (
-                      <i className="ri-check-line" title="Sent"></i>
-                    )}
-                    {status.icon === 'double' && (
-                      <>
-                        <i className="ri-check-double-line" title="Received"></i>
-                      </>
-                    )}
-                    {status.icon === 'double-green' && (
-                      <i className="ri-check-double-line" style={{ color: '#22c55e' }} title="Seen"></i>
-                    )}
-                    <span>{status.label}</span>
-                  </span>
-                );
-              })()
-            )}
-            <div className="relative">
-              {!isCurrentUser && (
-                <button
-                  className="p-1 text-xs text-gray-600 rounded opacity-0 dark:text-gray-400 group-hover:opacity-100 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  onClick={() => toggleEmojiPicker(msg._id)}
-                >
-                  <i className="text-base ri-emotion-line"></i>
-                </button>
-              )}
-              <EmojiPicker
-                isOpen={messageEmojiPickers[msg._id]}
-                setIsOpen={(isOpen) => {
-                  setMessageEmojiPickers(prev => ({
-                    ...prev,
-                    [msg._id]: isOpen
-                  }));
-                }}
-                isCurrentUser={isCurrentUser}
-                onSelect={(emoji) => {
-                  if (msg._id && !isCurrentUser) {
-                    handleReaction(msg._id, emoji, user._id);
-                  }
-                }}
-              />
-            </div>
-            {Object.entries(reactionGroups).map(([emoji, users]) => {
-              if (users.length === 0) return null;
-              return (
-                <button
-                  key={emoji}
-                  className={`text-xs px-2 py-1 rounded-full ${users.includes(user._id)
-                    ? 'bg-blue-100 dark:bg-blue-900'
-                    : 'bg-gray-100 dark:bg-gray-700'
-                    }`}
-                  title={users.map(userId => {
-                    const reactingUser = project.users.find(u => u._id === userId);
-                    return reactingUser ? reactingUser.firstName : 'Unknown';
-                  }).join(', ')}
-                >
-                  {emoji} {users.length}
-                </button>
-              );
-            })}
-            <button
-              onClick={() => setReplyingTo(msg)}
-              className="text-xs text-gray-600 opacity-0 group-hover:opacity-100 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
-            >
-              Reply
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  };
 
   // Helper to get message status for current user's messages
   function getMessageStatus(msg) {
@@ -841,40 +474,36 @@ const Project = () => {
       axios.put(`/api/projects/settings/${projectId}`, { settings })
         .catch(() => { });
     }
-    localStorage.setItem('projectSettings', JSON.stringify(settings));
-  }, [settings, projectId, project]);
+  }, [settings, projectId]);
 
   useEffect(() => {
-    localStorage.setItem('projectSettings', JSON.stringify(settings));
-    // Since toggleThemeGlobal handles `setIsDarkMode`, we do not want to automatically call
-    // `setIsDarkMode` here because it might double-fire or circumvent the transition.
-    // However, we still need to sync the html class for initial loads.
+    setIsDarkMode(settings.display.darkMode);
     document.documentElement.classList.toggle('dark', settings.display.darkMode);
-  }, [settings, setIsDarkMode]);
+  }, [settings.display.darkMode, setIsDarkMode]);
 
   const updateSettings = (category, key, value) => {
-    setSettings(prev => {
-      const updated = { ...prev };
-      if (!updated[category]) updated[category] = {};
-      updated[category][key] = value;
-      // Persist to localStorage
-      localStorage.setItem('projectSettings', JSON.stringify(updated));
-
-      // If updating sidebar, sync with backend
-      if (category === 'sidebar' && project?._id) {
-        axios.put(`/api/projects/sidebar-settings/${project._id}`,
-          { sidebar: { ...updated.sidebar } })
-          .then(res => {
-            if (res.data && res.data.sidebar) {
-              setSettings(prev2 => ({ ...prev2, sidebar: res.data.sidebar }));
-            }
-          })
-          .catch(err => {
-            console.error('Failed to update sidebar settings:', err);
-          });
+    const updated = {
+      ...settings,
+      [category]: {
+        ...settings[category],
+        [key]: value
       }
-      return updated;
-    });
+    };
+    setSettings(updated);
+
+    // If updating sidebar, sync with backend
+    if (category === 'sidebar' && project?._id) {
+      axios.put(`/api/projects/sidebar-settings/${project._id}`,
+        { sidebar: updated.sidebar })
+        .then(res => {
+          if (res.data && res.data.sidebar) {
+            setSettings({ ...updated, sidebar: res.data.sidebar });
+          }
+        })
+        .catch(err => {
+          logger.error('Failed to update sidebar settings:', err);
+        });
+    }
   };
 
   // Update settings when vimMode changes
@@ -887,22 +516,6 @@ const Project = () => {
       },
     }));
   }, [vimMode]);
-
-  // In CodeMirror style prop, remove fontFamily:
-  // style={{
-  //   ... remove fontFamily ...
-  //   fontSize: settings.display.messageFontSize === 'large' ? '1.2rem' : settings.display.messageFontSize === 'small' ? '0.9rem' : '1rem',
-  //   background: settings.display.syntaxHighlighting === false && isDarkMode
-  //     ? '#181e29'
-  //     : isDarkMode
-  //     ? '#111827'
-  //     : 'white',
-  //   color: settings.display.syntaxHighlighting === false && isDarkMode ? '#fff' : undefined,
-  //   height: '100%',
-  //   minHeight: 0,
-  // }}
-  // }))
-  // ...existing code...
 
   return (
     <main className="flex w-screen h-screen overflow-hidden bg-transparent">
@@ -965,6 +578,7 @@ const Project = () => {
         </header>
         <div
           ref={messageBox}
+          onScroll={handleScroll}
           className="flex flex-col flex-grow gap-1 p-1 pb-20 overflow-auto pt-14 message-box scrollbar-hide bg-slate-50 dark:bg-gray-800"
         >
           {Object.keys(groupedMessages)
@@ -973,11 +587,39 @@ const Project = () => {
               <div key={groupLabel}>
                 <div className="py-2 text-sm text-center text-gray-500 dark:text-gray-400">{groupLabel}</div>
                 {groupedMessages[groupLabel].map((msg, idx) => (
-                  <React.Fragment key={msg._id ? `${groupLabel}-${msg._id}` : `${groupLabel}-idx-${idx}`}>{renderMessage(msg)}</React.Fragment>
+                  <ErrorBoundary key={msg._id ? `${groupLabel}-${msg._id}` : `${groupLabel}-idx-${idx}`} fallbackMessage="Error rendering message">
+                    <ChatMessage
+                      msg={msg}
+                      user={user}
+                      messages={messages}
+                      project={project}
+                      isDarkMode={isDarkMode}
+                      bubbleRoundnessClass={bubbleRoundnessClass}
+                      messageFontSizeClass={messageFontSizeClass}
+                      getUserBubbleStyle={getUserBubbleStyle}
+                      toggleEmojiPicker={toggleEmojiPicker}
+                      messageEmojiPickers={messageEmojiPickers}
+                      handleReaction={handleReaction}
+                      setReplyingTo={setReplyingTo}
+                      expandedReplies={expandedReplies}
+                      setExpandedReplies={setExpandedReplies}
+                      settings={settings}
+                      getMessageStatus={getMessageStatus}
+                      SyntaxHighlightedCode={SyntaxHighlightedCode}
+                    />
+                  </ErrorBoundary>
                 ))}
               </div>
             ))}
         </div>
+        {showScrollBottom && (
+          <button
+            onClick={scrollToBottom}
+            className="absolute z-20 flex items-center justify-center w-10 h-10 text-white transition-all bg-blue-600 rounded-full shadow-lg bottom-24 right-6 hover:bg-blue-700 animate-bounce"
+          >
+            <i className="text-xl ri-arrow-down-line"></i>
+          </button>
+        )}
         {replyingTo && (
           <div className="absolute z-20 flex items-center px-3 py-1 rounded-full shadow-md bottom-14 left-2 max-w-max bg-gradient-to-r from-blue-500 to-purple-500">
             <i className="mr-1 text-xs text-white ri-reply-line" />
@@ -1149,107 +791,17 @@ const Project = () => {
             </div>
             <div className="flex gap-2 actions">
               <button
-                onClick={async () => {
-                  if (!webContainer) {
-                    alert("WebContainer is not ready yet.");
-                    return;
-                  }
-                  try {
-                    await webContainer.mount({
-                      'package.json': {
-                        file: {
-                          contents: JSON.stringify({
-                            name: 'express-app',
-                            version: '1.0.0',
-                            scripts: {
-                              start: 'node app.js'
-                            },
-                            dependencies: {
-                              express: '^4.18.2'
-                            }
-                          })
-                        }
-                      },
-                      ...fileTree
-                    });
-
-                    if (runProcess) {
-                      await runProcess.kill();
-                    }
-
-                    let installSuccess = false;
-                    let retries = 3;
-
-                    while (!installSuccess && retries > 0) {
-                      try {
-                        const installProcess = await webContainer.spawn('npm', ['install']);
-                        const installExitCode = await new Promise(resolve => {
-                          installProcess.output.pipeTo(new WritableStream({
-                            write(chunk) {
-                              console.log('Install output:', chunk);
-                            }
-                          }));
-                          installProcess.exit.then(resolve);
-                        });
-
-                        if (installExitCode === 0) {
-                          installSuccess = true;
-                          console.log('Dependencies installed successfully');
-                        }
-                      } catch (err) {
-                        console.log(`Install attempt failed, ${retries - 1} retries left:`, err);
-                        retries--;
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                      }
-                    }
-
-                    if (!installSuccess) {
-                      throw new Error('Failed to install dependencies after multiple attempts');
-                    }
-
-                    const tempRunProcess = await webContainer.spawn('npm', ['start']);
-
-                    tempRunProcess.output.pipeTo(new WritableStream({
-                      write(chunk) {
-                        console.log('Server output:', chunk);
-                      }
-                    }));
-
-                    tempRunProcess.exit.then(code => {
-                      if (code !== 0) {
-                        console.error(`Process exited with code ${code}`);
-                      }
-                    });
-
-                    setRunProcess(tempRunProcess);
-
-                    webContainer.on('server-ready', (port, url) => {
-                      console.log('Server ready on:', url);
-                      setIframeUrl(url);
-                    });
-
-                  } catch (error) {
-                    console.error('Error running project:', error);
-                    alert(`Failed to run project: ${error.message}`);
-                  }
-                }}
+                onClick={() => runProject(showToast)}
+                disabled={isRunning}
                 style={{ backgroundColor: settings.display.themeColor || '#3B82F6', color: '#fff' }}
-                className="p-2 px-4 rounded hover:brightness-90"
+                className={`p-2 px-4 rounded hover:brightness-90 ${isRunning ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                {t('run')}
+                {isRunning ? 'Running...' : t('run')}
               </button>
             </div>
           </div>
           <div className="flex flex-grow max-w-full bottom shrink" style={{ overflow: 'hidden', minHeight: 0 }}>
             <div className="flex-grow h-full code-editor-area bg-slate-50 dark:bg-gray-900 min-h-[200px] border border-blue-200 relative flex flex-col" style={{ minWidth: '0', maxWidth: '100vw', overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
-              {/* Debug info for production troubleshooting (remove after fix) */}
-              {typeof window !== 'undefined' && window.location && window.location.hostname !== 'localhost' && (
-                <div style={{ position: 'absolute', top: 0, right: 0, zIndex: 10, background: '#fff8', color: '#333', fontSize: '10px', padding: '2px 4px', borderRadius: '0 0 0 4px' }}>
-                  <div>currentFile: {String(currentFile)}</div>
-                  <div>fileTree keys: {Object.keys(fileTree).join(', ')}</div>
-                  <div>fileTree[currentFile]?.file?.contents length: {fileTree[currentFile]?.file?.contents?.length ?? 'N/A'}</div>
-                </div>
-              )}
               {fileTree && currentFile && fileTree[currentFile]?.file?.contents?.length > 0 ? (
                 <div style={{ flex: 1, minHeight: 0, width: '100%', display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
                   {vimMode ? (
@@ -1354,7 +906,7 @@ const Project = () => {
                     doc.head.appendChild(style);
                   }
                 } catch {
-                  console.log("Unable to access iframe content");
+                  /* Iframe content access might be restricted by CORS */
                 }
               }}
             />
@@ -1362,417 +914,48 @@ const Project = () => {
         )}
       </section>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="relative max-w-full p-4 bg-white rounded-md w-96">
-            <header className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">{t('selectUser')}</h2>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 text-gray-900">
-                <i className="ri-close-fill"></i>
-              </button>
-            </header>
-            <div className="flex flex-col gap-2 mb-16 overflow-auto users-list max-h-96">
-              {users.map((u) => (
-                <div
-                  key={u._id}
-                  className={`user cursor-pointer hover:bg-slate-200 ${Array.from(selectedUserId).includes(u._id) ? "bg-slate-200" : ""} p-2 flex gap-2 items-center`}
-                  onClick={() => handleUserClick(u._id)}
-                >
-                  <Avatar firstName={u.firstName} className="w-12 h-12 text-base" />
-                  <h1 className="text-lg font-semibold text-gray-900">{u.firstName}</h1>
-                </div>
-              ))}
-            </div>
-            <button
-              onClick={addCollaborators}
-              className="absolute px-4 py-2 text-white transform -translate-x-1/2 bg-blue-600 rounded-md hover:bg-blue-700 bottom-4 left-1/2"
-            >
-              {t('addCollaborators')}
-            </button>
-          </div>
-        </div>
-      )}
+      <AddCollaboratorsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        users={users}
+        selectedUserId={selectedUserId}
+        handleUserClick={handleUserClick}
+        addCollaborators={addCollaborators}
+        t={t}
+      />
 
-      {/* Settings Modal (centered dialog) */}
-      {isSettingsOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-50 bg-black bg-opacity-50"
-            onClick={() => setIsSettingsOpen(false)}
-          />
-          <div
-            ref={settingsModalRef}
-            className="fixed z-50 w-full max-w-md bg-white border border-gray-200 shadow-2xl dark:bg-gray-800 rounded-xl dark:border-gray-700"
-            style={modalPosition ? {
-              left: modalPosition.x,
-              top: modalPosition.y,
-              transform: 'none',
-              maxHeight: 'calc(100vh - 80px)',
-              overflow: 'hidden',
-              cursor: isDragging ? 'grabbing' : 'default',
-            } : {
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              maxHeight: 'calc(100vh - 80px)',
-              overflow: 'hidden',
-            }}
-            onMouseUp={() => setIsDragging(false)}
-            onMouseMove={e => {
-              if (isDragging) {
-                setModalPosition({
-                  x: e.clientX - dragOffset.x,
-                  y: e.clientY - dragOffset.y
-                });
-              }
-            }}
-          >
-            <div
-              className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-white border-b cursor-move select-none dark:bg-gray-800 dark:border-gray-700"
-              style={{ userSelect: 'none' }}
-              onMouseDown={e => {
-                // Only start drag on left click
-                if (e.button !== 0) return;
-                const rect = settingsModalRef.current.getBoundingClientRect();
-                setIsDragging(true);
-                setDragOffset({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-                // If modal is centered, set its position to current center
-                if (!modalPosition) {
-                  setModalPosition({
-                    x: rect.left,
-                    y: rect.top
-                  });
-                }
-              }}
-              onMouseUp={() => setIsDragging(false)}
-            >
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('settings')}</h2>
-              <button
-                onClick={() => setIsSettingsOpen(false)}
-                className="p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-              >
-                <i className="text-2xl ri-close-line"></i>
-              </button>
-            </div>
-            <div className="flex px-6 bg-gray-100 border-b dark:border-gray-700 dark:bg-gray-700">
-              {['display', 'behavior', 'accessibility', 'sidebar'].map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveSettingsTab(tab)}
-                  className={`px-4 py-2 text-base font-semibold border-b-4 transition-colors duration-150 focus:outline-none ${activeSettingsTab === tab
-                    ? 'border-blue-600 text-blue-600 bg-white dark:bg-gray-800 dark:text-blue-400'
-                    : 'border-transparent text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 bg-transparent'
-                    }`}
-                  style={{ marginBottom: '-1px', borderRadius: '10px 10px 0 0' }}
-                >
-                  {tab === 'accessibility' ? t('language') : tab.charAt(0).toUpperCase() + tab.slice(1)}
-                </button>
-              ))}
-            </div>
-            {/* Make this area scrollable! */}
-            <div className="flex-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 220px)' }}>
-              <div className="p-6 space-y-7">
-                {/* Display Settings */}
-                {activeSettingsTab === 'display' && (
-                  <div className="space-y-4">
-                    {/* Vim Mode (Editor) - moved to top for visibility */}
-                    <div className="flex items-center justify-between" title="Enable or disable Vim keybindings in the code editor.">
-                      <span className="font-semibold text-gray-900 dark:text-white">Vim Mode (Editor)</span>
-                      <button
-                        onClick={() => setVimMode(v => !v)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${vimMode ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${vimMode ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Dark Mode */}
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-gray-900 dark:text-white">Dark Mode</span>
-                      <button
-                        onClick={() => {
-                          const shouldReduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                          executeThemeTransition(() => {
-                            updateSettings('display', 'darkMode', !settings.display.darkMode);
-                          }, shouldReduceMotion);
-                        }}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.darkMode ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.darkMode ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Theme Color */}
-                    <div>
-                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Theme Color</span>
-                      <input
-                        type="color"
-                        value={settings.display.themeColor || '#3B82F6'}
-                        onChange={e => updateSettings('display', 'themeColor', e.target.value)}
-                        className="w-12 h-8 p-0 bg-transparent border-0"
-                      />
-                    </div>
-                    {/* Chat Bubble Roundness */}
-                    <div>
-                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Chat Bubble Roundness</span>
-                      <select
-                        value={settings.display.bubbleRoundness || 'large'}
-                        onChange={e => updateSettings('display', 'bubbleRoundness', e.target.value)}
-                        className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                      >
-                        <option value="small">Small</option>
-                        <option value="medium">Medium</option>
-                        <option value="large">Large</option>
-                        <option value="extra-large">Extra Large</option>
-                      </select>
-                    </div>
-                    {/* Message Font Size */}
-                    <div>
-                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Message Font Size</span>
-                      <select
-                        value={settings.display.messageFontSize || 'medium'}
-                        onChange={e => updateSettings('display', 'messageFontSize', e.target.value)}
-                        className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                      >
-                        <option value="small">Small</option>
-                        <option value="medium">Medium</option>
-                        <option value="large">Large</option>
-                      </select>
-                    </div>
-                    {/* Enable Syntax Highlighting */}
-                    <div>
-                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Enable Syntax Highlighting</span>
-                      <button
-                        onClick={() => updateSettings('display', 'syntaxHighlighting', !settings.display.syntaxHighlighting)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.syntaxHighlighting ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.syntaxHighlighting ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Show Avatars */}
-                    <div>
-                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Show Avatars</span>
-                      <button
-                        onClick={() => updateSettings('display', 'showAvatars', !settings.display.showAvatars)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.showAvatars ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.showAvatars ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Show Timestamps */}
-                    <div>
-                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Show Timestamps</span>
-                      <button
-                        onClick={() => updateSettings('display', 'showTimestamps', !settings.display.showTimestamps)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.showTimestamps ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.showTimestamps ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Enable AI Assistant */}
-                    <div>
-                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Enable AI Assistant</span>
-                      <button
-                        onClick={() => updateSettings('display', 'aiAssistant', !settings.display.aiAssistant)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.display.aiAssistant ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.display.aiAssistant ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                  </div>
-                )}
-                {/* Behavior Tab */}
-                {activeSettingsTab === 'behavior' && (
-                  <div className="space-y-4">
-                    {/* Auto Scroll toggle */}
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">Auto Scroll</span>
-                      <button
-                        onClick={() => setSettings(prev => {
-                          const updated = { ...prev, behavior: { ...prev.behavior, autoScroll: !prev.behavior.autoScroll } };
-                          localStorage.setItem('projectSettings', JSON.stringify(updated));
-                          return updated;
-                        })}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.autoScroll ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.autoScroll ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Show System Messages toggle */}
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">Show System Messages</span>
-                      <button
-                        onClick={() => setSettings(prev => {
-                          const updated = { ...prev, behavior: { ...prev.behavior, showSystemMessages: !prev.behavior.showSystemMessages } };
-                          localStorage.setItem('projectSettings', JSON.stringify(updated));
-                          return updated;
-                        })}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.showSystemMessages ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.showSystemMessages ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Collapse Replies by Default toggle */}
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">Collapse Replies by Default</span>
-                      <button
-                        onClick={() => setSettings(prev => {
-                          const updated = { ...prev, behavior: { ...prev.behavior, collapseReplies: !prev.behavior.collapseReplies } };
-                          localStorage.setItem('projectSettings', JSON.stringify(updated));
-                          return updated;
-                        })}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.collapseReplies ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.collapseReplies ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Show Message Read Receipts toggle */}
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">Show Message Read Receipts</span>
-                      <button
-                        onClick={() => setSettings(prev => {
-                          const updated = { ...prev, behavior: { ...prev.behavior, showReadReceipts: !prev.behavior.showReadReceipts } };
-                          localStorage.setItem('projectSettings', JSON.stringify(updated));
-                          return updated;
-                        })}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.showReadReceipts ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.showReadReceipts ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Enter to Send toggle */}
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">Enter to Send</span>
-                      <button
-                        onClick={() => setSettings(prev => {
-                          const updated = { ...prev, behavior: { ...prev.behavior, enterToSend: !prev.behavior.enterToSend } };
-                          localStorage.setItem('projectSettings', JSON.stringify(updated));
-                          return updated;
-                        })}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.behavior.enterToSend ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.behavior.enterToSend ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                  </div>
-                )}
-                {/* Accessibility Tab */}
-                {activeSettingsTab === 'accessibility' && (
-                  <div className="space-y-4">
-                    <div>
-                      <span className="block mb-1 font-semibold text-gray-900 dark:text-white">Language</span>
-                      <select
-                        value={settings.accessibility?.language || 'en-US'}
-                        onChange={e => updateSettings('accessibility', 'language', e.target.value)}
-                        className="w-full p-2 mt-1 bg-white border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                      >
-                        <option value="en-US">English (US)</option>
-                        <option value="hi-IN">हिंदी (Hindi)</option>
-                        <option value="es-ES">Español (Spanish)</option>
-                        <option value="fr-FR">Français (French)</option>
-                        <option value="de-DE">Deutsch (German)</option>
-                        <option value="ja-JP">日本語 (Japanese)</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-                {/* Sidebar Tab */}
-                {activeSettingsTab === 'sidebar' && (
-                  <div className="space-y-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-inner border dark:border-gray-700">
-                    {/* Show File Tree */}
-                    <div className="flex items-center justify-between py-2 border-b dark:border-gray-700">
-                      <span className="font-medium text-gray-900 dark:text-white">Show File Tree</span>
-                      <button
-                        onClick={() => updateSettings('sidebar', 'showFileTree', !settings.sidebar?.showFileTree)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${settings.sidebar?.showFileTree ? 'bg-blue-600' : 'bg-gray-300'}`}
-                        aria-pressed={settings.sidebar?.showFileTree}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${settings.sidebar?.showFileTree ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Show Collaborators List */}
-                    <div className="flex items-center justify-between py-2 border-b dark:border-gray-700">
-                      <span className="font-medium text-gray-900 dark:text-white">Show Collaborators List</span>
-                      <button
-                        onClick={() => updateSettings('sidebar', 'showCollaborators', !settings.sidebar?.showCollaborators)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${settings.sidebar?.showCollaborators ? 'bg-blue-600' : 'bg-gray-300'}`}
-                        aria-pressed={settings.sidebar?.showCollaborators}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${settings.sidebar?.showCollaborators ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Pin Sidebar */}
-                    <div className="flex items-center justify-between py-2 border-b dark:border-gray-700">
-                      <span className="font-medium text-gray-900 dark:text-white">Pin Sidebar</span>
-                      <button
-                        onClick={() => updateSettings('sidebar', 'pinSidebar', !settings.sidebar?.pinSidebar)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${settings.sidebar?.pinSidebar ? 'bg-blue-600' : 'bg-gray-300'}`}
-                        aria-pressed={settings.sidebar?.pinSidebar}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${settings.sidebar?.pinSidebar ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {/* Sidebar Width */}
-                    <div className="py-2">
-                      <span className="block mb-2 font-medium text-gray-900 dark:text-white">Sidebar Width</span>
-                      <input
-                        type="range"
-                        min={180}
-                        max={400}
-                        value={settings.sidebar?.sidebarWidth || 240}
-                        onChange={e => updateSettings('sidebar', 'sidebarWidth', Number(e.target.value))}
-                        className="w-full accent-blue-600"
-                      />
-                      <span className="text-xs text-gray-600 dark:text-gray-300">{settings.sidebar?.sidebarWidth || 240}px</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-      {isAIModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="relative w-full max-w-md p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
-            <button
-              className="absolute text-gray-500 top-2 right-2 hover:text-gray-900 dark:hover:text-white"
-              onClick={() => {
-                setIsAIModalOpen(false);
-                setAiInput("");
-                setAiResponse("");
-              }}
-            >
-              <i className="text-2xl ri-close-line"></i>
-            </button>
-            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">AI Assistant</h2>
-            <input
-              type="text"
-              className="w-full p-2 mb-2 border rounded dark:bg-gray-700 dark:text-white"
-              placeholder="Ask ChatRaj..."
-              value={aiInput}
-              onChange={e => setAiInput(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  if (aiInput.trim()) handleAISend();
-                }
-              }}
-              autoFocus
-            />
-            <button
-              className="w-full py-2 mb-2 text-white bg-blue-600 rounded hover:bg-blue-700"
-              onClick={handleAISend}
-              disabled={aiLoading || !aiInput.trim()}
-            >
-              {aiLoading ? 'Thinking...' : 'Send'}
-            </button>
-            {aiResponse && (
-              <div className="p-2 mt-2 text-gray-800 whitespace-pre-wrap bg-gray-100 rounded dark:bg-gray-700 dark:text-white">
-                {aiResponse}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <AIAssistantModal
+        isOpen={isAIModalOpen}
+        onClose={() => {
+          setIsAIModalOpen(false);
+          setAiInput("");
+          setAiResponse("");
+        }}
+        aiInput={aiInput}
+        setAiInput={setAiInput}
+        aiResponse={aiResponse}
+        aiLoading={aiLoading}
+        handleAISend={handleAISend}
+      />
+
+      <ProjectSettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        activeSettingsTab={activeSettingsTab}
+        setActiveSettingsTab={setActiveSettingsTab}
+        settings={settings}
+        updateSettings={updateSettings}
+        vimMode={vimMode}
+        setVimMode={setVimMode}
+        modalPosition={modalPosition}
+        setModalPosition={setModalPosition}
+        isDragging={isDragging}
+        setIsDragging={setIsDragging}
+        dragOffset={dragOffset}
+        setDragOffset={setDragOffset}
+        settingsModalRef={settingsModalRef}
+        t={t}
+      />
     </main>
   )
 }

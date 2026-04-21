@@ -4,6 +4,7 @@ import useTheme from '../context/useTheme';
 import axios from '../config/axios';
 import { useNavigate } from 'react-router-dom';
 import anime from 'animejs';
+import { logger } from '../utils/logger';
 
 function Blog({ user }) {
     const [blogs, setBlogs] = useState([]);
@@ -17,7 +18,7 @@ function Blog({ user }) {
                     setBlogs(response.data.slice(0, 3));
                 }
             } catch (error) {
-                console.error('Error fetching blogs:', error);
+                logger.error('Error fetching blogs:', error);
             }
         };
         fetchBlogs();
@@ -45,7 +46,7 @@ function Blog({ user }) {
     };
 
     return (
-        <div className={isDarkMode ? 'bg-gray-900/80 text-white transition-colors duration-300' : 'bg-white/80 text-gray-900 transition-colors duration-300'}>
+        <div className={isDarkMode ? 'bg-gray-900 text-white transition-colors duration-300' : 'bg-white text-gray-900 transition-colors duration-300'}>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {blogs.map((blog) => (
                     <div key={blog._id} className="blog-preview-card">

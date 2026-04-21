@@ -1,6 +1,7 @@
 import { useEffect, useRef, useMemo } from 'react';
 import * as THREE from 'three';
 import PropTypes from 'prop-types';
+import { logger } from '../utils/logger';
 
 // Geometry type map and validation (for future extensibility)
 const GEOMETRY_TYPES = {
@@ -14,11 +15,11 @@ const GEOMETRY_TYPES = {
 
 function validateGeometryConfig(config) {
   if (!config || typeof config.type !== 'string' || !(config.type in GEOMETRY_TYPES)) {
-    console.error(`Invalid geometryConfig.type: ${config?.type}`);
+    logger.error(`Invalid geometryConfig.type: ${config?.type}`);
     return false;
   }
   if (!Array.isArray(config.args)) {
-    console.error('geometryConfig.args must be an array');
+    logger.error('geometryConfig.args must be an array');
     return false;
   }
   return true;

@@ -1,14 +1,15 @@
 import * as projectService from '../services/project.service.js';
 import { validationResult } from 'express-validator';
-import response from '../utils/response.js';
+import { logger } from '../utils/logger.js';
 
 export const getAllProject = async (req, res) => {
     try {
-        const projects = await projectService.getUserProjects(req.user.email);
-        return response.success(res, { projects });
+        // Find all projects where user is a member
+        const projects = await projectModel.find({ users: { $in: [req.user._id] } });
+        res.status(200).json({ projects });
     } catch (err) {
-        const status = err.message === 'User not found' ? 401 : 500;
-        return response.error(res, err.message, status);
+        logger.error('getAllProject error:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 };
 
@@ -18,13 +19,22 @@ export const createProject = async (req, res) => {
 
     try {
         const { name, category, users } = req.body;
-        const project = await projectService.createProject({
-            name, category, users, userId: req.user._id
+        // NOTE: category validation is handled by route validator now,
+        // but kept here for safety if validator fails or is bypassed.
+        if (!name || !category) {
+            return res.status(400).json({ error: 'Name and category are required' });
+        }
+        // Create new project
+        const project = await projectModel.create({
+            name,
+            category,
+            users: users ? [...users, req.user._id] : [req.user._id],
+            createdBy: req.user._id
         });
         return response.success(res, { project }, 'Project created successfully', 201);
     } catch (err) {
-        const status = err.message === 'Project name already exists' ? 409 : 400;
-        return response.error(res, err.message, status);
+        logger.error('createProject error:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 };
 
@@ -35,12 +45,14 @@ export const addUserToProject = async (req, res) => {
     try {
         const { projectId, users } = req.body;
         const project = await projectService.addUsersToProject({
-            projectId, users, userId: req.user._id
+            projectId,
+            users,
+            userId: req.user._id
         });
         return response.success(res, { project }, 'Users added successfully');
     } catch (err) {
-        const status = err.message === 'Unauthorized access' ? 401 : 400;
-        return response.error(res, err.message, status);
+        logger.error('addUserToProject error:', err);
+        res.status(400).json({ error: err.message });
     }
 }
 
@@ -58,20 +70,58 @@ export const updateProjectSidebarSettings = async (req, res) => {
 
 export const getProjectCountsByCategory = async (req, res) => {
   try {
-    const result = await projectService.getCountsByCategory(req.user.email);
-    return response.success(res, result);
+    // List of all categories as in frontend
+    const allCategories = [
+      'DSA',
+      'Frontend Development',
+      'Backend Development',
+      'Fullstack Development',
+      'Code Review & Optimization',
+      'Testing & QA',
+      'API Development',
+      'Database Engineering',
+      'Software Architecture',
+      'Version Control & Git',
+      'Agile Project Management',
+      'CI/CD Automation',
+      'Debugging & Troubleshooting',
+      'Documentation Generation',
+      'Code Refactoring'
+    ];
+    // Aggregate project counts by category, filtered by user
+    const counts = await projectModel.aggregate([
+      { $match: { users: { $in: [new mongoose.Types.ObjectId(req.user._id)] } } },
+      {
+        $group: {
+          _id: "$category",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+    // Convert to { [category]: count }
+    const result = {};
+    allCategories.forEach(cat => {
+      result[cat] = 0;
+    });
+    counts.forEach(item => {
+      if (result.hasOwnProperty(item._id)) {
+        result[item._id] = item.count;
+      }
+    });
+    res.status(200).json(result);
   } catch (err) {
-    const status = err.message === 'User not found' ? 401 : 500;
-    return response.error(res, err.message, status);
+        logger.error('getProjectCountsByCategory error:', err);
+        res.status(500).json({ error: 'Internal server error' });
   }
 }
 
 export const getProjectShowcase = async (req, res) => {
     try {
-        const projects = await projectService.getShowcase();
-        return response.success(res, { projects });
-    } catch (err) {
-        return response.error(res, 'Internal server error');
+        const projects = await projectModel.find({}).sort({ users: -1 }).limit(10);
+        res.status(200).json({ projects });
+    } catch (error) {
+        logger.error('getProjectShowcase error:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 }
 
@@ -83,8 +133,9 @@ export const getProjectById = async (req, res) => {
         });
         return response.success(res, { project });
     } catch (err) {
-        const status = err.message === 'Unauthorized access' ? 401 : (err.message === 'Project not found' ? 404 : 400);
-        return response.error(res, err.message, status);
+        logger.error('getProjectById error:', err);
+        const status = err.message === 'Unauthorized access' ? 401 : 400;
+        res.status(status).json({ error: err.message })
     }
 }
 
@@ -99,6 +150,7 @@ export const updateFileTree = async (req, res) => {
         })
         return response.success(res, { project }, 'File tree updated successfully');
     } catch (err) {
+        logger.error('updateFileTree error:', err);
         const status = err.message === 'Unauthorized access' ? 401 : 400;
         return response.error(res, err.message, status);
     }
@@ -109,8 +161,8 @@ export const getProjectSettings = async (req, res) => {
         const settings = await projectService.getSettings(req.params.projectId, req.user._id);
         return response.success(res, { settings });
     } catch (err) {
-        const status = err.message === 'Unauthorized access' ? 401 : (err.message === 'Project not found' ? 404 : 500);
-        return response.error(res, err.message, status);
+        logger.error('getProjectSettings error:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 };
 
@@ -119,7 +171,7 @@ export const updateProjectSettings = async (req, res) => {
         const settings = await projectService.updateSettings(req.params.projectId, req.user._id, req.body.settings);
         return response.success(res, { settings }, 'Settings updated successfully');
     } catch (err) {
-        const status = err.message === 'Unauthorized access' ? 401 : (err.message === 'Project not found' ? 404 : 500);
-        return response.error(res, err.message, status);
+        logger.error('updateProjectSettings error:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 };

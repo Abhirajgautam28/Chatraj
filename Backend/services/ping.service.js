@@ -1,13 +1,14 @@
 import https from 'https';
+import { logger } from '../utils/logger.js';
 
 const pingService = (url) => {
     setInterval(() => {
         https.get(url, (resp) => {
             if (resp.statusCode === 200) {
-                console.log('Server kept alive');
+                logger.info('Server kept alive');
             }
         }).on('error', (err) => {
-            console.log('Ping error:', err.message);
+            logger.error('Ping error:', err.message);
         });
     }, 840000);
 };

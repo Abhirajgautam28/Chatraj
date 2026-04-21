@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { logger } from './logger.js';
 import { URL } from 'url';
 import { Buffer } from 'buffer';
 import https from 'https';
@@ -115,7 +116,7 @@ async function sendViaSendGrid(mailOptions) {
     req.write(body);
     req.end();
   });
-  console.info('SendGrid: message queued to %s', mailOptions.to);
+  logger.info('SendGrid: message queued to %s', mailOptions.to);
 }
 
 async function sendViaEthereal(mailOptions) {
@@ -130,7 +131,7 @@ async function sendViaEthereal(mailOptions) {
   const info = await transporter.sendMail(mailOptions);
   try {
     const url = nodemailer.getTestMessageUrl(info);
-    console.info('Ethereal message URL:', url);
+    logger.info('Ethereal message URL:', url);
   } catch (e) {
     // ignore
   }
@@ -144,7 +145,7 @@ async function sendWebhookNotification(webhookUrl, payload) {
   const maxConcurrent = parseInt(process.env.SMTP_FAILURE_WEBHOOK_MAX_CONCURRENT || '2', 10);
   const timeoutMs = parseInt(process.env.SMTP_FAILURE_WEBHOOK_TIMEOUT_MS || '5000', 10);
   if (webhookActiveCount >= maxConcurrent) {
-    console.warn('SMTP failure webhook skipped because concurrency limit reached');
+    logger.warn('SMTP failure webhook skipped because concurrency limit reached');
     return;
   }
 
@@ -182,7 +183,7 @@ async function sendWebhookNotification(webhookUrl, payload) {
       req.end();
     });
   } catch (err) {
-    console.error('SMTP failure webhook notify failed:', err && err.message ? err.message : err);
+    logger.error('SMTP failure webhook notify failed:', err && err.message ? err.message : err);
   } finally {
     webhookActiveCount = Math.max(0, webhookActiveCount - 1);
   }
@@ -211,7 +212,7 @@ export async function sendMailWithRetry(mailOptions, opts = {}) {
         return { provider: 'sendgrid', to: mailOptions.to };
       } catch (err) {
         lastErr = err;
-        console.error(`SendGrid attempt ${attempt} failed:`, err && err.message ? err.message : err);
+        logger.error(`SendGrid attempt ${attempt} failed:`, err && err.message ? err.message : err);
       }
     }
 
@@ -222,14 +223,14 @@ export async function sendMailWithRetry(mailOptions, opts = {}) {
         try {
           await verifyTransporter(transporter);
         } catch (vErr) {
-          console.error('SMTP verify failed (continuing to send attempts):', vErr && vErr.message ? vErr.message : vErr);
+          logger.error('SMTP verify failed (continuing to send attempts):', vErr && vErr.message ? vErr.message : vErr);
         }
         const info = await transporter.sendMail(mailOptions);
-        console.info('SMTP: message sent to %s (messageId=%s)', mailOptions.to, info && info.messageId ? info.messageId : 'unknown');
+        logger.info('SMTP: message sent to %s (messageId=%s)', mailOptions.to, info && info.messageId ? info.messageId : 'unknown');
         return info;
       } catch (err) {
         lastErr = err;
-        console.error(`SMTP send attempt ${attempt} failed:`, err && err.message ? err.message : err);
+        logger.error(`SMTP send attempt ${attempt} failed:`, err && err.message ? err.message : err);
       }
     }
 
@@ -237,11 +238,11 @@ export async function sendMailWithRetry(mailOptions, opts = {}) {
     if (allowEthereal) {
       try {
         const info = await sendViaEthereal(mailOptions);
-        console.info('Ethereal: message sent to %s (id=%s)', mailOptions.to, info && info.messageId ? info.messageId : 'unknown');
+        logger.info('Ethereal: message sent to %s (id=%s)', mailOptions.to, info && info.messageId ? info.messageId : 'unknown');
         return info;
       } catch (err) {
         lastErr = err;
-        console.error(`Ethereal attempt ${attempt} failed:`, err && err.message ? err.message : err);
+        logger.error(`Ethereal attempt ${attempt} failed:`, err && err.message ? err.message : err);
       }
     }
 
@@ -262,7 +263,7 @@ export async function sendMailWithRetry(mailOptions, opts = {}) {
         error: (lastErr && (lastErr.message || String(lastErr))) || 'unknown',
       });
     } catch (notifyErr) {
-      console.error('Failed to send SMTP failure notification:', notifyErr && notifyErr.message ? notifyErr.message : notifyErr);
+      logger.error('Failed to send SMTP failure notification:', notifyErr && notifyErr.message ? notifyErr.message : notifyErr);
     }
   }
 

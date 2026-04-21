@@ -1,5 +1,4 @@
 import { createContext, useState } from 'react';
-import { flushSync } from 'react-dom';
 import PropTypes from 'prop-types';
 
 const BlogThemeContext = createContext();
@@ -15,7 +14,7 @@ export const BlogThemeProvider = ({ children }) => {
   };
 
   return (
-    <BlogThemeContext.Provider value={{ isBlogDarkMode, setIsBlogDarkMode, toggleThemeGlobal }}>
+    <BlogThemeContext.Provider value={{ isBlogDarkMode, setIsBlogDarkMode }}>
       {children}
     </BlogThemeContext.Provider>
   );

@@ -1,26 +1,7 @@
 import Redis from 'ioredis';
 import * as dotenv from 'dotenv';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-// Load .env from sensible locations: project root or Backend/.env
-try {
-    const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    const candidates = [
-        path.resolve(process.cwd(), '.env'),
-        path.resolve(__dirname, '..', '.env')
-    ];
-    for (const p of candidates) {
-        if (fs.existsSync(p)) {
-            dotenv.config({ path: p });
-            break;
-        }
-    }
-} catch (err) {
-    // fallback to default behavior
-    dotenv.config();
-}
+import { logger } from '../utils/logger.js';
+dotenv.config();
 
 let redisClient;
 
@@ -32,11 +13,11 @@ if (process.env.REDIS_URL) {
     });
 
     redisClient.on('error', (err) => {
-        console.error('Redis error:', err && (err.stack || err.message || err));
+        logger.error('Redis error:', err && (err.stack || err.message || err));
     });
 } else {
     // Fallback lightweight in-memory mock for development when no REDIS_URL is provided.
-    console.warn('REDIS_URL not set — using in-memory Redis mock (development only)');
+    logger.warn('REDIS_URL not set — using in-memory Redis mock (development only)');
     const store = new Map();
     const timers = new Map();
 
