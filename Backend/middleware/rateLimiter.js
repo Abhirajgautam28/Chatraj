@@ -87,6 +87,13 @@ export const listBlogsLimiter = rateLimit({
     max: 300,
 });
 
+export const aiLimiter = rateLimit({
+    windowMs: DEFAULT_WINDOW_MS,
+    max: 50,
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
 export default {
   sensitiveLimiter,
   authLimiter,
@@ -99,5 +106,6 @@ export default {
   generateLimiter,
   likeLimiter,
   getBlogLimiter,
-  listBlogsLimiter
+  listBlogsLimiter,
+  aiLimiter
 };

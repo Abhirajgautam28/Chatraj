@@ -3,9 +3,11 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
+import { logger } from '../utils/logger.js'
+
 const MONGO_URI = process.env.MONGODB_URI
 if (!MONGO_URI) {
-  console.error('MONGODB_URI not set. Aborting.')
+  logger.error('MONGODB_URI not set. Aborting.')
   process.exit(2)
 }
 
@@ -33,15 +35,15 @@ async function main() {
 
     const Blog = mongoose.models.Blog
     if (!Blog) {
-      console.error('Blog model not registered. Ensure Backend/models/blog.model.js exists and exports the model.')
+      logger.error('Blog model not registered. Ensure Backend/models/blog.model.js exists and exports the model.')
       process.exit(4)
     }
 
     // find docs with missing/empty slug
     const docs = await Blog.find({ $or: [{ slug: { $exists: false } }, { slug: null }, { slug: '' }] }).lean()
     if (!docs || docs.length === 0) {
-      console.log('No blog posts missing slugs. Nothing to generate.')
-      process.exit(0)
+      logger.info('No blog posts missing slugs. Nothing to generate.')
+      process.exit(0);
     }
 
     // load existing slugs to avoid collisions
@@ -61,10 +63,10 @@ async function main() {
     }
 
     fs.writeFileSync(outPath, JSON.stringify(items, null, 2), 'utf8')
-    console.log('Wrote mapping file to', outPath)
+    logger.info(`Wrote mapping file to ${outPath}`)
     process.exit(0)
   } catch (err) {
-    console.error('Error generating mapping:', err)
+    logger.error('Error generating mapping: ' + err.message)
     process.exit(1)
   } finally {
     await mongoose.disconnect()

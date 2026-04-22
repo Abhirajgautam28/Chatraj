@@ -1,14 +1,20 @@
 #!/usr/bin/env node
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import Redis from 'ioredis';
 import { maskKey } from '../utils/strings.js';
-import { loadEnv, parseArgs } from './script-utils.js';
+import { loadEnv, parseArgs, closeDBAndExit } from './script-utils.js';
+import { logger } from '../utils/logger.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 loadEnv();
 
 const REDIS_URL = process.env.REDIS_URL;
 if (!REDIS_URL) {
-  console.error('REDIS_URL not found in Backend/.env. Set REDIS_URL or pass via env.');
+  logger.error('REDIS_URL not found in Backend/.env. Set REDIS_URL or pass via env.');
   process.exit(1);
 }
 
@@ -20,7 +26,7 @@ async function run() {
     pattern: rawArgs.pattern || '*',
     limit: Number(rawArgs.limit) || 10000
   };
-  console.log(`Connecting to Redis (dryRun=${opts.dryRun})`);
+  logger.info(`Connecting to Redis (dryRun=${opts.dryRun})`);
   const redis = new Redis(REDIS_URL, { maxRetriesPerRequest: 2 });
 
   const report = { found: 0, keys: [], deleted: 0, errors: [] };
@@ -96,14 +102,14 @@ async function run() {
     const outPath = path.join(outDir, `redis_cleanup_report_${Date.now()}.json`);
     fs.writeFileSync(outPath, JSON.stringify(report, null, 2));
 
-    console.log(`Report written to: ${outPath}`);
-    console.log(`Found ${report.found} blacklist keys (value==='logout').`);
+    logger.info(`Report written to: ${outPath}`);
+    logger.info(`Found ${report.found} blacklist keys (value==='logout').`);
     if (report.keys.length) console.table(report.keys.slice(0, 200));
-    if (report.errors.length) console.warn('Errors:', report.errors);
-    if (opts.delete) console.log(`Deleted ${report.deleted} keys.`);
-    else console.log('Dry-run mode: no keys were deleted. Re-run with --delete to remove listed keys.');
+    if (report.errors.length) logger.warn('Errors during scan: ' + JSON.stringify(report.errors));
+    if (opts.delete) logger.info(`Deleted ${report.deleted} keys.`);
+    else logger.info('Dry-run mode: no keys were deleted. Re-run with --delete to remove listed keys.');
   } catch (err) {
-    console.error('Error during redis scan:', err && (err.stack || err.message || err));
+    logger.error('Error during redis scan: ' + (err && (err.stack || err.message || err)));
   } finally {
     try { await redis.quit(); } catch (e) { }
   }

@@ -1,12 +1,13 @@
 import { loadEnv } from './script-utils.js';
 import { extractSetCookieArray, buildCookieHeader } from '../utils/cookies.js';
+import { logger } from '../utils/logger.js';
 
 loadEnv();
 
 const API = process.env.BACKEND_URL || 'http://localhost:8080';
 
 async function run() {
-  console.log('Starting smoke test: GET /csrf-token then POST /api/users/login using test user');
+  logger.info('Starting smoke test: GET /csrf-token then POST /api/users/login using test user');
 
   // 1) GET CSRF token
   const r1 = await fetch(`${API}/csrf-token`, { method: 'GET' });
@@ -16,15 +17,15 @@ async function run() {
     const json = await r1.json();
     token = json.csrfToken;
   } catch (e) {
-    console.error('Failed to parse /csrf-token JSON', e && e.message);
+    logger.error('Failed to parse /csrf-token JSON: ' + (e && e.message));
   }
 
-  console.log('-- GET /csrf-token headers --');
-  console.log('set-cookie:', cookies);
-  console.log('csrfToken:', token ? '[OK]' : '[MISSING]');
+  logger.info('-- GET /csrf-token headers --');
+  logger.info('set-cookie: ' + JSON.stringify(cookies));
+  logger.info('csrfToken: ' + (token ? '[OK]' : '[MISSING]'));
 
   if (!token) {
-    console.error('No csrf token obtained; aborting smoke test');
+    logger.error('No csrf token obtained; aborting smoke test');
     process.exit(1);
   }
 
@@ -44,25 +45,25 @@ async function run() {
     body: JSON.stringify({ email, password })
   });
 
-  console.log('-- POST /api/users/login status --', r2.status);
+  logger.info('-- POST /api/users/login status -- ' + r2.status);
   const body = await r2.text();
-  console.log('-- body --');
-  console.log(body);
+  logger.info('-- body --');
+  logger.info(body);
 
   if (r2.ok) {
     try {
       const parsed = JSON.parse(body);
       if (parsed && parsed.token) {
-        console.log('Smoke test: login successful — token received');
+        logger.info('Smoke test: login successful — token received');
         process.exit(0);
       }
     } catch (e) {
-      console.error('Unable to parse login response JSON');
+      logger.error('Unable to parse login response JSON');
     }
-    console.log('Login OK but no token in response');
+    logger.info('Login OK but no token in response');
     process.exit(1);
   } else {
-    console.error('Login failed with status', r2.status);
+    logger.error('Login failed with status ' + r2.status);
     process.exit(1);
   }
 }

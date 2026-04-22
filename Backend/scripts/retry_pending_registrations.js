@@ -1,6 +1,8 @@
 import redisClient from '../services/redis.service.js';
 import { sendMailWithRetry } from '../utils/mailer.js';
-import { loadEnv } from './script-utils.js';
+import { loadEnv, connectDB, closeDBAndExit } from './script-utils.js';
+import { logger } from '../utils/logger.js';
+import { getOtpEmailTemplate } from '../utils/templates.js';
 
 loadEnv();
 
@@ -44,8 +46,8 @@ async function run() {
     }
 
     if (!keys || keys.length === 0) {
-      console.info('No pending registrations found');
-      process.exit(0);
+      logger.info('No pending registrations found');
+      await closeDBAndExit(0);
     }
 
     const ttlDefault = parseInt(process.env.REGISTRATION_OTP_TTL_SECONDS || '900', 10);
@@ -74,6 +76,7 @@ async function run() {
             from: process.env.SMTP_FROM || 'ChatRaj <no-reply@chatraj.com>',
             to: pending.email,
             subject: 'Your ChatRaj OTP Verification',
+            html: getOtpEmailTemplate(pending.otp),
             text: `Welcome to ChatRaj!\n\nYour OTP is: ${pending.otp}\n\nPlease enter this code in the registration popup to activate your account.`,
           }, { retries: 3 });
 
@@ -120,19 +123,19 @@ async function run() {
             }
           }
 
-          console.info('Resent OTP to', pending.email);
+          logger.info(`Resent OTP to ${pending.email}`);
         } catch (err) {
-          console.error('Failed to resend to', pending.email, err && err.message ? err.message : err);
+          logger.error(`Failed to resend to ${pending.email}: ${err && err.message ? err.message : err}`);
         }
       } catch (err) {
         console.error('Error processing pending key', k, err && err.message ? err.message : err);
       }
     }
 
-    process.exit(0);
+    await closeDBAndExit(0);
   } catch (err) {
-    console.error('Fatal error in retry script', err && err.message ? err.message : err);
-    process.exit(1);
+    logger.error(`Fatal error in retry script: ${err && err.message ? err.message : err}`);
+    await closeDBAndExit(1);
   }
 }
 

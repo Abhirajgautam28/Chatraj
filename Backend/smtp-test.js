@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import { logger } from './utils/logger.js';
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
@@ -14,8 +15,8 @@ const transporter = nodemailer.createTransport({
 
 transporter.verify(function(error, success) {
   if (error) {
-    console.error('SMTP connection failed:', error);
+    logger.error('SMTP connection failed:', error);
   } else {
-    console.log('SMTP connection successful!');
+    logger.info('SMTP connection successful!');
   }
 });

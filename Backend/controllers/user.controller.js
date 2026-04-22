@@ -9,9 +9,9 @@ import { normalizeEmail } from '../utils/email.js';
 import { shouldExposeOtpToClient } from '../utils/security.js';
 import { generateOTP } from '../utils/otp.js';
 import { sendMailWithRetry } from '../utils/mailer.js';
-import { escapeHtml } from '../utils/strings.js';
 import { logger } from '../utils/logger.js';
 import { sendSuccess, sendError } from '../utils/response.utils.js';
+import { getOtpEmailTemplate, getPasswordResetSuccessTemplate } from '../utils/templates.js';
 
 dotenv.config();
 
@@ -203,6 +203,7 @@ async function sendOtpEmail(email, otp) {
         from: process.env.SMTP_FROM || 'ChatRaj <no-reply@chatraj.com>',
         to: email,
         subject: 'Your ChatRaj OTP Verification',
+        html: getOtpEmailTemplate(otp),
         text: `Welcome to ChatRaj!\n\nYour OTP is: ${otp}\n\nPlease enter this code in the registration popup to activate your account.`,
     };
 
@@ -500,38 +501,11 @@ async function sendPasswordResetSuccessEmail(email, name) {
         return;
     }
 
-    const html = `
-      <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f4f8fc; padding: 40px; border-radius: 16px; color: #222; box-shadow: 0 4px 24px rgba(37,99,235,0.08);">
-        <div style="text-align:center;">
-          <h1 style="color: #2563eb; font-size: 2.2em; margin-bottom: 8px;">Password Reset Successful 🎉</h1>
-          <p style="font-size: 1.15em; color: #444; margin-bottom: 24px;">Hi <b>${escapeHtml(name)}</b>, your ChatRaj password has been reset successfully.</p>
-        </div>
-        <div style="background: #eaf1fb; border-radius: 10px; padding: 24px; margin-bottom: 24px;">
-          <h2 style="color: #2563eb; margin-bottom: 12px;">What's Next?</h2>
-          <ul style="font-size: 16px; line-height: 1.7; margin:0; padding-left: 18px;">
-            <li>🔑 <b>Login with your new password</b> – Your account is now secure and ready to use.</li>
-            <li>📧 <b>Keep your email updated</b> – Ensure you receive important notifications.</li>
-          </ul>
-        </div>
-        <div style="background: #fff; border-radius: 10px; padding: 24px; margin-bottom: 24px; border: 1px solid #e3eaf5;">
-          <h2 style="color: #2563eb; margin-bottom: 12px;">🚀 Need Help?</h2>
-          <ul style="font-size: 16px; line-height: 1.7; margin:0; padding-left: 18px;">
-            <li>💡 Weekly tips, tutorials, and best practices.</li>
-            <li>🗣️ Direct feedback channel to the ChatRaj team.</li>
-          </ul>
-        </div>
-        <div style="text-align:center; margin-top:32px;">
-          <a href="https://chatraj.vercel.app/login" style="display:inline-block;margin-top:12px;padding:12px 36px;background:#2563eb;color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:1.05rem;box-shadow:0 2px 8px rgba(0,0,0,0.10);">Login to ChatRaj</a>
-          <p style="font-size: 15px; color: #555; margin-top:24px;">Thank you for choosing ChatRaj.<br/>Abhiraj Gautam<br/>ChatRaj Developer<br/><a href='https://abhirajgautam.in' style="color: #2563eb;">abhirajgautam.in</a></p>
-          <p style="font-size:13px; color:#888; margin-top:16px;">If you did not request this change, please contact our support team immediately.</p>
-        </div>
-      </div>
-    `;
     const mailOptions = {
         from: process.env.SMTP_FROM || 'ChatRaj <no-reply@chatraj.com>',
         to: typeof email === 'string' ? email.trim() : email,
         subject: 'Your ChatRaj Password Has Been Reset',
-        html,
+        html: getPasswordResetSuccessTemplate(name),
     };
     await sendMailWithRetry(mailOptions);
 }

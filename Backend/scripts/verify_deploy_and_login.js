@@ -2,6 +2,7 @@
 import { setTimeout as wait } from 'timers/promises';
 import { extractSetCookieArray, buildCookieHeader } from '../utils/cookies.js';
 import { loadEnv, parseArgs } from './script-utils.js';
+import { logger } from '../utils/logger.js';
 
 loadEnv();
 
@@ -60,25 +61,25 @@ async function attemptLogin(api, email, password) {
 }
 
 async function run() {
-  console.log(`Verifying deployed API: ${API}`);
+  logger.info(`Verifying deployed API: ${API}`);
   const deadline = Date.now() + TIMEOUT;
   while (Date.now() < deadline) {
     process.stdout.write('.');
     const res = await checkCsrfFlags(API);
     if (res === null) {
-      console.log('\nEndpoint unreachable; retrying in', INTERVAL / 1000, 's');
+      logger.info('\nEndpoint unreachable; retrying in ' + (INTERVAL / 1000) + 's');
     } else {
-      console.log('\n/csrf-token returned. SameSite=None:', res.hasSameSiteNone, 'Secure:', res.hasSecure);
+      logger.info('\n/csrf-token returned. SameSite=None: ' + res.hasSameSiteNone + ' Secure: ' + res.hasSecure);
       if (res.hasSameSiteNone && res.hasSecure) {
-        console.log('Desired cookie flags present. Attempting login test...');
+        logger.info('Desired cookie flags present. Attempting login test...');
         const loginRes = await attemptLogin(API, EMAIL, PASSWORD);
-        console.log('Login test result:', loginRes);
+        logger.info('Login test result: ' + JSON.stringify(loginRes));
         return;
       }
     }
     await wait(INTERVAL);
   }
-  console.log('\nTimeout reached; cookie flags not updated.');
+  logger.info('\nTimeout reached; cookie flags not updated.');
 }
 
 run().catch(e => { console.error(e && (e.stack || e)); process.exit(1); });

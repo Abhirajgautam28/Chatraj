@@ -1,5 +1,6 @@
 import User from '../models/user.model.js';
 import { loadEnv, connectDB, closeDBAndExit } from './script-utils.js';
+import { logger } from '../utils/logger.js';
 
 loadEnv();
 
@@ -9,12 +10,12 @@ const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD || 'TestPass123!';
 async function run() {
   try {
     await connectDB();
-    console.log('Connected to MongoDB for test user creation');
+    logger.info('Connected to MongoDB for test user creation');
 
     // Remove existing test user if present
     const existing = await User.findOne({ email: TEST_USER_EMAIL });
     if (existing) {
-      console.log('Existing test user found, removing...');
+      logger.info('Existing test user found, removing...');
       await User.deleteOne({ _id: existing._id });
     }
 
@@ -28,13 +29,13 @@ async function run() {
       isVerified: true
     });
 
-    console.log('Test user created:');
-    console.log('  email:', TEST_USER_EMAIL);
-    console.log('  password:', TEST_USER_PASSWORD);
+    logger.info('Test user created:');
+    logger.info(`  email: ${TEST_USER_EMAIL}`);
+    logger.info(`  password: ${TEST_USER_PASSWORD}`);
 
     await closeDBAndExit(0);
   } catch (err) {
-    console.error('Failed to create test user:', err && (err.stack || err.message || err));
+    logger.error(`Failed to create test user: ${err && (err.stack || err.message || err)}`);
     await closeDBAndExit(1);
   }
 }

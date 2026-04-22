@@ -3,9 +3,11 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
+import { logger } from '../utils/logger.js'
+
 const MONGO_URI = process.env.MONGODB_URI
 if (!MONGO_URI) {
-  console.error('MONGODB_URI not set. Aborting.')
+  logger.error('MONGODB_URI not set. Aborting.')
   process.exit(2)
 }
 
@@ -31,8 +33,8 @@ if (mappingArg) {
 
 let mappingPath = candidates.find(p => fs.existsSync(p))
 if (!mappingPath) {
-  console.error('Mapping file not found. Paths checked:')
-  for (const c of candidates) console.error(' -', c)
+  logger.error('Mapping file not found. Paths checked:')
+  for (const c of candidates) logger.error(' - ' + c)
   process.exit(3)
 }
 try {
@@ -52,7 +54,7 @@ try {
 
         const Blog = mongoose.models.Blog
         if (!Blog) {
-      console.error('Blog model not registered. Ensure Backend/models/blog.model.js exists and exports the model.')
+      logger.error('Blog model not registered. Ensure Backend/models/blog.model.js exists and exports the model.')
       process.exit(4)
         }
 
@@ -60,14 +62,14 @@ try {
       const id = it._id
       const slug = it.slug
       if (dryRun) {
-        console.log('[dry-run] Would update', id, '->', slug)
+        logger.info(`[dry-run] Would update ${id} -> ${slug}`)
         continue
       }
       try {
         const res = await Blog.updateOne({ _id: id }, { $set: { slug } })
-        console.log(`Updated ${id}:`, res.matchedCount, 'matched,', res.modifiedCount, 'modified')
+        logger.info(`Updated ${id}: ${res.matchedCount} matched, ${res.modifiedCount} modified`)
       } catch (e) {
-        console.error('Failed to update', id, e)
+        logger.error(`Failed to update ${id}: ${e.message}`)
       }
     }
   } finally {
