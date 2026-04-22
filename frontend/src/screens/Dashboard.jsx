@@ -1,5 +1,5 @@
 // ...existing code...
-import { useContext, useState, useEffect, useTransition } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserContext } from '../context/user.context';
 import axios, { clearCsrfCache } from "../config/axios";
@@ -7,7 +7,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 const Dashboard = () => {
   useContext(UserContext);
-  const [isPending, startTransition] = useTransition();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectName, setProjectName] = useState('');
   const [projects, setProjects] = useState([]);
@@ -41,25 +40,23 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    const controller = new AbortController();
-    // Use server-side filtering for better performance
-    const url = categoryName ? `/api/projects/all?category=${encodeURIComponent(categoryName)}` : '/api/projects/all';
-    axios.get(url, { signal: controller.signal })
+    // Always fetch all projects for the user, then filter by category on the frontend
+    axios.get('/api/projects/all')
       .then((res) => {
-        startTransition(() => {
-          if (Array.isArray(res.data.projects)) {
-            setProjects(res.data.projects);
+        if (Array.isArray(res.data.projects)) {
+          if (categoryName) {
+            setProjects(res.data.projects.filter(p => p.category === categoryName));
           } else {
-            setProjects([]);
+            setProjects(res.data.projects);
           }
-        });
+        } else {
+          setProjects([]);
+        }
       })
       .catch(err => {
-        if (err.name === 'CanceledError') return;
         console.log(err);
         setProjects([]);
       });
-    return () => controller.abort();
   }, [categoryName]);
 
   return (

@@ -2,9 +2,31 @@ import { Router } from 'express';
 import * as userController from '../controllers/user.controller.js';
 import { body } from 'express-validator';
 import * as authMiddleware from '../middleware/auth.middleware.js';
-import { sensitiveLimiter, authLimiter, leaderboardLimiter, usersLimiter, registrationLimiter } from '../middleware/rateLimiter.js';
+import { sensitiveLimiter, authLimiter } from '../middleware/rateLimiter.js';
+import rateLimit from 'express-rate-limit';
 
 const router = Router();
+
+const leaderboardLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 leaderboard requests per windowMs
+});
+
+const usersLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 user list requests per windowMs
+});
+
+// Slightly higher limit for registration to reduce false positives
+// during legitimate user signups (e.g., when users retry due to client-side
+// behavior). Keep `sensitiveLimiter` unchanged for login and other sensitive
+// endpoints to preserve stricter throttling there.
+const registrationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 12,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Send OTP for password reset (used in Login.jsx)
 router.post('/send-otp', sensitiveLimiter, userController.sendOtpController);

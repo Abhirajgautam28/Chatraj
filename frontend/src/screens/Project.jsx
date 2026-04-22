@@ -14,13 +14,7 @@ import 'highlight.js/styles/github-dark.css';
 import PropTypes from 'prop-types';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
-const VimCodeEditor = React.lazy(() => import('../components/VimCodeEditor'));
-import ChatMessage from '../components/ChatMessage';
-import ChatErrorBoundary from '../components/ChatErrorBoundary';
-import { useDebounce } from '../hooks/useDebounce';
-
-// Initialize Web Worker
-const worker = typeof window !== 'undefined' ? new Worker('/worker.js') : null;
+import VimCodeEditor from '../components/VimCodeEditor';
 
 const PROJECT_TRANSLATIONS = {
   'en-US': {
@@ -223,43 +217,6 @@ const Project = () => {
   const [message, setMessage] = useState('')
   const { user } = useContext(UserContext)
   const { isDarkMode, setIsDarkMode } = useContext(ThemeContext)
-
-  const getUserBubbleStyle = React.useCallback(() => {
-    const bg = settings.display.themeColor || '#3B82F6';
-    let textColor = '#fff';
-    // If user selected white, force black text
-    if (bg.toLowerCase() === '#fff' || bg.toLowerCase() === '#ffffff' || bg.toLowerCase() === 'white') {
-      textColor = '#000';
-    }
-    // If in light mode, always use black text
-    if (!isDarkMode) {
-      textColor = '#000';
-    }
-    // If in dark mode, always use white text
-    if (isDarkMode) {
-      textColor = '#fff';
-    }
-    return {
-      backgroundColor: bg,
-      color: textColor
-    };
-  }, [settings.display.themeColor, isDarkMode]);
-
-  const getMessageStatus = React.useCallback((msg) => {
-    if (!msg || !msg.sender || msg.sender._id !== user._id) return null;
-    const others = (project.users || []).filter(u => u._id !== user._id).map(u => u._id);
-    // Seen: at least one other user in readBy
-    if (Array.isArray(msg.readBy) && msg.readBy.some(uid => uid !== user._id && others.includes(uid))) {
-      return { label: 'Seen', icon: 'double-green' };
-    }
-    // Received: at least one other user in deliveredTo
-    if (Array.isArray(msg.deliveredTo) && msg.deliveredTo.some(uid => uid !== user._id && others.includes(uid))) {
-      return { label: 'Received', icon: 'double' };
-    }
-    // Sent: deliveredTo missing or only contains self
-    return { label: 'Sent', icon: 'single' };
-  }, [user._id, project.users]);
-
   const messageBox = useRef(null)
   const [users, setUsers] = useState([])
   const [messages, setMessages] = useState([])
@@ -271,8 +228,6 @@ const Project = () => {
   const [runProcess, setRunProcess] = useState(null)
   const [replyingTo, setReplyingTo] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
-  const deferredSearchTerm = React.useDeferredValue(searchTerm);
-  const debouncedSearchTerm = useDebounce(deferredSearchTerm, 300);
   const [showSearch, setShowSearch] = useState(false)
 
   const sanitizeIframeUrl = (rawValue) => {
@@ -354,16 +309,16 @@ const Project = () => {
   const settingsModalRef = useRef(null);
   const [expandedReplies, setExpandedReplies] = useState({}); // Track expanded replies
 
-  const toggleEmojiPicker = React.useCallback((messageId, forceState) => {
+  const toggleEmojiPicker = (messageId) => {
     setMessageEmojiPickers(prev => ({
       ...prev,
-      [messageId]: forceState !== undefined ? forceState : !prev[messageId]
+      [messageId]: !prev[messageId]
     }));
-  }, []);
+  };
 
-  const handleReaction = React.useCallback((messageId, emoji, userId) => {
+  const handleReaction = (messageId, emoji, userId) => {
     const message = messages.find(m => m._id === messageId);
-    if (!message || message.sender._id === userId) {
+    if (message.sender._id === userId) {
       return;
     }
 
@@ -393,7 +348,7 @@ const Project = () => {
       ...prev,
       [messageId]: false
     }));
-  }, [messages]);
+  };
 
   const handleUserClick = (id) => {
     setSelectedUserId((prev) => {
@@ -423,7 +378,6 @@ const Project = () => {
   const send = () => {
     if (!message.trim()) return;
     const payload = {
-      msgId: crypto.randomUUID(), // Client-side ID for deduplication
       message,
       sender: user,
       parentMessageId: replyingTo ? replyingTo._id : null,
@@ -465,115 +419,63 @@ const Project = () => {
   };
 
   useEffect(() => {
-    const controller = new AbortController();
-    if (!window.__webcontainerBooted) {
-      window.__webcontainerBooted = true;
-      initializeSocket(project._id)
-      if (!webContainer) {
-        getWebContainer().then((container) => {
-          setWebContainer(container)
-          console.log("container started")
-        })
+    if (messages.length && messageBox.current) {
+      const lastMsg = messages[messages.length - 1]
+      if (lastMsg._id) {
+        sendMessage("message-read", { messageId: lastMsg._id, userId: user._id })
       }
     }
-    axios.get(`/api/projects/get-project/${location.state.project._id}`, { signal: controller.signal }).then((res) => {
+  }, [messages, user])
+
+  useEffect(() => {
+    if (window.__webcontainerBooted) return;
+    window.__webcontainerBooted = true;
+    initializeSocket(project._id)
+    if (!webContainer) {
+      getWebContainer().then((container) => {
+        setWebContainer(container)
+        console.log("container started")
+      })
+    }
+    axios.get(`/api/projects/get-project/${location.state.project._id}`).then((res) => {
+      console.log(res.data.project)
       setProject(res.data.project)
       setFileTree(res.data.project.fileTree || {})
-      // Initial load of messages
-      axios.get(`/api/projects/messages/${location.state.project._id}?limit=50`).then(mRes => {
-        setMessages(mRes.data.messages);
-      });
-    }).catch(err => {
-      if (err.name === 'CanceledError') return;
-      console.error(err);
-    });
+    })
     axios
-      .get("/api/users/all", { signal: controller.signal })
+      .get("/api/users/all")
       .then((res) => {
         setUsers(res.data.users)
       })
-      .catch((err) => {
-        if (err.name === 'CanceledError') return;
-        console.log(err);
-      });
-    return () => controller.abort();
+      .catch((err) => console.log(err))
   }, [webContainer, project._id, location.state.project._id])
 
-  const readBufferRef = useRef(new Set());
-  const deliveryBufferRef = useRef(new Set());
-
   useEffect(() => {
-    if (messages.length && messageBox.current) {
-      // Auto-scroll to bottom
-      messageBox.current.scrollTop = messageBox.current.scrollHeight;
-
-      // Performance Optimization: Batch status updates
-      const lastMsg = messages[messages.length - 1];
-      if (lastMsg._id) {
-        readBufferRef.current.add(lastMsg._id);
-      }
-    }
-  }, [messages]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (readBufferRef.current.size > 0) {
-        const messageIds = Array.from(readBufferRef.current);
-        sendMessage("messages-read-batch", { messageIds, userId: user._id });
-        readBufferRef.current.clear();
-      }
-      if (deliveryBufferRef.current.size > 0) {
-        const messageIds = Array.from(deliveryBufferRef.current);
-        sendMessage("messages-delivered-batch", { messageIds, userId: user._id });
-        deliveryBufferRef.current.clear();
-      }
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [user._id]);
-
-  const fileTreeSyncTimeoutRef = useRef(null);
-
-  useEffect(() => {
-    if (worker) {
-      worker.onmessage = (e) => {
-        if (e.data.type === 'NORMALIZE_FILE_TREE_RESULT') {
-          const normalizedTree = e.data.data;
-          setFileTree(normalizedTree);
-          // Debounced backend sync to avoid hitting the DB too hard with large fileTree objects
-          if (fileTreeSyncTimeoutRef.current) clearTimeout(fileTreeSyncTimeoutRef.current);
-          fileTreeSyncTimeoutRef.current = setTimeout(() => {
-            axios.put('/api/projects/update-file-tree', {
-              projectId: project._id,
-              fileTree: normalizedTree
-            }).catch(err => console.warn('FileTree sync failed:', err));
-          }, 2000);
-        }
-      };
-    }
-  }, [project._id]);
+    if (messageBox.current)
+      messageBox.current.scrollTop = messageBox.current.scrollHeight
+  }, [messages])
 
   useEffect(() => {
     const handleIncomingMessage = (data) => {
-      // Mark as delivered in batch
-      if (data._id && data.sender?._id !== user._id) {
-        deliveryBufferRef.current.add(data._id);
-      }
-
       // If the sender is Chatraj and the message is a JSON with fileTree, update the file tree
       if (data.sender && data.sender._id === "Chatraj") {
         try {
           const aiResponse = JSON.parse(data.message);
-          if (aiResponse.fileTree && worker) {
-            worker.postMessage({ type: 'NORMALIZE_FILE_TREE', data: aiResponse.fileTree });
-          } else if (aiResponse.fileTree) {
-            // Fallback if worker failed
+          if (aiResponse.fileTree) {
             const normalizedTree = normalizeFileTree(aiResponse.fileTree);
             setFileTree(normalizedTree);
+            // Optionally, update the backend as well:
+            axios.put('/api/projects/update-file-tree', {
+              projectId: project._id,
+              fileTree: normalizedTree
+            });
           }
           // Only show the AI's text in chat if it is not a duplicate
           setMessages((prev) => {
-            const exists = prev.some(m => m._id === data._id && m.sender?._id === data.sender?._id);
-            if (exists) return prev;
+            // Prevent duplicate messages with the same _id and sender
+            if (prev.some(m => m._id === data._id && m.sender?._id === data.sender?._id)) {
+              return prev;
+            }
             return [
               ...prev,
               {
@@ -589,8 +491,9 @@ const Project = () => {
       }
       // Default: just add the message if not a duplicate
       setMessages((prev) => {
-        const exists = prev.some(m => m._id === data._id && m.sender?._id === data.sender?._id);
-        if (exists) return prev;
+        if (prev.some(m => m._id === data._id && m.sender?._id === data.sender?._id)) {
+          return prev;
+        }
         return [...prev, data];
       });
     }
@@ -634,25 +537,25 @@ const Project = () => {
     receiveMessage("message-reaction", handleReactionUpdate);
   }, []);
 
-  // Patch messages to simulate readBy for current user's messages
-  const patchedMessages = React.useMemo(() => {
-    return messages.map(msg => {
-      if (msg.sender && msg.sender._id === user._id) {
-        return { ...msg, readBy: [user._id, 'other-user'] };
-      }
-      return msg;
-    });
-  }, [messages, user._id]);
+  // Fix: Deduplicate messages on every update
+  useEffect(() => {
+    setMessages(prev => deduplicateMessages(prev));
+  }, [messages.length]);
 
-  const filteredMessages = React.useMemo(() => {
-    const term = debouncedSearchTerm || deferredSearchTerm;
-    return term
-      ? patchedMessages.filter((msg) => msg.message.toLowerCase().includes(term.toLowerCase()))
-      : patchedMessages;
-  }, [patchedMessages, debouncedSearchTerm, deferredSearchTerm]);
+  // Patch messages to simulate readBy for current user's messages
+  const patchedMessages = messages.map(msg => {
+    if (msg.sender && msg.sender._id === user._id) {
+      return { ...msg, readBy: [user._id, 'other-user'] };
+    }
+    return msg;
+  });
+
+  const filteredMessages = searchTerm
+    ? patchedMessages.filter((msg) => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
+    : patchedMessages;
 
   // Fix: define groupedMessages before return
-  const groupedMessages = React.useMemo(() => groupMessagesByDate(filteredMessages), [filteredMessages]);
+  const groupedMessages = groupMessagesByDate(filteredMessages);
 
   // Map bubble roundness setting to Tailwind classes
   const bubbleRoundnessClass = {
@@ -667,6 +570,251 @@ const Project = () => {
     medium: 'text-base',
     large: 'text-lg',
   }[settings.display?.messageFontSize || 'medium'];
+
+  // Utility to determine text color based on background and theme
+  const getUserBubbleStyle = () => {
+    const bg = settings.display.themeColor || '#3B82F6';
+    let textColor = '#fff';
+    // If user selected white, force black text
+    if (bg.toLowerCase() === '#fff' || bg.toLowerCase() === '#ffffff' || bg.toLowerCase() === 'white') {
+      textColor = '#000';
+    }
+    // If in light mode, always use black text
+    if (!isDarkMode) {
+      textColor = '#000';
+    }
+    // If in dark mode, always use white text
+    if (isDarkMode) {
+      textColor = '#fff';
+    }
+    return {
+      backgroundColor: bg,
+      color: textColor
+    };
+  };
+
+  const renderMessage = (msg) => {
+    const isCurrentUser =
+      msg.sender &&
+      typeof msg.sender === "object" &&
+      msg.sender._id &&
+      msg.sender._id.toString() === user._id.toString()
+
+    const parentMsg = msg.parentMessageId && messages.find((m) => m._id === msg.parentMessageId)
+
+    let reactionGroups = {};
+    if (msg.reactions) {
+      msg.reactions.forEach(r => {
+        if (!reactionGroups[r.emoji]) {
+          reactionGroups[r.emoji] = [];
+        }
+        if (!reactionGroups[r.emoji].includes(r.userId)) {
+          reactionGroups[r.emoji].push(r.userId);
+        }
+      });
+    }
+
+    // Robust system message filtering: check type or known system patterns
+    const isSystemMsg = (msg.type === 'system') || (typeof msg.message === 'string' && (
+      /^user (joined|left|removed|added|invited|renamed|deleted|updated)/i.test(msg.message) ||
+      /^file (created|updated|deleted|renamed)/i.test(msg.message) ||
+      /^system:/i.test(msg.message)
+    ));
+    if (isSystemMsg) {
+      if (!settings.behavior.showSystemMessages) return null;
+      // Try to extract user id or name from the message or sender
+      let notificationText = msg.message;
+      // If message is like 'User joined the project', replace 'User' with full name if possible
+      if (/^User joined the project/i.test(msg.message) && msg.sender && msg.sender._id && msg.sender._id !== 'system') {
+        // Try to find user in users list
+        const joinedUser = users.find(u => u._id === msg.sender._id);
+        if (joinedUser) {
+          notificationText = `${joinedUser.firstName}${joinedUser.lastName ? ' ' + joinedUser.lastName : ''} joined the project`;
+        }
+      }
+      // Render as notification bar
+      return (
+        <div key={msg._id} className="flex justify-center my-2">
+          <div className="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-100 rounded shadow dark:bg-blue-900 dark:text-blue-100">
+            {notificationText}
+          </div>
+        </div>
+      );
+    }
+
+    // Collapse replies if toggle is on
+    const isReply = !!msg.parentMessageId;
+    const isReplyCollapsed = settings.behavior.collapseReplies && isReply && !expandedReplies[msg._id];
+
+    return (
+      <div
+        key={msg._id}
+        className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"} mb-2`}
+      >
+        {isReply && !isReplyCollapsed && (
+          <div className="px-2 py-1 mb-1 text-xs italic bg-gray-200 rounded">
+            Replying to: {parentMsg ? (typeof parentMsg.sender === "object" ? parentMsg.sender.firstName : parentMsg.sender) : "Unknown"}
+          </div>
+        )}
+        {isReply && isReplyCollapsed && (
+          <button
+            className="px-2 py-1 mb-1 text-xs italic bg-gray-100 rounded hover:bg-gray-200"
+            onClick={() => setExpandedReplies(prev => ({ ...prev, [msg._id]: true }))}
+          >
+            Show Reply
+          </button>
+        )}
+        <div className="flex items-start gap-2">
+          {/* Only show Avatar before bubble for others */}
+          {!isCurrentUser && settings.display?.showAvatars && msg.sender && (
+            <Avatar firstName={msg.sender.firstName} className="w-8 h-8" />
+          )}
+          <div
+            className={`flex flex-col p-2 max-w-xs break-words ${bubbleRoundnessClass} ${messageFontSizeClass} ${isCurrentUser ? "" : "bg-white text-gray-800 shadow"}`}
+            style={isCurrentUser ? getUserBubbleStyle() : {}}
+          >
+            {!isCurrentUser && (
+              <small className={`mb-1 font-bold text-gray-700 ${messageFontSizeClass}`}>
+                {typeof msg.sender === "object" ? msg.sender.firstName : msg.sender}
+              </small>
+            )}
+            <div className={`whitespace-pre-wrap ${messageFontSizeClass}`}>
+              {msg.sender && msg.sender._id === "Chatraj" ? (
+                <div className={`p-2 rounded ${settings.display.syntaxHighlighting === false
+                  ? (isDarkMode ? "bg-gray-900 text-white" : "bg-slate-200 text-black")
+                  : "text-white bg-slate-950"} ${messageFontSizeClass}`}>
+                  <Markdown options={{
+                    overrides: {
+                      code: settings.display.syntaxHighlighting === false
+                        ? {
+                          component: (props) => <code style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word', display: 'block', background: 'none', color: 'inherit' }}>{props.children}</code>
+                        }
+                        : SyntaxHighlightedCode
+                    }
+                  }}>
+                    {(() => {
+                      try {
+                        const parsedMessage = JSON.parse(msg.message);
+                        return parsedMessage.text || msg.message;
+                      } catch {
+                        return msg.message;
+                      }
+                    })()}
+                  </Markdown>
+                </div>
+              ) : (
+                <p className={messageFontSizeClass}>{msg.message}</p>
+              )}
+            </div>
+          </div>
+          {isCurrentUser && (
+            <Avatar
+              firstName={user.firstName}
+              className="w-8 h-8 text-sm"
+              style={getUserBubbleStyle()}
+            />
+          )}
+        </div>
+        <div className="relative group">
+          <div className="flex items-center gap-2 mt-1">
+            {settings.display?.showTimestamps && (
+              <small className="text-[10px] text-gray-600">
+                {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              </small>
+            )}
+            {/* Show read receipts if enabled and message is from current user and at least one other user has read it */}
+            {settings.behavior.showReadReceipts && isCurrentUser && (
+              (() => {
+                const status = getMessageStatus(msg);
+                if (!status) return null;
+                return (
+                  <span className="flex items-center gap-1 ml-2 text-xs" style={{ color: status.icon === 'double-green' ? '#22c55e' : status.icon === 'double' ? '#555' : '#555' }}>
+                    {status.icon === 'single' && (
+                      <i className="ri-check-line" title="Sent"></i>
+                    )}
+                    {status.icon === 'double' && (
+                      <>
+                        <i className="ri-check-double-line" title="Received"></i>
+                      </>
+                    )}
+                    {status.icon === 'double-green' && (
+                      <i className="ri-check-double-line" style={{ color: '#22c55e' }} title="Seen"></i>
+                    )}
+                    <span>{status.label}</span>
+                  </span>
+                );
+              })()
+            )}
+            <div className="relative">
+              {!isCurrentUser && (
+                <button
+                  className="p-1 text-xs text-gray-600 rounded opacity-0 dark:text-gray-400 group-hover:opacity-100 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  onClick={() => toggleEmojiPicker(msg._id)}
+                >
+                  <i className="text-base ri-emotion-line"></i>
+                </button>
+              )}
+              <EmojiPicker
+                isOpen={messageEmojiPickers[msg._id]}
+                setIsOpen={(isOpen) => {
+                  setMessageEmojiPickers(prev => ({
+                    ...prev,
+                    [msg._id]: isOpen
+                  }));
+                }}
+                isCurrentUser={isCurrentUser}
+                onSelect={(emoji) => {
+                  if (msg._id && !isCurrentUser) {
+                    handleReaction(msg._id, emoji, user._id);
+                  }
+                }}
+              />
+            </div>
+            {Object.entries(reactionGroups).map(([emoji, users]) => {
+              if (users.length === 0) return null;
+              return (
+                <button
+                  key={emoji}
+                  className={`text-xs px-2 py-1 rounded-full ${users.includes(user._id)
+                    ? 'bg-blue-100 dark:bg-blue-900'
+                    : 'bg-gray-100 dark:bg-gray-700'
+                    }`}
+                  title={users.map(userId => {
+                    const reactingUser = project.users.find(u => u._id === userId);
+                    return reactingUser ? reactingUser.firstName : 'Unknown';
+                  }).join(', ')}
+                >
+                  {emoji} {users.length}
+                </button>
+              );
+            })}
+            <button
+              onClick={() => setReplyingTo(msg)}
+              className="text-xs text-gray-600 opacity-0 group-hover:opacity-100 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+            >
+              Reply
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Helper to get message status for current user's messages
+  function getMessageStatus(msg) {
+    if (!msg || !msg.sender || msg.sender._id !== user._id) return null;
+    const others = (project.users || []).filter(u => u._id !== user._id).map(u => u._id);
+    // Seen: at least one other user in readBy
+    if (Array.isArray(msg.readBy) && msg.readBy.some(uid => uid !== user._id && others.includes(uid))) {
+      return { label: 'Seen', icon: 'double-green' };
+    }
+    // Received: at least one other user in deliveredTo
+    if (Array.isArray(msg.deliveredTo) && msg.deliveredTo.some(uid => uid !== user._id && others.includes(uid))) {
+      return { label: 'Received', icon: 'double' };
+    }
+    // Sent: deliveredTo missing or only contains self
+    return { label: 'Sent', icon: 'single' };
+  }
 
   const projectId = project?._id;
 
@@ -816,36 +964,13 @@ const Project = () => {
           ref={messageBox}
           className="flex flex-col flex-grow gap-1 p-1 pb-20 overflow-auto pt-14 message-box scrollbar-hide bg-slate-50 dark:bg-gray-800"
         >
-          {/* Performance Optimization: Virtualized rendering via IntersectionObserver
-              Each message component now self-manages visibility. */}
           {Object.keys(groupedMessages)
             .sort((a, b) => a.localeCompare(b))
             .map((groupLabel) => (
               <div key={groupLabel}>
                 <div className="py-2 text-sm text-center text-gray-500 dark:text-gray-400">{groupLabel}</div>
                 {groupedMessages[groupLabel].map((msg, idx) => (
-                  <ChatErrorBoundary key={msg._id ? `${groupLabel}-${msg._id}` : `${groupLabel}-idx-${idx}`}>
-                    <ChatMessage
-                      msg={msg}
-                      user={user}
-                      isDarkMode={isDarkMode}
-                      bubbleRoundnessClass={bubbleRoundnessClass}
-                      messageFontSizeClass={messageFontSizeClass}
-                      getUserBubbleStyle={getUserBubbleStyle}
-                      settings={settings}
-                      messages={messages}
-                      users={users}
-                      project={project}
-                      expandedReplies={expandedReplies}
-                      setExpandedReplies={setExpandedReplies}
-                      toggleEmojiPicker={toggleEmojiPicker}
-                      messageEmojiPickers={messageEmojiPickers}
-                      handleReaction={handleReaction}
-                      setReplyingTo={setReplyingTo}
-                      SyntaxHighlightedCode={SyntaxHighlightedCode}
-                      getMessageStatus={getMessageStatus}
-                    />
-                  </ChatErrorBoundary>
+                  <React.Fragment key={msg._id ? `${groupLabel}-${msg._id}` : `${groupLabel}-idx-${idx}`}>{renderMessage(msg)}</React.Fragment>
                 ))}
               </div>
             ))}

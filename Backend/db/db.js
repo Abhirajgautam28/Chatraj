@@ -1,8 +1,6 @@
 import mongoose from "mongoose";
 import dns from 'dns/promises';
 
-let mongoRetryCount = 0;
-
 function shouldAttemptSrvFallback(mongoUri, error) {
     if (!mongoUri || !mongoUri.startsWith('mongodb+srv://')) return false;
     if (!error) return false;
@@ -56,22 +54,16 @@ async function mergeTxtParams(baseParams, cluster, resolver) {
 
 async function connect() {
     try {
-        const uri = process.env.MONGODB_URI;
-        if (!uri) {
+        if (!process.env.MONGODB_URI) {
             throw new Error('MONGODB_URI is not defined in environment variables');
         }
 
         mongoose.set('strictQuery', false);
 
-        const conn = await mongoose.connect(uri, {
-            maxPoolSize: 50,
-            minPoolSize: 10,
+        const conn = await mongoose.connect(process.env.MONGODB_URI, {
+            maxPoolSize: 10,
             serverSelectionTimeoutMS: 10000,
             socketTimeoutMS: 45000,
-            heartbeatFrequencyMS: 10000,
-            waitQueueTimeoutMS: 5000,
-            maxIdleTimeMS: 30000, // Close idle connections after 30s
-            compressors: ['zlib'], // Enable standard wire protocol compression (built-in)
         });
 
         console.log(`MongoDB Connected: ${conn.connection.host}`);
@@ -82,14 +74,8 @@ async function connect() {
 
         mongoose.connection.on('disconnected', () => {
             console.log('MongoDB disconnected');
-            // Use exponential backoff for reconnection
-            const backoff = Math.min(30000, 5000 * Math.pow(2, mongoRetryCount));
-            mongoRetryCount++;
-            setTimeout(connect, backoff);
+            setTimeout(connect, 5000);
         });
-
-        // Reset retry count on successful connection
-        mongoRetryCount = 0;
 
         process.on('SIGINT', async () => {
             await mongoose.connection.close();
@@ -134,14 +120,9 @@ async function connect() {
 
                 console.log('Retrying MongoDB connection using resolved hosts via DNS resolver (custom or system)');
                 const conn2 = await mongoose.connect(resolvedUri, {
-                    maxPoolSize: 50,
-                    minPoolSize: 10,
+                    maxPoolSize: 10,
                     serverSelectionTimeoutMS: 10000,
                     socketTimeoutMS: 45000,
-                    heartbeatFrequencyMS: 10000,
-                    waitQueueTimeoutMS: 5000,
-                    maxIdleTimeMS: 30000,
-                    compressors: ['zlib'],
                 });
                 console.log(`MongoDB Connected (resolved): ${conn2.connection.host}`);
                 return;

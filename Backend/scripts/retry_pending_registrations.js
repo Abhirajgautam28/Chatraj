@@ -6,7 +6,7 @@ import { sendMailWithRetry } from '../utils/mailer.js';
 async function run() {
   try {
     // Collect keys using SCAN where available to avoid blocking Redis on large datasets.
-    const keysSet = new Set();
+    let keys = [];
     const keyPattern = 'pending:registration:*';
     if (typeof redisClient.scan === 'function') {
       let cursor = '0';
@@ -26,9 +26,7 @@ async function run() {
           console.warn('Unexpected SCAN response shape; aborting scan to avoid silent failure:', res);
           break;
         }
-        if (Array.isArray(batch) && batch.length > 0) {
-          for (const k of batch) keysSet.add(k);
-        }
+        if (Array.isArray(batch) && batch.length > 0) keys.push(...batch);
         cursor = String(nextCursor);
         // safety to avoid potential infinite loops in case of unexpected cursor behavior
         if (++safety > 10000) {
@@ -38,16 +36,12 @@ async function run() {
       } while (cursor !== '0');
     } else if (typeof redisClient.keys === 'function') {
       console.warn('redisClient.scan not available; falling back to KEYS (may block Redis on large datasets)');
-      const allKeys = await redisClient.keys(keyPattern);
-      if (Array.isArray(allKeys)) {
-        for (const k of allKeys) keysSet.add(k);
-      }
+      keys = await redisClient.keys(keyPattern);
     } else {
       console.warn('redisClient.scan and keys not available; ensure REDIS_URL is set in production to run this script. Aborting.');
       process.exit(0);
     }
 
-    const keys = Array.from(keysSet);
     if (!keys || keys.length === 0) {
       console.info('No pending registrations found');
       process.exit(0);
@@ -56,18 +50,9 @@ async function run() {
     const ttlDefault = parseInt(process.env.REGISTRATION_OTP_TTL_SECONDS || '900', 10);
     const maxAttempts = parseInt(process.env.REGISTRATION_SEND_RETRY_ATTEMPTS || '5', 10);
 
-    // Optimized: Fetch all keys in batches using pipelines to reduce network roundtrips
-    const BATCH_SIZE = 50;
-    for (let i = 0; i < keys.length; i += BATCH_SIZE) {
-      const batchKeys = keys.slice(i, i + BATCH_SIZE);
-      const pipeline = redisClient.pipeline();
-      for (const k of batchKeys) pipeline.get(k);
-      const results = await pipeline.exec();
-
-      for (let j = 0; j < batchKeys.length; j++) {
-        const k = batchKeys[j];
-        const res = results[j];
-        const v = res ? res[1] : null;
+    for (const k of keys) {
+      try {
+        const v = await redisClient.get(k);
         if (!v) continue;
         let pending;
         try {
@@ -138,6 +123,8 @@ async function run() {
         } catch (err) {
           console.error('Failed to resend to', pending.email, err && err.message ? err.message : err);
         }
+      } catch (err) {
+        console.error('Error processing pending key', k, err && err.message ? err.message : err);
       }
     }
 

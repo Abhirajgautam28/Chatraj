@@ -1,6 +1,5 @@
 import projectModel from '../models/project.model.js';
 import mongoose from 'mongoose';
-import redisClient from './redis.service.js';
 
 // Basic recursive validation to ensure fileTree is a plain JSON-like structure
 // and does not contain MongoDB operator-style keys (starting with '$' or containing '.').
@@ -97,7 +96,7 @@ export const getAllProjectByUserId = async ({ userId, category }) => {
     query.category = category;
   }
 
-  const allUserProjects = await projectModel.find(query).lean();
+  const allUserProjects = await projectModel.find(query);
   return allUserProjects;
 };
 
@@ -115,7 +114,7 @@ export const addUsersToProject = async ({ projectId, users, userId }) => {
         throw new Error("users are required")
     }
 
-    if (!Array.isArray(users) || users.some(uId => !mongoose.Types.ObjectId.isValid(uId))) {
+    if (!Array.isArray(users) || users.some(userId => !mongoose.Types.ObjectId.isValid(userId))) {
         throw new Error("Invalid userId(s) in users array")
     }
 
@@ -127,29 +126,34 @@ export const addUsersToProject = async ({ projectId, users, userId }) => {
         throw new Error("Invalid userId")
     }
 
-    // Atomic update: ensure the requester (userId) is a member, then add new users.
-    const updatedProject = await projectModel.findOneAndUpdate(
-        { _id: projectId, users: userId },
-        { $addToSet: { users: { $each: users } } },
-        { new: true }
-    );
 
-    if (updatedProject) {
-        // Atomic MongoDB denormalized count
-        await mongoose.model('user').updateMany({ _id: { $in: users } }, { $inc: { projectsCount: 1 } });
+    const project = await projectModel.findOne({
+        _id: projectId,
+        users: userId
+    })
 
-        if (typeof redisClient.zincrby === 'function') {
-            for (const uId of users) {
-                redisClient.zincrby('user:leaderboard:zset', 1, uId.toString()).catch(() => {});
+    // ...removed console.log for production cleanliness
+
+    if (!project) {
+        throw new Error("User not belong to this project")
+    }
+
+    const updatedProject = await projectModel.findOneAndUpdate({
+        _id: projectId
+    }, {
+        $addToSet: {
+            users: {
+                $each: users
             }
         }
-    }
-
-    if (!updatedProject) {
-        throw new Error("User not belong to this project or project not found")
-    }
+    }, {
+        new: true
+    })
 
     return updatedProject
+
+
+
 }
 
 export const getProjectById = async ({ projectId, userId }) => {
@@ -164,7 +168,7 @@ export const getProjectById = async ({ projectId, userId }) => {
     // Populate only _id, firstName, lastName for users
     const project = await projectModel.findOne({
         _id: projectId
-    }).populate('users', '_id firstName lastName').lean();
+    }).populate('users', '_id firstName lastName')
 
     if (!project) {
         throw new Error("Project not found");
@@ -201,19 +205,24 @@ export const updateFileTree = async ({ projectId, fileTree, userId }) => {
     // Normalize to plain JSON to strip any unexpected prototypes or non-serializable values
     const safeFileTree = JSON.parse(JSON.stringify(fileTree));
 
-    // Single atomic operation that validates membership AND updates
+    if (userId) {
+        const project = await projectModel.findOne({
+            _id: projectId,
+            users: userId
+        });
+
+        if (!project) {
+            throw new Error("Unauthorized access");
+        }
+    }
+
     const project = await projectModel.findOneAndUpdate({
-        _id: projectId,
-        users: userId
+        _id: projectId
     }, {
         $set: { fileTree: safeFileTree }
     }, {
         new: true
-    }).lean();
-
-    if (!project) {
-        throw new Error("Unauthorized access or project not found");
-    }
+    })
 
     return project;
 }

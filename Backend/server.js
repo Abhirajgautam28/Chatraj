@@ -3,14 +3,11 @@ import 'dotenv/config';
 import './patches/patch-validator-isURL.js';
 import app from './app.js';
 import connect from './db/db.js';
-import redisClient from './services/redis.service.js';
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import projectModel from './models/project.model.js';
 import { generateResult } from './services/ai.service.js';
-import { withCache } from './utils/cache.js';
-import { serializeMessage } from './utils/response.js';
 import Message from './models/message.model.js';
 import pingService from './services/ping.service.js';
 
@@ -35,29 +32,10 @@ if (missing.length) {
 connect().catch(console.error);
 
 const server = http.createServer(app);
-
-// Node.js Runtime performance tuning
-server.keepAliveTimeout = 65000; // Slightly higher than LB timeout
-server.headersTimeout = 66000;
 const io = new Server(server, {
     cors: {
         origin: '*'
-    },
-    // Enable per-message compression for high-volume chat data
-    perMessageDeflate: {
-        threshold: 1024, // only compress messages > 1kb
-        zlibDeflateOptions: {
-            chunkSize: 8 * 1024,
-        },
-        zlibInflateOptions: {
-            windowBits: 14,
-        },
-    },
-    // Faster detection of dead clients to free up server resources
-    pingTimeout: 10000,
-    pingInterval: 5000,
-    // Connect timeout
-    connectTimeout: 20000
+    }
 });
 
 io.use(async (socket, next) => {
@@ -71,11 +49,7 @@ io.use(async (socket, next) => {
             return next(new Error('Invalid projectId'));
         }
 
-        // Cache project metadata for 10 seconds to throttle DB lookups during rapid reconnections
-        const project = await withCache(`project:socket:${projectId}`, 10, async () => {
-            return await projectModel.findById(projectId).lean();
-        });
-
+        const project = await projectModel.findById(projectId);
         if (!project) {
             return next(new Error('Project not found'));
         }
@@ -102,12 +76,6 @@ io.on('connection', socket => {
     socket.join(socket.roomId);
 
     socket.on('project-message', async data => {
-        // Message deduplication for cluster mode / client retries
-        if (data.msgId) {
-            const isDuplicate = await redisClient.set(`msg:dedup:${data.msgId}`, '1', 'NX', 'EX', 3600);
-            if (!isDuplicate) return;
-        }
-
         const messageText = data.message;
         const parentMessageId = data.parentMessageId || null;
         const aiIsPresent = messageText.includes('@Chatraj');
@@ -119,15 +87,14 @@ io.on('connection', socket => {
                 message: messageText,
                 parentMessageId: parentMessageId,
                 createdAt: new Date(),
-                deliveredTo: [data.sender._id], // Sender automatically has it 'delivered'
-                readBy: [data.sender._id] // Sender automatically has it 'read'
+                deliveredTo: [], // Track delivery
+                readBy: [] // Track reads
             });
         } catch (err) {
             console.error("Error saving message:", err);
             savedMessage = { ...data, createdAt: new Date().toISOString(), deliveredTo: [], readBy: [] };
         }
-
-        io.to(socket.roomId).emit('project-message', serializeMessage(savedMessage));
+        io.to(socket.roomId).emit('project-message', savedMessage);
 
         if (aiIsPresent) {
             const prompt = messageText.replace('@Chatraj', '');
@@ -146,7 +113,7 @@ io.on('connection', socket => {
                 console.error("Error saving AI message:", err);
                 savedAIMessage = { message: result, sender: { _id: 'Chatraj', email: 'Chatraj' }, createdAt: new Date().toISOString() };
             }
-            io.to(socket.roomId).emit('project-message', serializeMessage(savedAIMessage));
+            io.to(socket.roomId).emit('project-message', savedAIMessage);
             return;
         }
     })
@@ -154,11 +121,10 @@ io.on('connection', socket => {
     // Delivery event: when a user receives a message, mark as delivered
     socket.on('message-delivered', async ({ messageId, userId }) => {
         try {
-            const result = await Message.updateOne(
-                { _id: messageId, deliveredTo: { $ne: userId } },
-                { $addToSet: { deliveredTo: userId } }
-            );
-            if (result.modifiedCount > 0) {
+            const message = await Message.findById(messageId);
+            if (message && !message.deliveredTo.includes(userId)) {
+                message.deliveredTo.push(userId);
+                await message.save();
                 io.to(socket.roomId).emit('message-delivered', { messageId, userId });
             }
         } catch (err) {
@@ -166,29 +132,13 @@ io.on('connection', socket => {
         }
     });
 
-    // Performance Optimization: Batch delivery status updates
-    socket.on('messages-delivered-batch', async ({ messageIds, userId }) => {
-        try {
-            const result = await Message.updateMany(
-                { _id: { $in: messageIds }, deliveredTo: { $ne: userId } },
-                { $addToSet: { deliveredTo: userId } }
-            );
-            if (result.modifiedCount > 0) {
-                io.to(socket.roomId).emit('messages-delivered-batch', { messageIds, userId });
-            }
-        } catch (err) {
-            console.error('Error updating deliveredTo batch:', err);
-        }
-    });
-
     // Read event: when a user reads a message, mark as read
     socket.on('message-read', async ({ messageId, userId }) => {
         try {
-            const result = await Message.updateOne(
-                { _id: messageId, readBy: { $ne: userId } },
-                { $addToSet: { readBy: userId } }
-            );
-            if (result.modifiedCount > 0) {
+            const message = await Message.findById(messageId);
+            if (message && !message.readBy.includes(userId)) {
+                message.readBy.push(userId);
+                await message.save();
                 io.to(socket.roomId).emit('message-read', { messageId, userId });
             }
         } catch (err) {
@@ -196,50 +146,23 @@ io.on('connection', socket => {
         }
     });
 
-    // Performance Optimization: Batch read status updates
-    socket.on('messages-read-batch', async ({ messageIds, userId }) => {
-        try {
-            const result = await Message.updateMany(
-                { _id: { $in: messageIds }, readBy: { $ne: userId } },
-                { $addToSet: { readBy: userId } }
-            );
-            if (result.modifiedCount > 0) {
-                io.to(socket.roomId).emit('messages-read-batch', { messageIds, userId });
-            }
-        } catch (err) {
-            console.error('Error updating readBy batch:', err);
-        }
-    });
-
     socket.on('message-reaction', async (data) => {
         try {
-            // Optimization: Single atomic update for toggle (Pull then Push if emoji exists)
-            // To ensure strict atomicity and avoid two round-trips:
-            // 1. Pull the user's existing reaction
-            // 2. If data.emoji is provided, Push the new one
+            const message = await Message.findById(data.messageId);
+            if (message) {
+                message.reactions = message.reactions.filter(r =>
+                    r.userId.toString() !== data.userId.toString()
+                );
 
-            // In MongoDB, we can't do $pull and $push on the same field in one update.
-            // But we can $set a filtered array.
-            // Optimized logic:
-            const update = {
-                $pull: { reactions: { userId: data.userId } }
-            };
+                if (data.emoji) {
+                    message.reactions.push({
+                        emoji: data.emoji,
+                        userId: data.userId
+                    });
+                }
 
-            await Message.updateOne({ _id: data.messageId }, update);
-
-            let finalMessage;
-            if (data.emoji) {
-                finalMessage = await Message.findOneAndUpdate(
-                    { _id: data.messageId },
-                    { $push: { reactions: { emoji: data.emoji, userId: data.userId } } },
-                    { new: true }
-                ).lean();
-            } else {
-                finalMessage = await Message.findById(data.messageId).lean();
-            }
-
-            if (finalMessage) {
-                io.to(socket.roomId).emit('message-reaction', finalMessage);
+                await message.save();
+                io.to(socket.roomId).emit('message-reaction', message);
             }
         } catch (error) {
             console.error("Error handling reaction:", error.message);
@@ -247,15 +170,14 @@ io.on('connection', socket => {
     });
 
     socket.on('typing', (data) => {
-        // Optimization: Volatile events for high-frequency ephemeral state
-        socket.to(socket.roomId).volatile.emit('typing', {
+        socket.to(socket.roomId).emit('typing', {
             userId: data.userId,
             projectId: data.projectId
         });
     });
 
     socket.on('stop-typing', (data) => {
-        socket.to(socket.roomId).volatile.emit('stop-typing', {
+        socket.to(socket.roomId).emit('stop-typing', {
             userId: data.userId,
             projectId: data.projectId
         });

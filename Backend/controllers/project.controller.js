@@ -3,71 +3,18 @@ import * as projectService from '../services/project.service.js';
 import userModel from '../models/user.model.js';
 import mongoose from 'mongoose';
 import { validationResult } from 'express-validator';
-import { withCache, invalidateCache } from '../utils/cache.js';
-import redisClient from '../services/redis.service.js';
 
 export const getAllProject = async (req, res) => {
     try {
-        const { category } = req.query;
-        const cacheKey = `user:${req.user._id}:projects:${category || 'all'}`;
-
-        const projects = await withCache(cacheKey, 300, async () => {
-            // Use req.user._id directly from optimized JWT payload
-            const query = { users: { $in: [req.user._id] } };
-            if (category) query.category = category;
-
-            // Exclude heavy fileTree from project list for performance
-            return await projectModel.find(query).select('-fileTree').lean();
-        }, [`user:${req.user._id}:projects`]);
-
+        const loggedInUser = await userModel.findOne({ email: req.user.email });
+        if (!loggedInUser) {
+            return res.status(401).json({ error: 'User not found' });
+        }
+        // Find all projects where user is a member
+        const projects = await projectModel.find({ users: { $in: [loggedInUser._id] } });
         res.status(200).json({ projects });
     } catch (err) {
         console.error('getAllProject error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-};
-
-export const getProjectMessages = async (req, res) => {
-    try {
-        const { projectId } = req.params;
-        const { limit = 50, before } = req.query;
-
-        if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
-            return res.status(400).json({ error: 'Invalid projectId' });
-        }
-
-        const query = { conversationId: new mongoose.Types.ObjectId(projectId) };
-        if (before) {
-            query.createdAt = { $lt: new Date(before) };
-        }
-
-        // Optimization: Single Optimized MongoDB Aggregation for Chat History
-        const messages = await mongoose.model('Message').aggregate([
-            { $match: query },
-            { $sort: { createdAt: -1 } },
-            { $limit: parseInt(limit, 10) },
-            {
-                $project: {
-                    _id: 1,
-                    message: 1,
-                    parentMessageId: 1,
-                    reactions: 1,
-                    deliveredTo: 1,
-                    readBy: 1,
-                    createdAt: 1,
-                    sender: {
-                        _id: "$sender._id",
-                        firstName: "$sender.firstName",
-                        lastName: "$sender.lastName",
-                        email: "$sender.email"
-                    }
-                }
-            }
-        ]);
-
-        res.status(200).json({ messages: messages.reverse() });
-    } catch (err) {
-        console.error('getProjectMessages error:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -79,36 +26,23 @@ export const createProject = async (req, res) => {
     }
 
     try {
-        const { name, category, users: collaboratorIds } = req.body;
-        // Invalidate caches when a new project is created
-        await invalidateCache('project:showcase');
-        await invalidateCache(`user:${req.user._id}:project-counts`);
-        await invalidateCache(`user:${req.user._id}:projects`, true);
-
-        // Update Leaderboard ZSET in background
-        if (typeof redisClient.zincrby === 'function') {
-           const allUserIds = collaboratorIds ? [...collaboratorIds, req.user._id] : [req.user._id];
-           for (const uid of allUserIds) {
-               redisClient.zincrby('user:leaderboard:zset', 1, uid.toString()).catch(() => {});
-           }
-        }
-
+        const { name, category, users } = req.body;
         // NOTE: category validation is handled by route validator now,
         // but kept here for safety if validator fails or is bypassed.
         if (!name || !category) {
             return res.status(400).json({ error: 'Name and category are required' });
         }
-        // Use req.user._id directly from optimized JWT payload
+        const loggedInUser = await userModel.findOne({ email: req.user.email });
+        if (!loggedInUser) {
+            return res.status(401).json({ error: 'User not found' });
+        }
+        // Create new project
         const project = await projectModel.create({
             name,
             category,
-            users: collaboratorIds ? [...collaboratorIds, req.user._id] : [req.user._id],
-            createdBy: req.user._id
+            users: users ? [...users, loggedInUser._id] : [loggedInUser._id],
+            createdBy: loggedInUser._id
         });
-
-        // Denormalized project count update
-        const allUserIds = collaboratorIds ? [...collaboratorIds, req.user._id] : [req.user._id];
-        await userModel.updateMany({ _id: { $in: allUserIds } }, { $inc: { projectsCount: 1 } });
         res.status(201).json({ project });
     } catch (err) {
         console.error('createProject error:', err);
@@ -125,11 +59,11 @@ export const addUserToProject = async (req, res) => {
 
     try {
         const { projectId, users } = req.body;
-        // Use req.user._id directly from optimized JWT payload
+        const loggedInUser = await userModel.findOne({ email: req.user.email });
         const project = await projectService.addUsersToProject({
             projectId,
             users,
-            userId: req.user._id
+            userId: loggedInUser._id
         });
         return res.status(200).json({ project });
     } catch (err) {
@@ -138,7 +72,7 @@ export const addUserToProject = async (req, res) => {
     }
 }
 
-// Update only sidebar settings for a project (shallow merge via atomic update)
+// Update only sidebar settings for a project (deep merge)
 export const updateProjectSidebarSettings = async (req, res) => {
     try {
         const { projectId } = req.params;
@@ -147,23 +81,17 @@ export const updateProjectSidebarSettings = async (req, res) => {
             return res.status(400).json({ error: 'Sidebar settings required' });
         }
         if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) return res.status(400).json({ error: 'Invalid projectId' });
-
-        // Prepare atomic update using dot notation to avoid overwriting entire settings object
-        const update = {};
-        for (const [key, value] of Object.entries(sidebar)) {
-            update[`settings.sidebar.${key}`] = value;
-        }
-
-        const project = await projectModel.findOneAndUpdate(
-            { _id: projectId, users: req.user._id },
-            { $set: update },
-            { new: true }
-        );
-
-        if (!project) return res.status(404).json({ error: 'Project not found or Unauthorized' });
-        res.status(200).json({ sidebar: project.settings?.sidebar || {} });
+        const project = await projectModel.findById(projectId);
+        if (!project) return res.status(404).json({ error: 'Project not found' });
+        // Authorization: check if requesting user is member
+        const isMember = project.users && project.users.some(u => u.toString() === req.user._id.toString());
+        if (!isMember) return res.status(401).json({ error: 'Unauthorized' });
+        // Deep merge sidebar settings
+        project.settings = project.settings || {};
+        project.settings.sidebar = { ...project.settings.sidebar, ...sidebar };
+        await project.save();
+        res.status(200).json({ sidebar: project.settings.sidebar });
     } catch (err) {
-        console.error('updateProjectSidebarSettings error:', err);
         res.status(500).json({ error: err.message });
     }
 };
@@ -171,8 +99,6 @@ export const updateProjectSidebarSettings = async (req, res) => {
 // Get project counts by category
 export const getProjectCountsByCategory = async (req, res) => {
   try {
-    const cacheKey = `user:${req.user._id}:project-counts`;
-    const result = await withCache(cacheKey, 60, async () => {
     // List of all categories as in frontend
     const allCategories = [
       'DSA',
@@ -191,9 +117,14 @@ export const getProjectCountsByCategory = async (req, res) => {
       'Documentation Generation',
       'Code Refactoring'
     ];
-    // Aggregate project counts by category, filtered by user from JWT payload
+    // Get logged-in user
+    const loggedInUser = await userModel.findOne({ email: req.user.email });
+    if (!loggedInUser) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+    // Aggregate project counts by category, filtered by user
     const counts = await projectModel.aggregate([
-      { $match: { users: { $in: [new mongoose.Types.ObjectId(req.user._id)] } } },
+      { $match: { users: { $in: [loggedInUser._id] } } },
       {
         $group: {
           _id: "$category",
@@ -211,8 +142,6 @@ export const getProjectCountsByCategory = async (req, res) => {
         result[item._id] = item.count;
       }
     });
-    return result;
-    });
     res.status(200).json(result);
   } catch (err) {
         console.error('getProjectCountsByCategory error:', err);
@@ -222,10 +151,7 @@ export const getProjectCountsByCategory = async (req, res) => {
 
 export const getProjectShowcase = async (req, res) => {
     try {
-        const projects = await withCache('project:showcase', 300, async () => {
-            // Exclude heavy fileTree from showcase for performance
-            return await projectModel.find({}).select('-fileTree').sort({ users: -1 }).limit(10).lean();
-        });
+        const projects = await projectModel.find({}).sort({ users: -1 }).limit(10);
         res.status(200).json({ projects });
     } catch (error) {
         console.error('getProjectShowcase error:', error);
@@ -288,7 +214,7 @@ export const getProjectSettings = async (req, res) => {
     try {
         const { projectId } = req.params;
         if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) return res.status(400).json({ error: 'Invalid projectId' });
-        const project = await projectModel.findById(projectId).lean();
+        const project = await projectModel.findById(projectId);
         if (!project) return res.status(404).json({ error: 'Project not found' });
         const isMember = project.users && project.users.some(u => u.toString() === req.user._id.toString());
         if (!isMember) return res.status(401).json({ error: 'Unauthorized' });
@@ -304,15 +230,12 @@ export const updateProjectSettings = async (req, res) => {
         const { projectId } = req.params;
         const { settings } = req.body;
         if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) return res.status(400).json({ error: 'Invalid projectId' });
-
-        // Atomic update settings while verifying membership
-        const project = await projectModel.findOneAndUpdate(
-            { _id: projectId, users: req.user._id },
-            { $set: { settings } },
-            { new: true }
-        ).lean();
-
-        if (!project) return res.status(404).json({ error: 'Project not found or Unauthorized' });
+        const project = await projectModel.findById(projectId);
+        if (!project) return res.status(404).json({ error: 'Project not found' });
+        const isMember = project.users && project.users.some(u => u.toString() === req.user._id.toString());
+        if (!isMember) return res.status(401).json({ error: 'Unauthorized' });
+        project.settings = settings;
+        await project.save();
         res.status(200).json({ settings: project.settings });
     } catch (err) {
         console.error('updateProjectSettings error:', err);

@@ -2,39 +2,14 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import 'remixicon/fonts/remixicon.css';
 
-const MaterialBlogCard = ({ blog }) => {
-  const [isVisible, setIsVisible] = React.useState(false);
-  const domRef = React.useRef();
-
-  React.useEffect(() => {
-    const observer = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting) {
-        setIsVisible(true);
-        observer.unobserve(domRef.current);
-      }
-    }, { rootMargin: '200px' });
-    if (domRef.current) observer.observe(domRef.current);
-    return () => observer.disconnect();
-  }, []);
-
-  if (!isVisible) return <div ref={domRef} className="h-[400px] w-full max-w-md mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />;
-
-  return (
+const MaterialBlogCard = ({ blog }) => (
   <div
-    ref={domRef}
     className={`rounded-xl shadow-md bg-white dark:bg-gray-900 hover:shadow-lg transition-shadow duration-200 flex flex-col h-full border border-gray-200 dark:border-gray-800 max-w-md mx-auto`}
     style={{ minWidth: 0 }}
   >
     <div className="p-0">
       {blog.coverImage && (
-        <img
-          src={blog.coverImage}
-          alt={`Cover image for ${blog.title}`}
-          className="rounded-t-xl w-full h-48 object-cover"
-          loading="lazy"
-          width="400"
-          height="192"
-        />
+        <img src={blog.coverImage} alt={`Cover image for ${blog.title}`} className="rounded-t-xl w-full h-48 object-cover" />
       )}
     </div>
     <div className="flex-1 flex flex-col p-5">
@@ -42,9 +17,7 @@ const MaterialBlogCard = ({ blog }) => {
       <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-3">{blog.summary || blog.content?.slice(0, 120) + '...'}</p>
       <div className="flex items-center gap-2 mt-auto">
         <i className="ri-user-3-line text-lg text-blue-400 dark:text-blue-300" />
-        <span className="text-gray-500 dark:text-gray-300 text-xs">
-            {blog.author ? `${blog.author.firstName} ${blog.author.lastName}` : 'Unknown Author'}
-        </span>
+        <span className="text-gray-500 dark:text-gray-300 text-xs">{blog.authorName || 'Unknown Author'}</span>
         <span className="mx-2 text-gray-300 dark:text-gray-600">|</span>
         <i className="ri-calendar-line text-lg text-blue-400 dark:text-blue-300" />
         <span className="text-gray-500 dark:text-gray-300 text-xs">{blog.createdAt ? new Date(blog.createdAt).toLocaleDateString() : ''}</span>
@@ -56,7 +29,6 @@ const MaterialBlogCard = ({ blog }) => {
       </Link>
     </div>
   </div>
-  );
-};
+);
 
 export default MaterialBlogCard;

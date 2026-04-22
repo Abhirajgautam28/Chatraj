@@ -1,10 +1,8 @@
-import React, { useState, useRef, useEffect, useContext, useCallback, useMemo } from 'react';
+import { useState, useRef, useEffect, useContext, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { ChatRajThemeContext } from '../context/chatraj-theme.context';
 import { UserContext } from '../context/user.context';
 import { useNavigate } from 'react-router-dom';
-import ChatRajMessage from '../components/ChatRajMessage';
-import { useDebounce } from '../hooks/useDebounce';
 
 const formatMessageTime = (timestamp) => {
   const date = new Date(timestamp);
@@ -28,13 +26,6 @@ const ChatRaj = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearchTerm = useDebounce(searchTerm, 300);
-
-  const filteredMessagesList = useMemo(() => {
-    if (!debouncedSearchTerm) return messages;
-    const lowerSearch = debouncedSearchTerm.toLowerCase();
-    return messages.filter(m => m.content && typeof m.content === 'string' && m.content.toLowerCase().includes(lowerSearch));
-  }, [messages, debouncedSearchTerm]);
   const [activeSettingsTab, setActiveSettingsTab] = useState('display');
   const [settings, setSettings] = useState(() => {
     const savedSettings = localStorage.getItem('chatrajSettings');
@@ -602,14 +593,39 @@ const ChatRaj = () => {
                   </p>
                 </div>
               ) : (
-                filteredMessagesList.map((message, index) => (
-                  <ChatRajMessage
+                (searchTerm
+                  ? messages.filter(message =>
+                      message.content.toLowerCase().includes(searchTerm.toLowerCase())
+                    )
+                  : messages
+                ).map((message, index) => (
+                  <div
                     key={index}
-                    index={index}
-                    message={message}
-                    settings={settings}
-                    formatMessageTime={formatMessageTime}
-                  />
+                    className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div className={`max-w-[80%] px-4 py-3 ${settings.display.chatBubbles.roundness} ${
+                      message.type === 'user'
+                        ? 'text-white'
+                        : 'text-black dark:text-white'
+                    }`}
+                    style={{
+                      backgroundColor: message.type === 'user' ? 'var(--primary-color)' : 'var(--secondary-bg-color)',
+                    }}
+                    >
+                      <p className={`${settings.display.typography.fontFamily} ${
+                        message.type === 'user'
+                          ? settings.display.typography.userMessageSize
+                          : settings.display.typography.aiMessageSize
+                      }`}>
+                        {message.content}
+                      </p>
+                      {settings.sidebar.showTimestamps && (
+                        <p className="mt-1 text-xs opacity-75">
+                          {formatMessageTime(message.timestamp)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 ))
               )}
               {isThinking && (

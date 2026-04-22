@@ -23,7 +23,6 @@ const userSchema = new mongoose.Schema({
         unique: true,
         trim: true,
         lowercase: true,
-        index: true,
         minLength: [ 6, 'Email must be at least 6 characters long' ],
         maxLength: [ 50, 'Email must not be longer than 50 characters' ]
     },
@@ -43,15 +42,7 @@ const userSchema = new mongoose.Schema({
     isVerified: {
         type: Boolean,
         default: false
-    },
-    projectsCount: {
-        type: Number,
-        default: 0,
-        index: true
     }
-}, {
-    versionKey: false,
-    autoIndex: process.env.NODE_ENV !== 'production'
 });
 
 userSchema.statics.hashPassword = async function (password) {
@@ -65,13 +56,11 @@ userSchema.methods.isValidPassword = async function (password) {
 
 userSchema.methods.generateJWT = function () {
     return jwt.sign(
-        { _id: this._id, email: this.email, firstName: this.firstName, lastName: this.lastName },
+        { email: this.email, firstName: this.firstName, lastName: this.lastName },
         process.env.JWT_SECRET,
         { expiresIn: '24h' }
     );
 };
-
-userSchema.index({ firstName: 'text', lastName: 'text', email: 'text' });
 
 const User = mongoose.model('user', userSchema);
 

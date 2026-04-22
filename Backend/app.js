@@ -1,5 +1,5 @@
 import express from 'express';
-import fs from 'fs/promises';
+import fs from 'fs';
 import morgan from 'morgan';
 import connect from './db/db.js';
 import userRoutes from './routes/user.routes.js';
@@ -54,59 +54,16 @@ function createSignedCsrf() {
   const raw = `${Date.now()}:${crypto.randomBytes(12).toString('base64url')}`;
   return signRawToken(raw);
 }
-const allowedOrigins = new Set([
+const allowedOrigins = [
   'https://chatraj-frontend.vercel.app',
   'https://chatraj.vercel.app',
   'http://localhost:5173',
   'http://localhost:5174',
   'https://chatraj-fpo1pa3bz-abhiraj-gautams-projects.vercel.app'
-]);
+];
 
 
 const app = express();
-
-// Manual security & performance headers (Helmet-lite)
-const assetCache = new Map();
-const hotAssets = ['/chatraj-icon.svg', '/favicon.ico', '/manifest.json'];
-
-// Warm up static asset cache at startup
-import path from 'path';
-hotAssets.forEach(async (asset) => {
-    try {
-        const filePath = path.join(process.cwd(), 'public', asset);
-        const data = await fs.readFile(filePath);
-        const ext = path.extname(asset);
-        const type = ext === '.svg' ? 'image/svg+xml' : ext === '.json' ? 'application/json' : 'image/x-icon';
-        assetCache.set(asset, { data, type });
-    } catch (e) { /* ignore load errors */ }
-});
-
-app.use((req, res, next) => {
-  // Strategic In-Memory Cache for high-frequency small static assets
-  if (req.method === 'GET' && hotAssets.includes(req.path)) {
-      if (assetCache.has(req.path)) {
-          const { data, type } = assetCache.get(req.path);
-          res.setHeader('Content-Type', type);
-          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-          return res.send(data);
-      }
-      // Optimization: No dynamic imports in middleware to avoid overhead
-  }
-
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  // Performance: hint browser to keep connection alive
-  res.setHeader('Connection', 'keep-alive');
-  next();
-});
-
-// Production performance tuning
-if (process.env.NODE_ENV === 'production') {
-  app.disable('x-powered-by');
-  app.set('json spaces', 0);
-}
 
 // Helper: determine whether cookies should be marked Secure + SameSite=None
 // based on the incoming request or enforced environment flags. Extracted
@@ -121,31 +78,6 @@ function isSecureFromRequest(req) {
   }
 }
 
-const VERCEL_ORIGIN_REGEX = /^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/;
-
-// Performance monitoring & Timeout middleware
-const performanceLogger = (req, res, next) => {
-  const isProd = process.env.NODE_ENV === 'production';
-  const start = Date.now();
-
-  // Set a reasonable global timeout for API requests (30s)
-  req.setTimeout(30000, () => {
-    const err = new Error('Request Timeout');
-    err.status = 408;
-    next(err);
-  });
-
-  if (isProd) {
-    res.on('finish', () => {
-      const duration = Date.now() - start;
-      if (duration > 500) {
-        console.warn(`[PERF] Slow Request: ${req.method} ${req.originalUrl} took ${duration}ms`);
-      }
-    });
-  }
-  next();
-};
-
 // CORS debug logger
 const corsErrorLogger = (err, req, res, next) => {
   if (err && err.message && err.message.includes('CORS')) {
@@ -158,10 +90,11 @@ const corsErrorLogger = (err, req, res, next) => {
 
 // Improved CORS middleware for Vercel/Render/localhost
 const dynamicCors = (origin, callback) => {
+  const vercelRegex = /^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/;
   if (!origin) return callback(null, true);
   if (
-    allowedOrigins.has(origin) ||
-    VERCEL_ORIGIN_REGEX.test(origin) ||
+    allowedOrigins.includes(origin) ||
+    vercelRegex.test(origin) ||
     origin === 'null'
   ) {
     return callback(null, true);
@@ -187,8 +120,7 @@ app.use(cors({
 
 app.use(corsErrorLogger);
 
-app.use(performanceLogger);
-app.use(morgan(process.env.NODE_ENV === 'production' ? 'tiny' : 'dev'));
+app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -295,49 +227,21 @@ app.use("/api/ai", aiRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/blogs', blogRoutes);
 
-// Optimized static asset serving with long-term caching for production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static('public', {
-    maxAge: '1y',
-    immutable: true,
-    setHeaders: (res, path) => {
-      if (path.endsWith('.html')) {
-        res.setHeader('Cache-Control', 'no-cache');
-      }
-    }
-  }));
-}
-
 app.use((err, req, res, next) => {
-  const isDev = process.env.NODE_ENV === 'development';
-
-  // Log full error in dev, but minimal in prod to save log space/privacy
-  if (isDev) {
-    console.error(err);
-  } else {
-    console.error(`[ERROR] ${err.name || 'Error'}: ${err.message || 'Unknown error'} | Path: ${req.path}`);
-  }
-
+  console.error(err.stack);
   // Handle CSRF errors specially
   if (err && (err.code === 'EBADCSRFTOKEN' || err.message === 'invalid csrf token')) {
+    console.error('CSRF validation failed:', err.message);
     return res.status(403).json({
       error: 'Invalid CSRF token',
-      message: isDev ? err.message : 'Forbidden'
+      message: process.env.NODE_ENV === 'development' ? err.message : 'Forbidden'
     });
-  }
-
-  // Mongoose validation errors
-  if (err.name === 'ValidationError') {
-      return res.status(400).json({
-          error: 'Validation Error',
-          details: Object.values(err.errors).map(e => e.message)
-      });
   }
 
   const status = err.status || 500;
   res.status(status).json({ 
-    error: status === 500 ? 'Internal Server Error' : 'Error',
-    message: isDev ? err.message : (status === 500 ? 'Something went wrong on our end.' : err.message)
+    error: 'Something broke!',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
   });
 });
 

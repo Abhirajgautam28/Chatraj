@@ -14,17 +14,12 @@ const commentSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
-}, {
-    _id: false // Sub-documents don't need their own ID to save memory
 });
 
 const blogSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true
-    },
-    summary: {
-        type: String
     },
     content: {
         type: String,
@@ -33,30 +28,18 @@ const blogSchema = new mongoose.Schema({
     author: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user',
-        required: true,
-        index: true
+        required: true
     },
-    likes: {
-        type: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'user'
-            }
-        ],
-        index: true
-    },
+    likes: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'user'
+    }],
     comments: [commentSchema],
     createdAt: {
         type: Date,
-        default: Date.now,
-        index: -1
+        default: Date.now
     }
-}, {
-    versionKey: false,
-    autoIndex: process.env.NODE_ENV !== 'production'
 });
-
-blogSchema.index({ title: 'text', content: 'text' });
 
 const Blog = mongoose.model('Blog', blogSchema);
 

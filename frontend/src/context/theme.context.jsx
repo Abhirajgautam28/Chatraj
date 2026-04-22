@@ -36,13 +36,8 @@ export function ThemeProvider({ children }) {
     }
   }, [isDarkMode]);
 
-  const contextValue = React.useMemo(() => ({
-    isDarkMode,
-    setIsDarkMode
-  }), [isDarkMode]);
-
   return (
-    <ThemeContext.Provider value={contextValue}>
+    <ThemeContext.Provider value={{ isDarkMode, setIsDarkMode }}>
       {children}
     </ThemeContext.Provider>
   );

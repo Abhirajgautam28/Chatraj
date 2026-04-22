@@ -1,13 +1,40 @@
 import mongoose from 'mongoose';
-import { withCache, invalidateCache } from '../utils/cache.js';
+
+// Send OTP for password reset (used in Login.jsx)
+export const sendOtpController = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const { value: normalizedEmail, isValid } = normalizeEmail(email);
+        if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
+        const user = await userModel.findOne({ email: normalizedEmail });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        // Generate OTP
+        const otp = generateOTP(7);
+        user.otp = otp;
+        user.isVerified = false;
+        await user.save();
+        await sendOtpEmail(user.email, otp);
+        res.status(200).json({ message: 'OTP sent to email.' });
+    } catch (error) {
+        console.error('sendOtpController error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+export const getLeaderboardController = async (req, res) => {
+    try {
+        const users = await userModel.find({}).sort({ projects: -1 }).limit(10);
+        res.status(200).json({ users });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
 import userModel from '../models/user.model.js';
 import { normalizeEmail } from '../utils/email.js';
+import { shouldExposeOtpToClient } from '../utils/security.js';
 import { sendMailWithRetry } from '../utils/mailer.js';
-import * as userService from '../services/user.service.js';
-import { validationResult } from 'express-validator';
-import redisClient from '../services/redis.service.js';
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
+import dotenv from 'dotenv';
+dotenv.config();
 
 // Helper: escape user-supplied text before inserting into HTML templates
 function escapeHtml(unsafe) {
@@ -19,73 +46,12 @@ function escapeHtml(unsafe) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
 }
-
-// Send OTP for password reset (used in Login.jsx)
-export const sendOtpController = async (req, res) => {
-    try {
-        const { email } = req.body;
-        const { value: normalizedEmail, isValid } = normalizeEmail(email);
-        if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
-
-        const otp = generateOTP(7);
-        // Atomic update: set OTP and unverify in one go
-        const user = await userModel.findOneAndUpdate(
-            { email: normalizedEmail },
-            { $set: { otp, isVerified: false } },
-            { new: true }
-        );
-
-        if (!user) return res.status(404).json({ message: 'User not found' });
-
-        await sendOtpEmail(user.email, otp);
-        res.status(200).json({ message: 'OTP sent to email.' });
-    } catch (error) {
-        console.error('sendOtpController error:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-};
-
-export const getLeaderboardController = async (req, res) => {
-    try {
-        const cacheKey = 'user:leaderboard:zset';
-        // Try to get from Redis Sorted Set first (O(log N))
-        if (typeof redisClient.zrevrange === 'function') {
-            try {
-                const topIds = await redisClient.zrevrange(cacheKey, 0, 9, 'WITHSCORES');
-                if (topIds && topIds.length > 0) {
-                    const users = [];
-                    // topIds is [id1, score1, id2, score2, ...]
-                    for (let i = 0; i < topIds.length; i += 2) {
-                        const id = topIds[i];
-                        const score = topIds[i + 1];
-                        const user = await withCache(`user:profile:minimal:${id}`, 3600, async () => {
-                             return await userModel.findById(id).select('firstName lastName').lean();
-                        });
-                        if (user) {
-                            users.push({ ...user, projectsCount: parseInt(score, 10) });
-                        }
-                    }
-                    if (users.length > 0) return res.status(200).json({ users });
-                }
-            } catch (zerr) {
-                console.warn('Redis ZSET leaderboard fetch failed, falling back to cache/DB:', zerr);
-            }
-        }
-
-        // Fallback to indexed denormalized field (super fast indexed query)
-        const users = await withCache('user:leaderboard:v4', 600, async () => {
-            return await userModel.find({})
-                .select('firstName lastName projectsCount')
-                .sort({ projectsCount: -1 })
-                .limit(10)
-                .lean();
-        });
-        res.status(200).json({ users });
-    } catch (error) {
-        console.error('getLeaderboardController error:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-};
+import * as userService from '../services/user.service.js';
+import { validationResult } from 'express-validator';
+import redisClient from '../services/redis.service.js';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 export const createUserController = async (req, res) => {
 
@@ -224,7 +190,7 @@ export const createUserController = async (req, res) => {
         console.error('createUserController error:', error && error.message ? error.message : error);
         // If duplicate key error occurred during a DB op elsewhere, treat
         // it as a conflict for the client.
-        if (error && (error.code === 11000 || error.name === 'MongoServerError')) {
+        if (error && (error.code === 11000 || error.name === 'MongoServerError') && error.keyValue && error.keyValue.email) {
             return res.status(409).json({ message: 'Email already registered. Please login to your existing account.' });
         }
 
@@ -311,8 +277,6 @@ export const verifyOtpController = async (req, res) => {
                         googleApiKey: pending.googleApiKey,
                         isVerified: true,
                     });
-                    // Invalidate leaderboard cache when a new user is created
-                    await invalidateCache('user:leaderboard', true);
                     // remove pending key
                     await redisClient.del(pendingKey);
                     // generate token for the newly created user
@@ -401,6 +365,17 @@ export const adminGetOtpController = async (req, res) => {
                 queried: { email: user.email, userId: user._id }
             };
             console.info('admin-otp-audit', JSON.stringify(audit));
+            // Also append to disk log for persistence
+            try {
+                const fs = await import('fs');
+                const logPath = 'logs/admin_otp_audit.log';
+                const line = JSON.stringify(audit) + '\n';
+                fs.appendFile(logPath, line, (err) => {
+                    if (err) console.warn('Failed to append admin audit log:', err && err.message ? err.message : err);
+                });
+            } catch (fileErr) {
+                console.warn('Unable to write admin audit log file:', fileErr && fileErr.message ? fileErr.message : fileErr);
+            }
         } catch (auditErr) {
             console.warn('Failed to produce admin audit log:', auditErr && auditErr.message ? auditErr.message : auditErr);
         }
@@ -469,16 +444,18 @@ export const logoutController = async (req, res) => {
 
 export const getAllUsersController = async (req, res) => {
     try {
-        const { search, limit, skip } = req.query;
-        // Use req.user._id directly from optimized JWT payload
-        const allUsers = await userService.getAllUsers({
-            userId: req.user._id,
-            search,
-            limit: limit ? parseInt(limit, 10) : 50,
-            skip: skip ? parseInt(skip, 10) : 0
-        });
+        const loggedInUser = await userModel.findOne({
+            email: req.user.email
+        })
+
+        const allUsers = await userService.getAllUsers({ userId: loggedInUser._id });
+        const usersWithNames = allUsers.map(u => ({
+            _id: u._id,
+            firstName: u.firstName,
+            lastName: u.lastName
+        }));
         return res.status(200).json({
-            users: allUsers
+            users: usersWithNames
         })
     } catch (err) {
         console.error('getAllUsersController error:', err);
@@ -515,21 +492,17 @@ export const updatePasswordController = async (req, res) => {
         newPassword = newPassword.trim();
         if (newPassword.length < 8) return res.status(400).json({ message: 'Valid email and a new password (min 8 chars) required' });
 
-        const hashedPassword = await userModel.hashPassword(newPassword);
+        const user = await userModel.findOne({ email: normalizedEmail });
+        if (!user) return res.status(404).json({ message: 'User not found' });
 
-        // Atomic update with concurrency check using _passwordResetEmailSent flag
-        const user = await userModel.findOneAndUpdate(
-            { email: normalizedEmail, _passwordResetEmailSent: { $ne: true } },
-            { $set: { password: hashedPassword, _passwordResetEmailSent: true } },
-            { new: true }
-        );
-
-        if (!user) {
-            // Check if it failed because user not found or flag already set
-            const exists = await userModel.findOne({ email: normalizedEmail }).lean();
-            if (!exists) return res.status(404).json({ message: 'User not found' });
-            return res.json({ message: 'Password updated successfully' }); // Flag was already true
+        // Prevent duplicate password reset emails by using a flag
+        if (user._passwordResetEmailSent) {
+            return res.json({ message: 'Password updated successfully' });
         }
+
+        user.password = await userModel.hashPassword(newPassword);
+        user._passwordResetEmailSent = true;
+        await user.save();
 
         // Send password reset success email only once
         await sendPasswordResetSuccessEmail(user.email, user.firstName || user.email);

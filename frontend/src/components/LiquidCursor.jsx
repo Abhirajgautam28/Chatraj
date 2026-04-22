@@ -71,16 +71,11 @@ const LiquidCursor = () => {
         container.appendChild(svg);
 
         let pointer = { x: window.innerWidth / 2, y: window.innerHeight / 2, down: false };
-        let lastMove = Date.now();
-        const onPointerMove = (e) => {
-            pointer.x = e.clientX;
-            pointer.y = e.clientY;
-            lastMove = Date.now();
-        };
-        const onPointerDown = () => { pointer.down = true; lastMove = Date.now(); };
-        const onPointerUp = () => { pointer.down = false; lastMove = Date.now(); };
+        const onPointerMove = (e) => { pointer.x = e.clientX; pointer.y = e.clientY; };
+        const onPointerDown = () => { pointer.down = true; };
+        const onPointerUp = () => { pointer.down = false; };
 
-        window.addEventListener('pointermove', onPointerMove, { passive: true });
+        window.addEventListener('pointermove', onPointerMove);
         window.addEventListener('pointerdown', onPointerDown);
         window.addEventListener('pointerup', onPointerUp);
 
@@ -97,11 +92,6 @@ const LiquidCursor = () => {
         let t0 = performance.now();
 
         const animate = (t) => {
-            rafId = requestAnimationFrame(animate);
-
-            // Optimization: Skip calculations if mouse hasn't moved in 2 seconds
-            if (Date.now() - lastMove > 2000) return;
-
             const elapsed = (t - t0) / 1000;
 
             // make blobs follow pointer with increasing delay and sine wave offset for liquid wave
@@ -109,32 +99,30 @@ const LiquidCursor = () => {
             let ty = pointer.y;
             for (let i = 0; i < blobs.length; i++) {
                 const b = blobs[i];
+                // slightly faster smoothing for a gentler tail
                 const followFactor = 0.18 + i * 0.015;
+                // slower, smaller lateral wave for minimal motion
                 const wave = Math.sin(elapsed * 3 + i * 0.5) * (3 + i * 0.6);
 
-                const nextX = lerp(b.x, tx + wave, followFactor);
-                const nextY = lerp(b.y, ty + Math.cos(elapsed * 2 + i * 0.35) * 2, followFactor);
-
-                // Only update DOM if position changed significantly (> 0.1px)
-                if (Math.abs(nextX - b.x) > 0.1 || Math.abs(nextY - b.y) > 0.1) {
-                    b.x = nextX;
-                    b.y = nextY;
-                    const c = circles[i];
-                    c.setAttribute('cx', String(b.x));
-                    c.setAttribute('cy', String(b.y));
-                }
+                b.x = lerp(b.x, tx + wave, followFactor);
+                b.y = lerp(b.y, ty + Math.cos(elapsed * 2 + i * 0.35) * 2, followFactor);
 
                 // radius pulse when pointer is down (subtle)
                 const base = 6 + i * 1.2;
-                const nextR = lerp(b.r, pointer.down ? base * 1.4 : base, 0.06);
-                if (Math.abs(nextR - b.r) > 0.1) {
-                    b.r = nextR;
-                    circles[i].setAttribute('r', String(b.r));
-                }
+                b.r = lerp(b.r, pointer.down ? base * 1.4 : base, 0.06);
 
+                // set for next blob to follow previous (smaller offset)
                 tx = b.x - (i * 3);
                 ty = b.y;
+
+                // update circle element
+                const c = circles[i];
+                c.setAttribute('cx', String(b.x));
+                c.setAttribute('cy', String(b.y));
+                c.setAttribute('r', String(b.r));
             }
+
+            rafId = requestAnimationFrame(animate);
         };
 
         rafId = requestAnimationFrame(animate);

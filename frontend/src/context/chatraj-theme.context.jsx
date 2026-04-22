@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
 export const ChatRajThemeContext = createContext();
@@ -17,13 +17,8 @@ export function ChatRajThemeProvider({ children }) {
     document.documentElement.classList.add(isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
-  const contextValue = React.useMemo(() => ({
-    isDarkMode,
-    setIsDarkMode
-  }), [isDarkMode]);
-
   return (
-    <ChatRajThemeContext.Provider value={contextValue}>
+    <ChatRajThemeContext.Provider value={{ isDarkMode, setIsDarkMode }}>
       {children}
     </ChatRajThemeContext.Provider>
   );

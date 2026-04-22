@@ -4,13 +4,6 @@ import ProjectShowcase from '../components/ProjectShowcase.jsx';
 import UserLeaderboard from '../components/UserLeaderboard.jsx';
 import { useContext, useEffect, useState, lazy, Suspense } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
-const preconnect = (url) => {
-    const link = document.createElement('link');
-    link.rel = 'preconnect';
-    link.href = url;
-    document.head.appendChild(link);
-};
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
@@ -234,14 +227,12 @@ const Home = () => {
         <div className="flex items-center gap-4">
           <Link
             to="/register"
-            onMouseEnter={() => preconnect('/api/users/register')}
             className={`px-6 py-2 transition-all rounded-full ${isDarkMode ? 'text-white hover:bg-white/10' : 'text-gray-600 hover:text-blue-600'}`}
           >
             Register
           </Link>
           <Link
             to="/login"
-            onMouseEnter={() => preconnect('/api/users/login')}
             className={`px-6 py-2 transition-all rounded-full ${isDarkMode ? 'text-blue-500 bg-white hover:bg-blue-50' : 'text-gray-600 hover:text-blue-600'}`}
           >
             Login

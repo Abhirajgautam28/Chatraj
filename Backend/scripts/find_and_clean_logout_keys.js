@@ -56,8 +56,7 @@ async function run() {
     let cursor = '0';
     let seen = 0;
     let buffer = [];
-    const processedKeys = new Map();
-    const MAX_PROCESSED_KEYS = 50000; // Limit size to prevent OOM
+    const processedKeys = new Set();
 
     const processBatch = async (keys) => {
       if (!keys || keys.length === 0) return;
@@ -68,6 +67,8 @@ async function run() {
         pipeline.ttl(k);
       }
       const results = await pipeline.exec();
+      const keysToDelete = [];
+
       for (let i = 0; i < keys.length; i++) {
         const k = keys[i];
         const typeRes = results[3 * i];
@@ -91,13 +92,17 @@ async function run() {
           report.found++;
           report.keys.push({ key: maskKey(k), ttl: ttl });
           if (opts.delete) {
-            try {
-              const delRes = await redis.del(k);
-              if (delRes) report.deleted++;
-            } catch (e) {
-              report.errors.push({ key: maskKey(k), error: String(e && (e.message || e)) });
-            }
+            keysToDelete.push(k);
           }
+        }
+      }
+
+      if (keysToDelete.length > 0) {
+        try {
+          const delRes = await redis.del(...keysToDelete);
+          report.deleted += delRes;
+        } catch (e) {
+          report.errors.push({ key: 'BATCH_DELETE', error: String(e && (e.message || e)) });
         }
       }
     };
@@ -108,15 +113,7 @@ async function run() {
       const keys = res[1] || [];
       for (const k of keys) {
         if (!processedKeys.has(k)) {
-          // Optimization: Sliding window deduplication using Map for deterministic cleanup
-          processedKeys.set(k, Date.now());
-
-          // Clear oldest keys if limit reached
-          if (processedKeys.size > MAX_PROCESSED_KEYS) {
-              const oldestKey = processedKeys.keys().next().value;
-              processedKeys.delete(oldestKey);
-          }
-
+          processedKeys.add(k);
           buffer.push(k);
           seen++;
           if (buffer.length >= BATCH_SIZE) {
