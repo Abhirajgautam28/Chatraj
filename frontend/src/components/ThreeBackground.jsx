@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useContext } from 'react';
 import * as THREE from 'three';
 import { ThemeContext } from '../context/theme.context';
+import { logger } from '../utils/logger';
 
 const ThreeBackground = () => {
   const mountRef = useRef(null);
@@ -38,7 +39,7 @@ const ThreeBackground = () => {
       renderer.domElement.style.mixBlendMode = 'normal';
       currentMount.appendChild(renderer.domElement);
     } catch (e) {
-      console.warn('WebGL not supported or failed to initialize:', e);
+      logger.warn('WebGL not supported or failed to initialize:', e);
       return;
     }
 

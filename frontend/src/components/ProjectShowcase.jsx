@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../config/axios';
 import Card from './Card';
+import { logger } from '../utils/logger';
 
 const ProjectShowcase = () => {
     const [projects, setProjects] = useState([]);
@@ -15,7 +16,7 @@ const ProjectShowcase = () => {
                 setLoading(false);
             })
             .catch(err => {
-                console.error(err);
+                logger.error(err);
                 setLoading(false);
             });
     }, []);

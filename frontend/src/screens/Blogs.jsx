@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import 'remixicon/fonts/remixicon.css';
 import MaterialBlogCard from '../components/MaterialBlogCard';
 import useDarkMode from '../hooks/useDarkMode';
+import { logger } from '../utils/logger';
 
 
 const BlogsContent = () => {
@@ -31,7 +32,7 @@ const BlogsContent = () => {
                 setLoading(false);
             } catch (error) {
                 setLoading(false);
-                console.error('Error fetching blogs:', error);
+                logger.error('Error fetching blogs:', error);
             }
         };
         fetchBlogs();

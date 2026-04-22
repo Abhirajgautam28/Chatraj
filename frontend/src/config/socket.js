@@ -6,6 +6,10 @@ let socketInstance = null;
 const callbacks = {};
 
 export const initializeSocket = (projectId) => {
+    if (socketInstance) {
+        socketInstance.disconnect();
+    }
+
     socketInstance = socket(SOCKET_URL, {
         auth: {
             token: localStorage.getItem('token')
@@ -15,23 +19,32 @@ export const initializeSocket = (projectId) => {
         }
     });
 
-    socketInstance.on('typing', (data) => {
-        callbacks['typing']?.forEach(cb => cb(data));
-    });
-
-    socketInstance.on('stop-typing', (data) => {
-        callbacks['stop-typing']?.forEach(cb => cb(data));
-    });
-
     return socketInstance;
 }
 
+export const disconnectSocket = () => {
+    if (socketInstance) {
+        socketInstance.disconnect();
+        socketInstance = null;
+    }
+}
+
 export const receiveMessage = (eventName, cb) => {
-    socketInstance.on(eventName, cb);
+    if (socketInstance) {
+        socketInstance.on(eventName, cb);
+    }
+}
+
+export const removeListener = (eventName, cb) => {
+    if (socketInstance) {
+        socketInstance.off(eventName, cb);
+    }
 }
 
 export const sendMessage = (eventName, data) => {
-    socketInstance.emit(eventName, data);
+    if (socketInstance) {
+        socketInstance.emit(eventName, data);
+    }
 }
 
 // Add these event emitters

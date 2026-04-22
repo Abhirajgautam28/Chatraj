@@ -59,6 +59,25 @@ axiosInstance.interceptors.request.use(
   error => Promise.reject(error)
 );
 
+// Add a response interceptor for global error handling
+axiosInstance.interceptors.response.use(
+  response => response,
+  error => {
+    const status = error.response ? error.response.status : null;
+
+    if (status === 401) {
+      // Unauthorized: clear token and redirect if not already on login/register
+      localStorage.removeItem('token');
+      const path = window.location.pathname;
+      if (path !== '/login' && path !== '/register' && path !== '/') {
+        window.location.href = '/login';
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 export default axiosInstance;
 
 // Named export: explicit helper to fetch CSRF token from the API and return it.

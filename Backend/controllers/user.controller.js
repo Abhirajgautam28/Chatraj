@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { withCache, invalidateCache } from '../utils/cache.js';
+import { logger } from '../utils/logger.js';
 
 // Send OTP for password reset (used in Login.jsx)
 export const sendOtpController = async (req, res) => {
@@ -7,66 +7,34 @@ export const sendOtpController = async (req, res) => {
         const { email } = req.body;
         const { value: normalizedEmail, isValid } = normalizeEmail(email);
         if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
-
-        const otp = generateOTP(7);
-        // Atomic update: set OTP and unverify in one go
-        const user = await userModel.findOneAndUpdate(
-            { email: normalizedEmail },
-            { $set: { otp, isVerified: false } },
-            { new: true }
-        );
-
+        const user = await userModel.findOne({ email: normalizedEmail });
         if (!user) return res.status(404).json({ message: 'User not found' });
-
+        // Generate OTP
+        const otp = generateOTP(7);
+        user.otp = otp;
+        user.isVerified = false;
+        await user.save();
         await sendOtpEmail(user.email, otp);
         res.status(200).json({ message: 'OTP sent to email.' });
     } catch (error) {
-        console.error('sendOtpController error:', error);
+        logger.error('sendOtpController error:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
 
 export const getLeaderboardController = async (req, res) => {
     try {
-        const users = await withCache('user:leaderboard', 600, async () => {
-            return await userModel.find({}).sort({ projects: -1 }).limit(10).lean();
-        });
-        res.status(200).json({ users });
-    } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
+        const users = await userService.getLeaderboard();
+        return response.success(res, { users });
+    } catch (err) {
+        return response.error(res, 'Internal server error');
     }
 };
-import userModel from '../models/user.model.js';
-import { normalizeEmail } from '../utils/email.js';
-import { shouldExposeOtpToClient } from '../utils/security.js';
-import { sendMailWithRetry } from '../utils/mailer.js';
-import dotenv from 'dotenv';
-dotenv.config();
-
-// Helper: escape user-supplied text before inserting into HTML templates
-function escapeHtml(unsafe) {
-    if (unsafe === undefined || unsafe === null) return '';
-    return String(unsafe)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
-import * as userService from '../services/user.service.js';
-import { validationResult } from 'express-validator';
-import redisClient from '../services/redis.service.js';
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
 
 export const createUserController = async (req, res) => {
-
     const errors = validationResult(req);
+    if (!errors.isEmpty()) return response.error(res, 'Validation failed', 400, errors.array());
 
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
     try {
         const { firstName, lastName, email, password, googleApiKey } = req.body;
         const { value: normalizedEmail, isValid } = normalizeEmail(email);
@@ -84,7 +52,7 @@ export const createUserController = async (req, res) => {
             try {
                 await userModel.deleteOne({ _id: existing._id });
             } catch (delErr) {
-                console.warn('Failed to remove stale unverified user:', delErr && delErr.message ? delErr.message : delErr);
+                logger.warn('Failed to remove stale unverified user:', delErr && delErr.message ? delErr.message : delErr);
             }
         }
 
@@ -115,7 +83,7 @@ export const createUserController = async (req, res) => {
             await sendOtpEmail(normalizedEmail, otp);
             return res.status(201).json({ message: 'OTP sent to email. Please verify.' });
         } catch (emailErr) {
-            console.error('sendOtpEmail error (will retry in background):', emailErr && emailErr.message ? emailErr.message : emailErr);
+            logger.error('sendOtpEmail error (will retry in background):', emailErr && emailErr.message ? emailErr.message : emailErr);
 
             // Background retry loop (best-effort; survives only while process runs).
             (async function backgroundResend(attempt) {
@@ -123,7 +91,7 @@ export const createUserController = async (req, res) => {
                 const initialBackoff = parseInt(process.env.REGISTRATION_SEND_RETRY_BACKOFF_MS || '2000', 10);
                 try {
                     if (attempt > maxAttempts) {
-                        console.error(`Background resend exhausted for ${normalizedEmail}`);
+                        logger.error(`Background resend exhausted for ${normalizedEmail}`);
                         return;
                     }
                     const wait = initialBackoff * Math.pow(2, attempt - 1);
@@ -151,7 +119,7 @@ export const createUserController = async (req, res) => {
                                 await redisClient.getset(pendingKey, newVal);
                                 updatedViaGetSet = true;
                             } catch (e) {
-                                console.warn('redis GETSET failed; falling back to TTL-preserving set:', e && e.message ? e.message : e);
+                                logger.warn('redis GETSET failed; falling back to TTL-preserving set:', e && e.message ? e.message : e);
                             }
                         }
 
@@ -178,15 +146,15 @@ export const createUserController = async (req, res) => {
                                 }
                             } else {
                                 // Couldn't preserve TTL safely; skip metadata update to avoid extending OTP validity
-                                console.warn('Could not preserve TTL for pending registration; skipping metadata update to avoid extending OTP lifetime');
+                                logger.warn('Could not preserve TTL for pending registration; skipping metadata update to avoid extending OTP lifetime');
                             }
                         }
                     } catch (updErr) {
-                        console.warn('Failed to update pending registration after resend:', updErr && updErr.message ? updErr.message : updErr);
+                        logger.warn('Failed to update pending registration after resend:', updErr && updErr.message ? updErr.message : updErr);
                     }
-                    console.info(`Background resend succeeded for ${normalizedEmail}`);
+                    logger.info(`Background resend succeeded for ${normalizedEmail}`);
                 } catch (err) {
-                    console.error('Background resend attempt failed:', err && err.message ? err.message : err);
+                    logger.error('Background resend attempt failed:', err && err.message ? err.message : err);
                     setTimeout(() => backgroundResend(attempt + 1), 0);
                 }
             })(1);
@@ -194,7 +162,7 @@ export const createUserController = async (req, res) => {
             return res.status(201).json({ message: 'OTP delivery queued. If you do not receive the email shortly, please check spam or try again.' });
         }
     } catch (error) {
-        console.error('createUserController error:', error && error.message ? error.message : error);
+        logger.error('createUserController error:', error && error.message ? error.message : error);
         // If duplicate key error occurred during a DB op elsewhere, treat
         // it as a conflict for the client.
         if (error && (error.code === 11000 || error.name === 'MongoServerError') && error.keyValue && error.keyValue.email) {
@@ -221,20 +189,9 @@ async function sendOtpEmail(email, otp) {
     // In test environments skip sending real emails to avoid external
     // dependencies and flaky failures when SMTP creds are not configured.
     if (process.env.NODE_ENV === 'test') {
-        console.log('Skipping email send in test environment');
+        logger.info('Skipping email send in test environment');
         return;
     }
-
-    const mailOptions = {
-        from: process.env.SMTP_FROM || 'ChatRaj <no-reply@chatraj.com>',
-        to: email,
-        subject: 'Your ChatRaj OTP Verification',
-        text: `Welcome to ChatRaj!\n\nYour OTP is: ${otp}\n\nPlease enter this code in the registration popup to activate your account.`,
-    };
-
-    // Use robust send with retry/backoff. Any thrown error will be
-    // propagated to the caller so registration flow can respond safely.
-    await sendMailWithRetry(mailOptions);
 }
 
 // OTP verification for both registration (userId) and password reset (email)
@@ -260,7 +217,7 @@ export const verifyOtpController = async (req, res) => {
             try {
                 pendingJson = await redisClient.get(pendingKey);
             } catch (redisErr) {
-                console.error('Error checking pending registration in Redis:', redisErr && redisErr.message ? redisErr.message : redisErr);
+                logger.error('Error checking pending registration in Redis:', redisErr && redisErr.message ? redisErr.message : redisErr);
             }
 
             if (pendingJson) {
@@ -268,7 +225,7 @@ export const verifyOtpController = async (req, res) => {
                 try {
                     pending = JSON.parse(pendingJson);
                 } catch (parseErr) {
-                    console.error('Failed to parse pending registration JSON for', pendingKey, parseErr && (parseErr.message || parseErr));
+                    logger.error('Failed to parse pending registration JSON for', pendingKey, parseErr && (parseErr.message || parseErr));
                     return res.status(500).json({ message: 'Corrupt pending registration data' });
                 }
 
@@ -284,8 +241,6 @@ export const verifyOtpController = async (req, res) => {
                         googleApiKey: pending.googleApiKey,
                         isVerified: true,
                     });
-                    // Invalidate leaderboard cache when a new user is created
-                    await invalidateCache('user:leaderboard');
                     // remove pending key
                     await redisClient.del(pendingKey);
                     // generate token for the newly created user
@@ -294,7 +249,7 @@ export const verifyOtpController = async (req, res) => {
                     if (created._doc) delete created._doc.password;
                     return res.status(200).json({ message: 'Verified successfully', token, user: created });
                 } catch (createErr) {
-                    console.error('Error creating user from pending registration:', createErr && createErr.message ? createErr.message : createErr);
+                    logger.error('Error creating user from pending registration:', createErr && createErr.message ? createErr.message : createErr);
                     // If a duplicate key was created in a race, try to mark existing user as verified
                     if (createErr && (createErr.code === 11000 || createErr.name === 'MongoServerError')) {
                         const existingUser = await userModel.findOne({ email: normalizedEmail }).select('+otp');
@@ -311,14 +266,6 @@ export const verifyOtpController = async (req, res) => {
             }
         }
     }
-    if (!user) return res.status(404).json({ message: 'User not found' });
-    if (user.otp !== otp) return res.status(401).json({ message: 'Invalid OTP' });
-    user.isVerified = true;
-    user.otp = undefined;
-    await user.save();
-    let token = null;
-    if (userId) token = await user.generateJWT();
-    res.status(200).json({ message: 'Verified successfully', token, user });
 };
 
 // Admin-only: retrieve masked OTP for debugging. Requires `ADMIN_API_KEY`
@@ -350,12 +297,12 @@ export const adminGetOtpController = async (req, res) => {
                             // synthesize a minimal user-like object for masking
                             user = { _id: null, email: normalizedEmail, otp: pending.otp };
                         } catch (parseErr) {
-                            console.error('Failed to parse pending registration JSON for admin OTP:', parseErr && (parseErr.message || parseErr));
+                            logger.error('Failed to parse pending registration JSON for admin OTP:', parseErr && (parseErr.message || parseErr));
                             return res.status(500).json({ message: 'Corrupt pending registration data' });
                         }
                     }
                 } catch (redisErr) {
-                    console.error('Failed to read pending registration for admin OTP:', redisErr && redisErr.message ? redisErr.message : redisErr);
+                    logger.error('Failed to read pending registration for admin OTP:', redisErr && redisErr.message ? redisErr.message : redisErr);
                 }
             }
         }
@@ -373,101 +320,64 @@ export const adminGetOtpController = async (req, res) => {
                 adminKey: adminMasked,
                 queried: { email: user.email, userId: user._id }
             };
-            console.info('admin-otp-audit', JSON.stringify(audit));
+            logger.info('admin-otp-audit', JSON.stringify(audit));
             // Also append to disk log for persistence
             try {
                 const fs = await import('fs');
                 const logPath = 'logs/admin_otp_audit.log';
                 const line = JSON.stringify(audit) + '\n';
                 fs.appendFile(logPath, line, (err) => {
-                    if (err) console.warn('Failed to append admin audit log:', err && err.message ? err.message : err);
+                    if (err) logger.warn('Failed to append admin audit log:', err && err.message ? err.message : err);
                 });
             } catch (fileErr) {
-                console.warn('Unable to write admin audit log file:', fileErr && fileErr.message ? fileErr.message : fileErr);
+                logger.warn('Unable to write admin audit log file:', fileErr && fileErr.message ? fileErr.message : fileErr);
             }
         } catch (auditErr) {
-            console.warn('Failed to produce admin audit log:', auditErr && auditErr.message ? auditErr.message : auditErr);
+            logger.warn('Failed to produce admin audit log:', auditErr && auditErr.message ? auditErr.message : auditErr);
         }
         return res.status(200).json({ userId: user._id, email: user.email, maskedOtp: masked });
     } catch (err) {
-        console.error('adminGetOtpController error:', err);
+        logger.error('adminGetOtpController error:', err);
         return res.status(500).json({ message: 'Internal server error' });
     }
 };
 
 export const loginController = async (req, res) => {
     const errors = validationResult(req);
+    if (!errors.isEmpty()) return response.error(res, 'Validation failed', 400, errors.array());
 
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
     try {
         const { email, password } = req.body;
-        if (typeof email !== 'string' || typeof password !== 'string') return res.status(400).json({ errors: 'Invalid credentials' });
-        const user = await userModel.findOne({ email: email.trim() }).select('+password +googleApiKey');
-        if (!user) {
-            return res.status(401).json({ errors: 'Invalid credentials' });
-        }
-        const isMatch = await user.isValidPassword(password);
-        if (!isMatch) {
-            return res.status(401).json({ errors: 'Invalid credentials' });
-        }
-        if (!user.isVerified) {
-            return res.status(403).json({ errors: 'Account not verified. Please check your email for OTP.' });
-        }
-        const token = await user.generateJWT();
-        delete user._doc.password;
-        res.status(200).json({ user, token });
+        const result = await userService.loginUser(email, password);
+        return response.success(res, result, 'Login successful');
     } catch (err) {
-        console.error('loginController error:', err);
-        res.status(400).send('Invalid request');
+        logger.error('loginController error:', err);
+        res.status(400).json({ error: 'Invalid request' });
     }
 }
 
 export const profileController = async (req, res) => {
-
-    res.status(200).json({
-        user: req.user
-    });
-
+    return response.success(res, { user: req.user });
 }
 
 export const logoutController = async (req, res) => {
     try {
-        const token =
-            req.cookies.token ||
-            (req.headers.authorization ? req.headers.authorization.split(' ')[1] : null);
-
-        if (token) {
-            redisClient.set(token, 'logout', 'EX', 60 * 60 * 24);
-        }
-
-        res.status(200).json({
-            message: 'Logged out successfully'
-        });
+        const token = req.cookies.token || (req.headers.authorization ? req.headers.authorization.split(' ')[1] : null);
+        if (token) redisClient.set(token, 'logout', 'EX', 60 * 60 * 24);
+        return response.success(res, null, 'Logged out successfully');
     } catch (err) {
-        console.error('logoutController error:', err);
-        res.status(400).send('Invalid request');
+        logger.error('logoutController error:', err);
+        res.status(400).json({ error: 'Invalid request' });
     }
 }
 
 export const getAllUsersController = async (req, res) => {
     try {
-        const loggedInUser = await userModel.findOne({
-            email: req.user.email
-        })
-
-        const allUsers = await userService.getAllUsers({ userId: loggedInUser._id });
-        const usersWithNames = allUsers.map(u => ({
-            _id: u._id,
-            firstName: u.firstName,
-            lastName: u.lastName
-        }));
-        return res.status(200).json({
-            users: usersWithNames
-        })
+        const allUsers = await userService.getAllUsers({ userId: req.user._id });
+        const usersWithNames = allUsers.map(u => ({ _id: u._id, firstName: u.firstName, lastName: u.lastName }));
+        return response.success(res, { users: usersWithNames })
     } catch (err) {
-        console.error('getAllUsersController error:', err);
+        logger.error('getAllUsersController error:', err);
         res.status(400).json({ error: 'Unable to fetch users' })
     }
 }
@@ -475,50 +385,21 @@ export const getAllUsersController = async (req, res) => {
 export const resetPasswordController = async (req, res) => {
     try {
         const { email } = req.body;
-        const { value: normalizedEmail, isValid } = normalizeEmail(email);
-        if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
-        const user = await userModel.findOne({ email: normalizedEmail });
-        if (!user) return res.status(404).json({ message: 'User not found' });
-
-        const resetToken = jwt.sign(
-            { email: user.email },
-            process.env.JWT_SECRET,
-            { expiresIn: '15m' }
-        );
-
-        res.json({ message: 'Reset link sent to email', resetToken });
+        const result = await userService.resetPassword(email);
+        return response.success(res, result);
     } catch (err) {
-        console.error('resetPasswordController error:', err);
+        logger.error('resetPasswordController error:', err);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
 
 export const updatePasswordController = async (req, res) => {
     try {
-        let { email, newPassword } = req.body;
-        const { value: normalizedEmail, isValid } = normalizeEmail(email);
-        if (!isValid || typeof newPassword !== 'string') return res.status(400).json({ message: 'Valid email and a new password (min 8 chars) required' });
-        newPassword = newPassword.trim();
-        if (newPassword.length < 8) return res.status(400).json({ message: 'Valid email and a new password (min 8 chars) required' });
-
-        const user = await userModel.findOne({ email: normalizedEmail });
-        if (!user) return res.status(404).json({ message: 'User not found' });
-
-        // Prevent duplicate password reset emails by using a flag
-        if (user._passwordResetEmailSent) {
-            return res.json({ message: 'Password updated successfully' });
-        }
-
-        user.password = await userModel.hashPassword(newPassword);
-        user._passwordResetEmailSent = true;
-        await user.save();
-
-        // Send password reset success email only once
-        await sendPasswordResetSuccessEmail(user.email, user.firstName || user.email);
-
-        res.json({ message: 'Password updated successfully' });
+        const { email, newPassword } = req.body;
+        const result = await userService.updatePassword(email, newPassword);
+        return response.success(res, result);
     } catch (err) {
-        console.error('updatePasswordController error:', err);
+        logger.error('updatePasswordController error:', err);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
@@ -526,7 +407,7 @@ export const updatePasswordController = async (req, res) => {
 // Helper: Send password reset success email with modern template
 async function sendPasswordResetSuccessEmail(email, name) {
     if (process.env.NODE_ENV === 'test') {
-        console.log('Skipping password reset success email in test environment for', email);
+        logger.info('Skipping password reset success email in test environment for', email);
         return;
     }
 
