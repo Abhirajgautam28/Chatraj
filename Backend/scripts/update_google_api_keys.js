@@ -14,10 +14,8 @@ async function updateAllUsers() {
   for (const user of users) {
     user.googleApiKey = REAL_KEY;
     await user.save();
-    console.log(`Updated user: ${user.email}`);
   }
   await mongoose.disconnect();
-  console.log('All users updated.');
 }
 
 updateAllUsers().catch(err => {

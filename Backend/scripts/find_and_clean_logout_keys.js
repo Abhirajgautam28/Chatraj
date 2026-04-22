@@ -47,7 +47,6 @@ function parseArgs() {
 
 async function run() {
   const opts = parseArgs();
-  console.log(`Connecting to Redis (dryRun=${opts.dryRun})`);
   const redis = new Redis(REDIS_URL, { maxRetriesPerRequest: 2 });
 
   const report = { found: 0, keys: [], deleted: 0, errors: [] };
@@ -123,12 +122,8 @@ async function run() {
     const outPath = path.join(outDir, `redis_cleanup_report_${Date.now()}.json`);
     fs.writeFileSync(outPath, JSON.stringify(report, null, 2));
 
-    console.log(`Report written to: ${outPath}`);
-    console.log(`Found ${report.found} blacklist keys (value==='logout').`);
     if (report.keys.length) console.table(report.keys.slice(0, 200));
     if (report.errors.length) console.warn('Errors:', report.errors);
-    if (opts.delete) console.log(`Deleted ${report.deleted} keys.`);
-    else console.log('Dry-run mode: no keys were deleted. Re-run with --delete to remove listed keys.');
   } catch (err) {
     console.error('Error during redis scan:', err && (err.stack || err.message || err));
   } finally {

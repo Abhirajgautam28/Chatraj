@@ -86,25 +86,19 @@ async function attemptLogin(api, email, password) {
 }
 
 async function run() {
-  console.log(`Verifying deployed API: ${API}`);
   const deadline = Date.now() + TIMEOUT;
   while (Date.now() < deadline) {
     process.stdout.write('.');
     const res = await checkCsrfFlags(API);
     if (res === null) {
-      console.log('\nEndpoint unreachable; retrying in', INTERVAL / 1000, 's');
     } else {
-      console.log('\n/csrf-token returned. SameSite=None:', res.hasSameSiteNone, 'Secure:', res.hasSecure);
       if (res.hasSameSiteNone && res.hasSecure) {
-        console.log('Desired cookie flags present. Attempting login test...');
         const loginRes = await attemptLogin(API, EMAIL, PASSWORD);
-        console.log('Login test result:', loginRes);
         return;
       }
     }
     await wait(INTERVAL);
   }
-  console.log('\nTimeout reached; cookie flags not updated.');
 }
 
 run().catch(e => { console.error(e && (e.stack || e)); process.exit(1); });

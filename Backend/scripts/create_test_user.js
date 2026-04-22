@@ -14,12 +14,10 @@ const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD || 'TestPass123!';
 async function run() {
   try {
     await connect();
-    console.log('Connected to MongoDB for test user creation');
 
     // Remove existing test user if present
     const existing = await User.findOne({ email: TEST_USER_EMAIL });
     if (existing) {
-      console.log('Existing test user found, removing...');
       await User.deleteOne({ _id: existing._id });
     }
 
@@ -33,9 +31,6 @@ async function run() {
       isVerified: true
     });
 
-    console.log('Test user created:');
-    console.log('  email:', TEST_USER_EMAIL);
-    console.log('  password:', TEST_USER_PASSWORD);
 
     // Close mongoose connection
     await mongoose.connection.close();

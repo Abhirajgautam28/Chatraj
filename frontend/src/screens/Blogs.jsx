@@ -1,34 +1,23 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import axios from '../config/axios';
+import React, { useEffect, useCallback, useMemo } from 'react';
 import 'remixicon/fonts/remixicon.css';
 import MaterialBlogCard from '../components/MaterialBlogCard';
 import useDarkMode from '../hooks/useDarkMode';
-import { useToast } from '../context/toast.context';
-import { logger } from '../utils/logger';
+import { useApi } from '../hooks/useApi';
 import { Link } from 'react-router-dom';
 
 const Blogs = () => {
-    const [blogs, setBlogs] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [pagination, setPagination] = useState({ page: 1, pages: 1 });
+    const { request, loading, data: responseData } = useApi();
     const [darkMode, setDarkMode] = useDarkMode('blog_dark_mode', false);
-    const { showToast } = useToast();
+
+    const blogs = useMemo(() => responseData?.blogs || [], [responseData]);
+    const pagination = useMemo(() => responseData?.pagination || { page: 1, pages: 1 }, [responseData]);
 
     const fetchBlogs = useCallback(async (page = 1) => {
-        setLoading(true);
-        try {
-            const response = await axios.get(`/api/blogs?page=${page}&limit=9`);
-            if (response.data && response.data.blogs) {
-                setBlogs(response.data.blogs);
-                setPagination(response.data.pagination);
-            }
-        } catch (error) {
-            logger.error('Error fetching blogs:', error);
-            showToast('Failed to load blogs', 'error');
-        } finally {
-            setLoading(false);
-        }
-    }, [showToast]);
+        await request({
+            url: `/api/blogs?page=${page}&limit=9`,
+            method: 'GET'
+        });
+    }, [request]);
 
     useEffect(() => {
         fetchBlogs();
@@ -65,7 +54,7 @@ const Blogs = () => {
             </section>
 
             <section className="w-full max-w-7xl mx-auto px-4 py-14">
-                {loading ? (
+                {loading && blogs.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20">
                         <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 dark:border-gray-700 dark:border-t-blue-400 rounded-full animate-spin mb-4"></div>
                         <div className="text-lg font-medium text-blue-700 dark:text-blue-200">Loading blogs...</div>
@@ -78,7 +67,7 @@ const Blogs = () => {
                     </div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                        <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 transition-opacity duration-300 ${loading ? 'opacity-50' : 'opacity-100'}`}>
                             {memoizedBlogs}
                         </div>
                         {pagination.pages > 1 && (

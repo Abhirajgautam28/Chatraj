@@ -51,11 +51,8 @@ describe('Project Creation Validation', () => {
             });
 
         if (res.status === 500) {
-            console.log("Test failed (Bug reproduced): Got 500 Server Error");
         } else if (res.status === 400) {
-            console.log("Got 400 Bad Request (Validation working)");
         } else {
-            console.log("Got status:", res.status);
         }
 
         expect(res.status).toBe(400);

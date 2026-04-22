@@ -1,57 +1,60 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from '../config/axios';
 import { useToast } from '../context/toast.context';
-import { logger } from '../utils/logger';
 import CommentSection from '../components/CommentSection';
 import useDarkMode from '../hooks/useDarkMode';
 import ThreeHero from '../components/ThreeHero';
+import { useApi } from '../hooks/useApi';
 
 const SingleBlogPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { showToast } = useToast();
-    const [blog, setBlog] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [newComment, setNewComment] = useState('');
     const [isDarkMode, setIsDarkMode] = useDarkMode('blog_dark_mode', false);
+    const [newComment, setNewComment] = useState('');
+
+    const { request: fetchBlogRequest, loading, data: blog, setData: setBlog } = useApi();
+    const { request: likeRequest } = useApi();
+    const { request: commentRequest } = useApi();
 
     const fetchBlog = useCallback(async () => {
-        try {
-            const response = await axios.get(`/api/blogs/${id}`);
-            setBlog(response.data);
-        } catch (error) {
-            logger.error('Error fetching blog:', error);
-            showToast('Blog not found', 'error');
-            navigate('/blogs');
-        } finally {
-            setLoading(false);
-        }
-    }, [id, navigate, showToast]);
+        const { error } = await fetchBlogRequest({
+            url: `/api/blogs/${id}`,
+            method: 'GET'
+        });
+        if (error) navigate('/blogs');
+    }, [id, navigate, fetchBlogRequest]);
 
     useEffect(() => {
         fetchBlog();
     }, [fetchBlog]);
 
     const handleLike = async () => {
-        try {
-            const response = await axios.post(`/api/blogs/${id}/like`);
-            setBlog(prev => ({ ...prev, likes: response.data.likes }));
-            showToast(response.data.likes.length > (blog?.likes?.length || 0) ? 'Blog liked!' : 'Like removed', 'success');
-        } catch (error) {
+        const { data, error } = await likeRequest({
+            url: `/api/blogs/${id}/like`,
+            method: 'POST'
+        }, { showErrorToast: true });
+
+        if (data) {
+            const isLiked = data.likes.length > (blog?.likes?.length || 0);
+            setBlog(prev => ({ ...prev, likes: data.likes }));
+            showToast(isLiked ? 'Blog liked!' : 'Like removed', 'success');
+        } else if (error) {
             showToast('Login to like blogs', 'warning');
         }
     };
 
     const handleCommentSubmit = async () => {
         if (!newComment.trim()) return;
-        try {
-            const response = await axios.post(`/api/blogs/${id}/comment`, { text: newComment });
-            setBlog(response.data);
+        const { data } = await commentRequest({
+            url: `/api/blogs/${id}/comment`,
+            method: 'POST',
+            data: { text: newComment }
+        }, { showSuccessToast: true, successMessage: 'Comment posted!' });
+
+        if (data) {
+            setBlog(data);
             setNewComment('');
-            showToast('Comment posted!', 'success');
-        } catch (error) {
-            showToast('Failed to post comment', 'error');
         }
     };
 
@@ -77,7 +80,7 @@ const SingleBlogPage = () => {
         }
     }, [blog]);
 
-    if (loading) return (
+    if (loading && !blog) return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
             <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
         </div>

@@ -22,7 +22,8 @@ const MessageList = ({
   getMessageStatus,
   SyntaxHighlightedCode,
   messageBoxRef,
-  handleScroll
+  handleScroll,
+  searchTerm
 }) => {
   return (
     <div
@@ -55,6 +56,7 @@ const MessageList = ({
                   settings={settings}
                   getMessageStatus={getMessageStatus}
                   SyntaxHighlightedCode={SyntaxHighlightedCode}
+                  searchTerm={searchTerm}
                 />
               </ErrorBoundary>
             ))}
@@ -84,6 +86,7 @@ MessageList.propTypes = {
   SyntaxHighlightedCode: PropTypes.elementType.isRequired,
   messageBoxRef: PropTypes.object.isRequired,
   handleScroll: PropTypes.func.isRequired,
+  searchTerm: PropTypes.string
 };
 
 export default React.memo(MessageList);

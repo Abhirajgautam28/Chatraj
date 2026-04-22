@@ -10,17 +10,13 @@ const endpoints = [
 ];
 
 (async () => {
-  console.log('Running smoke tests against bases:', bases.join(', '));
   for (const baseUrl of bases) {
-    console.log('\nTesting base URL:', baseUrl);
     for (const ep of endpoints) {
       const url = baseUrl.replace(/\/$/, '') + ep;
       try {
         const res = await axios.get(url, { timeout: 5000 });
-        console.log(`${ep} -> ${res.status} ${res.statusText}`);
         if (res.data) {
           const dataPreview = JSON.stringify(res.data).slice(0, 300);
-          console.log('  Response preview:', dataPreview);
         }
       } catch (err) {
         console.error(`\n---- ERROR for ${ep} ----`);

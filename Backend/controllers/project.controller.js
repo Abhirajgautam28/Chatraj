@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import { validationResult } from 'express-validator';
 import { logger } from '../utils/logger.js';
 import { withCache, invalidateCache } from '../utils/cache.js';
+import { PROJECT_CATEGORIES } from '../config/constants.js';
 
 export const getAllProject = async (req, res) => {
     try {
@@ -92,24 +93,6 @@ export const updateProjectSidebarSettings = async (req, res) => {
 // Get project counts by category
 export const getProjectCountsByCategory = async (req, res) => {
   try {
-    // List of all categories as in frontend
-    const allCategories = [
-      'DSA',
-      'Frontend Development',
-      'Backend Development',
-      'Fullstack Development',
-      'Code Review & Optimization',
-      'Testing & QA',
-      'API Development',
-      'Database Engineering',
-      'Software Architecture',
-      'Version Control & Git',
-      'Agile Project Management',
-      'CI/CD Automation',
-      'Debugging & Troubleshooting',
-      'Documentation Generation',
-      'Code Refactoring'
-    ];
     // Aggregate project counts by category, filtered by user
     const counts = await projectModel.aggregate([
       { $match: { users: { $in: [new mongoose.Types.ObjectId(req.user._id)] } } },
@@ -122,7 +105,7 @@ export const getProjectCountsByCategory = async (req, res) => {
     ]);
     // Convert to { [category]: count }
     const result = {};
-    allCategories.forEach(cat => {
+    PROJECT_CATEGORIES.forEach(cat => {
       result[cat] = 0;
     });
     counts.forEach(item => {
