@@ -29,3 +29,16 @@ export function parseAIJsonResponse(rawText) {
   }
   return null;
 }
+
+/**
+ * Basic parser to extract text from AI response.
+ * Can be expanded to handle different AI model response structures.
+ *
+ * @param {string|Object} response - The raw response from AI service
+ * @returns {string} The extracted text
+ */
+export function parseAiResponse(response) {
+  if (typeof response === 'string') return response;
+  if (response && response.text) return response.text(); // Google Generative AI format
+  return String(response || '');
+}

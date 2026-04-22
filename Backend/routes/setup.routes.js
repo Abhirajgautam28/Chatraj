@@ -1,19 +1,11 @@
 import { Router } from 'express';
-import rateLimit from 'express-rate-limit';
 import { requiredKeys } from '../config/required-keys.js';
 import Blog from '../models/blog.model.js';
 import { logger } from '../utils/logger.js';
+import { sitemapLimiter } from '../middleware/rateLimiter.js';
 
 // initialize router
 const router = Router();
-
-// Rate limiter for sitemap route (e.g., 10 requests per minute per IP)
-const sitemapLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 10, // limit each IP to 10 requests per windowMs
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-});
 
 router.get('/config-info', (req, res) => {
     try {

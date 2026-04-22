@@ -60,7 +60,7 @@ export const likeBlog = async (req, res) => {
         const userId = req.user._id;
         const isLiked = blog.likes.includes(userId);
 
-        const updatedBlog = await blogModel.findByIdAndUpdate(
+        const updatedBlog = await Blog.findByIdAndUpdate(
             id,
             isLiked ? { $pull: { likes: userId } } : { $addToSet: { likes: userId } },
             { new: true }
@@ -84,7 +84,7 @@ export const commentOnBlog = async (req, res) => {
             text
         };
 
-        const updatedBlog = await blogModel.findByIdAndUpdate(
+        const updatedBlog = await Blog.findByIdAndUpdate(
             id,
             { $push: { comments: newComment } },
             { new: true }
