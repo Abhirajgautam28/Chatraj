@@ -12,7 +12,6 @@ import Categories from '../screens/Categories'
 import Logout from '../screens/Logout'
 import WelcomeChatRaj from '../screens/WelcomeChatRaj';
 import ChatRaj from '../screens/ChatRaj';
-import { ChatRajThemeProvider } from '../context/chatraj-theme.context';
 import Blogs from '../screens/Blogs';
 import CreateBlogForm from '../components/CreateBlogForm';
 import SingleBlogPage from '../screens/SingleBlogPage';
@@ -32,9 +31,7 @@ const AppRoutes = () => {
                 <Route path="/welcome-chatraj" element={<UserAuth><WelcomeChatRaj /></UserAuth>} />
                 <Route path="/chat" element={
                     <UserAuth>
-                        <ChatRajThemeProvider>
-                            <ChatRaj />
-                        </ChatRajThemeProvider>
+                        <ChatRaj />
                     </UserAuth>
                 } />
                 <Route path="/blogs" element={<UserAuth><Blogs /></UserAuth>} />

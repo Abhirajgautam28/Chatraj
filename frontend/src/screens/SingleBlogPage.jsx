@@ -1,7 +1,6 @@
 // ...existing code...
-import { useEffect, useState, useRef } from 'react';
-import { BlogThemeProvider } from '../context/blogTheme.context';
-import useBlogTheme from '../context/useBlogTheme';
+import { useEffect, useState, useRef, useContext } from 'react';
+import { ThemeContext } from '../context/theme.context';
 import PropTypes from 'prop-types';
 import axios from '../config/axios';
 import { useParams } from 'react-router-dom';
@@ -46,7 +45,7 @@ const SingleBlogPageContent = () => {
     const { id } = useParams();
     const heroRef = useRef(null);
     const contentRef = useRef(null);
-    const { isBlogDarkMode, setIsBlogDarkMode } = useBlogTheme();
+    const { isBlogDarkMode, setIsBlogDarkMode } = useContext(ThemeContext);
 
     useEffect(() => {
         if (heroRef.current) {
@@ -129,10 +128,8 @@ const SingleBlogPageContent = () => {
     );
 }
 
-const ThemedSingleBlogPage = () => (
-    <BlogThemeProvider>
-        <SingleBlogPageContent />
-    </BlogThemeProvider>
+const SingleBlogPage = () => (
+    <SingleBlogPageContent />
 );
 
-export default ThemedSingleBlogPage;
+export default SingleBlogPage;

@@ -35,11 +35,10 @@ const blogSchema = new mongoose.Schema({
         ref: 'user'
     }],
     comments: [commentSchema],
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
-});
+}, { timestamps: true });
+
+blogSchema.index({ author: 1 });
+blogSchema.index({ createdAt: -1 });
 
 const Blog = mongoose.model('Blog', blogSchema);
 

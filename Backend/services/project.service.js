@@ -67,6 +67,9 @@ export const createProject = async ({ name, userId, category, users = [] }) => {
       users: [...new Set([...users, userId])],
       createdBy: userId
     });
+
+    await userModel.findByIdAndUpdate(userId, { $inc: { projects: 1 } });
+
     return project;
   } catch (error) {
     if (error.code === 11000) {

@@ -1,16 +1,15 @@
-import { useEffect, useState } from 'react';
-import { BlogThemeProvider } from '../context/blogTheme.context';
+import { useEffect, useState, useContext } from 'react';
+import { ThemeContext } from '../context/theme.context';
 import axios from '../config/axios';
 import { Link } from 'react-router-dom';
 import 'remixicon/fonts/remixicon.css';
 import MaterialBlogCard from '../components/MaterialBlogCard';
-import useDarkMode from '../hooks/useDarkMode';
 
 
 const BlogsContent = () => {
     const [blogs, setBlogs] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [darkMode, setDarkMode] = useDarkMode('blog_dark_mode', false);
+    const { isBlogDarkMode: darkMode, setIsBlogDarkMode: setDarkMode } = useContext(ThemeContext);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -19,7 +18,6 @@ const BlogsContent = () => {
             } else {
                 document.documentElement.classList.remove('dark');
             }
-            localStorage.setItem('blog_dark_mode', darkMode);
         }
     }, [darkMode]);
 
@@ -89,9 +87,7 @@ const BlogsContent = () => {
 };
 
 const Blogs = () => (
-    <BlogThemeProvider>
-        <BlogsContent />
-    </BlogThemeProvider>
+    <BlogsContent />
 );
 
 export default Blogs;

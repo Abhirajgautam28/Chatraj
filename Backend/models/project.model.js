@@ -27,7 +27,10 @@ const projectSchema = new mongoose.Schema({
         type: Object,
         default: {}
     }
-})
+}, { timestamps: true });
+
+projectSchema.index({ users: 1 });
+projectSchema.index({ category: 1 });
 
 const Project = mongoose.model('project', projectSchema)
 

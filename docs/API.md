@@ -1,83 +1,73 @@
-# 🚀 ChatRaj API Documentation
+# 📖 ChatRaj API Documentation
 
-This document outlines the API endpoints available in the ChatRaj backend.
+This document outlines the standardized response format and the main API endpoints for the ChatRaj project.
+
+## 📐 Response Structure
+
+All API responses follow a consistent format to simplify client-side processing.
+
+### ✅ Success Response
+```json
+{
+  "success": true,
+  "message": "Human-readable status message",
+  "data": { ... payload ... }
+}
+```
+
+### ❌ Error Response
+```json
+{
+  "success": false,
+  "error": "Error title or summary",
+  "details": {
+    "code": "ERROR_CODE",
+    "details": "Environment-aware technical details or validation array"
+  }
+}
+```
+
+---
 
 ## 🔐 Authentication
-Most endpoints require a valid JWT token passed in the `Authorization` header as a Bearer token or in a `token` cookie.
+
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `/api/users/register` | `POST` | Register a new user and sends verification OTP. |
+| `/api/users/login` | `POST` | Authenticate user and return JWT + User data. |
+| `/api/users/verify-otp`| `POST` | Verify registration or password reset OTP. |
+| `/api/users/profile` | `GET` | Retrieve the authenticated user's profile. |
+| `/api/users/logout` | `GET` | Blacklist the current token and logout. |
 
 ---
 
-## 👤 User Endpoints
+## 🚀 Projects
 
-### Register User
-`POST /api/users/register`
-- **Body:** `{ firstName, lastName, email, password, googleApiKey }`
-- **Response:** `201 Created` - OTP sent to email.
-
-### Verify OTP
-`POST /api/users/verify-otp`
-- **Body:** `{ userId, email, otp }`
-- **Response:** `200 OK` - Returns user and token.
-
-### Login
-`POST /api/users/login`
-- **Body:** `{ email, password }`
-- **Response:** `200 OK` - Returns user and token.
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `/api/projects/create` | `POST` | Create a new collaborative project. |
+| `/api/projects/all` | `GET` | Fetch all projects for the authenticated user. |
+| `/api/projects/get-project/:projectId` | `GET` | Retrieve project details and file tree. |
+| `/api/projects/update-file-tree` | `PUT` | Update the project's virtual file system. |
+| `/api/projects/add-user` | `PUT` | Invite collaborators to a project. |
 
 ---
 
-## 📁 Project Endpoints
+## 📝 Blogs
 
-### Create Project
-`POST /api/projects/create` (Auth required)
-- **Body:** `{ name, category, users? }`
-- **Response:** `201 Created`
-
-### Update File Tree
-`PUT /api/projects/update-file-tree` (Auth required)
-- **Body:** `{ projectId, fileTree }`
-- **Response:** `200 OK`
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `/api/blogs` | `GET` | List all community blog posts. |
+| `/api/blogs` | `POST` | Publish a new blog post. |
+| `/api/blogs/:id` | `GET` | Retrieve a single blog with comments. |
+| `/api/blogs/like/:id` | `PUT` | Toggle like status on a blog post. |
+| `/api/blogs/comment/:id`| `PUT` | Add a comment to a blog post. |
 
 ---
 
-## 🤖 AI Endpoints
+## 🛡️ Security Measures
 
-### Get AI Result
-`GET /api/ai/get-result`
-- **Query:** `?prompt=...`
-- **Response:** `200 OK`
-
----
-
-## 📝 Blog Endpoints
-
-### Create Blog
-`POST /api/blogs/create` (Auth required)
-- **Body:** `{ title, content }`
-- **Response:** `201 Created`
-
----
-
-## 🔌 Socket.io Events
-
-### Connection
-Connect to the root namespace with `token` in `handshake.auth` and `projectId` in `handshake.query`.
-
-### Inbound Events (Client -> Server)
-- `project-message`: Sends a message to the project.
-    - **Data:** `{ message, sender, parentMessageId?, googleApiKey? }`
-- `message-delivered`: Marks a message as delivered.
-    - **Data:** `{ messageId, userId }`
-- `message-read`: Marks a message as read.
-    - **Data:** `{ messageId, userId }`
-- `message-reaction`: Adds/removes an emoji reaction.
-    - **Data:** `{ messageId, userId, emoji }`
-- `typing` / `stop-typing`: Broadcasts typing status.
-    - **Data:** `{ userId, projectId }`
-
-### Outbound Events (Server -> Client)
-- `project-message`: Broadcasts a new message.
-- `message-delivered`: Broadcasts delivery confirmation.
-- `message-read`: Broadcasts read confirmation.
-- `message-reaction`: Broadcasts updated message reactions.
-- `typing` / `stop-typing`: Broadcasts member typing status.
+1.  **JWT Authentication**: Required for all `/api/` endpoints except login/register.
+2.  **CSRF Protection**: Synchronizer Token Pattern + Signed Stateless Fallback.
+3.  **Rate Limiting**: Applied to auth and sensitive routes to prevent brute-force.
+4.  **NoSQL Injection Protection**: Recursive key validation for nested JSON updates.

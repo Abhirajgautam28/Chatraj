@@ -1,43 +1,63 @@
-import React from 'react';
-
-// ...existing code...
-import { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
 export const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
+  // Global theme
   const [isDarkMode, setIsDarkMode] = useState(() => {
     try {
-      if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.getItem === 'function') {
-        const savedTheme = window.localStorage.getItem('isDarkMode');
-        return savedTheme ? JSON.parse(savedTheme) : false;
-      }
+      const savedTheme = localStorage.getItem('isDarkMode');
+      return savedTheme ? JSON.parse(savedTheme) : false;
     } catch (e) {
-      // ignore and fallback to default
+      return false;
     }
-    return false;
+  });
+
+  // ChatRaj specific theme
+  const [isChatRajDarkMode, setIsChatRajDarkMode] = useState(() => {
+    try {
+      const savedTheme = localStorage.getItem('chatrajTheme');
+      return savedTheme ? JSON.parse(savedTheme) : false;
+    } catch (e) {
+      return false;
+    }
+  });
+
+  // Blog specific theme
+  const [isBlogDarkMode, setIsBlogDarkMode] = useState(() => {
+    try {
+      const savedTheme = localStorage.getItem('blog_dark_mode');
+      return savedTheme ? JSON.parse(savedTheme) : false;
+    } catch (e) {
+      return false;
+    }
   });
 
   useEffect(() => {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.setItem === 'function') {
-        window.localStorage.setItem('isDarkMode', JSON.stringify(isDarkMode));
-      }
-      if (typeof document !== 'undefined' && document.documentElement) {
-        if (isDarkMode) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      }
-    } catch (e) {
-      // ignore errors in non-browser environments (tests)
+    localStorage.setItem('isDarkMode', JSON.stringify(isDarkMode));
+    // Root dark mode handles most screens
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
   }, [isDarkMode]);
 
+  useEffect(() => {
+    localStorage.setItem('chatrajTheme', JSON.stringify(isChatRajDarkMode));
+  }, [isChatRajDarkMode]);
+
+  useEffect(() => {
+    localStorage.setItem('blog_dark_mode', JSON.stringify(isBlogDarkMode));
+  }, [isBlogDarkMode]);
+
   return (
-    <ThemeContext.Provider value={{ isDarkMode, setIsDarkMode }}>
+    <ThemeContext.Provider value={{
+      isDarkMode, setIsDarkMode,
+      isChatRajDarkMode, setIsChatRajDarkMode,
+      isBlogDarkMode, setIsBlogDarkMode
+    }}>
       {children}
     </ThemeContext.Provider>
   );

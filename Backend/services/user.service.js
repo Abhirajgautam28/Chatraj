@@ -146,11 +146,15 @@ export const loginUser = async (email, password) => {
     delete userObj.password;
     delete userObj.googleApiKey;
     delete userObj.otp;
+
+    // Cache the profile for fast lookups
+    await redisClient.set(`user:profile:${user._id}`, JSON.stringify(userObj), 'EX', 3600);
+
     return { user: userObj, token };
 };
 
 export const getAllUsers = async ({ userId }) => {
-    return await withCache(`users:all:exclude:${userId}`, 60, async () => {
+    return await withCache(`users:all:exclude:${userId}`, 300, async () => {
         return await userModel.find({ _id: { $ne: userId } }).select('firstName lastName _id');
     });
 };

@@ -1,24 +1,29 @@
 import React from 'react';
 import { useState } from 'react';
+import axios from '../config/axios';
 
 const ContactUs = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [message, setMessage] = useState('');
     const [status, setStatus] = useState('');
+    const [isError, setIsError] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setStatus('Sending...');
+        setIsError(false);
         try {
-            // Mock API call
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await axios.post('/api/contact/submit', { name, email, message });
             setStatus('Message sent successfully!');
             setName('');
             setEmail('');
             setMessage('');
-        } catch {
-            setStatus('Failed to send message. Please try again.');
+            setTimeout(() => setStatus(''), 5000);
+        } catch (err) {
+            const errorMsg = err.response?.data?.message || err.response?.data?.errors?.[0]?.msg || 'Failed to send message. Please try again.';
+            setStatus(errorMsg);
+            setIsError(true);
         }
     };
 
@@ -78,10 +83,18 @@ const ContactUs = () => {
                             </div>
                             <button
                                 type="submit"
-                                className="w-full p-3 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
+                                disabled={status === 'Sending...'}
+                                className={`w-full p-3 text-white transition-colors rounded-lg ${
+                                    status === 'Sending...' ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+                                }`}
                             >
-                                {status || 'Send Message'}
+                                {status === 'Sending...' ? 'Sending...' : 'Send Message'}
                             </button>
+                            {status && status !== 'Sending...' && (
+                                <p className={`mt-2 text-center text-sm ${isError ? 'text-red-500' : 'text-green-500'}`}>
+                                    {status}
+                                </p>
+                            )}
                         </form>
                     </div>
                 </div>

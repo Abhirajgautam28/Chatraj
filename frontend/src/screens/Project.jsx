@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useContext } from 'react'
+import React, { useRef, useState, useEffect, useContext, useMemo } from 'react'
 import { UserContext } from '../context/user.context'
 import { ThemeContext } from '../context/theme.context'
 import { useLocation } from 'react-router-dom'
@@ -8,7 +8,6 @@ import Markdown from 'markdown-to-jsx'
 import { getWebContainer } from '../config/webContainer'
 import Avatar from '../components/Avatar';
 import EmojiPicker from '../components/EmojiPicker';
-import FileIcon from '../components/FileIcon';
 import 'highlight.js/styles/github.css';
 import 'highlight.js/styles/github-dark.css';
 import PropTypes from 'prop-types';
@@ -18,138 +17,23 @@ import VimCodeEditor from '../components/VimCodeEditor';
 import ChatMessage from '../components/ChatMessage';
 import FileTree from '../components/FileTree';
 import ProjectSettingsModal from '../components/ProjectSettingsModal';
-
-const PROJECT_TRANSLATIONS = {
-  'en-US': {
-    addUsers: 'Add Users',
-    collaborators: 'Collaborators',
-    options: 'Options',
-    run: 'Run',
-    noFileSelected: 'No file selected.',
-    noCode: 'No code to display.',
-    settings: 'Settings',
-    language: 'Language',
-    aiAssistant: 'AI Assistant',
-    replyTo: 'Replying to',
-    send: 'Send',
-    searchMessages: 'Search messages...',
-    selectUser: 'Select User',
-    addCollaborators: 'Add Collaborators',
-    previewOptions: 'Preview Options',
-    editorSettings: 'Editor Settings (see main settings for more)',
-  },
-  'hi-IN': {
-    addUsers: 'यूज़र जोड़ें',
-    collaborators: 'सहयोगी',
-    options: 'विकल्प',
-    run: 'चलाएँ',
-    noFileSelected: 'कोई फ़ाइल चयनित नहीं है।',
-    noCode: 'कोड उपलब्ध नहीं है।',
-    settings: 'सेटिंग्स',
-    language: 'भाषा',
-    aiAssistant: 'एआई सहायक',
-    replyTo: 'को उत्तर दे रहे हैं',
-    send: 'भेजें',
-    searchMessages: 'संदेश खोजें...',
-    selectUser: 'यूज़र चुनें',
-    addCollaborators: 'सहयोगी जोड़ें',
-    previewOptions: 'पूर्वावलोकन विकल्प',
-    editorSettings: 'संपादक सेटिंग्स (अधिक के लिए मुख्य सेटिंग्स देखें)',
-  },
-  'es-ES': {
-    addUsers: 'Agregar usuarios',
-    collaborators: 'Colaboradores',
-    options: 'Opciones',
-    run: 'Ejecutar',
-    noFileSelected: 'Ningún archivo seleccionado.',
-    noCode: 'No hay código para mostrar.',
-    settings: 'Configuración',
-    language: 'Idioma',
-    aiAssistant: 'Asistente de IA',
-    replyTo: 'Respondiendo a',
-    send: 'Enviar',
-    searchMessages: 'Buscar mensajes...',
-    selectUser: 'Seleccionar usuario',
-    addCollaborators: 'Agregar colaboradores',
-    previewOptions: 'Opciones de vista previa',
-    editorSettings: 'Configuración del editor (ver configuración principal para más)',
-  },
-  'fr-FR': {
-    addUsers: 'Ajouter des utilisateurs',
-    collaborators: 'Collaborateurs',
-    options: 'Options',
-    run: 'Exécuter',
-    noFileSelected: 'Aucun fichier sélectionné.',
-    noCode: 'Aucun code à afficher.',
-    settings: 'Paramètres',
-    language: 'Langue',
-    aiAssistant: 'Assistant IA',
-    replyTo: 'En réponse à',
-    send: 'Envoyer',
-    searchMessages: 'Rechercher des messages...',
-    selectUser: 'Sélectionner un utilisateur',
-    addCollaborators: 'Ajouter des collaborateurs',
-    previewOptions: 'Options d’aperçu',
-    editorSettings: 'Paramètres de l’éditeur (voir les paramètres principaux pour plus)',
-  },
-  'de-DE': {
-    addUsers: 'Benutzer hinzufügen',
-    collaborators: 'Mitarbeiter',
-    options: 'Optionen',
-    run: 'Ausführen',
-    noFileSelected: 'Keine Datei ausgewählt.',
-    noCode: 'Kein Code zum Anzeigen.',
-    settings: 'Einstellungen',
-    language: 'Sprache',
-    aiAssistant: 'KI-Assistent',
-    replyTo: 'Antwort an',
-    send: 'Senden',
-    searchMessages: 'Nachrichten suchen...',
-    selectUser: 'Benutzer auswählen',
-    addCollaborators: 'Mitarbeiter hinzufügen',
-    previewOptions: 'Vorschauoptionen',
-    editorSettings: 'Editor-Einstellungen (siehe Haupteinstellungen für mehr)',
-  },
-  'ja-JP': {
-    addUsers: 'ユーザーを追加',
-    collaborators: '共同作業者',
-    options: 'オプション',
-    run: '実行',
-    noFileSelected: 'ファイルが選択されていません。',
-    noCode: '表示するコードがありません。',
-    settings: '設定',
-    language: '言語',
-    aiAssistant: 'AIアシスタント',
-    replyTo: '返信先',
-    send: '送信',
-    searchMessages: 'メッセージを検索...',
-    selectUser: 'ユーザーを選択',
-    addCollaborators: '共同作業者を追加',
-    previewOptions: 'プレビューオプション',
-    editorSettings: 'エディター設定（詳細はメイン設定を参照）',
-  },
-};
+import {
+  PROJECT_TRANSLATIONS,
+  deduplicateMessages,
+  groupMessagesByDate,
+  normalizeFileTree
+} from '../utils/project.utils';
 
 function useProjectTranslation(language) {
-  return React.useMemo(() => {
+  return useMemo(() => {
     const lang = PROJECT_TRANSLATIONS[language] ? language : 'en-US';
     return (key) => PROJECT_TRANSLATIONS[lang][key] || key;
   }, [language]);
 }
 
-function deduplicateMessages(messages) {
-  const seen = new Set();
-  return messages.filter(msg => {
-    if (!msg._id) return true;
-    if (seen.has(msg._id)) return false;
-    seen.add(msg._id);
-    return true;
-  });
-}
-
 function SyntaxHighlightedCode(props) {
   const ref = useRef(null)
-  React.useEffect(() => {
+  useEffect(() => {
     if (ref.current && props.className?.includes('lang-') && window.hljs) {
       window.hljs.highlightElement(ref.current)
       ref.current.removeAttribute('data-highlighted')
@@ -162,54 +46,6 @@ SyntaxHighlightedCode.propTypes = {
   className: PropTypes.string,
   children: PropTypes.node
 };
-
-const isSameDay = (d1, d2) => {
-  return (
-    d1.getFullYear() === d2.getFullYear() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getDate() === d2.getDate()
-  )
-}
-
-const getGroupLabel = (date) => {
-  const today = new Date()
-  if (isSameDay(date, today)) return 'Today'
-
-  const yesterday = new Date()
-  yesterday.setDate(today.getDate() - 1)
-  if (isSameDay(date, yesterday)) return 'Yesterday'
-  return date.toLocaleDateString()
-}
-
-const groupMessagesByDate = (messagesArr) => {
-  const groups = {}
-  messagesArr.forEach((msg) => {
-    const d = new Date(msg.createdAt)
-    const label = getGroupLabel(d)
-    if (!groups[label]) {
-      groups[label] = []
-    }
-    groups[label].push(msg)
-  })
-  return groups
-}
-
-// Utility to normalize fileTree structure
-function normalizeFileTree(tree) {
-  if (!tree || typeof tree !== 'object') return {};
-  const normalized = {};
-  for (const [key, value] of Object.entries(tree)) {
-    if (value && typeof value === 'object' && 'file' in value && typeof value.file.contents === 'string') {
-      normalized[key] = value;
-    } else if (typeof value === 'string') {
-      // If value is just a string, wrap it
-      normalized[key] = { file: { contents: value } };
-    } else {
-      // Fallback: skip or handle as needed
-    }
-  }
-  return normalized;
-}
 
 const Project = () => {
   const location = useLocation()
@@ -237,64 +73,32 @@ const Project = () => {
     if (!rawValue) return null;
     try {
       const url = new URL(rawValue, window.location.origin);
-      if (url.origin !== window.location.origin) {
-        return null;
-      }
-      if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-        return null;
-      }
+      if (url.origin !== window.location.origin) return null;
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
       return url.toString();
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   };
+
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
+
   const [settings, setSettings] = useState(() => {
     const savedSettings = localStorage.getItem('projectSettings');
     const defaultSettings = {
-      display: {
-        darkMode: isDarkMode,
-        showAvatars: true,
-        vimMode: false,
-      },
-      behavior: {
-        autoScroll: true,
-        enterToSend: true,
-        showSystemMessages: true, // new
-        collapseReplies: false,   // new
-        showReadReceipts: true,  // new
-      },
-      accessibility: {
-        language: 'en-US',
-      },
-      privacy: {
-        saveHistory: true,
-      },
-      sidebar: {
-        showFileTree: true,
-        showCollaborators: true,
-        pinSidebar: false,
-        sidebarWidth: 240,
-      },
+      display: { darkMode: isDarkMode, showAvatars: true, vimMode: false },
+      behavior: { autoScroll: true, enterToSend: true, showSystemMessages: true, collapseReplies: false, showReadReceipts: true },
+      accessibility: { language: 'en-US' },
+      privacy: { saveHistory: true },
+      sidebar: { showFileTree: true, showCollaborators: true, pinSidebar: false, sidebarWidth: 240 },
     };
     if (savedSettings) {
-      // Deep merge saved settings with defaults
       const parsed = JSON.parse(savedSettings);
-      return {
-        ...defaultSettings,
-        ...parsed,
-        display: { ...defaultSettings.display, ...parsed.display },
-        behavior: { ...defaultSettings.behavior, ...parsed.behavior },
-        accessibility: { ...defaultSettings.accessibility, ...parsed.accessibility },
-        privacy: { ...defaultSettings.privacy, ...parsed.privacy },
-        sidebar: { ...defaultSettings.sidebar, ...parsed.sidebar },
-      };
+      return { ...defaultSettings, ...parsed };
     }
     return defaultSettings;
   });
-  // Language translation hook for this page (must be after settings is defined)
+
   const language = settings.accessibility?.language || 'en-US';
   const t = useProjectTranslation(language);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -306,27 +110,17 @@ const Project = () => {
   const [aiResponse, setAiResponse] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [showOptionsModal, setShowOptionsModal] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [modalPosition, setModalPosition] = useState(null); // null means center
-  const settingsModalRef = useRef(null);
-  const [expandedReplies, setExpandedReplies] = useState({}); // Track expanded replies
+  const [expandedReplies, setExpandedReplies] = useState({});
 
   const toggleEmojiPicker = (messageId) => {
-    setMessageEmojiPickers(prev => ({
-      ...prev,
-      [messageId]: !prev[messageId]
-    }));
+    setMessageEmojiPickers(prev => ({ ...prev, [messageId]: !prev[messageId] }));
   };
 
   const handleReaction = (messageId, emoji, userId) => {
     const message = messages.find(m => m._id === messageId);
-    if (message.sender._id === userId) {
-      return;
-    }
+    if (!message || message.sender._id === userId) return;
 
     const existingReaction = message.reactions?.find(r => r.userId === userId);
-
     const newReactions = message.reactions?.filter(r => r.userId !== userId) || [];
     if (!existingReaction || existingReaction.emoji !== emoji) {
       newReactions.push({ userId, emoji });
@@ -341,52 +135,35 @@ const Project = () => {
 
     setMessages(prevMessages =>
       prevMessages.map(msg =>
-        msg._id === messageId
-          ? { ...msg, reactions: newReactions }
-          : msg
+        msg._id === messageId ? { ...msg, reactions: newReactions } : msg
       )
     );
-
-    setMessageEmojiPickers(prev => ({
-      ...prev,
-      [messageId]: false
-    }));
+    toggleEmojiPicker(messageId);
   };
 
   const handleUserClick = (id) => {
     setSelectedUserId((prev) => {
       const newSelected = new Set(prev)
-      if (newSelected.has(id)) {
-        newSelected.delete(id)
-      } else {
-        newSelected.add(id)
-      }
+      if (newSelected.has(id)) newSelected.delete(id)
+      else newSelected.add(id)
       return newSelected
     })
   }
 
   function addCollaborators() {
-    axios
-      .put("/api/projects/add-user", {
-        projectId: location.state.project._id,
-        users: Array.from(selectedUserId)
-      })
-      .then((res) => {
-        console.log(res.data)
-        setIsModalOpen(false)
-      })
-      .catch((err) => console.log(err))
+    axios.put("/api/projects/add-user", {
+      projectId: project._id,
+      users: Array.from(selectedUserId)
+    }).then(() => setIsModalOpen(false)).catch(console.error)
   }
 
   const send = () => {
     if (!message.trim()) return;
-    const payload = {
-      message,
-      sender: user,
+    sendMessage("project-message", {
+      message, sender: user,
       parentMessageId: replyingTo ? replyingTo._id : null,
-      googleApiKey: user.googleApiKey // send user's Gemini key
-    };
-    sendMessage("project-message", payload);
+      googleApiKey: user.googleApiKey
+    });
     setMessage("");
     setReplyingTo(null);
   }
@@ -396,11 +173,7 @@ const Project = () => {
       setIsTyping(true);
       sendMessage('typing', { userId: user._id, projectId: project._id });
     }
-
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
       sendMessage('stop-typing', { userId: user._id, projectId: project._id });
@@ -412,7 +185,6 @@ const Project = () => {
     setAiLoading(true);
     setAiResponse("");
     try {
-      // Send user's googleApiKey for Gemini API access
       const res = await axios.post("/api/ai", { prompt: aiInput, userApiKey: user.googleApiKey });
       setAiResponse(res.data?.response || "No response from AI.");
     } catch (err) {
@@ -424,9 +196,7 @@ const Project = () => {
   useEffect(() => {
     if (messages.length && messageBox.current) {
       const lastMsg = messages[messages.length - 1]
-      if (lastMsg._id) {
-        sendMessage("message-read", { messageId: lastMsg._id, userId: user._id })
-      }
+      if (lastMsg._id) sendMessage("message-read", { messageId: lastMsg._id, userId: user._id })
     }
   }, [messages, user])
 
@@ -434,1031 +204,193 @@ const Project = () => {
     if (window.__webcontainerBooted) return;
     window.__webcontainerBooted = true;
     initializeSocket(project._id)
-    if (!webContainer) {
-      getWebContainer().then((container) => {
-        setWebContainer(container)
-        console.log("container started")
-      })
-    }
-    axios.get(`/api/projects/get-project/${location.state.project._id}`).then((res) => {
-      console.log(res.data.project)
+    getWebContainer().then(setWebContainer);
+    axios.get(`/api/projects/get-project/${project._id}`).then((res) => {
       setProject(res.data.project)
       setFileTree(res.data.project.fileTree || {})
     })
-    axios
-      .get("/api/users/all")
-      .then((res) => {
-        setUsers(res.data.users)
-      })
-      .catch((err) => console.log(err))
-  }, [webContainer, project._id, location.state.project._id])
+    axios.get("/api/users/all").then((res) => setUsers(res.data.users)).catch(console.error)
+  }, [project._id])
 
   useEffect(() => {
-    if (messageBox.current)
-      messageBox.current.scrollTop = messageBox.current.scrollHeight
+    if (messageBox.current) messageBox.current.scrollTop = messageBox.current.scrollHeight
   }, [messages])
 
   useEffect(() => {
     const handleIncomingMessage = (data) => {
-      // If the sender is Chatraj and the message is a JSON with fileTree, update the file tree
-      if (data.sender && data.sender._id === "Chatraj") {
+      if (data.sender?._id === "Chatraj") {
         try {
           const aiResponse = JSON.parse(data.message);
           if (aiResponse.fileTree) {
             const normalizedTree = normalizeFileTree(aiResponse.fileTree);
             setFileTree(normalizedTree);
-            // Optionally, update the backend as well:
-            axios.put('/api/projects/update-file-tree', {
-              projectId: project._id,
-              fileTree: normalizedTree
-            });
+            axios.put('/api/projects/update-file-tree', { projectId: project._id, fileTree: normalizedTree });
           }
-          // Only show the AI's text in chat if it is not a duplicate
           setMessages((prev) => {
-            // Prevent duplicate messages with the same _id and sender
-            if (prev.some(m => m._id === data._id && m.sender?._id === data.sender?._id)) {
-              return prev;
-            }
-            return [
-              ...prev,
-              {
-                ...data,
-                message: aiResponse.text || data.message
-              }
-            ];
+            if (prev.some(m => m._id === data._id)) return prev;
+            return [...prev, { ...data, message: aiResponse.text || data.message }];
           });
           return;
-        } catch {
-          // If not JSON, just show as normal message
-        }
+        } catch { /* not JSON */ }
       }
-      // Default: just add the message if not a duplicate
-      setMessages((prev) => {
-        if (prev.some(m => m._id === data._id && m.sender?._id === data.sender?._id)) {
-          return prev;
-        }
-        return [...prev, data];
-      });
+      setMessages((prev) => prev.some(m => m._id === data._id) ? prev : [...prev, data]);
     }
-
     receiveMessage("project-message", handleIncomingMessage)
-  }, [webContainer, project._id])
+  }, [project._id])
 
   useEffect(() => {
-    const handleUserTyping = (data) => {
-      if (data.userId !== user._id) {
-        setTypingUsers(prev => new Set([...prev, data.userId]));
-      }
-    };
-
-    const handleStopTyping = (data) => {
-      setTypingUsers(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(data.userId);
-        return newSet;
-      });
-    };
-
-    receiveMessage('typing', handleUserTyping);
-    receiveMessage('stop-typing', handleStopTyping);
-
-    return () => {
-      receiveMessage('typing', null);
-      receiveMessage('stop-typing', null);
-    };
+    receiveMessage('typing', (d) => d.userId !== user._id && setTypingUsers(p => new Set([...p, d.userId])));
+    receiveMessage('stop-typing', (d) => setTypingUsers(p => { const s = new Set(p); s.delete(d.userId); return s; }));
+    receiveMessage("message-reaction", (u) => setMessages(p => p.map(m => m._id === u._id ? u : m)));
   }, [user._id]);
 
-  useEffect(() => {
-    const handleReactionUpdate = (updatedMessage) => {
-      setMessages(prevMessages =>
-        prevMessages.map(msg =>
-          msg._id === updatedMessage._id ? updatedMessage : msg
-        )
-      );
-    };
+  useEffect(() => { setMessages(prev => deduplicateMessages(prev)); }, [messages.length]);
 
-    receiveMessage("message-reaction", handleReactionUpdate);
-  }, []);
-
-  // Fix: Deduplicate messages on every update
-  useEffect(() => {
-    setMessages(prev => deduplicateMessages(prev));
-  }, [messages.length]);
-
-  // Patch messages to simulate readBy for current user's messages
-  const patchedMessages = messages.map(msg => {
-    if (msg.sender && msg.sender._id === user._id) {
-      return { ...msg, readBy: [user._id, 'other-user'] };
-    }
-    return msg;
-  });
-
-  const filteredMessages = searchTerm
-    ? patchedMessages.filter((msg) => msg.message.toLowerCase().includes(searchTerm.toLowerCase()))
-    : patchedMessages;
-
-  // Fix: define groupedMessages before return
+  const filteredMessages = searchTerm ? messages.filter(m => m.message.toLowerCase().includes(searchTerm.toLowerCase())) : messages;
   const groupedMessages = groupMessagesByDate(filteredMessages);
 
-  // Map bubble roundness setting to Tailwind classes
-  const bubbleRoundnessClass = {
-    small: 'rounded',
-    medium: 'rounded-lg',
-    large: 'rounded-xl',
-    'extra-large': 'rounded-3xl',
-  }[settings.display?.bubbleRoundness || 'large'];
-  // Map message font size to Tailwind classes
-  const messageFontSizeClass = {
-    small: 'text-sm',
-    medium: 'text-base',
-    large: 'text-lg',
-  }[settings.display?.messageFontSize || 'medium'];
+  const bubbleRoundnessClass = { small: 'rounded', medium: 'rounded-lg', large: 'rounded-xl', 'extra-large': 'rounded-3xl' }[settings.display?.bubbleRoundness || 'large'];
+  const messageFontSizeClass = { small: 'text-sm', medium: 'text-base', large: 'text-lg' }[settings.display?.messageFontSize || 'medium'];
 
-  // Utility to determine text color based on background and theme
   const getUserBubbleStyle = () => {
     const bg = settings.display.themeColor || '#3B82F6';
-    let textColor = '#fff';
-    // If user selected white, force black text
-    if (bg.toLowerCase() === '#fff' || bg.toLowerCase() === '#ffffff' || bg.toLowerCase() === 'white') {
-      textColor = '#000';
-    }
-    // If in light mode, always use black text
-    if (!isDarkMode) {
-      textColor = '#000';
-    }
-    // If in dark mode, always use white text
-    if (isDarkMode) {
-      textColor = '#fff';
-    }
-    return {
-      backgroundColor: bg,
-      color: textColor
-    };
+    let textColor = (isDarkMode || bg.toLowerCase() === 'white' || bg.toLowerCase() === '#fff') ? '#fff' : '#000';
+    if (!isDarkMode) textColor = '#000';
+    return { backgroundColor: bg, color: textColor };
   };
 
-  const renderMessage = (msg) => {
-    const isCurrentUser =
-      msg.sender &&
-      typeof msg.sender === "object" &&
-      msg.sender._id &&
-      msg.sender._id.toString() === user._id.toString()
-
-    const parentMsg = msg.parentMessageId && messages.find((m) => m._id === msg.parentMessageId)
-
-    let reactionGroups = {};
-    if (msg.reactions) {
-      msg.reactions.forEach(r => {
-        if (!reactionGroups[r.emoji]) {
-          reactionGroups[r.emoji] = [];
-        }
-        if (!reactionGroups[r.emoji].includes(r.userId)) {
-          reactionGroups[r.emoji].push(r.userId);
-        }
-      });
-    }
-
-    // Robust system message filtering: check type or known system patterns
-    const isSystemMsg = (msg.type === 'system') || (typeof msg.message === 'string' && (
-      /^user (joined|left|removed|added|invited|renamed|deleted|updated)/i.test(msg.message) ||
-      /^file (created|updated|deleted|renamed)/i.test(msg.message) ||
-      /^system:/i.test(msg.message)
-    ));
-    if (isSystemMsg) {
-      if (!settings.behavior.showSystemMessages) return null;
-      // Try to extract user id or name from the message or sender
-      let notificationText = msg.message;
-      // If message is like 'User joined the project', replace 'User' with full name if possible
-      if (/^User joined the project/i.test(msg.message) && msg.sender && msg.sender._id && msg.sender._id !== 'system') {
-        // Try to find user in users list
-        const joinedUser = users.find(u => u._id === msg.sender._id);
-        if (joinedUser) {
-          notificationText = `${joinedUser.firstName}${joinedUser.lastName ? ' ' + joinedUser.lastName : ''} joined the project`;
-        }
-      }
-      // Render as notification bar
-      return (
-        <div key={msg._id} className="flex justify-center my-2">
-          <div className="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-100 rounded shadow dark:bg-blue-900 dark:text-blue-100">
-            {notificationText}
-          </div>
-        </div>
-      );
-    }
-
-    // Collapse replies if toggle is on
-    const isReply = !!msg.parentMessageId;
-    const isReplyCollapsed = settings.behavior.collapseReplies && isReply && !expandedReplies[msg._id];
-
-    return (
-      <div
-        key={msg._id}
-        className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"} mb-2`}
-      >
-        {isReply && !isReplyCollapsed && (
-          <div className="px-2 py-1 mb-1 text-xs italic bg-gray-200 rounded">
-            Replying to: {parentMsg ? (typeof parentMsg.sender === "object" ? parentMsg.sender.firstName : parentMsg.sender) : "Unknown"}
-          </div>
-        )}
-        {isReply && isReplyCollapsed && (
-          <button
-            className="px-2 py-1 mb-1 text-xs italic bg-gray-100 rounded hover:bg-gray-200"
-            onClick={() => setExpandedReplies(prev => ({ ...prev, [msg._id]: true }))}
-          >
-            Show Reply
-          </button>
-        )}
-        <div className="flex items-start gap-2">
-          {/* Only show Avatar before bubble for others */}
-          {!isCurrentUser && settings.display?.showAvatars && msg.sender && (
-            <Avatar firstName={msg.sender.firstName} className="w-8 h-8" />
-          )}
-          <div
-            className={`flex flex-col p-2 max-w-xs break-words ${bubbleRoundnessClass} ${messageFontSizeClass} ${isCurrentUser ? "" : "bg-white text-gray-800 shadow"}`}
-            style={isCurrentUser ? getUserBubbleStyle() : {}}
-          >
-            {!isCurrentUser && (
-              <small className={`mb-1 font-bold text-gray-700 ${messageFontSizeClass}`}>
-                {typeof msg.sender === "object" ? msg.sender.firstName : msg.sender}
-              </small>
-            )}
-            <div className={`whitespace-pre-wrap ${messageFontSizeClass}`}>
-              {msg.sender && msg.sender._id === "Chatraj" ? (
-                <div className={`p-2 rounded ${settings.display.syntaxHighlighting === false
-                  ? (isDarkMode ? "bg-gray-900 text-white" : "bg-slate-200 text-black")
-                  : "text-white bg-slate-950"} ${messageFontSizeClass}`}>
-                  <Markdown options={{
-                    overrides: {
-                      code: settings.display.syntaxHighlighting === false
-                        ? {
-                          component: (props) => <code style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word', display: 'block', background: 'none', color: 'inherit' }}>{props.children}</code>
-                        }
-                        : SyntaxHighlightedCode
-                    }
-                  }}>
-                    {(() => {
-                      try {
-                        const parsedMessage = JSON.parse(msg.message);
-                        return parsedMessage.text || msg.message;
-                      } catch {
-                        return msg.message;
-                      }
-                    })()}
-                  </Markdown>
-                </div>
-              ) : (
-                <p className={messageFontSizeClass}>{msg.message}</p>
-              )}
-            </div>
-          </div>
-          {isCurrentUser && (
-            <Avatar
-              firstName={user.firstName}
-              className="w-8 h-8 text-sm"
-              style={getUserBubbleStyle()}
-            />
-          )}
-        </div>
-        <div className="relative group">
-          <div className="flex items-center gap-2 mt-1">
-            {settings.display?.showTimestamps && (
-              <small className="text-[10px] text-gray-600">
-                {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-              </small>
-            )}
-            {/* Show read receipts if enabled and message is from current user and at least one other user has read it */}
-            {settings.behavior.showReadReceipts && isCurrentUser && (
-              (() => {
-                const status = getMessageStatus(msg);
-                if (!status) return null;
-                return (
-                  <span className="flex items-center gap-1 ml-2 text-xs" style={{ color: status.icon === 'double-green' ? '#22c55e' : status.icon === 'double' ? '#555' : '#555' }}>
-                    {status.icon === 'single' && (
-                      <i className="ri-check-line" title="Sent"></i>
-                    )}
-                    {status.icon === 'double' && (
-                      <>
-                        <i className="ri-check-double-line" title="Received"></i>
-                      </>
-                    )}
-                    {status.icon === 'double-green' && (
-                      <i className="ri-check-double-line" style={{ color: '#22c55e' }} title="Seen"></i>
-                    )}
-                    <span>{status.label}</span>
-                  </span>
-                );
-              })()
-            )}
-            <div className="relative">
-              {!isCurrentUser && (
-                <button
-                  className="p-1 text-xs text-gray-600 rounded opacity-0 dark:text-gray-400 group-hover:opacity-100 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  onClick={() => toggleEmojiPicker(msg._id)}
-                >
-                  <i className="text-base ri-emotion-line"></i>
-                </button>
-              )}
-              <EmojiPicker
-                isOpen={messageEmojiPickers[msg._id]}
-                setIsOpen={(isOpen) => {
-                  setMessageEmojiPickers(prev => ({
-                    ...prev,
-                    [msg._id]: isOpen
-                  }));
-                }}
-                isCurrentUser={isCurrentUser}
-                onSelect={(emoji) => {
-                  if (msg._id && !isCurrentUser) {
-                    handleReaction(msg._id, emoji, user._id);
-                  }
-                }}
-              />
-            </div>
-            {Object.entries(reactionGroups).map(([emoji, users]) => {
-              if (users.length === 0) return null;
-              return (
-                <button
-                  key={emoji}
-                  className={`text-xs px-2 py-1 rounded-full ${users.includes(user._id)
-                    ? 'bg-blue-100 dark:bg-blue-900'
-                    : 'bg-gray-100 dark:bg-gray-700'
-                    }`}
-                  title={users.map(userId => {
-                    const reactingUser = project.users.find(u => u._id === userId);
-                    return reactingUser ? reactingUser.firstName : 'Unknown';
-                  }).join(', ')}
-                >
-                  {emoji} {users.length}
-                </button>
-              );
-            })}
-            <button
-              onClick={() => setReplyingTo(msg)}
-              className="text-xs text-gray-600 opacity-0 group-hover:opacity-100 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
-            >
-              Reply
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Helper to get message status for current user's messages
   function getMessageStatus(msg) {
-    if (!msg || !msg.sender || msg.sender._id !== user._id) return null;
+    if (!msg || msg.sender?._id !== user._id) return null;
     const others = (project.users || []).filter(u => u._id !== user._id).map(u => u._id);
-    // Seen: at least one other user in readBy
-    if (Array.isArray(msg.readBy) && msg.readBy.some(uid => uid !== user._id && others.includes(uid))) {
-      return { label: 'Seen', icon: 'double-green' };
-    }
-    // Received: at least one other user in deliveredTo
-    if (Array.isArray(msg.deliveredTo) && msg.deliveredTo.some(uid => uid !== user._id && others.includes(uid))) {
-      return { label: 'Received', icon: 'double' };
-    }
-    // Sent: deliveredTo missing or only contains self
+    if (msg.readBy?.some(uid => uid !== user._id && others.includes(uid))) return { label: 'Seen', icon: 'double-green' };
+    if (msg.deliveredTo?.some(uid => uid !== user._id && others.includes(uid))) return { label: 'Received', icon: 'double' };
     return { label: 'Sent', icon: 'single' };
   }
 
-  const projectId = project?._id;
+  useEffect(() => {
+    if (project?._id) axios.get(`/api/projects/settings/${project._id}`).then(res => {
+      if (res.data?.settings) {
+        setSettings(p => ({ ...p, ...res.data.settings }));
+        if (res.data.settings.display?.darkMode !== undefined) setIsDarkMode(res.data.settings.display.darkMode);
+      }
+    }).catch(() => { });
+  }, [project?._id, setIsDarkMode]);
 
   useEffect(() => {
-    // Load settings from backend on mount
-    if (projectId) {
-      axios.get(`/api/projects/settings/${projectId}`)
-        .then(res => {
-          if (res.data && res.data.settings) {
-            setSettings(prev => ({ ...prev, ...res.data.settings }));
-            if (res.data.settings.display?.darkMode !== undefined) {
-              setIsDarkMode(res.data.settings.display.darkMode);
-            }
-          }
-        })
-        .catch(() => { });
-    }
-  }, [projectId, project, setIsDarkMode]);
-
-  // Save settings to backend whenever they change
-  useEffect(() => {
-    if (projectId) {
-      axios.put(`/api/projects/settings/${projectId}`, { settings })
-        .catch(() => { });
-    }
-    localStorage.setItem('projectSettings', JSON.stringify(settings));
-  }, [settings, projectId, project]);
-
-  useEffect(() => {
+    if (project?._id) axios.put(`/api/projects/settings/${project._id}`, { settings }).catch(() => { });
     localStorage.setItem('projectSettings', JSON.stringify(settings));
     setIsDarkMode(settings.display.darkMode);
     document.documentElement.classList.toggle('dark', settings.display.darkMode);
-  }, [settings, setIsDarkMode]);
+  }, [settings, project?._id, setIsDarkMode]);
 
   const updateSettings = (category, key, value) => {
     setSettings(prev => {
-      const updated = { ...prev };
-      if (!updated[category]) updated[category] = {};
-      updated[category][key] = value;
-      // Persist to localStorage
-      localStorage.setItem('projectSettings', JSON.stringify(updated));
-
-      // If updating sidebar, sync with backend
-      if (category === 'sidebar' && project?._id) {
-        axios.put(`/api/projects/sidebar-settings/${project._id}`,
-          { sidebar: { ...updated.sidebar } })
-          .then(res => {
-            if (res.data && res.data.sidebar) {
-              setSettings(prev2 => ({ ...prev2, sidebar: res.data.sidebar }));
-            }
-          })
-          .catch(err => {
-            console.error('Failed to update sidebar settings:', err);
-          });
-      }
+      const updated = { ...prev, [category]: { ...prev[category], [key]: value } };
+      if (category === 'sidebar' && project?._id) axios.put(`/api/projects/sidebar-settings/${project._id}`, { sidebar: updated.sidebar }).catch(console.error);
       return updated;
     });
   };
 
-  // Update settings when vimMode changes
-  useEffect(() => {
-    setSettings(prev => ({
-      ...prev,
-      display: {
-        ...prev.display,
-        vimMode,
-      },
-    }));
-  }, [vimMode]);
-
-  // In CodeMirror style prop, remove fontFamily:
-  // style={{
-  //   ... remove fontFamily ...
-  //   fontSize: settings.display.messageFontSize === 'large' ? '1.2rem' : settings.display.messageFontSize === 'small' ? '0.9rem' : '1rem',
-  //   background: settings.display.syntaxHighlighting === false && isDarkMode
-  //     ? '#181e29'
-  //     : isDarkMode
-  //     ? '#111827'
-  //     : 'white',
-  //   color: settings.display.syntaxHighlighting === false && isDarkMode ? '#fff' : undefined,
-  //   height: '100%',
-  //   minHeight: 0,
-  // }}
-  // }))
-  // ...existing code...
+  useEffect(() => { setSettings(p => ({ ...p, display: { ...p.display, vimMode } })); }, [vimMode]);
 
   return (
     <main className="flex w-screen h-screen overflow-hidden bg-transparent">
       <section className="relative flex flex-col h-screen left min-w-96 bg-slate-100 dark:bg-gray-800">
         <header className="absolute top-0 z-10 flex items-center justify-between w-full p-2 px-4 bg-slate-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow">
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 text-gray-800 dark:text-white transition-colors hover:bg-gray-200 dark:hover:bg-gray-800 px-3 py-1.5 rounded-lg focus:outline-none"
-              style={{ background: 'transparent', border: 'none' }}
-            >
-              <i className="ri-user-add-fill" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
-              <span style={{ color: isDarkMode ? '#fff' : '#1f2937' }}>{t('addUsers')}</span>
+            <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 text-gray-800 dark:text-white transition-colors hover:bg-gray-200 dark:hover:bg-gray-800 px-3 py-1.5 rounded-lg">
+              <i className="ri-user-add-fill"></i><span>{t('addUsers')}</span>
             </button>
             {settings.display?.aiAssistant && (
-              <button className="p-2" title={t('aiAssistant')} onClick={() => setIsAIModalOpen(true)}>
-                <i className="ri-robot-2-line" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
-              </button>
+              <button className="p-2" onClick={() => setIsAIModalOpen(true)}><i className="ri-robot-2-line"></i></button>
             )}
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsSettingsOpen(true)}
-              className="p-2 transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
-              title={t('settings')}
-            >
-              <i className="text-xl ri-settings-3-line" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
-            </button>
-            {!showSearch ? (
-              <button
-                onClick={() => setShowSearch(true)}
-                className="p-2 transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
-              >
-                <i className="ri-search-eye-fill" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
-              </button>
-            ) : (
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder={t('searchMessages')}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-48 p-2 text-sm text-gray-800 transition-all duration-300 bg-white border rounded dark:text-white dark:bg-gray-700"
-                />
-                <button
-                  onClick={() => setShowSearch(false)}
-                  className="absolute right-2 top-2"
-                >
-                  <i className="ri-close-line" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
-                </button>
-              </div>
+            <button onClick={() => setIsSettingsOpen(true)} className="p-2 transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"><i className="text-xl ri-settings-3-line"></i></button>
+            <button onClick={() => setShowSearch(!showSearch)} className="p-2 transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"><i className="ri-search-eye-fill"></i></button>
+            {showSearch && (
+               <input type="text" placeholder={t('searchMessages')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-48 p-2 text-sm text-gray-800 bg-white border rounded dark:text-white dark:bg-gray-700" />
             )}
-            <button
-              onClick={() => setIsSidePanelOpen(!isSidePanelOpen)}
-              className="p-2 transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
-            >
-              <i className="ri-user-community-line" style={{ color: isDarkMode ? '#fff' : '#1f2937' }}></i>
-            </button>
+            <button onClick={() => setIsSidePanelOpen(!isSidePanelOpen)} className="p-2 transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"><i className="ri-user-community-line"></i></button>
           </div>
         </header>
-        <div
-          ref={messageBox}
-          className="flex flex-col flex-grow gap-1 p-1 pb-20 overflow-auto pt-14 message-box scrollbar-hide bg-slate-50 dark:bg-gray-800"
-        >
-          {Object.keys(groupedMessages)
-            .sort((a, b) => a.localeCompare(b))
-            .map((groupLabel) => (
-              <div key={groupLabel}>
-                <div className="py-2 text-sm text-center text-gray-500 dark:text-gray-400">{groupLabel}</div>
-                {groupedMessages[groupLabel].map((msg, idx) => (
-                  <ChatMessage
-                    key={msg._id || idx}
-                    msg={msg}
-                    user={user}
-                    isDarkMode={isDarkMode}
-                    settings={settings}
-                    onReply={setReplyingTo}
-                    onReaction={handleReaction}
-                    messageFontSizeClass={messageFontSizeClass}
-                    bubbleRoundnessClass={bubbleRoundnessClass}
-                    getUserBubbleStyle={getUserBubbleStyle}
-                    SyntaxHighlightedCode={SyntaxHighlightedCode}
-                    toggleEmojiPicker={toggleEmojiPicker}
-                    isEmojiPickerOpen={messageEmojiPickers[msg._id]}
-                    getMessageStatus={getMessageStatus}
-                  />
-                ))}
-              </div>
-            ))}
-        </div>
-        {replyingTo && (
-          <div className="absolute z-20 flex items-center px-3 py-1 rounded-full shadow-md bottom-14 left-2 max-w-max bg-gradient-to-r from-blue-500 to-purple-500">
-            <i className="mr-1 text-xs text-white ri-reply-line" />
-            <span className="text-xs text-white">
-              Replying to {replyingTo.sender?.firstName || 'Unknown'}
-            </span>
-            <button
-              className="ml-2 focus:outline-none"
-              onClick={() => setReplyingTo(null)}
-            >
-              <i className="text-xs text-white ri-close-line"></i>
-            </button>
-          </div>
-        )}
-        {typingUsers.size > 0 && (
-          <div
-            className="absolute text-sm text-gray-500 bottom-14 left-4 dark:text-gray-400"
-          >
-            <div className="flex items-center gap-2">
-              <div className="flex gap-1">
-                <span className="animate-bounce">.</span>
-                <span className="delay-100 animate-bounce">.</span>
-                <span className="delay-200 animate-bounce">.</span>
-              </div>
-              {Array.from(typingUsers).map(userId => {
-                const typingUser = project.users.find(u => u._id === userId);
-                return typingUser?.firstName || 'Unknown';
-              }).join(', ')} {typingUsers.size === 1 ? 'is' : 'are'} typing...
+        <div ref={messageBox} className="flex flex-col flex-grow gap-1 p-1 pb-20 overflow-auto pt-14 message-box scrollbar-hide bg-slate-50 dark:bg-gray-800">
+          {Object.keys(groupedMessages).sort().map((label) => (
+            <div key={label}>
+              <div className="py-2 text-sm text-center text-gray-500 dark:text-gray-400">{label}</div>
+              {groupedMessages[label].map((msg, idx) => (
+                <ChatMessage key={msg._id || idx} msg={msg} user={user} isDarkMode={isDarkMode} settings={settings} onReply={setReplyingTo} onReaction={handleReaction} messageFontSizeClass={messageFontSizeClass} bubbleRoundnessClass={bubbleRoundnessClass} getUserBubbleStyle={getUserBubbleStyle} SyntaxHighlightedCode={SyntaxHighlightedCode} toggleEmojiPicker={toggleEmojiPicker} isEmojiPickerOpen={messageEmojiPickers[msg._id]} getMessageStatus={getMessageStatus} />
+              ))}
             </div>
-          </div>
-        )}
-        <div className="absolute bottom-0 flex w-full bg-white inputField dark:bg-gray-800">
-          <input
-            value={message}
-            onChange={(e) => {
-              setMessage(e.target.value);
-              handleTyping();
-            }}
-            onKeyDown={(e) => {
-              if (settings.behavior.enterToSend) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  send();
-                }
-              } else {
-                if (e.key === 'Enter' && e.shiftKey) {
-                  // allow new line
-                } else if (e.key === 'Enter') {
-                  // just add new line
-                }
-              }
-            }}
-            className="flex-grow p-2 px-4 bg-transparent border-none outline-none dark:text-white"
-            type="text"
-            placeholder="Enter message"
-          />
-          <button
-            onClick={send}
-            style={{ backgroundColor: settings.display.themeColor || '#3B82F6' }}
-            className="px-5 text-white hover:brightness-90"
-            title={t('send')}
-          >
-            <i className="ri-send-plane-fill"></i>
-          </button>
+          ))}
         </div>
-        <div
-          className={`sidePanel w-full h-full flex flex-col gap-2 bg-slate-50 dark:bg-gray-800 absolute transition-all ${isSidePanelOpen ? "translate-x-0" : "-translate-x-full"
-            } top-0`}
-        >
+        <div className="absolute bottom-0 flex w-full bg-white inputField dark:bg-gray-800">
+          <input value={message} onChange={(e) => { setMessage(e.target.value); handleTyping(); }} onKeyDown={(e) => settings.behavior.enterToSend && e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send())} className="flex-grow p-2 px-4 bg-transparent outline-none dark:text-white" type="text" placeholder="Enter message" />
+          <button onClick={send} style={{ backgroundColor: settings.display.themeColor || '#3B82F6' }} className="px-5 text-white"><i className="ri-send-plane-fill"></i></button>
+        </div>
+        <div className={`sidePanel w-full h-full flex flex-col gap-2 bg-slate-50 dark:bg-gray-800 absolute transition-all ${isSidePanelOpen ? "translate-x-0" : "-translate-x-full"} top-0`}>
           <header className="flex items-center justify-between p-2 px-4 bg-slate-200 dark:bg-gray-700">
             <h1 className="text-lg font-semibold dark:text-white">Collaborators</h1>
-            <button onClick={() => setIsSidePanelOpen(!isSidePanelOpen)} className="p-2">
-              <i className="ri-close-fill"></i>
-            </button>
+            <button onClick={() => setIsSidePanelOpen(false)} className="p-2"><i className="ri-close-fill"></i></button>
           </header>
           <div className="flex flex-col gap-2 users">
-            {project.users &&
-              project.users.map((u) => (
-                <div key={u._id} className="flex items-center gap-2 p-2 cursor-pointer user hover:bg-slate-200 dark:hover:bg-gray-700">
-                  <Avatar
-                    firstName={u.firstName}
-                    className="w-12 h-12 text-base"
-                  />
-                  <h1 className="text-lg font-semibold dark:text-white">{u.firstName}</h1>
-                </div>
-              ))}
+            {project.users?.map((u) => (
+              <div key={u._id} className="flex items-center gap-2 p-2 hover:bg-slate-200 dark:hover:bg-gray-700">
+                <Avatar firstName={u.firstName} className="w-12 h-12 text-base" />
+                <h1 className="text-lg font-semibold dark:text-white">{u.firstName}</h1>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       <section className="flex flex-grow h-full bg-blue-50 dark:bg-gray-900 right">
-        <div
-          className="h-full explorer bg-slate-200 dark:bg-gray-500"
-          style={{
-            maxWidth: settings.sidebar?.sidebarWidth || 240,
-            minWidth: settings.sidebar?.sidebarWidth || 240,
-            transition: 'max-width 0.2s, min-width 0.2s',
-            position: settings.sidebar?.pinSidebar ? 'sticky' : 'relative',
-            left: 0,
-            top: 0,
-            zIndex: settings.sidebar?.pinSidebar ? 20 : 'auto',
-            boxShadow: settings.sidebar?.pinSidebar ? '2px 0 8px rgba(0,0,0,0.08)' : undefined,
-          }}
-        >
-          <div className="flex flex-col w-full">
-            {/* Options Button */}
-            <button
-              onClick={() => setShowOptionsModal(true)}
-              className="flex items-center gap-2 p-2 px-4 mb-2 font-semibold text-white transition-all duration-200 bg-blue-600 rounded shadow hover:bg-blue-700"
-              style={{ marginTop: '10px', marginBottom: '10px' }}
-            >
-              <i className="text-lg ri-settings-3-line"></i>
-              {t('options')}
-            </button>
-            {/* Show File Tree Option */}
+        <div className="h-full explorer bg-slate-200 dark:bg-gray-500" style={{ maxWidth: settings.sidebar?.sidebarWidth || 240, minWidth: settings.sidebar?.sidebarWidth || 240 }}>
+            <button onClick={() => setShowOptionsModal(true)} className="flex items-center gap-2 p-2 px-4 m-2 font-semibold text-white bg-blue-600 rounded shadow">{t('options')}</button>
             {settings.sidebar?.showFileTree !== false && (
-              <FileTree
-                fileTree={fileTree}
-                onFileClick={(file) => {
-                  setCurrentFile(file);
-                  setOpenFiles([...new Set([...openFiles, file])]);
-                }}
-                currentFile={currentFile}
-                isDarkMode={isDarkMode}
-              />
+              <FileTree fileTree={fileTree} onFileClick={(f) => { setCurrentFile(f); setOpenFiles([...new Set([...openFiles, f])]); }} currentFile={currentFile} isDarkMode={isDarkMode} />
             )}
-            {/* Show Collaborators Option */}
-            {settings.sidebar?.showCollaborators && project.users && (
-              <div className="collaborators-list mt-2 mb-2 px-2 py-2 bg-slate-100 dark:bg-gray-700 rounded-lg shadow">
-                <div className="text-sm font-semibold text-gray-700 dark:text-white mb-2 flex items-center gap-2">
-                  <i className="ri-user-add-fill text-blue-600 dark:text-blue-400"></i>
-                  {t('collaborators')}
-                </div>
-                <div className="flex flex-col gap-2">
-                  {project.users.map((u) => (
-                    <div key={u._id} className="flex items-center gap-3 p-2 rounded cursor-pointer user hover:bg-slate-200 dark:hover:bg-gray-600 transition-colors">
-                      <Avatar firstName={u.firstName} className="w-8 h-8 text-base" />
-                      <span className="text-base font-medium" style={{ color: isDarkMode ? '#fff' : '#222' }}>{u.firstName}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
         </div>
         <div className="flex flex-col flex-grow h-full code-editor shrink">
-          <div className="flex justify-between w-full top">
-            <div className="flex files">
-              {openFiles.map((file) => (
-                <button
-                  key={file}
-                  onClick={() => setCurrentFile(file)}
-                  className={`open-file cursor-pointer p-2 px-4 flex items-center gap-2 bg-slate-300 dark:bg-gray-700 dark:text-white ${currentFile === file ? "bg-slate-400 dark:bg-gray-600" : ""
-                    }`}
-                >
-                  <p className="text-lg font-semibold dark:text-white">{file}</p>
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2 actions">
-              <button
-                onClick={async () => {
-                  if (!webContainer) {
-                    alert("WebContainer is not ready yet.");
-                    return;
-                  }
-                  try {
-                    await webContainer.mount({
-                      'package.json': {
-                        file: {
-                          contents: JSON.stringify({
-                            name: 'express-app',
-                            version: '1.0.0',
-                            scripts: {
-                              start: 'node app.js'
-                            },
-                            dependencies: {
-                              express: '^4.18.2'
-                            }
-                          })
-                        }
-                      },
-                      ...fileTree
-                    });
-
-                    if (runProcess) {
-                      await runProcess.kill();
-                    }
-
-                    let installSuccess = false;
-                    let retries = 3;
-
-                    while (!installSuccess && retries > 0) {
-                      try {
-                        const installProcess = await webContainer.spawn('npm', ['install']);
-                        const installExitCode = await new Promise(resolve => {
-                          installProcess.output.pipeTo(new WritableStream({
-                            write(chunk) {
-                              console.log('Install output:', chunk);
-                            }
-                          }));
-                          installProcess.exit.then(resolve);
-                        });
-
-                        if (installExitCode === 0) {
-                          installSuccess = true;
-                          console.log('Dependencies installed successfully');
-                        }
-                      } catch (err) {
-                        console.log(`Install attempt failed, ${retries - 1} retries left:`, err);
-                        retries--;
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                      }
-                    }
-
-                    if (!installSuccess) {
-                      throw new Error('Failed to install dependencies after multiple attempts');
-                    }
-
-                    const tempRunProcess = await webContainer.spawn('npm', ['start']);
-
-                    tempRunProcess.output.pipeTo(new WritableStream({
-                      write(chunk) {
-                        console.log('Server output:', chunk);
-                      }
-                    }));
-
-                    tempRunProcess.exit.then(code => {
-                      if (code !== 0) {
-                        console.error(`Process exited with code ${code}`);
-                      }
-                    });
-
-                    setRunProcess(tempRunProcess);
-
-                    webContainer.on('server-ready', (port, url) => {
-                      console.log('Server ready on:', url);
-                      setIframeUrl(url);
-                    });
-
-                  } catch (error) {
-                    console.error('Error running project:', error);
-                    alert(`Failed to run project: ${error.message}`);
-                  }
-                }}
-                style={{ backgroundColor: settings.display.themeColor || '#3B82F6', color: '#fff' }}
-                className="p-2 px-4 rounded hover:brightness-90"
-              >
-                {t('run')}
-              </button>
-            </div>
+          <div className="flex files overflow-x-auto bg-slate-100 dark:bg-gray-800">
+            {openFiles.map((file) => (
+              <button key={file} onClick={() => setCurrentFile(file)} className={`p-2 px-4 whitespace-nowrap ${currentFile === file ? "bg-slate-400 dark:bg-gray-600" : "bg-slate-300 dark:bg-gray-700"}`}>{file}</button>
+            ))}
           </div>
-          <div className="flex flex-grow max-w-full bottom shrink" style={{ overflow: 'hidden', minHeight: 0 }}>
-            <div className="flex-grow h-full code-editor-area bg-slate-50 dark:bg-gray-900 min-h-[200px] border border-blue-200 relative flex flex-col" style={{ minWidth: '0', maxWidth: '100vw', overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
-              {/* Debug info for production troubleshooting (remove after fix) */}
-              {typeof window !== 'undefined' && window.location && window.location.hostname !== 'localhost' && (
-                <div style={{ position: 'absolute', top: 0, right: 0, zIndex: 10, background: '#fff8', color: '#333', fontSize: '10px', padding: '2px 4px', borderRadius: '0 0 0 4px' }}>
-                  <div>currentFile: {String(currentFile)}</div>
-                  <div>fileTree keys: {Object.keys(fileTree).join(', ')}</div>
-                  <div>fileTree[currentFile]?.file?.contents length: {fileTree[currentFile]?.file?.contents?.length ?? 'N/A'}</div>
-                </div>
-              )}
-              {fileTree && currentFile && fileTree[currentFile]?.file?.contents?.length > 0 ? (
-                <div style={{ flex: 1, minHeight: 0, width: '100%', display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
-                  {vimMode ? (
-                    <VimCodeEditor
-                      value={fileTree[currentFile].file.contents}
-                      onChange={(value) => {
-                        setFileTree((prev) => ({
-                          ...prev,
-                          [currentFile]: {
-                            ...prev[currentFile],
-                            file: { ...prev[currentFile].file, contents: value },
-                          },
-                        }));
-                      }}
-                      isDarkMode={isDarkMode}
-                      fontSize={settings.display.messageFontSize === 'large' ? '1.2rem' : settings.display.messageFontSize === 'small' ? '0.9rem' : '1rem'}
-                      showOptionsModal={showOptionsModal}
-                      onCloseOptionsModal={() => setShowOptionsModal(false)}
-                    />
+          <div className="flex-grow code-editor-area bg-slate-50 dark:bg-gray-900 relative min-h-0">
+              {fileTree && currentFile && fileTree[currentFile]?.file?.contents ? (
+                  vimMode ? (
+                    <VimCodeEditor value={fileTree[currentFile].file.contents} onChange={(v) => setFileTree(p => ({ ...p, [currentFile]: { ...p[currentFile], file: { ...p[currentFile].file, contents: v } } }))} isDarkMode={isDarkMode} />
                   ) : (
-                    <CodeMirror
-                      className={settings.display.syntaxHighlighting === false && isDarkMode ? 'syntax-off-dark' : ''}
-                      value={fileTree[currentFile].file.contents}
-                      theme={settings.display.syntaxHighlighting === false ? undefined : (isDarkMode ? 'dark' : 'light')}
-                      extensions={
-                        settings.display.syntaxHighlighting === false
-                          ? []
-                          : [javascript()]
-                      }
-                      onChange={(value) => {
-                        setFileTree((prev) => ({
-                          ...prev,
-                          [currentFile]: {
-                            ...prev[currentFile],
-                            file: { ...prev[currentFile].file, contents: value },
-                          },
-                        }));
-                      }}
-                      basicSetup={{
-                        lineNumbers: true,
-                        highlightActiveLine: true,
-                        highlightActiveLineGutter: true,
-                      }}
-                      style={{
-                        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-                        fontSize: settings.display.messageFontSize === 'large' ? '1.2rem' : settings.display.messageFontSize === 'small' ? '0.9rem' : '1rem',
-                        background: settings.display.syntaxHighlighting === false && isDarkMode
-                          ? '#181e29'
-                          : isDarkMode
-                            ? '#111827'
-                            : 'white',
-                        color: settings.display.syntaxHighlighting === false && isDarkMode ? '#fff' : undefined,
-                        height: '100%',
-                        minHeight: 0,
-                      }}
-                    />
-                  )}
-                </div>
+                    <CodeMirror value={fileTree[currentFile].file.contents} theme={isDarkMode ? 'dark' : 'light'} extensions={[javascript()]} onChange={(v) => setFileTree(p => ({ ...p, [currentFile]: { ...p[currentFile], file: { ...p[currentFile].file, contents: v } } }))} />
+                  )
               ) : (
-                <div className="flex items-center justify-center h-full min-h-[200px] text-gray-400 italic select-none" style={{ padding: '2rem' }}>
-                  {(!currentFile || !fileTree[currentFile]) ? t('noFileSelected') : t('noCode')}
-                </div>
+                <div className="flex items-center justify-center h-full text-gray-400 italic">{t('noFileSelected')}</div>
               )}
-            </div>
           </div>
         </div>
-        {iframeUrl && webContainer && (
-          <div className="flex flex-col h-full min-w-96">
-            <div className="address-bar">
-              <input
-                type="text"
-                onChange={(e) => {
-                  const safeUrl = sanitizeIframeUrl(e.target.value);
-                  if (safeUrl !== null) {
-                    setIframeUrl(safeUrl);
-                  }
-                }}
-                value={iframeUrl || ''}
-                className="w-full p-2 px-4 bg-slate-200 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
-            <iframe
-              src={iframeUrl}
-              className="w-full h-full bg-white"
-              style={{
-                backgroundColor: "white"
-              }}
-              onLoad={(e) => {
-                try {
-                  const doc = e.target.contentDocument;
-                  if (doc) {
-                    const style = doc.createElement('style');
-                    style.textContent = `
-                      body { 
-                        color: #000 !important;
-                        background-color: #fff !important;
-                      }
-                      * {
-                        color: #000 !important;
-                      }
-                    `;
-                    doc.head.appendChild(style);
-                  }
-                } catch {
-                  console.log("Unable to access iframe content");
-                }
-              }}
-            />
-          </div>
-        )}
       </section>
 
       {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="relative max-w-full p-4 bg-white rounded-md w-96">
-            <header className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">{t('selectUser')}</h2>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 text-gray-900">
-                <i className="ri-close-fill"></i>
-              </button>
-            </header>
-            <div className="flex flex-col gap-2 mb-16 overflow-auto users-list max-h-96">
-              {users.map((u) => (
-                <div
-                  key={u._id}
-                  className={`user cursor-pointer hover:bg-slate-200 ${Array.from(selectedUserId).includes(u._id) ? "bg-slate-200" : ""} p-2 flex gap-2 items-center`}
-                  onClick={() => handleUserClick(u._id)}
-                >
-                  <Avatar firstName={u.firstName} className="w-12 h-12 text-base" />
-                  <h1 className="text-lg font-semibold text-gray-900">{u.firstName}</h1>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="p-4 bg-white rounded-md w-96 max-w-full relative">
+            <h2 className="text-xl font-semibold mb-4">{t('selectUser')}</h2>
+            <div className="flex flex-col gap-2 overflow-auto max-h-96 mb-16">
+              {users.map(u => (
+                <div key={u._id} className={`p-2 flex gap-2 items-center cursor-pointer hover:bg-slate-100 ${selectedUserId.has(u._id) ? "bg-slate-200" : ""}`} onClick={() => handleUserClick(u._id)}>
+                  <Avatar firstName={u.firstName} className="w-12 h-12" /><span>{u.firstName}</span>
                 </div>
               ))}
             </div>
-            <button
-              onClick={addCollaborators}
-              className="absolute px-4 py-2 text-white transform -translate-x-1/2 bg-blue-600 rounded-md hover:bg-blue-700 bottom-4 left-1/2"
-            >
-              {t('addCollaborators')}
-            </button>
+            <button onClick={addCollaborators} className="w-full py-2 text-white bg-blue-600 rounded-md">{t('addCollaborators')}</button>
+            <button onClick={() => setIsModalOpen(false)} className="absolute top-4 right-4"><i className="ri-close-line text-2xl"></i></button>
           </div>
         </div>
       )}
 
-      <ProjectSettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        settings={settings}
-        updateSettings={updateSettings}
-        activeTab={activeSettingsTab}
-        setActiveTab={setActiveSettingsTab}
-        t={t}
-        isDarkMode={isDarkMode}
-        vimMode={vimMode}
-        setVimMode={setVimMode}
-      />
-      {isAIModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="relative w-full max-w-md p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
-            <button
-              className="absolute text-gray-500 top-2 right-2 hover:text-gray-900 dark:hover:text-white"
-              onClick={() => {
-                setIsAIModalOpen(false);
-                setAiInput("");
-                setAiResponse("");
-              }}
-            >
-              <i className="text-2xl ri-close-line"></i>
-            </button>
-            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">AI Assistant</h2>
-            <input
-              type="text"
-              className="w-full p-2 mb-2 border rounded dark:bg-gray-700 dark:text-white"
-              placeholder="Ask ChatRaj..."
-              value={aiInput}
-              onChange={e => setAiInput(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  if (aiInput.trim()) handleAISend();
-                }
-              }}
-              autoFocus
-            />
-            <button
-              className="w-full py-2 mb-2 text-white bg-blue-600 rounded hover:bg-blue-700"
-              onClick={handleAISend}
-              disabled={aiLoading || !aiInput.trim()}
-            >
-              {aiLoading ? 'Thinking...' : 'Send'}
-            </button>
-            {aiResponse && (
-              <div className="p-2 mt-2 text-gray-800 whitespace-pre-wrap bg-gray-100 rounded dark:bg-gray-700 dark:text-white">
-                {aiResponse}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <ProjectSettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} settings={settings} updateSettings={updateSettings} activeTab={activeSettingsTab} setActiveTab={setActiveSettingsTab} t={t} isDarkMode={isDarkMode} vimMode={vimMode} setVimMode={setVimMode} />
     </main>
   )
 }
-
-Project.propTypes = {
-  children: PropTypes.node,
-};
 
 export default Project

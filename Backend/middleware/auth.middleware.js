@@ -18,7 +18,15 @@ export const authUser = async (req, res, next) => {
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
+
+        // Fast profile lookup from cache if available, else use token data
+        const cachedProfile = await redisClient.get(`user:profile:${decoded._id || decoded.id}`);
+        if (cachedProfile) {
+            req.user = JSON.parse(cachedProfile);
+        } else {
+            req.user = decoded;
+        }
+
         next();
     } catch (error) {
         console.log("Auth middleware error:", error);

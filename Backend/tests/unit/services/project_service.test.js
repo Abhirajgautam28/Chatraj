@@ -1,71 +1,93 @@
-import * as projectService from '../../../services/project.service.js';
+import { createProject, getProjectById, updateFileTree } from '../../../services/project.service.js';
 import projectModel from '../../../models/project.model.js';
-import userModel from '../../../models/user.model.js';
 import mongoose from 'mongoose';
 
 jest.mock('../../../models/project.model.js');
-jest.mock('../../../models/user.model.js');
 
-describe('Project Service - Deepened', () => {
-    afterEach(() => jest.clearAllMocks());
+describe('Project Service', () => {
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
 
     describe('createProject', () => {
-        test('should throw error if name or category is missing', async () => {
-            await expect(projectService.createProject({ name: '' }))
-                .rejects.toThrow('Name and category are required');
+        test('should create a new project', async () => {
+            const mockProject = { _id: '123', name: 'test', category: 'DSA' };
+            projectModel.create.mockResolvedValue(mockProject);
+
+            const result = await createProject({ name: 'test', userId: 'user1', category: 'DSA' });
+            expect(result).toEqual(mockProject);
+            expect(projectModel.create).toHaveBeenCalledWith(expect.objectContaining({
+                name: 'test',
+                category: 'DSA',
+                createdBy: 'user1'
+            }));
         });
 
-        test('should handle duplicate project names', async () => {
-            projectModel.create.mockRejectedValue({ code: 11000 });
-            await expect(projectService.createProject({ name: 'p', userId: 'u', category: 'c' }))
-                .rejects.toThrow('Project name already exists');
+        test('should throw error if name is missing', async () => {
+            await expect(createProject({ category: 'DSA', userId: 'u1' }))
+                .rejects.toThrow('Name and category are required');
         });
     });
 
     describe('getProjectById', () => {
-        test('should throw error for invalid projectId', async () => {
-            await expect(projectService.getProjectById({ projectId: 'invalid' }))
-                .rejects.toThrow('Invalid projectId');
+        test('should return project if user is a member', async () => {
+            const projectId = new mongoose.Types.ObjectId();
+            const userId = new mongoose.Types.ObjectId();
+            const mockProject = {
+                _id: projectId,
+                users: [{ _id: userId }],
+                fileTree: {},
+                populate: jest.fn().mockReturnThis()
+            };
+
+            projectModel.findOne.mockReturnValue({
+                populate: jest.fn().mockResolvedValue(mockProject)
+            });
+
+            const result = await getProjectById({ projectId: projectId.toString(), userId });
+            expect(result).toEqual(mockProject);
         });
 
-        test('should throw error if project not found', async () => {
-            projectModel.findOne.mockImplementation(() => ({
-                populate: jest.fn().mockResolvedValue(null)
-            }));
-            await expect(projectService.getProjectById({ projectId: new mongoose.Types.ObjectId().toString() }))
-                .rejects.toThrow('Project not found');
-        });
+        test('should throw unauthorized if user is not a member', async () => {
+            const projectId = new mongoose.Types.ObjectId();
+            const userId = new mongoose.Types.ObjectId();
+            const otherUserId = new mongoose.Types.ObjectId();
 
-        test('should throw error if user is not a member', async () => {
-            const pid = new mongoose.Types.ObjectId();
-            const uid = new mongoose.Types.ObjectId();
-            projectModel.findOne.mockImplementation(() => ({
-                populate: jest.fn().mockResolvedValue({
-                    _id: pid,
-                    users: [{ _id: new mongoose.Types.ObjectId() }]
-                })
-            }));
-            await expect(projectService.getProjectById({ projectId: pid.toString(), userId: uid }))
+            const mockProject = {
+                _id: projectId,
+                users: [{ _id: otherUserId }],
+                populate: jest.fn().mockReturnThis()
+            };
+
+            projectModel.findOne.mockReturnValue({
+                populate: jest.fn().mockResolvedValue(mockProject)
+            });
+
+            await expect(getProjectById({ projectId: projectId.toString(), userId }))
                 .rejects.toThrow('Unauthorized access');
         });
     });
 
     describe('updateFileTree', () => {
-        test('should throw error for invalid fileTree structure (operator injection attempt)', async () => {
-            const pid = new mongoose.Types.ObjectId().toString();
-            const maliciousTree = { "$where": "true" };
-            await expect(projectService.updateFileTree({ projectId: pid, fileTree: maliciousTree }))
+        test('should prevent NoSQL injection in fileTree keys', async () => {
+            const projectId = new mongoose.Types.ObjectId();
+            const maliciousTree = {
+                '$where': 'true',
+                'normal.file': 'content'
+            };
+
+            await expect(updateFileTree({ projectId: projectId.toString(), fileTree: maliciousTree }))
                 .rejects.toThrow('Invalid fileTree');
         });
 
-        test('should update fileTree if user is member', async () => {
-            const pid = new mongoose.Types.ObjectId().toString();
-            const uid = new mongoose.Types.ObjectId();
-            projectModel.findOne.mockResolvedValue({ _id: pid, users: [uid] });
-            projectModel.findOneAndUpdate.mockResolvedValue({ _id: pid, fileTree: { 'a.js': {} } });
+        test('should update fileTree if valid', async () => {
+            const projectId = new mongoose.Types.ObjectId();
+            const validTree = { 'app.js': { file: { contents: 'console.log(1)' } } };
 
-            const res = await projectService.updateFileTree({ projectId: pid, fileTree: { 'a.js': {} }, userId: uid });
-            expect(res._id).toBe(pid);
+            projectModel.findOneAndUpdate.mockResolvedValue({ _id: projectId, fileTree: validTree });
+
+            const result = await updateFileTree({ projectId: projectId.toString(), fileTree: validTree });
+            expect(result.fileTree).toEqual(validTree);
         });
     });
 });

@@ -42,8 +42,15 @@ const userSchema = new mongoose.Schema({
     isVerified: {
         type: Boolean,
         default: false
+    },
+    projects: {
+        type: Number,
+        default: 0,
+        index: true
     }
-});
+}, { timestamps: true });
+
+userSchema.index({ email: 1 });
 
 userSchema.statics.hashPassword = async function (password) {
     const salt = await bcrypt.genSalt(10);
@@ -56,7 +63,7 @@ userSchema.methods.isValidPassword = async function (password) {
 
 userSchema.methods.generateJWT = function () {
     return jwt.sign(
-        { email: this.email, firstName: this.firstName, lastName: this.lastName },
+        { _id: this._id, email: this.email, firstName: this.firstName, lastName: this.lastName },
         process.env.JWT_SECRET,
         { expiresIn: '24h' }
     );

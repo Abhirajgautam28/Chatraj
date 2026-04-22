@@ -1,33 +1,56 @@
-# 🚀 Development Guide
+# 🛠️ ChatRaj Development Guide
 
-Welcome to ChatRaj! This guide will help you maintain the quality and consistency of the project.
+This guide is intended for developers working on the ChatRaj project. It outlines our architectural standards, coding patterns, and workflows.
 
-## 🏗️ Backend Architecture
+## 🏗️ Architectural Overview
 
-We follow a layered architecture:
+We use a **layered backend architecture** to maintain separation of concerns:
 
-1.  **Routes**: Define endpoints and apply middleware (auth, rate limits).
-2.  **Controllers**: Handle HTTP requests, validate input, and delegate to services. **Always use the `response` utility** for consistent API outputs.
-3.  **Services**: Contain the core business logic. They should be agnostic of HTTP and can be tested in isolation.
-4.  **Models**: Mongoose schemas and database-level logic.
-5.  **Utils**: Pure, stateless helper functions.
+*   **Routes**: Express routers that define endpoints and apply middleware.
+*   **Controllers**: Handle request/response logic, input validation, and delegate to services.
+*   **Services**: The core business logic layer. Services should be transport-agnostic (unaware of HTTP or WebSockets).
+*   **Models**: Mongoose schemas and database-specific logic.
+*   **Utils**: Pure utility functions used across layers.
 
-## 🛡️ Security Standards
+## 📝 Coding Standards
 
-*   **Sensitive Data**: Never return passwords, OTPs, or API keys in API responses. Explicitly `delete` these fields from objects before sending.
-*   **XSS Protection**: All user-provided strings interpolated into HTML (especially emails) MUST be escaped using the `escapeHtml` utility.
-*   **CSRF**: All non-safe HTTP methods (POST, PUT, DELETE) require a valid CSRF token. The project supports both cookie-based and signed stateless fallback tokens.
-*   **Rate Limiting**: Protect sensitive endpoints (Login, Register) using the `sensitiveLimiter`.
+### Backend (Node.js ESM)
 
-## 📝 Coding Conventions
+1.  **Named Exports**: Use named exports for utilities and services to ensure better IDE support and explicit imports.
+2.  **Standardized Responses**: Always use `utils/response.js` for API outputs.
+3.  **Error Handling**: Throw descriptive errors in services; let the global `error.middleware.js` handle formatting and logging.
+4.  **Lean Queries**: Use `.lean()` for read-only Mongoose queries to improve performance.
 
-*   **Imports**: Use ES modules. Include `.js` extensions in local imports.
-*   **Error Handling**: Throw descriptive errors in services and catch them in controllers. The `errorHandler` middleware will format them correctly.
-*   **Async/Await**: Always use `try/catch` in controllers and middleware.
+### Frontend (React + Vite)
 
-## 🧪 Testing
+1.  **Functional Components**: Use hooks and functional components exclusively.
+2.  **Component Modularization**: Keep components small and focused. Extract sub-components (like `ProjectCard`) from larger screens.
+3.  **Context for State**: Use React Context for global state (Theme, User, Toast) instead of prop-drilling.
+4.  **Prop Types**: Define `PropTypes` for all component inputs to ensure type safety.
 
-Before submitting a PR, ensure that:
-1. New logic has corresponding unit tests.
-2. `npm run test:all` passes successfully.
-3. No sensitive data is leaked in logs or responses.
+## 🚀 Workflows
+
+### Adding a New API Endpoint
+
+1.  **Model**: Define/Update the Mongoose schema in `Backend/models/`.
+2.  **Service**: Implement the business logic in `Backend/services/`.
+3.  **Controller**: Wrap the service call and handle validation in `Backend/controllers/`.
+4.  **Route**: Register the controller in `Backend/routes/` and apply `authUser` middleware.
+5.  **Test**: Add a unit test in `Backend/tests/unit/services/` for the new logic.
+
+### Creating a New Frontend Page
+
+1.  **Screen**: Create the main component in `frontend/src/screens/`.
+2.  **Route**: Add the route to `frontend/src/routes/AppRoutes.jsx`.
+3.  **Components**: Break down the screen into reusable pieces in `frontend/src/components/`.
+4.  **API**: Use the `useApi` hook for all backend interactions.
+
+## 🧪 Testing Strategy
+
+*   **Unit Tests**: Use Jest for backend and Vitest for frontend.
+*   **Manual Verification**: Use the provided scripts in `package.json` to verify logic in environments where automated tools are restricted.
+*   **Mocking**: Always mock database models and external services (like AI) in unit tests.
+
+---
+
+*Happy Coding!*
