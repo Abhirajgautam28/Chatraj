@@ -1,7 +1,7 @@
 import Message from '../models/message.model.js';
 import { logger } from '../utils/logger.js';
 import mongoose from 'mongoose';
-import { generateResult } from './ai.service.js';
+import * as messageService from './message.service.js';
 
 /**
  * Service to handle Socket.io logic, separating it from the server setup.
@@ -11,43 +11,23 @@ export const handleSocketConnection = (io, socket) => {
     socket.join(socket.roomId);
 
     socket.on('project-message', async data => {
-        const messageText = data.message;
-        const parentMessageId = data.parentMessageId || null;
-        const aiIsPresent = messageText.includes('@Chatraj');
-        let savedMessage;
-        try {
-            savedMessage = await Message.create({
-                conversationId: socket.project._id,
-                sender: socket.user, // Use authenticated user from socket
-                message: messageText,
-                parentMessageId: parentMessageId,
-                createdAt: new Date(),
-                deliveredTo: [],
-                readBy: []
-            });
-        } catch (err) {
-            logger.error("Error saving message:", err);
-            savedMessage = { ...data, createdAt: new Date().toISOString(), deliveredTo: [], readBy: [] };
-        }
+        const savedMessage = await messageService.saveMessage({
+            conversationId: socket.project._id,
+            sender: socket.user,
+            message: data.message,
+            parentMessageId: data.parentMessageId
+        });
+
         io.to(socket.roomId).emit('project-message', savedMessage);
 
-        if (aiIsPresent) {
-            const prompt = messageText.replace('@Chatraj', '');
-            const result = await generateResult(prompt, data.googleApiKey);
-            let savedAIMessage;
-            try {
-                savedAIMessage = await Message.create({
-                    conversationId: socket.project._id,
-                    sender: { _id: 'Chatraj', email: 'Chatraj' },
-                    message: result,
-                    parentMessageId: null,
-                    createdAt: new Date()
-                });
-            } catch (err) {
-                logger.error("Error saving AI message:", err);
-                savedAIMessage = { message: result, sender: { _id: 'Chatraj', email: 'Chatraj' }, createdAt: new Date().toISOString() };
-            }
-            io.to(socket.roomId).emit('project-message', savedAIMessage);
+        const aiMessage = await messageService.handleAiTrigger({
+            conversationId: socket.project._id,
+            messageText: data.message,
+            googleApiKey: data.googleApiKey
+        });
+
+        if (aiMessage) {
+            io.to(socket.roomId).emit('project-message', aiMessage);
         }
     });
 

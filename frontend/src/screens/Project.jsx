@@ -3,7 +3,7 @@ import { UserContext } from '../context/user.context'
 import { ThemeContext } from '../context/theme.context'
 import { useLocation } from 'react-router-dom'
 import axios from '../config/axios'
-import { initializeSocket, receiveMessage, sendMessage, offMessage } from '../config/socket'
+import { initializeSocket, receiveMessage, sendMessage } from '../config/socket'
 import Markdown from 'markdown-to-jsx'
 import { getWebContainer } from '../config/webContainer'
 import Avatar from '../components/Avatar';
@@ -15,7 +15,6 @@ import PropTypes from 'prop-types';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import VimCodeEditor from '../components/VimCodeEditor';
-import { useToast } from '../context/ToastContext';
 
 const PROJECT_TRANSLATIONS = {
   'en-US': {
@@ -217,8 +216,7 @@ const Project = () => {
   const [project, setProject] = useState(location.state.project)
   const [message, setMessage] = useState('')
   const { user } = useContext(UserContext)
-  const { isDarkMode } = useContext(ThemeContext)
-  const { showToast } = useToast()
+  const { isDarkMode, setIsDarkMode } = useContext(ThemeContext)
   const messageBox = useRef(null)
   const [users, setUsers] = useState([])
   const [messages, setMessages] = useState([])
@@ -250,13 +248,6 @@ const Project = () => {
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
-
-  useEffect(() => {
-    return () => {
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-    };
-  }, []);
-
   const [settings, setSettings] = useState(() => {
     const savedSettings = localStorage.getItem('projectSettings');
     const defaultSettings = {
@@ -434,7 +425,7 @@ const Project = () => {
         sendMessage("message-read", { messageId: lastMsg._id, userId: user._id })
       }
     }
-  }, [messages, user._id])
+  }, [messages, user])
 
   useEffect(() => {
     if (window.__webcontainerBooted) return;
@@ -507,12 +498,8 @@ const Project = () => {
       });
     }
 
-    receiveMessage("project-message", handleIncomingMessage);
-
-    return () => {
-      offMessage("project-message", handleIncomingMessage);
-    };
-  }, [project._id]);
+    receiveMessage("project-message", handleIncomingMessage)
+  }, [webContainer, project._id])
 
   useEffect(() => {
     const handleUserTyping = (data) => {
@@ -548,10 +535,6 @@ const Project = () => {
     };
 
     receiveMessage("message-reaction", handleReactionUpdate);
-
-    return () => {
-      offMessage("message-reaction", handleReactionUpdate);
-    };
   }, []);
 
   // Fix: Deduplicate messages on every update
@@ -842,11 +825,14 @@ const Project = () => {
         .then(res => {
           if (res.data && res.data.settings) {
             setSettings(prev => ({ ...prev, ...res.data.settings }));
+            if (res.data.settings.display?.darkMode !== undefined) {
+              setIsDarkMode(res.data.settings.display.darkMode);
+            }
           }
         })
         .catch(() => { });
     }
-  }, [projectId, project]);
+  }, [projectId, project, setIsDarkMode]);
 
   // Save settings to backend whenever they change
   useEffect(() => {
@@ -859,8 +845,9 @@ const Project = () => {
 
   useEffect(() => {
     localStorage.setItem('projectSettings', JSON.stringify(settings));
+    setIsDarkMode(settings.display.darkMode);
     document.documentElement.classList.toggle('dark', settings.display.darkMode);
-  }, [settings]);
+  }, [settings, setIsDarkMode]);
 
   const updateSettings = (category, key, value) => {
     setSettings(prev => {
@@ -1161,7 +1148,7 @@ const Project = () => {
               <button
                 onClick={async () => {
                   if (!webContainer) {
-                    showToast("WebContainer is not ready yet.", "warning");
+                    alert("WebContainer is not ready yet.");
                     return;
                   }
                   try {
@@ -1240,7 +1227,7 @@ const Project = () => {
 
                   } catch (error) {
                     console.error('Error running project:', error);
-                    showToast(`Failed to run project: ${error.message}`, "error");
+                    alert(`Failed to run project: ${error.message}`);
                   }
                 }}
                 style={{ backgroundColor: settings.display.themeColor || '#3B82F6', color: '#fff' }}
