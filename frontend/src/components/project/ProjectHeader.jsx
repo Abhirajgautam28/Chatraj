@@ -13,7 +13,8 @@ const ProjectHeader = ({
   isSidePanelOpen,
   isDarkMode,
   settings,
-  t
+  t,
+  onClearChat
 }) => {
   const iconColor = isDarkMode ? '#fff' : '#1f2937';
 
@@ -34,6 +35,13 @@ const ProjectHeader = ({
         )}
       </div>
       <div className="flex items-center gap-2">
+        <button
+          onClick={onClearChat}
+          className="p-2 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500"
+          title="Clear Chat"
+        >
+          <i className="ri-delete-bin-7-line text-xl"></i>
+        </button>
         <button
           onClick={() => setIsSettingsOpen(true)}
           className="p-2 transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -93,6 +101,7 @@ ProjectHeader.propTypes = {
   isDarkMode: PropTypes.bool.isRequired,
   settings: PropTypes.object.isRequired,
   t: PropTypes.func.isRequired,
+  onClearChat: PropTypes.func.isRequired
 };
 
 export default React.memo(ProjectHeader);

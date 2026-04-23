@@ -34,6 +34,10 @@ export const useProjectState = (initialProject) => {
         });
     }, []);
 
+    const clearMessages = useCallback(() => {
+        setMessages([]);
+    }, []);
+
     return {
         project, setProject,
         messages, setMessages,
@@ -47,6 +51,7 @@ export const useProjectState = (initialProject) => {
         searchTerm, setSearchTerm,
         expandedReplies, setExpandedReplies,
         updateFileContents,
-        toggleUserSelection
+        toggleUserSelection,
+        clearMessages
     };
 };

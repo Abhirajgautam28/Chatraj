@@ -53,7 +53,8 @@ const Project = () => {
     searchTerm, setSearchTerm,
     expandedReplies, setExpandedReplies,
     updateFileContents,
-    toggleUserSelection
+    toggleUserSelection,
+    clearMessages
   } = useProjectState(location.state.project);
 
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false)
@@ -81,6 +82,10 @@ const Project = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [activeSettingsTab, setActiveSettingsTab] = useState('display');
   const [messageEmojiPickers, setMessageEmojiPickers] = useState({});
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [aiInput, setAiInput] = useState("");
+  const [aiResponse, setAiResponse] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
 
   const toggleEmojiPicker = useCallback((messageId, isOpen) => {
     setMessageEmojiPickers(prev => ({ ...prev, [messageId]: isOpen !== undefined ? isOpen : !prev[messageId] }));
@@ -122,13 +127,27 @@ const Project = () => {
     typingTimeoutRef.current = setTimeout(() => { setIsTyping(false); emit('stop-typing', { userId: user._id, projectId: project._id }); }, 1000);
   };
 
+  const handleAISend = async () => {
+    if (!aiInput.trim()) return;
+    setAiLoading(true);
+    try {
+      const res = await axios.post("/api/ai", { prompt: aiInput, userApiKey: user.googleApiKey });
+      setAiResponse(res.data?.response || "No response.");
+    } catch (err) {
+      setAiResponse("Error: " + (err.response?.data?.error || err.message));
+    }
+    setAiLoading(false);
+  };
+
   useEffect(() => {
     boot();
     axios.get(`/api/projects/get-project/${project._id}`).then(res => {
-      setProject(res.data.project);
-      setFileTree(res.data.project.fileTree || {});
+        if (res.data?.project) {
+            setProject(res.data.project);
+            setFileTree(res.data.project.fileTree || {});
+        }
     });
-    axios.get("/api/users/all").then(res => setUsers(res.data.users)).catch(() => {});
+    axios.get("/api/users/all").then(res => setUsers(res.data?.users || [])).catch(() => {});
   }, [boot, project._id, setProject, setFileTree, setUsers]);
 
   useEffect(() => {
@@ -206,7 +225,21 @@ const Project = () => {
     <main className="flex w-screen h-screen overflow-hidden bg-transparent">
       <ResizablePanel initialWidth={400} minWidth={350} maxWidth={800} direction="right">
         <section className="relative flex flex-col h-screen w-full bg-slate-100 dark:bg-gray-800">
-            <ProjectHeader setIsModalOpen={setIsModalOpen} setIsAIModalOpen={() => {}} setIsSettingsOpen={setIsSettingsOpen} setShowSearch={setShowSearch} showSearch={showSearch} searchTerm={searchTerm} setSearchTerm={setSearchTerm} setIsSidePanelOpen={setIsSidePanelOpen} isSidePanelOpen={isSidePanelOpen} isDarkMode={isDarkMode} settings={settings} t={t} />
+            <ProjectHeader
+                setIsModalOpen={setIsModalOpen}
+                setIsAIModalOpen={() => setIsAIModalOpen(true)}
+                setIsSettingsOpen={setIsSettingsOpen}
+                setShowSearch={setShowSearch}
+                showSearch={showSearch}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                setIsSidePanelOpen={setIsSidePanelOpen}
+                isSidePanelOpen={isSidePanelOpen}
+                isDarkMode={isDarkMode}
+                settings={settings}
+                t={t}
+                onClearChat={clearMessages}
+            />
             <MessageList groupedMessages={groupedMessages} user={user} messages={messages} project={project} isDarkMode={isDarkMode} bubbleRoundnessClass={bubbleRoundnessClass} messageFontSizeClass={messageFontSizeClass} getUserBubbleStyle={getUserBubbleStyle} toggleEmojiPicker={toggleEmojiPicker} messageEmojiPickers={messageEmojiPickers} handleReaction={handleReaction} setReplyingTo={setReplyingTo} expandedReplies={expandedReplies} setExpandedReplies={setExpandedReplies} settings={settings} getMessageStatus={getMessageStatus} SyntaxHighlightedCode={SyntaxHighlightedCode} messageBoxRef={messageBox} handleScroll={() => setShowScrollBottom(messageBox.current?.scrollHeight - messageBox.current?.scrollTop - messageBox.current?.clientHeight > 300)} searchTerm={searchTerm} />
             {showScrollBottom && (
             <button onClick={() => messageBox.current?.scrollTo({ top: messageBox.current.scrollHeight, behavior: 'smooth' })} className="absolute z-20 w-10 h-10 text-white bg-blue-600 rounded-full shadow-lg bottom-24 right-6 animate-bounce">
@@ -251,6 +284,7 @@ const Project = () => {
       </section>
 
       <AddCollaboratorsModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} users={users} selectedUserId={selectedUserId} handleUserClick={toggleUserSelection} addCollaborators={addCollaborators} t={t} />
+      <AIAssistantModal isOpen={isAIModalOpen} onClose={() => setIsAIModalOpen(false)} aiInput={aiInput} setAiInput={setAiInput} aiResponse={aiResponse} aiLoading={aiLoading} handleAISend={handleAISend} />
       <ProjectSettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} settings={settings} updateSettings={updateSettings} activeSettingsTab={activeSettingsTab} setActiveSettingsTab={setActiveSettingsTab} t={t} />
     </main>
   );

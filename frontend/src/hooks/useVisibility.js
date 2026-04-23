@@ -1,17 +1,28 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
-export function useVisibility(ref, { threshold = 0.1 } = {}) {
-  const [isVisible, setVisible] = useState(false);
+/**
+ * Hook to detect when an element is visible in the viewport.
+ */
+export const useVisibility = (options = {}) => {
+    const [isVisible, setIsVisible] = useState(false);
+    const elementRef = useRef(null);
 
-  useEffect(() => {
-    if (!ref.current) return;
-    const obs = new window.IntersectionObserver(
-      ([entry]) => entry.isIntersecting && setVisible(true),
-      { threshold }
-    );
-    obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, [ref, threshold]);
+    useEffect(() => {
+        const observer = new IntersectionObserver(([entry]) => {
+            setIsVisible(entry.isIntersecting);
+        }, options);
 
-  return isVisible;
-}
+        const currentElement = elementRef.current;
+        if (currentElement) {
+            observer.observe(currentElement);
+        }
+
+        return () => {
+            if (currentElement) {
+                observer.unobserve(currentElement);
+            }
+        };
+    }, [options]);
+
+    return [elementRef, isVisible];
+};

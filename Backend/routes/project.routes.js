@@ -12,7 +12,9 @@ import {
   updateFileTree,
   getProjectSettings,
   updateProjectSettings,
-  getProjectShowcase
+  getProjectShowcase,
+  deleteProject,
+  leaveProject
 } from '../controllers/project.controller.js';
 import { authUser } from '../middleware/auth.middleware.js';
 
@@ -88,6 +90,18 @@ router.put('/settings/:projectId',
     authUser,
     updateProjectSettings
 )
+
+router.delete('/:projectId',
+    projectLimiter,
+    authUser,
+    deleteProject
+);
+
+router.post('/:projectId/leave',
+    projectLimiter,
+    authUser,
+    leaveProject
+);
 
 router.get('/showcase', projectLimiter, getProjectShowcase);
 

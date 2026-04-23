@@ -1,342 +1,89 @@
-import { useState, useContext, useEffect, useRef } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
-import { useToast } from '../context/toast.context';
-import axios from '../config/axios';
+import { useAuth } from '../hooks/useAuth';
 import anime from 'animejs';
 
 const Register = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [googleApiKey, setGoogleApiKey] = useState('');
+
     const [showOtpModal, setShowOtpModal] = useState(false);
     const [otp, setOtp] = useState('');
-    const [userId, setUserId] = useState('');
-    const { setUser } = useContext(UserContext);
-    const { isDarkMode } = useContext(ThemeContext);
-    const { showToast } = useToast();
-    const navigate = useNavigate();
+    const [tempUserId, setTempUserId] = useState('');
 
-    const [errorMsg, setErrorMsg] = useState('');
-    const [showRecaptcha, setShowRecaptcha] = useState(false);
-    // disable reCAPTCHA locally (sitekey often restricted to deployed domain)
-    const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-    const recaptchaEnabled = import.meta.env.VITE_DISABLE_RECAPTCHA !== 'true' && !isLocalhost;
-    // ...removed unused recaptchaToken
+    const { isDarkMode } = useContext(ThemeContext);
+    const { register, verifyOtp, loading } = useAuth();
+    const navigate = useNavigate();
     const containerRef = useRef(null);
-    const modalRef = useRef(null);
-    const lastActiveElementRef = useRef(null);
 
     useEffect(() => {
         if (containerRef.current) {
-            anime({
-                targets: '.form-container',
-                opacity: [0, 1],
-                translateY: [50, 0],
-                duration: 800,
-                easing: 'easeOutExpo'
-            });
-
-            anime({
-                targets: '.background-shape',
-                scale: [0, 1],
-                rotate: '1turn',
-                duration: 2000,
-                easing: 'easeInOutSine',
-                loop: true,
-                direction: 'alternate',
-                delay: anime.stagger(100)
-            });
+            anime({ targets: '.form-container', opacity: [0, 1], translateY: [50, 0], duration: 800, easing: 'easeOutExpo' });
         }
     }, []);
 
-    function submitHandler(e) {
+    const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    const recaptchaEnabled = import.meta.env.VITE_DISABLE_RECAPTCHA !== 'true' && !isLocalhost;
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        setErrorMsg('');
-        if (password !== confirmPassword) {
-            setErrorMsg('Passwords do not match.');
-            return;
-        }
-        if (password.length < 8) {
-            setErrorMsg('Password must be at least 8 characters long.');
-            return;
-        }
-        if (googleApiKey.length < 10) {
-            setErrorMsg('Google API Key must be at least 10 characters long.');
-            return;
-        }
-        // If recaptcha is enabled (deployed site), show widget. For local/dev,
-        // skip reCAPTCHA and proceed directly to registration to avoid
-        // "Localhost not in supported domains" errors.
-        if (recaptchaEnabled) {
-            setShowRecaptcha(true);
-        } else {
-            doRegister();
-        }
-    }
+        if (password !== confirmPassword) return;
 
-    function handleRecaptcha(token) {
-        if (token) {
-            // Proceed with registration after reCAPTCHA
-            doRegister();
+        const { data } = await register({ firstName, lastName, email, password, googleApiKey });
+        if (data) {
+            setTempUserId(data.userId);
+            if (data.otp) setOtp(data.otp);
+            setShowOtpModal(true);
         }
-    }
+    };
 
-    // Manage focus when the recaptcha modal opens and closes to follow
-    // accessible dialog patterns: move focus into the dialog and restore
-    // it when closed. Use the modal element's keyboard handler instead of
-    // a global window listener so Escape handling doesn't leak to other
-    // parts of the page or other dialogs.
-    useEffect(() => {
-        if (showRecaptcha) {
-            try {
-                lastActiveElementRef.current = typeof document !== 'undefined' ? document.activeElement : null;
-            } catch (e) {
-                lastActiveElementRef.current = null;
-            }
-            const focusTimeout = setTimeout(() => {
-                try {
-                    if (modalRef.current && typeof modalRef.current.focus === 'function') {
-                        modalRef.current.focus();
-                    }
-                } catch (e) {}
-            }, 50);
-
-            return () => {
-                clearTimeout(focusTimeout);
-            };
-        }
-
-        // When modal closes, restore focus to the previously focused element
-        if (!showRecaptcha && lastActiveElementRef.current && typeof lastActiveElementRef.current.focus === 'function') {
-            try {
-                lastActiveElementRef.current.focus();
-            } catch (e) {}
-            lastActiveElementRef.current = null;
-        }
-    }, [showRecaptcha]);
-
-    // Extracted registration logic so we can call it directly when
-    // reCAPTCHA is intentionally disabled (local dev).
-    function doRegister() {
-        axios.post('/api/users/register', { firstName, lastName, email, password, googleApiKey })
-            .then((res) => {
-                setUserId(res.data.userId);
-                // If server returns OTP (development mode), pre-fill it and
-                // show a non-blocking notice so developers can continue.
-                if (res.data && res.data.otp) {
-                    setOtp(res.data.otp);
-                }
-                setShowOtpModal(true);
-                setShowRecaptcha(false);
-            })
-            .catch((error) => {
-                const serverMessage = error.response?.data?.message || (error.response?.data?.errors ? error.response.data.errors.map(e => e.msg).join(' ') : null);
-                if (serverMessage) {
-                    setErrorMsg(serverMessage);
-                } else if (error.response?.status === 409) {
-                    setErrorMsg('Email already registered. Please login to your existing account.');
-                } else {
-                    setErrorMsg('Registration failed. Please try again.');
-                }
-                setShowRecaptcha(false);
-            });
-    }
-
-
-    function handleOtpSubmit(e) {
+    const handleOtpSubmit = async (e) => {
         e.preventDefault();
-        axios.post('/api/users/verify-otp', { userId, otp })
-            .then((res) => {
-                localStorage.setItem('token', res.data.token);
-                setUser(res.data.user);
-                setShowOtpModal(false);
-                navigate('/categories', { replace: true });
-            })
-            .catch(() => {
-                showToast('Invalid OTP. Please check your email and try again.', 'error');
-            });
-    }
+        const { success } = await verifyOtp({ userId: tempUserId, otp });
+        if (success) navigate('/categories', { replace: true });
+    };
 
     return (
-        <div ref={containerRef} className="relative flex items-center justify-center min-h-screen bg-transparent overflow-hidden">
-            {errorMsg && (
-                <div className="fixed top-8 left-1/2 z-50 -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded shadow-lg text-center font-semibold animate__animated animate__fadeInDown">
-                    {errorMsg}
-                </div>
-            )}
-            {showOtpModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-                    <div className={`${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} rounded-lg shadow-2xl p-8 w-full max-w-sm`}>
-                        <h2 className="mb-4 text-xl font-bold text-center">Enter OTP</h2>
-                        <form onSubmit={handleOtpSubmit}>
-                            <input
-                                type="text"
-                                value={otp}
-                                onChange={e => setOtp(e.target.value)}
-                                className={`w-full p-3 mb-4 transition duration-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700 border border-gray-600' : 'text-gray-900 bg-white border border-gray-300'}`}
-                                placeholder="Enter the OTP sent to your email"
-                                required
-                            />
-                            <button type="submit" className="w-full p-3 text-white bg-blue-500 rounded hover:bg-blue-600">Verify OTP</button>
-                        </form>
+        <div ref={containerRef} className="relative flex items-center justify-center min-h-screen bg-transparent overflow-hidden px-4 py-12">
+            <div className={`form-container relative z-10 w-full max-w-lg p-8 md:p-10 backdrop-blur-md rounded-3xl shadow-2xl ${isDarkMode ? 'bg-gray-800/60 text-white border-gray-700' : 'bg-white/70 text-gray-900 border-white'} border`}>
+                <h2 className="mb-8 text-4xl font-extrabold text-center tracking-tight">Create Account</h2>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)} className="w-full p-4 bg-gray-50 dark:bg-gray-700/50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="First Name" required />
+                        <input type="text" value={lastName} onChange={e => setLastName(e.target.value)} className="w-full p-4 bg-gray-50 dark:bg-gray-700/50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Last Name" required />
                     </div>
-                </div>
-            )}
-            <div className="absolute inset-0 z-0">
-                {[...Array(10)].map((_, i) => (
-                    <div
-                        key={i}
-                        className="background-shape absolute bg-blue-500 rounded-full"
-                        style={{
-                            width: `${Math.random() * 100 + 50}px`,
-                            height: `${Math.random() * 100 + 50}px`,
-                            top: `${Math.random() * 100}%`,
-                            left: `${Math.random() * 100}%`,
-                            opacity: Math.random() * 0.2 + 0.1,
-                        }}
-                    />
-                ))}
-            </div>
-
-            <div className={`form-container relative z-10 w-full max-w-md p-8 backdrop-blur-sm rounded-lg shadow-2xl ${isDarkMode ? 'bg-gray-800/50 text-white' : 'bg-white/60 text-gray-900'}`}>
-                <button
-                    type="button"
-                    onClick={() => navigate(-1)}
-                    className="absolute left-4 top-4 text-gray-300 hover:text-white focus:outline-none"
-                    aria-label="Go back"
-                >
-                    <i className="ri-arrow-left-line text-2xl" />
-                </button>
-                <h2 className={`mb-6 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Create an Account</h2>
-                <form onSubmit={submitHandler}>
-                    <div className="flex gap-4 mb-4">
-                        <div className="w-1/2">
-                            <label className="block mb-2 text-sm font-medium text-gray-300">
-                                First Name
-                            </label>
-                            <input
-                                type="text"
-                                value={firstName}
-                                onChange={(e) => setFirstName(e.target.value)}
-                                className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
-                                placeholder="John"
-                                required
-                            />
-                        </div>
-                        <div className="w-1/2">
-                            <label className="block mb-2 text-sm font-medium text-gray-300">
-                                Last Name
-                            </label>
-                            <input
-                                type="text"
-                                value={lastName}
-                                onChange={(e) => setLastName(e.target.value)}
-                                className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
-                                placeholder="Doe"
-                                required
-                            />
-                        </div>
-                    </div>
-                    <div className="mb-4">
-                        <label className="block mb-2 text-sm font-medium text-gray-300">
-                            Email
-                        </label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
-                            placeholder="your.email@example.com"
-                            required
-                        />
-                    </div>
-                    <div className="mb-4">
-                        <div className="flex items-center justify-between mb-2">
-                            <label className="text-sm font-medium text-gray-300">
-                                Google API Key
-                            </label>
-                            <a
-                                href="https://aistudio.google.com/app/apikey"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs text-blue-400 hover:underline whitespace-nowrap"
-                            >
-                                Get API key here
-                            </a>
-                        </div>
-                        <input
-                            type="text"
-                            value={googleApiKey}
-                            onChange={(e) => setGoogleApiKey(e.target.value)}
-                            className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
-                            placeholder="Enter your Google API Key"
-                            required
-                        />
-                    </div>
-                    <div className="flex gap-4 mb-6">
-                        <div className="w-1/2">
-                            <label className="block mb-2 text-sm font-medium text-gray-300">
-                                Password
-                            </label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
-                                placeholder="••••••••"
-                                required
-                            />
-                        </div>
-                        <div className="w-1/2">
-                            <label className="block mb-2 text-sm font-medium text-gray-300">
-                                Confirm Password
-                            </label>
-                            <input
-                                type="password"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
-                                placeholder="••••••••"
-                                required
-                            />
-                        </div>
+                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full p-4 bg-gray-50 dark:bg-gray-700/50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Email Address" required />
+                    <input type="text" value={googleApiKey} onChange={e => setGoogleApiKey(e.target.value)} className="w-full p-4 bg-gray-50 dark:bg-gray-700/50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Google Gemini API Key" required />
+                    <div className="grid grid-cols-2 gap-4">
+                        <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full p-4 bg-gray-50 dark:bg-gray-700/50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Password" required />
+                        <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full p-4 bg-gray-50 dark:bg-gray-700/50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Confirm" required />
                     </div>
 
-                    <button
-                        type="submit"
-                        className="w-full p-3 text-white font-bold transition duration-300 bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500"
-                    >
-                        Register
+                    <button type="submit" disabled={loading} className="w-full p-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/30 transition-all active:scale-[0.98] disabled:opacity-50">
+                        {loading ? 'Creating Account...' : 'Join ChatRaj'}
                     </button>
-                    {showRecaptcha && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" role="dialog" aria-modal="true">
-                            <div
-                                ref={modalRef}
-                                onKeyDown={(e) => { if (e.key === 'Escape') setShowRecaptcha(false); }}
-                                className={`${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} rounded-lg shadow-2xl p-8 w-full max-w-sm flex flex-col items-center`}
-                                tabIndex={-1}
-                            >
-                                <ReCAPTCHA
-                                    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-                                    onChange={handleRecaptcha}
-                                />
-                                <button className={`${isDarkMode ? 'mt-4 px-4 py-2 bg-gray-700 text-white rounded' : 'mt-4 px-4 py-2 bg-gray-100 text-gray-900 rounded border'}`} onClick={() => setShowRecaptcha(false)} type="button">Cancel</button>
-                            </div>
-                        </div>
-                    )}
                 </form>
 
-                <p className={`mt-6 text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Already have an account?{' '}
-                    <Link to="/login" className="text-blue-400 font-semibold hover:underline">
-                        Login
-                    </Link>
+                {showOtpModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md px-4">
+                        <div className="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-2xl w-full max-w-sm">
+                            <h3 className="text-2xl font-bold mb-6 text-center">Verify Email</h3>
+                            <form onSubmit={handleOtpSubmit} className="space-y-4">
+                                <input type="text" value={otp} onChange={e => setOtp(e.target.value)} className="w-full p-4 bg-gray-50 dark:bg-gray-700 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 text-center text-2xl font-mono tracking-widest" placeholder="0000000" required />
+                                <button type="submit" disabled={loading} className="w-full p-4 bg-blue-600 text-white font-bold rounded-2xl">{loading ? 'Verifying...' : 'Verify & Finish'}</button>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+                <p className="mt-8 text-center text-gray-500 dark:text-gray-400 font-medium">
+                    Already a member? <Link to="/login" className="text-blue-500 font-bold hover:underline">Sign In</Link>
                 </p>
             </div>
         </div>

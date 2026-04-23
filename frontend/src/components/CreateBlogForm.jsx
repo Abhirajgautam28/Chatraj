@@ -1,15 +1,23 @@
 
-import { useDrag, useDrop } from 'react-dnd';
-import { useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
+import { useDrag, useDrop, DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
+import useDarkMode from '../hooks/useDarkMode';
+import { BlogThemeProvider } from '../context/blogTheme.context';
+import { useToast } from '../context/toast.context';
+import { useApi } from '../hooks/useApi';
+import { isSafeUrl, getYouTubeEmbedUrl } from '../utils/url.utils';
 
 const ItemType = 'BLOCK';
-
 const inputBaseClass = "w-full p-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2";
+
 const Block = ({ id, index, type, content, moveBlock, updateContent, deleteBlock }) => {
     const ref = useRef(null);
     const [, drop] = useDrop({
         accept: ItemType,
-        hover(item, monitor) {
+        hover(item) {
             if (!ref.current) return;
             const dragIndex = item.index;
             const hoverIndex = index;
@@ -21,270 +29,51 @@ const Block = ({ id, index, type, content, moveBlock, updateContent, deleteBlock
     const [{ isDragging }, drag] = useDrag({
         type: ItemType,
         item: { id, index },
-        collect: (monitor) => ({
-            isDragging: monitor.isDragging(),
-        }),
+        collect: (monitor) => ({ isDragging: monitor.isDragging() }),
     });
     drag(drop(ref));
 
     return (
-        <div ref={ref} style={{ opacity: isDragging ? 0.5 : 1 }} className="mb-4 bg-white dark:bg-gray-800 rounded-xl shadow p-4 flex items-start gap-3 relative">
+        <div ref={ref} style={{ opacity: isDragging ? 0.5 : 1 }} className="mb-4 bg-white dark:bg-gray-800 rounded-xl shadow p-4 flex items-start gap-3 relative border border-gray-100 dark:border-gray-700">
             <span className="cursor-move text-gray-400 mr-2"><i className="ri-drag-move-2-line"></i></span>
-            {type === 'text' && (
-                <textarea
-                    className={`${inputBaseClass} resize-none focus:ring-blue-400`}
-                    value={content}
-                    onChange={e => updateContent(id, e.target.value)}
-                    placeholder="Write text..."
-                    rows={3}
-                />
-            )}
-            {type === 'image' && (
-                <input
-                    className={`${inputBaseClass} focus:ring-purple-400`}
-                    value={content}
-                    onChange={e => updateContent(id, e.target.value)}
-                    placeholder="Paste image URL..."
-                />
-            )}
-            {type === 'video' && (
-                <input
-                    className={`${inputBaseClass} focus:ring-red-400`}
-                    value={content}
-                    onChange={e => updateContent(id, e.target.value)}
-                    placeholder="Paste YouTube video URL..."
-                />
-            )}
-            {type === 'code' && (
-                <textarea
-                    className={`${inputBaseClass} bg-gray-900 text-white font-mono resize-none focus:ring-gray-400`}
-                    value={content}
-                    onChange={e => updateContent(id, e.target.value)}
-                    placeholder="Paste code..."
-                    rows={4}
-                />
-            )}
-            {type === 'quote' && (
-                <textarea
-                    className={`${inputBaseClass} bg-yellow-50 dark:bg-gray-700 text-blue-700 dark:text-blue-300 italic resize-none focus:ring-yellow-400`}
-                    value={content}
-                    onChange={e => updateContent(id, e.target.value)}
-                    placeholder="Write a quote..."
-                    rows={2}
-                />
-            )}
-            <button type="button" onClick={() => deleteBlock(id)} className="absolute top-2 right-2 text-red-500 hover:text-red-700"><i className="ri-delete-bin-6-line"></i></button>
+            {type === 'text' && <textarea className={`${inputBaseClass} resize-none focus:ring-blue-400`} value={content} onChange={e => updateContent(id, e.target.value)} placeholder="Write text..." rows={3} />}
+            {type === 'image' && <input className={`${inputBaseClass} focus:ring-purple-400`} value={content} onChange={e => updateContent(id, e.target.value)} placeholder="Paste image URL..." />}
+            {type === 'video' && <input className={`${inputBaseClass} focus:ring-red-400`} value={content} onChange={e => updateContent(id, e.target.value)} placeholder="Paste YouTube video URL..." />}
+            {type === 'code' && <textarea className={`${inputBaseClass} bg-gray-900 text-white font-mono resize-none focus:ring-gray-400`} value={content} onChange={e => updateContent(id, e.target.value)} placeholder="Paste code..." rows={4} />}
+            {type === 'quote' && <textarea className={`${inputBaseClass} bg-yellow-50 dark:bg-gray-700 text-blue-700 dark:text-blue-300 italic resize-none focus:ring-yellow-400`} value={content} onChange={e => updateContent(id, e.target.value)} placeholder="Write a quote..." rows={2} />}
+            <button type="button" onClick={() => deleteBlock(id)} className="absolute top-2 right-2 text-red-500 hover:text-red-700 transition-colors"><i className="ri-delete-bin-6-line"></i></button>
         </div>
     );
 };
 
-import { useState, useCallback } from 'react';
-import useDarkMode from '../hooks/useDarkMode';
-import { BlogThemeProvider } from '../context/blogTheme.context';
-import { useToast } from '../context/toast.context';
-//
-import axios from '../config/axios';
-import { useNavigate } from 'react-router-dom';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import 'remixicon/fonts/remixicon.css';
-import { logger } from '../utils/logger';
-//
-
-
-const getYouTubeEmbedUrl = (urlString) => {
-    if (!urlString) return '';
-    try {
-        const url = new URL(urlString);
-        // Only allow http/https schemes
-        if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-            return '';
-        }
-        const hostname = url.hostname.toLowerCase();
-        const isYoutubeHost =
-            hostname === 'youtube.com' ||
-            hostname === 'www.youtube.com' ||
-            hostname === 'm.youtube.com';
-        const isShortHost =
-            hostname === 'youtu.be' ||
-            hostname === 'www.youtu.be';
-
-        let videoId = '';
-
-        if (isShortHost) {
-            videoId = url.pathname.slice(1);
-        } else if (['youtube.com', 'www.youtube.com', 'm.youtube.com'].includes(url.hostname)) {
-            if (url.pathname === '/watch' && url.searchParams.has('v')) {
-                videoId = url.searchParams.get('v') || '';
-            } else if (url.pathname.startsWith('/embed/')) {
-                videoId = url.pathname.split('/embed/')[1].split(/[/?]/)[0];
-            } else if (url.pathname.startsWith('/v/')) {
-                videoId = url.pathname.split('/v/')[1].split(/[/?]/)[0];
-            }
-        }
-
-        // Fallback: extract from string only if it looks like a YouTube URL
-        if (!videoId) {
-            const match = urlString.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/i);
-            if (match && match[1]) {
-                videoId = match[1];
-            }
-        }
-
-        // Ensure videoId is in expected format
-        if (videoId && /^[A-Za-z0-9_-]{11}$/.test(videoId)) {
-            return `https://www.youtube.com/embed/${videoId}`;
-        }
-    } catch {
-        // Invalid URL or parsing error, fall through to empty string
-    }
-    return '';
+Block.propTypes = {
+    id: PropTypes.number.isRequired,
+    index: PropTypes.number.isRequired,
+    type: PropTypes.string.isRequired,
+    content: PropTypes.string.isRequired,
+    moveBlock: PropTypes.func.isRequired,
+    updateContent: PropTypes.func.isRequired,
+    deleteBlock: PropTypes.func.isRequired,
 };
-
-// Validate that a URL is safe. Allow http/https absolute URLs and
-// same-origin relative paths like `/uploads/foo.jpg` or `images/foo.jpg`.
-// Policy: guardrail sizes and decode limits. These are conservative
-// values chosen to prevent attacker-controlled large inputs and limit
-// repeated decoding attempts (e.g. `%252e%252e` chains). Adjust these
-// if you have a reasoned case for larger user-provided paths.
-const MAX_URL_LENGTH_BEFORE_DECODE = 2048; // reject very long raw inputs early
-const MAX_URL_LENGTH_AFTER_DECODE = 4096; // cap decoded length to avoid blowup
-const MAX_DECODE_DEPTH = 3; // bounded iterative decoding depth
-const TRAVERSAL_RE = /(^|[\/\\])\.\.([\/\\]|$)/;
-/**
- * Iteratively percent-decode `value` up to `maxDepth` times, capping the
- * decoded length to `maxLength`. Returns a normalized result object:
- * { value, status, depth } where `status` is one of the values in
- * `DECODE_STATUS`.
- * - value: decoded string or null on overflow
- * - status: DECODE_STATUS.OK when fully decoded,
- *   DECODE_STATUS.OVERFLOW when decoded length exceeded `maxLength`, or
- *   DECODE_STATUS.MALFORMED when percent-decoding failed (last good decoded
- *   value is returned).
- * - depth: number of decoding iterations attempted
- */
-
-const DECODE_STATUS = {
-    OK: 'ok',
-    OVERFLOW: 'overflow',
-    MALFORMED: 'malformed',
-};
-function safeDecodeLimited(value, maxDepth, maxLength) {
-    let decoded = value;
-    let status = DECODE_STATUS.OK;
-    let depth = 0;
-
-    for (let i = 0; i < maxDepth; i++) {
-        depth++;
-        try {
-            const next = decodeURIComponent(decoded);
-            if (next === decoded) {
-                break; // no further progress
-            }
-            decoded = next;
-            if (decoded.length > maxLength) {
-                status = DECODE_STATUS.OVERFLOW;
-                decoded = null;
-                break;
-            }
-        } catch (_) {
-            // malformed percent-encoding: keep last successfully decoded
-            // value and mark as malformed so callers can decide.
-            status = DECODE_STATUS.MALFORMED;
-            break;
-        }
-    }
-
-    return { value: decoded, status, depth };
-}
-
-const isSafeUrl = (urlString) => {
-    if (!urlString || typeof urlString !== 'string') return false;
-    try {
-        const url = new URL(urlString);
-        const protocol = url.protocol.toLowerCase();
-        return protocol === 'http:' || protocol === 'https:';
-    } catch (e) {
-        // If URL constructor fails, this may be a relative URL. Allow
-        // same-origin relative paths (starting with '/') or simple
-        // relative paths without a protocol (no ':' char) and no spaces.
-        // Explicitly disallow path-traversal patterns like "../", "/../" or "..\".
-        if (urlString.startsWith('//')) return false; // protocol-relative URLs are disallowed
-
-        // Reject extremely long inputs early to avoid DoS via huge attacker-controlled strings
-        if (urlString.length > MAX_URL_LENGTH_BEFORE_DECODE) return false;
-
-        const decodedInfo = safeDecodeLimited(urlString, MAX_DECODE_DEPTH, MAX_URL_LENGTH_AFTER_DECODE);
-        // Reject outright on any non-OK status to avoid accepting truncated,
-        // partially-decoded, or otherwise ambiguous inputs.
-        if (decodedInfo.status !== DECODE_STATUS.OK) return false;
-        const decoded = decodedInfo.value;
-        if (decoded === null) return false;
-        if (decoded.trim() === '') return false; // reject empty or whitespace-only decoded values
-
-        // Validate decoded value for traversal, colon, whitespace, and allowed chars.
-        if (TRAVERSAL_RE.test(decoded)) return false;
-        if (decoded.includes(':')) return false; // disallow strings containing a colon
-        if (/\s/.test(decoded)) return false;
-        if (!(decoded.startsWith('/') || /^[A-Za-z0-9_./~-]+$/.test(decoded))) return false;
-
-        return true;
-    }
-};
-
-const DarkModeToggle = ({ darkMode, setDarkMode }) => (
-    <button
-        aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-        className="absolute top-2 right-2 z-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full p-2 shadow hover:shadow-md transition-all duration-200 flex items-center justify-center"
-        onClick={() => setDarkMode((d) => !d)}
-    >
-        {darkMode ? (
-            <i className="ri-sun-line text-2xl text-yellow-400" />
-        ) : (
-            <i className="ri-moon-line text-2xl text-blue-700" />
-        )}
-    </button>
-);
-
-const BlockList = ({ blocks, moveBlock, updateContent, deleteBlock }) => (
-    <div className="mb-8">
-        {blocks.map((block, index) => (
-            <Block
-                key={block.id}
-                index={index}
-                id={block.id}
-                type={block.type}
-                content={block.content}
-                moveBlock={moveBlock}
-                updateContent={updateContent}
-                deleteBlock={deleteBlock}
-            />
-        ))}
-    </div>
-);
 
 const LivePreview = ({ title, blocks }) => (
-    <div className="glass-card p-8 md:p-10 bg-white/60 dark:bg-gray-800/60 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 backdrop-blur-xl relative overflow-hidden">
-        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-gradient-to-tr from-purple-400/30 via-blue-400/20 to-transparent rounded-full blur-2xl pointer-events-none"></div>
+    <div className="p-8 md:p-10 bg-white/60 dark:bg-gray-800/60 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 backdrop-blur-xl relative overflow-hidden">
         <h2 className="text-2xl font-bold mb-6 text-blue-700 dark:text-blue-300">Live Preview</h2>
         <div className="prose prose-blue dark:prose-invert max-w-none">
-            <h1 className="text-3xl font-extrabold mb-4 text-blue-700 dark:text-blue-300 drop-shadow">{title}</h1>
+            <h1 className="text-3xl font-extrabold mb-4 text-blue-700 dark:text-blue-300">{title || 'Untitled Blog'}</h1>
             {blocks.map(block => {
                 if (block.type === 'text') return <p key={block.id} className="text-lg leading-relaxed mb-3">{block.content}</p>;
                 if (block.type === 'image') {
                     const safeSrc = isSafeUrl(block.content) ? block.content : null;
-                    if (!safeSrc) return <div key={block.id} className="w-full rounded-xl shadow mb-3 flex items-center justify-center bg-gray-200 dark:bg-gray-800 text-gray-500 text-center">Invalid or unsupported image URL</div>;
-                    return <img key={block.id} src={safeSrc} alt="preview" className="rounded-xl shadow mb-3" />;
+                    if (!safeSrc) return <div key={block.id} className="w-full h-24 rounded-xl mb-3 flex items-center justify-center bg-gray-100 dark:bg-gray-900 text-gray-400 italic">Invalid image URL</div>;
+                    return <img key={block.id} src={safeSrc} alt="preview" className="rounded-xl shadow-md mb-3" />;
                 }
                 if (block.type === 'video') {
                     const embedUrl = getYouTubeEmbedUrl(block.content);
-                    // ensure embedUrl is https and safe
-                    if (!embedUrl || !embedUrl.startsWith('https://')) {
-                        return <div key={block.id} className="w-full aspect-video rounded-xl shadow mb-3 flex items-center justify-center bg-gray-200 dark:bg-gray-800 text-gray-500 text-center">Invalid or unsupported video URL</div>;
-                    }
-                    return <iframe key={block.id} src={embedUrl} title="preview" className="w-full aspect-video rounded-xl shadow mb-3" allowFullScreen />;
+                    if (!embedUrl) return <div key={block.id} className="w-full h-24 rounded-xl mb-3 flex items-center justify-center bg-gray-100 dark:bg-gray-900 text-gray-400 italic">Invalid video URL</div>;
+                    return <iframe key={block.id} src={embedUrl} title="preview" className="w-full aspect-video rounded-xl shadow-md mb-3" allowFullScreen />;
                 }
-                if (block.type === 'code') return <pre key={block.id} className="bg-gray-900/90 text-white rounded-xl p-4 mb-3 overflow-x-auto"><code className="language-javascript">{block.content}</code></pre>;
+                if (block.type === 'code') return <pre key={block.id} className="bg-gray-900 text-green-400 rounded-xl p-4 mb-3 overflow-x-auto"><code>{block.content}</code></pre>;
                 if (block.type === 'quote') return <blockquote key={block.id} className="border-l-4 border-blue-400 pl-4 italic text-lg text-blue-700 dark:text-blue-300 mb-3">{block.content}</blockquote>;
                 return null;
             })}
@@ -292,109 +81,85 @@ const LivePreview = ({ title, blocks }) => (
     </div>
 );
 
+LivePreview.propTypes = {
+    title: PropTypes.string,
+    blocks: PropTypes.array.isRequired,
+};
+
 const CreateBlogFormContent = () => {
     const [title, setTitle] = useState('');
     const [blocks, setBlocks] = useState([{ id: 1, type: 'text', content: '' }]);
     const [darkMode, setDarkMode] = useDarkMode('create_blog_dark_mode', false);
     const { showToast } = useToast();
     const navigate = useNavigate();
+    const { request: createBlogRequest, loading } = useApi();
 
     const moveBlock = useCallback((dragIndex, hoverIndex) => {
-        setBlocks((prevBlocks) => {
-            const newBlocks = [...prevBlocks];
-            const [draggedBlock] = newBlocks.splice(dragIndex, 1);
-            newBlocks.splice(hoverIndex, 0, draggedBlock);
-            return newBlocks;
+        setBlocks((prev) => {
+            const next = [...prev];
+            const [moved] = next.splice(dragIndex, 1);
+            next.splice(hoverIndex, 0, moved);
+            return next;
         });
     }, []);
 
-    const updateContent = (id, newContent) => {
-        setBlocks((prevBlocks) =>
-            prevBlocks.map((block) =>
-                block.id === id ? { ...block, content: newContent } : block
-            )
-        );
-    };
-
-    const addBlock = (type) => {
-        setBlocks((prevBlocks) => [
-            ...prevBlocks,
-            { id: Date.now(), type, content: '' },
-        ]);
-    };
-
-    const deleteBlock = (id) => {
-        setBlocks((prevBlocks) => prevBlocks.filter(block => block.id !== id));
-    };
+    const updateContent = (id, content) => setBlocks(p => p.map(b => b.id === id ? { ...b, content } : b));
+    const addBlock = (type) => setBlocks(p => [...p, { id: Date.now(), type, content: '' }]);
+    const deleteBlock = (id) => setBlocks(p => p.filter(b => b.id !== id));
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!title.trim()) {
-            showToast('Blog title cannot be empty.', 'warning');
-            return;
-        }
-        const content = JSON.stringify(blocks);
-        try {
-            await axios.post('/api/blogs', { title, content });
-            navigate('/blogs');
-        } catch (error) {
-            logger.error('Error creating blog:', error);
-        }
+        if (!title.trim()) return showToast('Title required', 'warning');
+
+        const { error } = await createBlogRequest({
+            url: '/api/blogs',
+            method: 'POST',
+            data: { title, content: JSON.stringify(blocks) }
+        }, { showSuccessToast: true, successMessage: 'Blog published!' });
+
+        if (!error) navigate('/blogs');
     };
 
     return (
         <DndProvider backend={HTML5Backend}>
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-300 flex flex-col items-center justify-center py-10 px-2">
-                <div className="w-full max-w-3xl mx-auto relative">
-                    {/* Dark mode switch button */}
-                    <button
-                        aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-                        className="absolute top-2 right-2 z-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full p-2 shadow hover:shadow-md transition-all duration-200 flex items-center justify-center"
-                        onClick={() => setDarkMode((d) => !d)}
-                    >
-                        {darkMode ? (
-                            <i className="ri-sun-line text-2xl text-yellow-400" />
-                        ) : (
-                            <i className="ri-moon-line text-2xl text-blue-700" />
-                        )}
-                    </button>
-                    <h1 className="text-4xl font-bold mb-8 text-center text-blue-700 dark:text-blue-200">Create a New Blog Post</h1>
-                    <form onSubmit={handleSubmit} className="mb-10">
-                        <div className="mb-8">
-                            <input
-                                type="text"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                className="w-full p-4 text-2xl font-semibold bg-white/80 dark:bg-gray-800/80 rounded-xl border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 shadow"
-                                placeholder="Blog Title"
-                                required
-                            />
+            <div className={`min-h-screen transition-colors duration-300 py-12 px-6 ${darkMode ? 'bg-gray-950 text-white' : 'bg-gray-50 text-gray-900'}`}>
+                <div className="max-w-4xl mx-auto">
+                    <div className="flex justify-between items-center mb-12">
+                        <h1 className="text-4xl font-extrabold tracking-tight text-blue-600 dark:text-blue-400">Create Blog</h1>
+                        <button onClick={() => setDarkMode(!darkMode)} className="p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg transition-transform hover:scale-110">
+                            {darkMode ? <i className="ri-sun-line text-yellow-400" /> : <i className="ri-moon-line text-blue-600" />}
+                        </button>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-8 mb-16">
+                        <input
+                            value={title}
+                            onChange={e => setTitle(e.target.value)}
+                            className="w-full p-5 text-3xl font-bold bg-white dark:bg-gray-800 rounded-2xl border-none shadow-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                            placeholder="Epic Title Goes Here..."
+                            required
+                        />
+
+                        <div className="space-y-4">
+                            {blocks.map((block, i) => <Block key={block.id} index={i} {...block} moveBlock={moveBlock} updateContent={updateContent} deleteBlock={deleteBlock} />)}
                         </div>
-                        <div className="mb-8">
-                            {blocks.map((block, index) => (
-                                <Block
-                                    key={block.id}
-                                    index={index}
-                                    id={block.id}
-                                    type={block.type}
-                                    content={block.content}
-                                    moveBlock={moveBlock}
-                                    updateContent={updateContent}
-                                    deleteBlock={deleteBlock}
-                                />
+
+                        <div className="flex flex-wrap gap-3 justify-center">
+                            {['text', 'image', 'video', 'code', 'quote'].map(type => (
+                                <button key={type} type="button" onClick={() => addBlock(type)} className="px-4 py-2 bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-md transition-all font-semibold capitalize flex items-center gap-2">
+                                    <i className={`ri-${type === 'text' ? 'text' : type === 'code' ? 'code-s-slash' : type === 'quote' ? 'double-quotes-l' : type}-line text-blue-500`}></i>
+                                    {type}
+                                </button>
                             ))}
                         </div>
-                        <div className="flex flex-wrap gap-3 mb-8 justify-center">
-                            <button type="button" onClick={() => addBlock('text')} className="flex items-center gap-2 px-4 py-2 font-semibold text-white bg-blue-500 rounded-xl shadow hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"><i className="ri-text"></i>Text</button>
-                            <button type="button" onClick={() => addBlock('image')} className="flex items-center gap-2 px-4 py-2 font-semibold text-white bg-purple-500 rounded-xl shadow hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-400 transition"><i className="ri-image-add-line"></i>Image</button>
-                            <button type="button" onClick={() => addBlock('video')} className="flex items-center gap-2 px-4 py-2 font-semibold text-white bg-red-500 rounded-xl shadow hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 transition"><i className="ri-film-line"></i>Video</button>
-                            <button type="button" onClick={() => addBlock('code')} className="flex items-center gap-2 px-4 py-2 font-semibold text-white bg-gray-700 rounded-xl shadow hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400 transition"><i className="ri-code-s-slash-line"></i>Code</button>
-                            <button type="button" onClick={() => addBlock('quote')} className="flex items-center gap-2 px-4 py-2 font-semibold text-white bg-yellow-500 rounded-xl shadow hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition"><i className="ri-double-quotes-l"></i>Quote</button>
-                        </div>
-                        <div className="flex items-center justify-end">
-                            <button type="submit" className="px-8 py-3 font-bold text-lg text-white bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl shadow-lg hover:from-blue-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-blue-400 transition">Publish Post</button>
+
+                        <div className="flex justify-end">
+                            <button type="submit" disabled={loading} className="px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/20 transition-all disabled:opacity-50">
+                                {loading ? 'Publishing...' : 'Publish Masterpiece'}
+                            </button>
                         </div>
                     </form>
+
                     <LivePreview title={title} blocks={blocks} />
                 </div>
             </div>

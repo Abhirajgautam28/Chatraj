@@ -6,10 +6,11 @@ import { clearCsrfCache } from "../config/axios";
 import { useNavigate, useParams } from 'react-router-dom';
 import ProjectCard from '../components/ProjectCard';
 import CreateProjectModal from '../components/CreateProjectModal';
+import ConfirmationModal from '../components/ConfirmationModal';
 import { useApi } from '../hooks/useApi';
 
 const Dashboard = () => {
-  useContext(UserContext);
+  const { user } = useContext(UserContext);
   const { showToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectName, setProjectName] = useState('');
@@ -19,6 +20,11 @@ const Dashboard = () => {
 
   const { request: fetchProjects, loading: fetchLoading, data: projectsData, setData: setProjectsData } = useApi();
   const { request: createProjectRequest, loading: createLoading } = useApi();
+  const { request: deleteProjectRequest } = useApi();
+  const { request: leaveProjectRequest } = useApi();
+
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [confirmLeaveId, setConfirmLeaveId] = useState(null);
 
   const categoryName = useMemo(() =>
     rawCategoryName ? decodeURIComponent(rawCategoryName) : undefined
@@ -43,6 +49,38 @@ const Dashboard = () => {
       setProjectName('');
     }
   }, [projectName, categoryName, createProjectRequest, setProjectsData]);
+
+  const handleDeleteProject = async () => {
+    if (!confirmDeleteId) return;
+    const { error } = await deleteProjectRequest({
+        url: `/api/projects/${confirmDeleteId}`,
+        method: 'DELETE'
+    }, { showSuccessToast: true, successMessage: 'Project deleted' });
+
+    if (!error) {
+        setProjectsData(prev => ({
+            ...prev,
+            projects: prev.projects.filter(p => p._id !== confirmDeleteId)
+        }));
+    }
+    setConfirmDeleteId(null);
+  };
+
+  const handleLeaveProject = async () => {
+    if (!confirmLeaveId) return;
+    const { error } = await leaveProjectRequest({
+        url: `/api/projects/${confirmLeaveId}/leave`,
+        method: 'POST'
+    }, { showSuccessToast: true, successMessage: 'Left project' });
+
+    if (!error) {
+        setProjectsData(prev => ({
+            ...prev,
+            projects: prev.projects.filter(p => p._id !== confirmLeaveId)
+        }));
+    }
+    setConfirmLeaveId(null);
+  };
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem('token');
@@ -134,10 +172,13 @@ const Dashboard = () => {
                 <AnimatePresence mode='popLayout'>
                 {filteredProjects.map((project, idx) => (
                     <ProjectCard
-                    key={project._id}
-                    project={project}
-                    idx={idx}
-                    onClick={() => navigate(`/project`, { state: { project } })}
+                        key={project._id}
+                        project={project}
+                        idx={idx}
+                        currentUserId={user?._id}
+                        onClick={() => navigate(`/project`, { state: { project } })}
+                        onDelete={(id) => setConfirmDeleteId(id)}
+                        onLeave={(id) => setConfirmLeaveId(id)}
                     />
                 ))}
                 </AnimatePresence>
@@ -175,6 +216,24 @@ const Dashboard = () => {
           setProjectName={setProjectName}
           onSubmit={handleCreateProject}
           isSubmitting={createLoading}
+        />
+
+        <ConfirmationModal
+            isOpen={!!confirmDeleteId}
+            onClose={() => setConfirmDeleteId(null)}
+            onConfirm={handleDeleteProject}
+            title="Delete Project"
+            message="Are you sure you want to delete this project? This action cannot be undone."
+            type="danger"
+        />
+
+        <ConfirmationModal
+            isOpen={!!confirmLeaveId}
+            onClose={() => setConfirmLeaveId(null)}
+            onConfirm={handleLeaveProject}
+            title="Leave Project"
+            message="Are you sure you want to leave this project?"
+            type="warning"
         />
       </div>
     </main>

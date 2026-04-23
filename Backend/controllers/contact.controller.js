@@ -1,3 +1,4 @@
+import { successResponse, errorResponse } from "../utils/response.utils.js";
 import Contact from '../models/contact.model.js';
 import { logger } from '../utils/logger.js';
 import { validationResult } from 'express-validator';
@@ -5,7 +6,7 @@ import { validationResult } from 'express-validator';
 export const submitContactForm = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        return errorResponse(res, "Validation failed", 400, errors.array());
     }
 
     try {
@@ -14,12 +15,12 @@ export const submitContactForm = async (req, res) => {
 
         logger.info(`New contact form submission from ${email}`);
 
-        res.status(201).json({
+        return successResponse(res, {
             message: 'Your message has been sent successfully. We will get back to you soon.',
             contact: newContact
-        });
+        }, 'Submission successful', 201);
     } catch (error) {
         logger.error('submitContactForm error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        return errorResponse(res, "Internal server error", 500);
     }
 };

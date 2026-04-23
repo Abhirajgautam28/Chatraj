@@ -1,22 +1,20 @@
-# Project Architecture
+# ChatRaj Architecture
 
-## Overview
-ChatRaj is a MERN stack application (MongoDB, Express, React, Node.js) with real-time collaboration features powered by Socket.io and AI assistance using Google Gemini.
+## System Overview
+ChatRaj is a modern, real-time collaboration platform designed for developers. It leverages a MERN stack with Socket.io for live communication and Redis for performance-critical caching and session management.
 
-## Components
-### Frontend
-- **Modular Components**: Located in `frontend/src/components/`, these are small, reusable UI units.
-- **Screens**: Located in `frontend/src/screens/`, these represent main pages like Dashboard, Project, and ChatRaj.
-- **Custom Hooks**: Centralized logic for state management, API calls (`useApi`), and WebGL initialization.
-- **State Management**: Uses React Context API for global state (User, Theme, Toast).
+## Core Pillars
+1. **Real-time Engine**: Powered by Socket.io, providing instant message delivery, typing indicators, and live file synchronization.
+2. **AI Integration**: Seamlessly integrated with Google Gemini API, featuring prompt caching to minimize latency and costs.
+3. **Workspace Resilience**: Implements a robust project-based isolation model with advanced state management via custom hooks.
+4. **Security First**: Mandatory CSRF protection, rate limiting, masked sensitive data, and comprehensive audit logging.
 
-### Backend
-- **Controller-Service-Model**: Standardized layered architecture for clear separation of concerns.
-- **Services**: Business logic for AI (`ai.service.js`), Projects (`project.service.js`), and Real-time messages (`message.service.js`).
-- **Real-time**: Socket.io integration managed via `socket.service.js`.
+## Architectural Patterns
+- **Backend**: Standardized Controller-Service-Model architecture ensuring clear separation of business logic from infrastructure.
+- **Frontend**: Highly modular component architecture utilizing custom hooks (e.g., `useProjectState`, `useApi`) for efficient state management and side-effect handling.
+- **Persistence**: Optimized MongoDB operations using atomic updates to prevent race conditions in concurrent collaboration environments.
 
-## Key Features
-- **Real-time Collaboration**: Multi-user editing and chat.
-- **AI Integration**: Context-aware AI suggestions and code generation.
-- **Project Isolation**: Projects are containers with their own file systems and member lists.
-- **Security**: Robust CSRF protection and masked data handling for admin endpoints.
+## Directory Structure
+- `Backend/`: Node.js Express server, services, and models.
+- `frontend/`: Vite-powered React application.
+- `docs/`: Comprehensive system and API documentation.
