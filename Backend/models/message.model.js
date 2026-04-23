@@ -3,36 +3,45 @@ import mongoose from 'mongoose';
 const messageSchema = new mongoose.Schema({
   conversationId: {
     type: mongoose.Schema.Types.ObjectId,
-    required: true
+    ref: 'project',
+    required: true,
+    index: true
   },
   sender: {
-    type: mongoose.Schema.Types.Mixed,
-    required: true
+    _id: { type: String, required: true },
+    email: { type: String },
+    firstName: { type: String },
+    lastName: { type: String }
   },
   message: {
     type: String,
     required: true
   },
   parentMessageId: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Message',
     default: null
   },
-  reactions: {
-    type: Array,
-    default: []
-  },
-  deliveredTo: {
-    type: [String],
-    default: []
-  },
-  readBy: {
-    type: [String],
-    default: []
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
+  reactions: [{
+    emoji: String,
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'user' }
+  }],
+  deliveredTo: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'user'
+  }],
+  readBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'user'
+  }]
+}, {
+    timestamps: true,
+    autoIndex: process.env.NODE_ENV !== 'production',
+    versionKey: false
 });
 
-export default mongoose.model('Message', messageSchema);
+// Compound index for fast chat history retrieval
+messageSchema.index({ conversationId: 1, createdAt: -1 });
+
+const Message = mongoose.model('Message', messageSchema);
+export default Message;

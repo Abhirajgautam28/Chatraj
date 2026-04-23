@@ -9,16 +9,17 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 export const createBlog = async (req, res) => {
     try {
         const { title, content, summary } = req.body;
-        // Use req.user._id directly from optimized JWT payload
+        const userId = req.user._id;
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
         const newBlog = new Blog({
             title,
             content,
             summary: summary || (content ? content.slice(0, 150) + '...' : ''),
-            author: req.user._id
+            author: userId
         });
 
         await newBlog.save();
-        // Invalidate blog list cache using tag AFTER successful save
         await invalidateCache('blog:all', true);
         res.status(201).json(newBlog);
     } catch (error) {
@@ -61,9 +62,7 @@ export const getBlogById = async (req, res) => {
         const id = req.params.id;
         if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
         const blog = await Blog.findById(id).populate('author', 'firstName lastName').populate('comments.user', 'firstName lastName').lean();
-        if (!blog) {
-            return res.status(404).json({ error: 'Blog not found' });
-        }
+        if (!blog) return res.status(404).json({ error: 'Blog not found' });
         res.status(200).json(blog);
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
@@ -75,33 +74,24 @@ export const likeBlog = async (req, res) => {
         const id = req.params.id;
         if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
 
-        // Use req.user._id directly from optimized JWT payload
         const userId = req.user._id;
 
-        // Atomic toggle logic: try to remove user._id, if not found, add it.
-        // First attempt removal.
+        // Optimized Atomic Toggle with Count Update
         let blog = await Blog.findOneAndUpdate(
             { _id: id, likes: userId },
-            { $pull: { likes: userId } },
-            { new: true }
+            { $pull: { likes: userId }, $inc: { likesCount: -1 } },
+            { new: true, lean: true }
         );
 
         if (!blog) {
-            // If removal did nothing, it means user hasn't liked it yet. Add it.
             blog = await Blog.findOneAndUpdate(
                 { _id: id },
-                { $addToSet: { likes: userId } },
-                { new: true }
+                { $addToSet: { likes: userId }, $inc: { likesCount: 1 } },
+                { new: true, lean: true }
             );
         }
 
-        if (blog) {
-            // Ensure consistency: lean populate
-            blog = await Blog.findById(id).populate('author', 'firstName lastName').lean();
-        }
-
         if (!blog) return res.status(404).json({ error: 'Blog not found' });
-        // Invalidate list cache as like count might be displayed using tag
         await invalidateCache('blog:all', true);
         res.status(200).json(blog);
     } catch (error) {
@@ -116,15 +106,13 @@ export const commentOnBlog = async (req, res) => {
         const id = req.params.id;
         if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
 
-        // Use req.user._id directly from optimized JWT payload
         const blog = await Blog.findByIdAndUpdate(
             id,
-            { $push: { comments: { user: req.user._id, text } } },
-            { new: true }
-        ).populate('author', 'firstName lastName').populate('comments.user', 'firstName lastName').lean();
+            { $push: { comments: { user: req.user._id, text } }, $inc: { commentsCount: 1 } },
+            { new: true, lean: true }
+        ).populate('author', 'firstName lastName').populate('comments.user', 'firstName lastName');
 
         if (!blog) return res.status(404).json({ error: 'Blog not found' });
-        // Invalidate list cache AFTER successful update
         await invalidateCache('blog:all', true);
         res.status(201).json(blog);
     } catch (error) {

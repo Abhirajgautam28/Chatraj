@@ -20,7 +20,10 @@ const server = http.createServer(app);
 const io = new Server(server, {
     cors: { origin: '*' },
     perMessageDeflate: true,
-    maxHttpBufferSize: 1e7
+    maxHttpBufferSize: 1e7,
+    pingInterval: 10000,
+    pingTimeout: 5000,
+    cookie: false // Performance: disable cookies for socket
 });
 
 io.use(async (socket, next) => {
@@ -33,7 +36,6 @@ io.use(async (socket, next) => {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        // Identity Migration Fallback
         if (!decoded._id) {
             const user = await userModel.findOne({ email: decoded.email }).select('_id').lean();
             if (!user) return next(new Error('User not found'));
@@ -41,7 +43,7 @@ io.use(async (socket, next) => {
         }
         socket.user = decoded;
 
-        const project = await projectModel.findOne({ _id: projectId, users: decoded._id }).lean();
+        const project = await projectModel.findOne({ _id: projectId, users: decoded._id }).select('_id').lean();
         if (!project) return next(new Error('Access Denied'));
         socket.project = project;
 
@@ -84,14 +86,20 @@ io.on('connection', socket => {
         }
     });
 
-    socket.on('message-delivered', async ({ messageId }) => {
-        await Message.updateOne({ _id: messageId }, { $addToSet: { deliveredTo: socket.user._id } });
-        socket.volatile.to(roomId).emit('message-delivered', { messageId, userId: socket.user._id });
+    socket.on('batch-delivered', async (messageIds) => {
+        await Message.updateMany(
+            { _id: { $in: messageIds } },
+            { $addToSet: { deliveredTo: socket.user._id } }
+        );
+        socket.volatile.to(roomId).emit('batch-delivered', { messageIds, userId: socket.user._id });
     });
 
-    socket.on('message-read', async ({ messageId }) => {
-        await Message.updateOne({ _id: messageId }, { $addToSet: { readBy: socket.user._id } });
-        socket.volatile.to(roomId).emit('message-read', { messageId, userId: socket.user._id });
+    socket.on('batch-read', async (messageIds) => {
+        await Message.updateMany(
+            { _id: { $in: messageIds } },
+            { $addToSet: { readBy: socket.user._id } }
+        );
+        socket.volatile.to(roomId).emit('batch-read', { messageIds, userId: socket.user._id });
     });
 
     socket.on('message-reaction', async (data) => {
