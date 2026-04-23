@@ -42,6 +42,10 @@ const userSchema = new mongoose.Schema({
     isVerified: {
         type: Boolean,
         default: false
+    },
+    projectsCount: {
+        type: Number,
+        default: 0
     }
 });
 
@@ -56,11 +60,22 @@ userSchema.methods.isValidPassword = async function (password) {
 
 userSchema.methods.generateJWT = function () {
     return jwt.sign(
-        { email: this.email, firstName: this.firstName, lastName: this.lastName },
+        {
+            _id: this._id,
+            email: this.email,
+            firstName: this.firstName,
+            lastName: this.lastName
+        },
         process.env.JWT_SECRET,
         { expiresIn: '24h' }
     );
 };
+
+// Strategic indexes for high-performance lookups and sorting
+userSchema.index({ email: 1 });
+userSchema.index({ firstName: 1, lastName: 1 });
+// Full-text search index for user discovery
+userSchema.index({ firstName: 'text', lastName: 'text' });
 
 const User = mongoose.model('user', userSchema);
 

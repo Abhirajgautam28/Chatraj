@@ -3,32 +3,42 @@ import mongoose from 'mongoose';
 const projectSchema = new mongoose.Schema({
     name: {
         type: String,
-        lowercase: true,
         required: true,
-        trim: true,
-        unique: [ true, 'Project name must be unique' ],
+        trim: true
     },
-
-    users: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'user'
-        }
-    ],
+    category: {
+        type: String,
+        required: true,
+        index: true
+    },
+    users: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'user',
+        index: true
+    }],
     fileTree: {
         type: Object,
         default: {}
     },
-    category: {
-        type: String,
-        required: true
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'user'
     },
     settings: {
-        type: Object,
-        default: {}
+        sidebar: {
+            type: Object,
+            default: {}
+        }
     }
-})
+}, {
+    timestamps: true,
+    autoIndex: process.env.NODE_ENV !== 'production',
+    versionKey: false
+});
 
-const Project = mongoose.model('project', projectSchema)
+// Optimization: Covered Index for project listing
+projectSchema.index({ users: 1, category: 1, name: 1, createdAt: -1 });
+
+const Project = mongoose.model('project', projectSchema);
 
 export default Project;

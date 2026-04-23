@@ -1,16 +1,20 @@
 import * as ai from '../services/ai.service.js';
-
+import { withCache } from '../utils/cache.js';
 
 export const getResult = async (req, res) => {
     try {
         const { prompt } = req.query;
         if (typeof prompt !== 'string' || prompt.trim().length === 0) return res.status(400).json({ message: 'Prompt is required' });
-        const result = await ai.generateResult(prompt);
+
+        const cacheKey = `ai:prompt:${Buffer.from(prompt.trim()).toString('base64')}`;
+        const result = await withCache(cacheKey, 3600 * 24, async () => {
+            return await ai.generateResult(prompt);
+        }, ['ai:prompt']);
+
         // If result is a stringified object, parse it
         let responseText;
         try {
             const parsed = typeof result === 'string' ? JSON.parse(result) : result;
-            // If parsed has a 'text' property, use it; else, use the whole parsed object as string
             responseText = parsed.text || JSON.stringify(parsed);
         } catch (e) {
             responseText = typeof result === 'string' ? result : JSON.stringify(result);
@@ -22,19 +26,17 @@ export const getResult = async (req, res) => {
     }
 }
 
-
 export const postResult = async (req, res) => {
     try {
         const { prompt, userApiKey } = req.body;
-        if (!prompt) {
-            return res.status(400).json({ response: 'Prompt is required.' });
-        }
+        if (!prompt) return res.status(400).json({ response: 'Prompt is required.' });
+
+        // Don't cache user-provided key requests for security/privacy
         const result = await ai.generateResult(prompt, userApiKey);
-        // If result is a stringified object, parse it
+
         let responseText;
         try {
             const parsed = typeof result === 'string' ? JSON.parse(result) : result;
-            // If parsed has a 'text' property, use it; else, use the whole parsed object as string
             responseText = parsed.text || JSON.stringify(parsed);
         } catch (e) {
             responseText = typeof result === 'string' ? result : JSON.stringify(result);
