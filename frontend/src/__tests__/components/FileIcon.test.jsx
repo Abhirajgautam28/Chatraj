@@ -5,12 +5,12 @@ import FileIcon from '../../components/FileIcon';
 
 describe('FileIcon Component', () => {
   test('should render folder icon for directory', () => {
-    const { container } = render(<FileIcon fileName="test.txt" />);
-    expect(container.querySelector('i')).toBeInTheDocument();
+    render(<FileIcon type="directory" />);
+    expect(screen.getByRole('img')).toBeInTheDocument();
   });
 
   test('should render file icon for file', () => {
-    const { container } = render(<FileIcon fileName="test.js" />);
-    expect(container.querySelector('i')).toBeInTheDocument();
+    render(<FileIcon type="file" />);
+    expect(screen.getByRole('img')).toBeInTheDocument();
   });
 });

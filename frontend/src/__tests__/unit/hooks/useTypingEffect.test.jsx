@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
-import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { useTypingEffect } from '../../../hooks/useTypingEffect';
 
 describe('useTypingEffect Hook', () => {

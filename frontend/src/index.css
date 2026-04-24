@@ -276,21 +276,21 @@ button {
   0% {
     opacity: 1;
     transform: scale(1.05);
-    clip-path: circle(0% at 100% 0%);
+    clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);
   }
   20% {
-    clip-path: circle(30% at 100% 0%);
+    clip-path: polygon(100% 0, 80% 15%, 85% 85%, 100% 100%);
   }
   40% {
-    clip-path: circle(60% at 100% 0%);
+    clip-path: polygon(100% 0, 50% 30%, 60% 70%, 100% 100%);
   }
   60% {
-    clip-path: circle(100% at 100% 0%);
+    clip-path: polygon(100% 0, 20% 50%, 30% 90%, 100% 100%);
   }
   100% {
     opacity: 1;
     transform: scale(1);
-    clip-path: circle(150% at 100% 0%);
+    clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%);
   }
 }
 
