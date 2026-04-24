@@ -273,9 +273,6 @@ button {
   0% {
     clip-path: circle(0% at 50% 50%);
   }
-  50% {
-    clip-path: circle(50% at 50% 50%);
-  }
   100% {
     clip-path: circle(150% at 50% 50%);
   }

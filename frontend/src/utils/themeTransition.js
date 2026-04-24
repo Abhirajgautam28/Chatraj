@@ -11,7 +11,7 @@ export const executeThemeTransition = (toggleFn, shouldReduceMotion = false, isH
   const durationClass = isHome ? 'theme-transition-liquid' : 'theme-transition';
 
   if (isHome) {
-     document.documentElement.style.setProperty('--theme-transition-duration', '1.5s');
+     document.documentElement.style.setProperty('--theme-transition-duration', '0.5s');
   } else {
      document.documentElement.style.setProperty('--theme-transition-duration', '0.75s');
   }
