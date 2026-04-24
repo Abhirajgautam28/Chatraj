@@ -1819,3 +1819,398 @@ npm warn exec The following package was not found and will be installed: concurr
 [0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
 [0]     at listOnTimeout (node:internal/timers:585:17)
 [0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [0mGET /csrf-token [32m200[0m 45.201 ms - 142[0m
+[0] [0mGET /csrf-token [32m200[0m 5.437 ms - 142[0m
+[0] [ERROR] getProjectShowcase error: ReferenceError: projectModel is not defined
+[0]     at getProjectShowcase (file:///app/Backend/controllers/project.controller.js:120:26)
+[0]     at Layer.handleRequest (/app/Backend/node_modules/router/lib/layer.js:152:17)
+[0]     at next (/app/Backend/node_modules/router/lib/route.js:157:13)
+[0]     at file:///app/Backend/node_modules/express-rate-limit/dist/index.mjs:918:7
+[0]     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+[0]     at async file:///app/Backend/node_modules/express-rate-limit/dist/index.mjs:801:5
+[0] [0mGET /api/projects/showcase [31m500[0m 33.451 ms - 33[0m
+[0] [ERROR] ReferenceError: response is not defined
+[0]     at getLeaderboardController (file:///app/Backend/controllers/user.controller.js:30:9)
+[0]     at Layer.handleRequest (/app/Backend/node_modules/router/lib/layer.js:152:17)
+[0]     at next (/app/Backend/node_modules/router/lib/route.js:157:13)
+[0]     at file:///app/Backend/node_modules/express-rate-limit/dist/index.mjs:918:7
+[0]     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+[0]     at async file:///app/Backend/node_modules/express-rate-limit/dist/index.mjs:801:5
+[0] [0mGET /api/users/leaderboard [31m500[0m 11.660 ms - 62[0m
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] getAllBlogs error: MongooseError: Operation `blogs.find()` buffering timed out after 10000ms
+[0]     at Timeout._onTimeout (/app/Backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:142:25)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [0mGET /api/blogs [31m500[0m 10057.266 ms - 33[0m
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
+[0] [ERROR] Error connecting to MongoDB: Error: MONGODB_URI is not defined in environment variables
+[0]     at Timeout.connect [as _onTimeout] (file:///app/Backend/db/db.js:59:19)
+[0]     at listOnTimeout (node:internal/timers:585:17)
+[0]     at process.processTimers (node:internal/timers:521:7)
