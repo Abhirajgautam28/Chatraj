@@ -1,7 +1,4 @@
-import React from 'react';
-
-// ...existing code...
-import { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
 export const ThemeContext = createContext();
@@ -36,8 +33,15 @@ export function ThemeProvider({ children }) {
     }
   }, [isDarkMode]);
 
+  const toggleThemeGlobal = async (shouldReduceMotion = false, isHome = false) => {
+    const { executeThemeTransition } = await import('../utils/themeTransition.js');
+    executeThemeTransition(() => {
+      setIsDarkMode(prev => !prev);
+    }, shouldReduceMotion, isHome);
+  };
+
   return (
-    <ThemeContext.Provider value={{ isDarkMode, setIsDarkMode }}>
+    <ThemeContext.Provider value={{ isDarkMode, setIsDarkMode, toggleThemeGlobal }}>
       {children}
     </ThemeContext.Provider>
   );
