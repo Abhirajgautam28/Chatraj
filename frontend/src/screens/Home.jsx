@@ -27,6 +27,22 @@ const Home = () => {
   const shouldReduceMotion = useReducedMotion();
 
   const NEWSLETTER_API_URL = "/api/newsletter/subscribe";
+
+  const faqs = [
+    {
+      question: "What is ChatRaj?",
+      answer: "ChatRaj is an AI-powered code assistant that helps developers write better code faster."
+    },
+    {
+      question: "Is ChatRaj free?",
+      answer: "Yes, you can try ChatRaj for free."
+    },
+    {
+      question: "How do I get started?",
+      answer: "Just create an account and you can start exploring features."
+    }
+  ];
+
   const [isNavVisible, setIsNavVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
