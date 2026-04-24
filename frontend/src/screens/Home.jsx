@@ -1,5 +1,7 @@
 import React from 'react';
 import TextType from '../components/TextType.jsx';
+import LiquidCursor from '../components/LiquidCursor';
+
 import ProjectShowcase from '../components/ProjectShowcase.jsx';
 import UserLeaderboard from '../components/UserLeaderboard.jsx';
 import { useContext, useEffect, useState, lazy, Suspense } from 'react';
