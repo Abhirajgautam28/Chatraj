@@ -1,63 +1,88 @@
 import redisClient from '../services/redis.service.js';
 
-// Tiered Caching Utility: L1 (In-Memory) + L2 (Redis)
+// Absolute Zenith Hybrid Caching with Pipelined L2 Operations
 const L1_CACHE = new Map();
-const L1_TTL = 30000; // 30 seconds for local memory
+const L1_MAX_SIZE = 2000;
+const L1_TTL = 30000;
+const PENDING_PROMISES = new Map();
 
 export const withCache = async (key, ttlSeconds, fetcher, tags = []) => {
-    // 1. Check L1 Cache
     const cachedL1 = L1_CACHE.get(key);
     if (cachedL1 && Date.now() < cachedL1.expiry) {
+        // Background refresh if near expiry
+        if (Date.now() > (cachedL1.expiry - 5000) && !PENDING_PROMISES.has(key)) {
+            refreshCache(key, ttlSeconds, fetcher, tags);
+        }
         return cachedL1.data;
     }
 
-    // 2. Check L2 Cache (Redis)
-    try {
-        const cachedL2 = await redisClient.get(key);
-        if (cachedL2) {
-            const data = JSON.parse(cachedL2);
-            L1_CACHE.set(key, { data, expiry: Date.now() + L1_TTL });
+    if (PENDING_PROMISES.has(key)) return await PENDING_PROMISES.get(key);
+
+    const task = (async () => {
+        try {
+            if (typeof redisClient.get === 'function') {
+                const cachedL2 = await redisClient.get(key);
+                if (cachedL2) {
+                    const data = JSON.parse(cachedL2);
+                    setL1(key, data);
+                    return data;
+                }
+            }
+            const data = await fetcher();
+            setL1(key, data);
+
+            // Optimization: Atomic Pipeline for L2 set + tags
+            if (typeof redisClient.pipeline === 'function') {
+                const pipe = redisClient.pipeline();
+                pipe.set(key, JSON.stringify(data), 'EX', ttlSeconds);
+                for (const tag of tags) pipe.sadd(`tag:${tag}`, key);
+                pipe.exec().catch(() => {});
+            } else if (typeof redisClient.set === 'function') {
+                await redisClient.set(key, JSON.stringify(data), 'EX', ttlSeconds);
+            }
+
             return data;
+        } finally {
+            PENDING_PROMISES.delete(key);
         }
-    } catch (err) {
-        console.warn('[PERF] Redis L2 cache read error:', err);
-    }
+    })();
 
-    // 3. Fetch from Source
-    const data = await fetcher();
-
-    // 4. Update Caches
-    L1_CACHE.set(key, { data, expiry: Date.now() + L1_TTL });
-    try {
-        await redisClient.set(key, JSON.stringify(data), 'EX', ttlSeconds);
-
-        // Track tags for invalidation
-        for (const tag of tags) {
-            await redisClient.sadd(`tag:${tag}`, key);
-        }
-    } catch (err) {
-        console.warn('[PERF] Redis L2 cache write error:', err);
-    }
-
-    return data;
+    PENDING_PROMISES.set(key, task);
+    return await task;
 };
+
+async function refreshCache(key, ttl, fetcher, tags) {
+    try {
+        const data = await fetcher();
+        setL1(key, data);
+        if (typeof redisClient.pipeline === 'function') {
+            const pipe = redisClient.pipeline();
+            pipe.set(key, JSON.stringify(data), 'EX', ttl);
+            for (const tag of tags) pipe.sadd(`tag:${tag}`, key);
+            pipe.exec().catch(() => {});
+        }
+    } catch (e) {}
+}
+
+function setL1(key, data) {
+    if (L1_CACHE.size >= L1_MAX_SIZE) L1_CACHE.delete(L1_CACHE.keys().next().value);
+    L1_CACHE.set(key, { data, expiry: Date.now() + L1_TTL });
+}
 
 export const invalidateCache = async (keyOrTag, isTag = false) => {
     if (!isTag) {
         L1_CACHE.delete(keyOrTag);
-        await redisClient.del(keyOrTag);
+        if (typeof redisClient.del === 'function') await redisClient.del(keyOrTag);
         return;
     }
-
     const tagKey = `tag:${keyOrTag}`;
     try {
-        const keys = await redisClient.smembers(tagKey);
-        for (const key of keys) {
-            L1_CACHE.delete(key);
-            await redisClient.del(key);
+        if (typeof redisClient.smembers === 'function') {
+            const keys = await redisClient.smembers(tagKey);
+            if (keys && keys.length > 0) {
+                for (const key of keys) L1_CACHE.delete(key);
+                if (typeof redisClient.del === 'function') await redisClient.del(...keys, tagKey);
+            }
         }
-        await redisClient.del(tagKey);
-    } catch (err) {
-        console.warn('[PERF] Cache invalidation error:', err);
-    }
+    } catch (err) { console.error('[CACHE] Invalidation error:', err); }
 };

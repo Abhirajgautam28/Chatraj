@@ -8,7 +8,7 @@ import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import projectModel from './models/project.model.js';
 import userModel from './models/user.model.js';
-import { generateResult } from './services/ai.service.js';
+import { generateResult, generateResultStream } from './services/ai.service.js';
 import Message from './models/message.model.js';
 import pingService from './services/ping.service.js';
 
@@ -20,10 +20,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
     cors: { origin: '*' },
     perMessageDeflate: true,
-    maxHttpBufferSize: 1e7,
-    pingInterval: 10000,
-    pingTimeout: 5000,
-    cookie: false // Performance: disable cookies for socket
+    maxHttpBufferSize: 1e7
 });
 
 io.use(async (socket, next) => {
@@ -72,14 +69,26 @@ io.on('connection', socket => {
 
             if (aiIsPresent) {
                 const prompt = data.message.replace('@Chatraj', '');
-                const result = await generateResult(prompt, data.googleApiKey || socket.user.googleApiKey);
+                const aiMsgId = new mongoose.Types.ObjectId();
 
+                // Immediate placeholder for AI response to enable streaming UI
+                io.to(roomId).emit('ai-stream-start', { _id: aiMsgId, conversationId: socket.project._id });
+
+                let fullResponse = "";
+                await generateResultStream(prompt, data.googleApiKey || socket.user.googleApiKey, (chunk) => {
+                    fullResponse += chunk;
+                    io.to(roomId).emit('ai-stream-chunk', { _id: aiMsgId, chunk });
+                });
+
+                // Persist final message
                 const aiMessage = await Message.create({
+                    _id: aiMsgId,
                     conversationId: socket.project._id,
                     sender: { _id: 'Chatraj', email: 'Chatraj', firstName: 'Chat', lastName: 'Raj' },
-                    message: result
+                    message: fullResponse
                 });
-                io.to(roomId).emit('project-message', aiMessage);
+
+                io.to(roomId).emit('ai-stream-end', aiMessage);
             }
         } catch (err) {
             console.error("[SOCKET] Message Error:", err);
@@ -87,48 +96,17 @@ io.on('connection', socket => {
     });
 
     socket.on('batch-delivered', async (messageIds) => {
-        await Message.updateMany(
-            { _id: { $in: messageIds } },
-            { $addToSet: { deliveredTo: socket.user._id } }
-        );
+        await Message.updateMany({ _id: { $in: messageIds } }, { $addToSet: { deliveredTo: socket.user._id } });
         socket.volatile.to(roomId).emit('batch-delivered', { messageIds, userId: socket.user._id });
     });
 
     socket.on('batch-read', async (messageIds) => {
-        await Message.updateMany(
-            { _id: { $in: messageIds } },
-            { $addToSet: { readBy: socket.user._id } }
-        );
+        await Message.updateMany({ _id: { $in: messageIds } }, { $addToSet: { readBy: socket.user._id } });
         socket.volatile.to(roomId).emit('batch-read', { messageIds, userId: socket.user._id });
     });
 
-    socket.on('message-reaction', async (data) => {
-        try {
-            await Message.updateOne(
-                { _id: data.messageId },
-                { $pull: { reactions: { userId: socket.user._id } } }
-            );
-
-            if (data.emoji) {
-                const updated = await Message.findOneAndUpdate(
-                    { _id: data.messageId },
-                    { $push: { reactions: { emoji: data.emoji, userId: socket.user._id } } },
-                    { new: true, lean: true }
-                );
-                io.to(roomId).emit('message-reaction', updated);
-            }
-        } catch (error) {
-            console.error("Reaction Error:", error);
-        }
-    });
-
-    socket.on('typing', () => {
-        socket.volatile.to(roomId).emit('typing', { userId: socket.user._id });
-    });
-
-    socket.on('stop-typing', () => {
-        socket.volatile.to(roomId).emit('stop-typing', { userId: socket.user._id });
-    });
+    socket.on('typing', () => socket.volatile.to(roomId).emit('typing', { userId: socket.user._id }));
+    socket.on('stop-typing', () => socket.volatile.to(roomId).emit('stop-typing', { userId: socket.user._id }));
 
     socket.on('disconnect', () => {
         socket.leave(roomId);

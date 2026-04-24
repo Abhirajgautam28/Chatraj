@@ -3,7 +3,6 @@ import mongoose from 'mongoose';
 import redisClient from './redis.service.js';
 
 export const addUsersToProject = async ({ projectId, users, userId }) => {
-    // Atomic update: ensure the requester (userId) is a member, then add new users.
     const updatedProject = await projectModel.findOneAndUpdate(
         { _id: projectId, users: userId },
         { $addToSet: { users: { $each: users } } },
@@ -11,7 +10,6 @@ export const addUsersToProject = async ({ projectId, users, userId }) => {
     );
 
     if (updatedProject) {
-        // Atomic MongoDB denormalized count
         await mongoose.model('user').updateMany({ _id: { $in: users } }, { $inc: { projectsCount: 1 } });
 
         if (typeof redisClient.pipeline === 'function') {
@@ -19,7 +17,7 @@ export const addUsersToProject = async ({ projectId, users, userId }) => {
             for (const uId of users) {
                 pipeline.zincrby('user:leaderboard:zset', 1, uId.toString());
             }
-            pipeline.exec().catch(() => {});
+            pipeline.exec().catch(err => console.error('[PERF] Redis zincrby pipeline failed:', err));
         }
     }
 
@@ -28,6 +26,7 @@ export const addUsersToProject = async ({ projectId, users, userId }) => {
 }
 
 export const getProjectById = async ({ projectId, userId }) => {
+    // Optimization: Covered query fallback if only ID is needed, but here we need full object
     const project = await projectModel.findOne({ _id: projectId, users: userId })
         .populate('users', '_id firstName lastName')
         .lean();
@@ -38,13 +37,12 @@ export const getProjectById = async ({ projectId, userId }) => {
 
 // Zenith Feature: Differential Update (Partial fileTree updates)
 export const updateFileTreePartial = async ({ projectId, diff, userId }) => {
-    const update = {};
+    const update = { $set: { lastActivity: new Date() } };
     for (const [filePath, fileData] of Object.entries(diff)) {
         if (fileData === null) {
             update[`$unset`] = update[`$unset`] || {};
             update[`$unset`][`fileTree.${filePath}`] = 1;
         } else {
-            update[`$set`] = update[`$set`] || {};
             update[`$set`][`fileTree.${filePath}`] = fileData;
         }
     }
@@ -52,8 +50,8 @@ export const updateFileTreePartial = async ({ projectId, diff, userId }) => {
     const project = await projectModel.findOneAndUpdate(
         { _id: projectId, users: userId },
         update,
-        { new: true }
-    ).lean();
+        { new: true, lean: true }
+    );
 
     if (!project) throw new Error("Unauthorized or project not found");
     return project;
@@ -62,9 +60,9 @@ export const updateFileTreePartial = async ({ projectId, diff, userId }) => {
 export const updateFileTree = async ({ projectId, fileTree, userId }) => {
     const project = await projectModel.findOneAndUpdate(
         { _id: projectId, users: userId },
-        { $set: { fileTree } },
-        { new: true }
-    ).lean();
+        { $set: { fileTree, lastActivity: new Date() } },
+        { new: true, lean: true }
+    );
 
     if (!project) throw new Error("Unauthorized or project not found");
     return project;
