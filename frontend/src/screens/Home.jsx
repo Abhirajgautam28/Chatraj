@@ -31,16 +31,16 @@ const Home = () => {
 
   const faqs = [
     {
-      question: "What is ChatRaj?",
-      answer: "ChatRaj is an AI-powered code assistant that helps developers write better code faster."
+      q: "What is ChatRaj?",
+      a: "ChatRaj is an AI-powered code assistant that helps developers write better code faster."
     },
     {
-      question: "Is ChatRaj free?",
-      answer: "Yes, you can try ChatRaj for free."
+      q: "Is ChatRaj free?",
+      a: "Yes, you can try ChatRaj for free."
     },
     {
-      question: "How do I get started?",
-      answer: "Just create an account and you can start exploring features."
+      q: "How do I get started?",
+      a: "Just create an account and you can start exploring features."
     }
   ];
 
