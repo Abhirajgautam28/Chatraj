@@ -24,6 +24,7 @@ const Home = () => {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
   const [showAskChatRajModal, setShowAskChatRajModal] = useState(false);
+  const [showFabMenu, setShowFabMenu] = useState(false);
   const shouldReduceMotion = useReducedMotion();
 
   const NEWSLETTER_API_URL = "/api/newsletter/subscribe";
