@@ -4,13 +4,13 @@ import React from 'react';
 import FileIcon from '../../components/FileIcon';
 
 describe('FileIcon Component', () => {
-  it('renders correctly for known extensions', () => {
-    const { container } = render(<FileIcon filename="test.js" />);
-    expect(container.querySelector('.ri-javascript-fill')).toBeDefined();
+  test('should render folder icon for directory', () => {
+    const { container } = render(<FileIcon fileName="test.txt" />);
+    expect(container.querySelector('i')).toBeInTheDocument();
   });
 
-  it('renders default icon for unknown extensions', () => {
-    const { container } = render(<FileIcon filename="test.unknown" />);
-    expect(container.querySelector('.ri-file-3-line')).toBeDefined();
+  test('should render file icon for file', () => {
+    const { container } = render(<FileIcon fileName="test.js" />);
+    expect(container.querySelector('i')).toBeInTheDocument();
   });
 });

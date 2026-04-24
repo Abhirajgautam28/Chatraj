@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import useTypingEffect from '../../../hooks/useTypingEffect';
 
 describe('useTypingEffect Hook', () => {
@@ -7,7 +8,10 @@ describe('useTypingEffect Hook', () => {
     vi.useFakeTimers();
     const { result } = renderHook(() => useTypingEffect('Hello', 50));
 
-    expect(result.current.typedText).toBe('');
+  test('should type text sequentially', () => {
+    const { result } = renderHook(() => useTypingEffect('Hello', 100));
+
+    expect(result.current).toBe('');
 
     act(() => {
       vi.advanceTimersByTime(50);

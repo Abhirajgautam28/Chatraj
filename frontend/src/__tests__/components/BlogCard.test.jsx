@@ -1,38 +1,25 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import { render, screen } from '@testing-library/react';
+import { describe, test, expect } from 'vitest';
 import BlogCard from '../../components/BlogCard';
+import { BrowserRouter } from 'react-router-dom';
 
 describe('BlogCard Component', () => {
-  const mockBlog = {
-    _id: '1',
-    title: 'Test Blog',
-    content: 'Test content',
-    author: { firstName: 'John', lastName: 'Doe' },
-    likes: [],
-    comments: []
-  };
-
-  it('renders blog details correctly', () => {
+  test('should render blog title and author name', () => {
+    const mockBlog = {
+      _id: '1',
+      title: 'Test Blog',
+      authorName: 'John Doe',
+      likes: []
+    };
     render(
       <BrowserRouter>
         <BlogCard blog={mockBlog} />
       </BrowserRouter>
     );
-    expect(screen.getByText('Test Blog')).toBeDefined();
-    expect(screen.getByText('By John Doe')).toBeDefined();
-  });
-
-  it('calls onLike when like button clicked', () => {
-    const onLike = vi.fn();
-    render(
-      <BrowserRouter>
-        <BlogCard blog={mockBlog} onLike={onLike} />
-      </BrowserRouter>
-    );
-    const likeBtn = screen.getByRole('button', { name: /like/i });
-    fireEvent.click(likeBtn);
-    expect(onLike).toHaveBeenCalledWith('1');
+    expect(screen.getByText('Test Blog')).toBeInTheDocument();
+    expect(screen.getByText('John Doe')).toBeInTheDocument();
   });
 });

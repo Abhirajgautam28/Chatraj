@@ -17,6 +17,13 @@ export function ChatRajThemeProvider({ children }) {
     document.documentElement.classList.add(isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
+  const toggleThemeGlobal = async (shouldReduceMotion = false, isHome = false) => {
+    const { executeThemeTransition } = await import('../utils/themeTransition.js');
+    executeThemeTransition(() => {
+      setIsDarkMode((prev) => !prev);
+    }, shouldReduceMotion, isHome);
+  };
+
   return (
     <ChatRajThemeContext.Provider value={{ isDarkMode, setIsDarkMode }}>
       {children}
