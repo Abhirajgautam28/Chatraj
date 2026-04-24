@@ -1,6 +1,13 @@
-import { useState, useContext, useEffect, Suspense, lazy, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import TextType from '../components/TextType.jsx';
+import LiquidCursor from '../components/LiquidCursor';
+
+import ProjectShowcase from '../components/ProjectShowcase.jsx';
+import UserLeaderboard from '../components/UserLeaderboard.jsx';
+import { useContext, useEffect, useState, lazy, Suspense } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
 import ThreeHero from '../components/ThreeHero';
 import ThreeBackground from '../components/ThreeBackground';
@@ -8,7 +15,6 @@ import Blog from '../components/Blog';
 import ContactUs from '../components/ContactUs';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm';
 import FAQSection from '../components/FAQSection';
-import DarkModeToggle from '../components/DarkModeToggle';
 import RocketFAB from '../components/RocketFAB';
 
 const AskChatRajModal = lazy(() => import('../components/AskChatRajModal'));
@@ -19,53 +25,189 @@ const Home = () => {
   const navigate = useNavigate();
   const [showAskChatRajModal, setShowAskChatRajModal] = useState(false);
   const [showFabMenu, setShowFabMenu] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
 
   const NEWSLETTER_API_URL = "/api/newsletter/subscribe";
 
   const faqs = [
     {
-      question: "What is ChatRaj?",
-      answer: "ChatRaj is an AI-powered code assistant that helps developers write better code faster."
+      q: "What is ChatRaj?",
+      a: "ChatRaj is an AI-powered code assistant that helps developers write better code faster."
     },
     {
-      question: "Is ChatRaj free?",
-      answer: "Yes, you can try ChatRaj for free."
+      q: "Is ChatRaj free?",
+      a: "Yes, you can try ChatRaj for free."
     },
     {
-      question: "How do I get started?",
-      answer: "Just create an account and you can start exploring features."
+      q: "How do I get started?",
+      a: "Just create an account and you can start exploring features."
     }
   ];
 
   const [isNavVisible, setIsNavVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
-  const faqs = [
-    { q: "What is ChatRaj?", a: "ChatRaj is an AI-powered real-time collaboration platform for developers." },
-    { q: "Is it free to use?", a: "Yes, we offer a generous free tier for individuals and small teams." },
-    { q: "Can I collaborate with others?", a: "Absolutely! Real-time multi-user collaboration is at the core of ChatRaj." },
-    { q: "How secure is my data?", a: "We use industry-standard encryption and security practices to protect your information." }
-  ];
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY === 0) {
+        setIsNavVisible(true);
+        return;
+      }
+      setIsNavVisible(window.scrollY < lastScrollY);
+      setLastScrollY(window.scrollY);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
+
+  const handleTryChatRaj = () => {
+    if (user) {
+      navigate('/welcome-chatraj', { replace: true });
+    } else {
+      localStorage.setItem('fromTryChatRaj', 'true');
+      navigate('/login', { replace: true });
+    }
+  };
+
+  const handleThemeToggle = () => {
+    if (toggleThemeGlobal) {
+      toggleThemeGlobal(shouldReduceMotion, true);
+    }
+  };
+
+  const AnimatedBg = () => (
+    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+      <motion.div
+        className="absolute bg-blue-700 rounded-full w-96 h-96 opacity-20 blur-3xl"
+        initial={{ scale: 0, x: -200, y: -100 }}
+        animate={{ scale: 1, x: 0, y: 0 }}
+        transition={{ duration: 1.2, delay: 0.2 }}
+        style={{ top: '-6rem', left: '-8rem' }}
+      />
+      <motion.div
+        className="absolute bg-purple-600 rounded-full w-80 h-80 opacity-20 blur-3xl"
+        initial={{ scale: 0, x: 200, y: 100 }}
+        animate={{ scale: 1, x: 0, y: 0 }}
+        transition={{ duration: 1.2, delay: 0.4 }}
+        style={{ bottom: '-6rem', right: '-8rem' }}
+      />
+      <motion.div
+        className="absolute bg-pink-500 rounded-full w-72 h-72 opacity-10 blur-2xl"
+        initial={{ scale: 0, x: 0, y: 200 }}
+        animate={{ scale: 1, x: 0, y: 0 }}
+        transition={{ duration: 1.2, delay: 0.6 }}
+        style={{ bottom: '-8rem', left: '30%' }}
+      />
+    </div>
+  );
 
   return (
-    <div className={`min-h-screen transition-colors duration-500 overflow-x-hidden ${isDarkMode ? 'bg-black text-white' : 'bg-white text-gray-900'}`}>
+    <div className="flex flex-col min-h-screen overflow-x-hidden bg-transparent">
+      <LiquidCursor />
+      {typeof window !== "undefined" && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && (
+        <AnimatedBg />
+      )}
 
-      <div className="absolute top-4 right-4 z-50">
-        <button
-          onClick={() => {
-            if (toggleThemeGlobal) {
-              toggleThemeGlobal(false, true);
-            } else {
-              // fallback if toggleThemeGlobal isn't ready
-            }
-          }}
-          className={`p-2 transition-colors rounded-lg ${isDarkMode ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}
+      {/* Navbar */}
+      <motion.nav
+        initial={{ opacity: 1, y: 0 }}
+        animate={{
+          opacity: isNavVisible ? 1 : 0,
+          y: isNavVisible ? 0 : -100
+        }}
+        transition={{
+          duration: 0.3,
+          ease: "easeInOut"
+        }}
+        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-4 bg-transparent backdrop-blur-sm ${isDarkMode ? 'bg-gray-900/10' : 'bg-white/80'}`}
+      >
+        <div className="flex items-center gap-2">
+          <i className={`text-3xl ${isDarkMode ? 'text-white' : 'text-blue-600'} ri-robot-2-line`}></i>
+          <span className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>ChatRaj</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <Link
+            to="/register"
+            className={`px-6 py-2 transition-all rounded-full ${isDarkMode ? 'text-white hover:bg-white/10' : 'text-gray-600 hover:text-blue-600'}`}
+          >
+            Register
+          </Link>
+          <Link
+            to="/login"
+            className={`px-6 py-2 transition-all rounded-full ${isDarkMode ? 'text-blue-500 bg-white hover:bg-blue-50' : 'text-gray-600 hover:text-blue-600'}`}
+          >
+            Login
+          </Link>
+          <button
+            onClick={handleTryChatRaj}
+            className="px-6 py-2 text-white transition-all bg-blue-600 rounded-full hover:bg-blue-700"
+          >
+            Try ChatRaj
+          </button>
+          <button
+            onClick={handleThemeToggle}
+            className={`p-2 transition-colors rounded-lg ${isDarkMode ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}
+          >
+            <i className={`text-xl ${isDarkMode ? 'ri-sun-line' : 'ri-moon-line'}`}></i>
+          </button>
+        </div>
+      </motion.nav>
+
+      {/* Hero */}
+      <section className="relative z-10 flex flex-col items-center justify-center min-h-screen text-center">
+        <TextType
+          text={["Your Intelligent Software Engineering Assistant"]}
+          typingSpeed={75}
+          pauseDuration={1500}
+          showCursor={true}
+          cursorCharacter="|"
+          className="text-4xl md:text-5xl font-bold text-center text-blue-900 dark:text-blue-200 block w-full mb-6"
+        />
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className={`max-w-2xl mb-8 text-xl ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
         >
-          <i className={`text-xl ${isDarkMode ? 'ri-sun-line' : 'ri-moon-line'}`}></i>
-        </button>
-      </div>
+          Streamline your development workflow with AI-powered code assistance, real-time collaboration, and intelligent project management.
+        </motion.p>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.7, delay: 0.4 }}
+          className="flex flex-wrap items-center justify-center gap-6"
+        >
+          <button
+            onClick={handleTryChatRaj}
+            className="px-8 py-3 text-lg font-medium text-white transition-all bg-blue-600 rounded-full shadow-lg hover:bg-blue-700"
+          >
+            Try ChatRaj Free
+          </button>
+          <Link
+            to="/register"
+            className={`px-8 py-3 text-lg font-medium transition-all rounded-full ${isDarkMode ? 'text-white hover:bg-white/10' : 'text-blue-600 hover:bg-blue-100'}`}
+          >
+            Create Account
+          </Link>
+        </motion.div>
+        {/* Animated code snippet card with hover effect */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.7 }}
+          className={`max-w-2xl p-6 mx-auto mt-16 transition-all duration-300 border shadow-xl rounded-xl group hover:scale-105 hover:shadow-2xl hover:border-blue-400 ${isDarkMode ? 'bg-gray-900/80 border-blue-900/30 hover:bg-gray-800' : 'bg-gray-50/80 border-blue-100 hover:bg-white/90'}`}
+        >
+          <pre className={`font-mono text-base leading-relaxed text-left ${isDarkMode ? 'text-blue-200' : 'text-black'}`}>
+            {`// AI-powered code suggestion
+function greet(name) {
+  return \`Hello, \${name} 👋\`;
+}
 
-      <ThreeBackground />
+// Real-time collaboration enabled!
+`}
+          </pre>
+        </motion.div>
+      </section>
 
       <section className="relative z-10">
         <ThreeHero isDarkMode={isDarkMode} handleTryChatRaj={handleTryChatRaj} />
