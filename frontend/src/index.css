@@ -271,10 +271,10 @@ button {
 
 @keyframes liquid-splash-enter {
   0% {
-    clip-path: circle(0% at 50% 50%);
+    clip-path: circle(0% at calc(100% - 2rem) 2rem);
   }
   100% {
-    clip-path: circle(150% at 50% 50%);
+    clip-path: circle(200% at calc(100% - 2rem) 2rem);
   }
 }
 /* Fallback for browsers that do not support View Transitions */
