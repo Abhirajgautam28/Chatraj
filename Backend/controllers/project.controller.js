@@ -1,6 +1,6 @@
-import projectModel from '../models/project.model.js';
+import Project from '../models/project.model.js';
 import * as projectService from '../services/project.service.js';
-import userModel from '../models/user.model.js';
+import User from '../models/user.model.js';
 import mongoose from 'mongoose';
 import { validationResult } from 'express-validator';
 import { logger } from '../utils/logger.js';
@@ -10,7 +10,7 @@ import { sendSuccess, sendError } from '../utils/response.utils.js';
 export const getAllProject = async (req, res) => {
     try {
         // req.user is populated by auth middleware
-        const projects = await projectModel.find({ users: { $in: [req.user._id] } }).lean();
+        const projects = await Project.find({ users: { $in: [req.user._id] } }).lean();
         sendSuccess(res, 200, { projects });
     } catch (err) {
         logger.error('getAllProject error:', err);
@@ -31,7 +31,7 @@ export const createProject = async (req, res) => {
         }
 
         // Create new project using req.user._id from auth middleware
-        const project = await projectModel.create({
+        const project = await Project.create({
             name,
             category,
             users: users ? [...users, req.user._id] : [req.user._id],
@@ -74,7 +74,7 @@ export const updateProjectSidebarSettings = async (req, res) => {
             return sendError(res, 400, 'Sidebar settings required');
         }
         if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) return sendError(res, 400, 'Invalid projectId');
-        const project = await projectModel.findById(projectId);
+        const project = await Project.findById(projectId);
         if (!project) return sendError(res, 404, 'Project not found');
         // Authorization: check if requesting user is member
         const isMember = project.users && project.users.some(u => u.toString() === req.user._id.toString());
@@ -93,7 +93,7 @@ export const updateProjectSidebarSettings = async (req, res) => {
 export const getProjectCountsByCategory = async (req, res) => {
   try {
     // Aggregate project counts by category, filtered by user from req.user
-    const counts = await projectModel.aggregate([
+    const counts = await Project.aggregate([
       { $match: { users: { $in: [new mongoose.Types.ObjectId(req.user._id)] } } },
       {
         $group: {
@@ -121,7 +121,7 @@ export const getProjectCountsByCategory = async (req, res) => {
 
 export const getProjectShowcase = async (req, res) => {
     try {
-        const projects = await projectModel.find({}).sort({ users: -1 }).limit(10).lean();
+        const projects = await Project.find({}).sort({ users: -1 }).limit(10).lean();
         sendSuccess(res, 200, { projects });
     } catch (error) {
         logger.error('getProjectShowcase error:', error);
@@ -184,7 +184,7 @@ export const getProjectSettings = async (req, res) => {
     try {
         const { projectId } = req.params;
         if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) return sendError(res, 400, 'Invalid projectId');
-        const project = await projectModel.findById(projectId).lean();
+        const project = await Project.findById(projectId).lean();
         if (!project) return sendError(res, 404, 'Project not found');
         const isMember = project.users && project.users.some(u => u.toString() === req.user._id.toString());
         if (!isMember) return sendError(res, 401, 'Unauthorized');
@@ -200,7 +200,7 @@ export const updateProjectSettings = async (req, res) => {
         const { projectId } = req.params;
         const { settings } = req.body;
         if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) return sendError(res, 400, 'Invalid projectId');
-        const project = await projectModel.findById(projectId);
+        const project = await Project.findById(projectId);
         if (!project) return sendError(res, 404, 'Project not found');
         const isMember = project.users && project.users.some(u => u.toString() === req.user._id.toString());
         if (!isMember) return sendError(res, 401, 'Unauthorized');

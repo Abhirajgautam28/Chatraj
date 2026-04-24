@@ -43,11 +43,12 @@ const Dashboard = () => {
     // Always fetch all projects for the user, then filter by category on the frontend
     axios.get('/api/projects/all')
       .then((res) => {
-        if (Array.isArray(res.data.projects)) {
+        const projectsData = res.data.projects || (Array.isArray(res.data) ? res.data : []);
+        if (Array.isArray(projectsData)) {
           if (categoryName) {
-            setProjects(res.data.projects.filter(p => p.category === categoryName));
+            setProjects(projectsData.filter(p => p.category === categoryName));
           } else {
-            setProjects(res.data.projects);
+            setProjects(projectsData);
           }
         } else {
           setProjects([]);

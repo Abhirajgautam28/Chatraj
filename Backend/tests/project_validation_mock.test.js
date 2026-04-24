@@ -22,8 +22,8 @@ jest.mock('../middleware/auth.middleware.js', () => ({
 }));
 
 import projectRoutes from '../routes/project.routes.js';
-import userModel from '../models/user.model.js';
-import projectModel from '../models/project.model.js';
+import User from '../models/user.model.js';
+import Project from '../models/project.model.js';
 
 const app = express();
 app.use(express.json());
@@ -33,12 +33,12 @@ describe('Project Creation Validation', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        userModel.findOne.mockResolvedValue({ _id: 'userId123', email: 'test@example.com' });
+        User.findOne.mockResolvedValue({ _id: 'userId123', email: 'test@example.com' });
     });
 
     it('should fail with 400 when users is not an array (if validation exists)', async () => {
         // Mock create to throw error if called with invalid users, simulating Mongoose behavior
-        projectModel.create.mockImplementation(() => {
+        Project.create.mockImplementation(() => {
              throw new Error('Mongoose cast error');
         });
 
@@ -64,7 +64,7 @@ describe('Project Creation Validation', () => {
     });
 
     it('should fail with 400 when category is missing', async () => {
-        projectModel.create.mockResolvedValue({});
+        Project.create.mockResolvedValue({});
 
         const res = await request(app)
             .post('/api/projects/create')

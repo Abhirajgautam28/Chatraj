@@ -6,7 +6,7 @@ import connect from './db/db.js';
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
-import projectModel from './models/project.model.js';
+import Project from './models/project.model.js';
 import pingService from './services/ping.service.js';
 import { logger } from './utils/logger.js';
 import { handleSocketConnection } from './services/socket.service.js';
@@ -49,7 +49,7 @@ io.use(async (socket, next) => {
             return next(new Error('Invalid projectId'));
         }
 
-        const project = await projectModel.findById(projectId);
+        const project = await Project.findById(projectId);
         if (!project) {
             return next(new Error('Project not found'));
         }

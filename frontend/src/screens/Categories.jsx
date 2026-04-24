@@ -93,7 +93,19 @@ const Categories = () => {
 
   useEffect(() => {
     axios.get('/api/projects/category-counts')
-      .then(res => setProjectCounts(res.data || {}))
+      .then(res => {
+        const data = res.data;
+        if (data && typeof data === 'object') {
+          // If the response follows { success: true, ...counts }
+          if (data.success && data.data) {
+            setProjectCounts(data.data);
+          } else {
+            setProjectCounts(data);
+          }
+        } else {
+          setProjectCounts({});
+        }
+      })
       .catch(() => setProjectCounts({}));
   }, []);
 

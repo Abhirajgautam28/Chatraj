@@ -1,4 +1,4 @@
-import userModel from '../models/user.model.js';
+import User from '../models/user.model.js';
 
 
 
@@ -9,7 +9,7 @@ export const createUser = async ({
         throw new Error('All fields are required');
     }
     // Store googleApiKey in plaintext for Gemini API
-    const user = await userModel.create({
+    const user = await User.create({
         firstName,
         lastName,
         email,
@@ -22,7 +22,7 @@ export const createUser = async ({
 }
 
 export const getAllUsers = async ({ userId }) => {
-    const users = await userModel.find({
+    const users = await User.find({
         _id: { $ne: userId }
     }).lean();
     return users;

@@ -57,8 +57,8 @@ export const likeBlog = async (req, res) => {
         const blog = await Blog.findById(id);
         if (!blog) return sendError(res, 404, 'Blog not found');
 
-        const userId = req.user._id;
-        const isLiked = blog.likes.includes(userId);
+        const userId = req.user._id.toString();
+        const isLiked = blog.likes.some(id => id.toString() === userId);
 
         const updatedBlog = await Blog.findByIdAndUpdate(
             id,

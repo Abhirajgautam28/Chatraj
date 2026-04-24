@@ -3,7 +3,7 @@ import request from 'supertest';
 import app from '../app.js';
 import jwt from 'jsonwebtoken';
 import redisClient from '../services/redis.service.js';
-import projectModel from '../models/project.model.js';
+import Project from '../models/project.model.js';
 import mongoose from 'mongoose';
 
 // Mock dependencies
@@ -53,7 +53,7 @@ describe('Project Security', () => {
         };
 
         // Mock findOne chain: findOne(...).populate(...)
-        projectModel.findOne.mockImplementation(() => ({
+        Project.findOne.mockImplementation(() => ({
             populate: jest.fn().mockResolvedValue(mockProject)
         }));
 
@@ -75,7 +75,7 @@ describe('Project Security', () => {
 
         // For updateFileTree, the service calls findOne({_id, users: userId}) to check permissions
         // We mock it to return null (not found/not authorized)
-        projectModel.findOne.mockResolvedValue(null);
+        Project.findOne.mockResolvedValue(null);
 
         const res = await request(app)
             .put('/api/projects/update-file-tree')
@@ -100,7 +100,7 @@ describe('Project Security', () => {
             fileTree: {}
         };
 
-        projectModel.findOne.mockImplementation(() => ({
+        Project.findOne.mockImplementation(() => ({
             populate: jest.fn().mockResolvedValue(mockProject)
         }));
 
@@ -125,10 +125,10 @@ describe('Project Security', () => {
         };
 
         // Mock permission check: findOne should return the project
-        projectModel.findOne.mockResolvedValue(mockProject);
+        Project.findOne.mockResolvedValue(mockProject);
 
         // Mock update
-        projectModel.findOneAndUpdate.mockResolvedValue({ ...mockProject, fileTree: { "new": "tree" } });
+        Project.findOneAndUpdate.mockResolvedValue({ ...mockProject, fileTree: { "new": "tree" } });
 
         const res = await request(app)
             .put('/api/projects/update-file-tree')

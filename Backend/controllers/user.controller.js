@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import { validationResult } from 'express-validator';
-import userModel from '../models/user.model.js';
+import User from '../models/user.model.js';
 import * as userService from '../services/user.service.js';
 import redisClient from '../services/redis.service.js';
 import { normalizeEmail } from '../utils/email.js';
@@ -21,7 +21,7 @@ export const sendOtpController = async (req, res) => {
         const { email } = req.body;
         const { value: normalizedEmail, isValid } = normalizeEmail(email);
         if (!isValid) return sendError(res, 400, 'Valid email is required');
-        const user = await userModel.findOne({ email: normalizedEmail });
+        const user = await User.findOne({ email: normalizedEmail });
         if (!user) return sendError(res, 404, 'User not found');
         // Generate OTP
         const otp = generateOTP(7);
@@ -38,7 +38,7 @@ export const sendOtpController = async (req, res) => {
 
 export const getLeaderboardController = async (req, res) => {
     try {
-        const users = await userModel.find({}).sort({ projects: -1 }).limit(10).lean();
+        const users = await User.find({}).sort({ projects: -1 }).limit(10).lean();
         sendSuccess(res, 200, { users });
     } catch (error) {
         sendError(res, 500, 'Internal server error');
@@ -58,7 +58,7 @@ export const createUserController = async (req, res) => {
         if (!isValid) return sendError(res, 400, 'Valid email is required');
 
         // If a verified user already exists, reject immediately.
-        const existing = await userModel.findOne({ email: normalizedEmail }).select('+isVerified');
+        const existing = await User.findOne({ email: normalizedEmail }).select('+isVerified');
         if (existing && existing.isVerified) {
             return sendError(res, 409, 'Email already registered. Please login to your existing account.');
         }
@@ -67,7 +67,7 @@ export const createUserController = async (req, res) => {
         // we don't block re-registration (we will keep pending state in Redis).
         if (existing && !existing.isVerified) {
             try {
-                await userModel.deleteOne({ _id: existing._id });
+                await User.deleteOne({ _id: existing._id });
             } catch (delErr) {
                 logger.warn('Failed to remove stale unverified user:', delErr && delErr.message ? delErr.message : delErr);
             }
@@ -75,7 +75,7 @@ export const createUserController = async (req, res) => {
 
         // Hash the password now so we can safely persist pending state
         // in Redis without storing plaintext passwords.
-        const hashedPassword = await userModel.hashPassword(password);
+        const hashedPassword = await User.hashPassword(password);
         const otp = generateOTP(7);
 
         // Persist pending registration in Redis with TTL so unverified
@@ -222,11 +222,11 @@ export const verifyOtpController = async (req, res) => {
         if (typeof userId !== 'string' || !mongoose.Types.ObjectId.isValid(userId)) {
             return sendError(res, 400, 'Invalid User ID');
         }
-        user = await userModel.findById(userId).select('+otp');
+        user = await User.findById(userId).select('+otp');
     } else if (email) {
         const { value: normalizedEmail, isValid } = normalizeEmail(email);
         if (!isValid) return sendError(res, 400, 'Valid email is required');
-        user = await userModel.findOne({ email: normalizedEmail }).select('+otp');
+        user = await User.findOne({ email: normalizedEmail }).select('+otp');
         // If user not found in DB, check for a pending registration stored in Redis
         // (we persist pending registrations there until the user verifies via OTP).
         if (!user) {
@@ -270,7 +270,7 @@ export const verifyOtpController = async (req, res) => {
                     logger.error('Error creating user from pending registration:', createErr && createErr.message ? createErr.message : createErr);
                     // If a duplicate key was created in a race, try to mark existing user as verified
                     if (createErr && (createErr.code === 11000 || createErr.name === 'MongoServerError')) {
-                        const existingUser = await userModel.findOne({ email: normalizedEmail }).select('+otp');
+                        const existingUser = await User.findOne({ email: normalizedEmail }).select('+otp');
                         if (existingUser) {
                             existingUser.isVerified = true;
                             existingUser.otp = undefined;
@@ -307,11 +307,11 @@ export const adminGetOtpController = async (req, res) => {
         let user;
         if (userId) {
             if (typeof userId !== 'string' || !mongoose.Types.ObjectId.isValid(userId)) return sendError(res, 400, 'Invalid userId');
-            user = await userModel.findById(userId).select('+otp');
+            user = await User.findById(userId).select('+otp');
         } else {
             const { value: normalizedEmail, isValid } = normalizeEmail(email);
             if (!isValid) return sendError(res, 400, 'Valid email is required');
-            user = await userModel.findOne({ email: normalizedEmail }).select('+otp');
+            user = await User.findOne({ email: normalizedEmail }).select('+otp');
             // If not in DB, check for a pending registration in Redis
             if (!user) {
                 try {
@@ -377,7 +377,7 @@ export const loginController = async (req, res) => {
     try {
         const { email, password } = req.body;
         if (typeof email !== 'string' || typeof password !== 'string') return sendError(res, 400, 'Invalid credentials');
-        const user = await userModel.findOne({ email: email.trim() }).select('+password +googleApiKey');
+        const user = await User.findOne({ email: email.trim() }).select('+password +googleApiKey');
         if (!user) {
             return sendError(res, 401, 'Invalid credentials');
         }
@@ -424,7 +424,7 @@ export const logoutController = async (req, res) => {
 
 export const getAllUsersController = async (req, res) => {
     try {
-        const loggedInUser = await userModel.findOne({
+        const loggedInUser = await User.findOne({
             email: req.user.email
         }).lean()
 
@@ -448,7 +448,7 @@ export const resetPasswordController = async (req, res) => {
         const { email } = req.body;
         const { value: normalizedEmail, isValid } = normalizeEmail(email);
         if (!isValid) return sendError(res, 400, 'Valid email is required');
-        const user = await userModel.findOne({ email: normalizedEmail });
+        const user = await User.findOne({ email: normalizedEmail });
         if (!user) return sendError(res, 404, 'User not found');
 
         const resetToken = jwt.sign(
@@ -472,7 +472,7 @@ export const updatePasswordController = async (req, res) => {
         newPassword = newPassword.trim();
         if (newPassword.length < 8) return sendError(res, 400, 'Valid email and a new password (min 8 chars) required');
 
-        const user = await userModel.findOne({ email: normalizedEmail });
+        const user = await User.findOne({ email: normalizedEmail });
         if (!user) return sendError(res, 404, 'User not found');
 
         // Prevent duplicate password reset emails by using a flag
@@ -480,7 +480,7 @@ export const updatePasswordController = async (req, res) => {
             return sendSuccess(res, 200, {}, 'Password updated successfully');
         }
 
-        user.password = await userModel.hashPassword(newPassword);
+        user.password = await User.hashPassword(newPassword);
         user._passwordResetEmailSent = true;
         await user.save();
 

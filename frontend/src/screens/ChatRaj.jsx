@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect, useContext, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { ChatRajThemeContext } from '../context/chatraj-theme.context';
+import { useTheme } from '../context/theme.context';
 import { UserContext } from '../context/user.context';
 import { useNavigate } from 'react-router-dom';
+import Modal from '../components/Modal';
+import { TRANSLATIONS } from '../utils/i18n.utils';
 
 const formatMessageTime = (timestamp) => {
   const date = new Date(timestamp);
@@ -27,11 +29,13 @@ const ChatRaj = () => {
   const [showSearch, setShowSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeSettingsTab, setActiveSettingsTab] = useState('display');
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const { isChatDarkMode: darkMode, setIsChatDarkMode: setDarkMode } = useTheme();
   const [settings, setSettings] = useState(() => {
     const savedSettings = localStorage.getItem('chatrajSettings');
     const defaultSettings = {
       display: {
-        darkMode: false,
+        darkMode: darkMode,
         theme: {
           primary: '#3B82F6',
           secondary: '#1F2937',
@@ -112,107 +116,28 @@ const ChatRaj = () => {
   const messageEndRef = useRef(null);
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
-  useContext(ChatRajThemeContext);
+  const aiResponseTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (aiResponseTimeoutRef.current) {
+        clearTimeout(aiResponseTimeoutRef.current);
+      }
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
   const { user } = useContext(UserContext);
 
   const [autoCompleteOptions, setAutoCompleteOptions] = useState([]);
 
-  const languages = {
-    'en-US': {
-      name: 'English (US)',
-      translations: {
-        settings: 'Settings',
-        darkMode: 'Dark Mode',
-        themeColors: 'Theme Colors',
-        chatBubbles: 'Chat Bubbles',
-        newChat: 'New Chat',
-        sendMessage: 'Send Message',
-        thinking: 'Thinking...',
-        welcomeMessage: 'How can I help you today?',
-        welcomeSubtext: 'Ask me anything about programming, development, or tech in general.',
-        disclaimer: 'ChatRaj can make mistakes. Please recheck important information manually.'
-      }
-    },
-    'hi-IN': {
-      name: 'हिंदी (Hindi)',
-      translations: {
-        settings: 'सेटिंग्स',
-        darkMode: 'डार्क मोड',
-        themeColors: 'थीम रंग',
-        chatBubbles: 'चैट बबल्स',
-        newChat: 'नई चैट',
-        sendMessage: 'संदेश भेजें',
-        thinking: 'सोच रहा हूं...',
-        welcomeMessage: 'मैं आपकी कैसे मदद कर सकता हूं?',
-        welcomeSubtext: 'प्रोग्रामिंग, डेवलपमेंट या टेक से जुड़ा कोई भी सवाल पूछें।',
-        disclaimer: 'ChatRaj से गलतियां हो सकती हैं। कृपया महत्वपूर्ण जानकारी की पुनः जांच करें।'
-      }
-    },
-    'es-ES': {
-      name: 'Español (Spanish)',
-      translations: {
-        settings: 'Ajustes',
-        darkMode: 'Modo Oscuro',
-        themeColors: 'Colores del Tema',
-        chatBubbles: 'Burbujas de Chat',
-        newChat: 'Nuevo Chat',
-        sendMessage: 'Enviar Mensaje',
-        thinking: 'Pensando...',
-        welcomeMessage: '¿Cómo puedo ayudarte hoy?',
-        welcomeSubtext: 'Pregúntame cualquier cosa sobre programación, desarrollo o tecnología.',
-        disclaimer: 'ChatRaj puede cometer errores. Por favor, verifica la información importante.'
-      }
-    },
-    'fr-FR': {
-      name: 'Français (French)',
-      translations: {
-        settings: 'Paramètres',
-        darkMode: 'Mode Sombre',
-        themeColors: 'Couleurs du Thème',
-        chatBubbles: 'Bulles de Chat',
-        newChat: 'Nouvelle Discussion',
-        sendMessage: 'Envoyer',
-        thinking: 'Réflexion...',
-        welcomeMessage: 'Comment puis-je vous aider aujourd\'hui?',
-        welcomeSubtext: 'Posez-moi vos questions sur la programmation, le développement ou la technologie.',
-        disclaimer: 'ChatRaj peut faire des erreurs. Veuillez revérifier les informations importantes.'
-      }
-    },
-    'de-DE': {
-      name: 'Deutsch (German)',
-      translations: {
-        settings: 'Einstellungen',
-        darkMode: 'Dunkelmodus',
-        themeColors: 'Designfarben',
-        chatBubbles: 'Chatblasen',
-        newChat: 'Neuer Chat',
-        sendMessage: 'Nachricht senden',
-        thinking: 'Denke nach...',
-        welcomeMessage: 'Wie kann ich Ihnen heute helfen?',
-        welcomeSubtext: 'Fragen Sie mich alles über Programmierung, Entwicklung oder Technologie.',
-        disclaimer: 'ChatRaj kann Fehler machen. Bitte überprüfen Sie wichtige Informationen.'
-      }
-    },
-    'ja-JP': {
-      name: '日本語 (Japanese)',
-      translations: {
-        settings: '設定',
-        darkMode: 'ダークモード',
-        themeColors: 'テーマカラー',
-        chatBubbles: 'チャットバブル',
-        newChat: '新規チャット',
-        sendMessage: '送信',
-        thinking: '考え中...',
-        welcomeMessage: '本日はどのようにお手伝いできますか？',
-        welcomeSubtext: 'プログラミング、開発、技術に関する質問をお気軽にどうぞ。',
-        disclaimer: 'ChatRajは間違える可能性があります。重要な情報は必ず確認してください。'
-      }
-    }
-  };
-
   const t = (key) => {
     const lang = settings.accessibility.language;
-    return languages[lang]?.translations[key] || languages['en-US'].translations[key];
+    return TRANSLATIONS[lang]?.[key] || TRANSLATIONS['en-US']?.[key] || key;
   };
 
   // Duplicate speakResponse removed
@@ -321,7 +246,8 @@ const ChatRaj = () => {
   useEffect(() => {
     localStorage.setItem('chatrajSettings', JSON.stringify(settings));
     document.documentElement.classList.toggle('dark', settings.display.darkMode);
-  }, [settings]);
+    setDarkMode(settings.display.darkMode);
+  }, [settings, settings.display.darkMode, setDarkMode]);
 
   useEffect(() => {
     if ('webkitSpeechRecognition' in window && recognitionRef.current) {
@@ -1035,11 +961,7 @@ const ChatRaj = () => {
 
                       <div className="pt-4 border-t dark:border-gray-700">
                         <button
-                          onClick={() => {
-                            if (window.confirm('Are you sure you want to clear all chat history? This cannot be undone.')) {
-                              clearChatHistory();
-                            }
-                          }}
+                          onClick={() => setIsConfirmModalOpen(true)}
                           className="w-full px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600"
                         >
                           Clear All Chat History
@@ -1052,6 +974,32 @@ const ChatRaj = () => {
             </div>
           </>
         )}
+      <Modal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        title="Clear Chat History"
+        footer={
+          <>
+            <button
+              onClick={() => setIsConfirmModalOpen(false)}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                clearChatHistory();
+                setIsConfirmModalOpen(false);
+              }}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600"
+            >
+              Clear History
+            </button>
+          </>
+        }
+      >
+        Are you sure you want to clear all chat history? This action cannot be undone.
+      </Modal>
     </div>
   );
 };

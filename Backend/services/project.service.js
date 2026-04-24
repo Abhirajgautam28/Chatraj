@@ -1,4 +1,4 @@
-import projectModel from '../models/project.model.js';
+import Project from '../models/project.model.js';
 import mongoose from 'mongoose';
 
 // Basic recursive validation to ensure fileTree is a plain JSON-like structure
@@ -68,7 +68,7 @@ export const createProject = async ({ name, userId, category }) => {
 
   let project;
   try {
-    project = await projectModel.create({
+    project = await Project.create({
       name,
       users: [userId],
       category
@@ -96,7 +96,7 @@ export const getAllProjectByUserId = async ({ userId, category }) => {
     query.category = category;
   }
 
-  const allUserProjects = await projectModel.find(query);
+  const allUserProjects = await Project.find(query);
   return allUserProjects;
 };
 
@@ -127,7 +127,7 @@ export const addUsersToProject = async ({ projectId, users, userId }) => {
     }
 
 
-    const project = await projectModel.findOne({
+    const project = await Project.findOne({
         _id: projectId,
         users: userId
     })
@@ -138,7 +138,7 @@ export const addUsersToProject = async ({ projectId, users, userId }) => {
         throw new Error("User not belong to this project")
     }
 
-    const updatedProject = await projectModel.findOneAndUpdate({
+    const updatedProject = await Project.findOneAndUpdate({
         _id: projectId
     }, {
         $addToSet: {
@@ -166,7 +166,7 @@ export const getProjectById = async ({ projectId, userId }) => {
     }
 
     // Populate only _id, firstName, lastName for users
-    const project = await projectModel.findOne({
+    const project = await Project.findOne({
         _id: projectId
     }).populate('users', '_id firstName lastName')
 
@@ -206,7 +206,7 @@ export const updateFileTree = async ({ projectId, fileTree, userId }) => {
     const safeFileTree = JSON.parse(JSON.stringify(fileTree));
 
     if (userId) {
-        const project = await projectModel.findOne({
+        const project = await Project.findOne({
             _id: projectId,
             users: userId
         });
@@ -216,7 +216,7 @@ export const updateFileTree = async ({ projectId, fileTree, userId }) => {
         }
     }
 
-    const project = await projectModel.findOneAndUpdate({
+    const project = await Project.findOneAndUpdate({
         _id: projectId
     }, {
         $set: { fileTree: safeFileTree }

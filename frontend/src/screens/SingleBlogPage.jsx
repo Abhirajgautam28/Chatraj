@@ -76,7 +76,7 @@ const SingleBlogPageContent = () => {
             try {
                 const response = await axios.get(`/api/blogs/${id}`, { signal: controller.signal });
                 if (isMounted) {
-                    setBlog(response.data);
+                    setBlog(response.data.blog || response.data);
                     setLoading(false);
                 }
             } catch {
