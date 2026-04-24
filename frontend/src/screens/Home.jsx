@@ -177,33 +177,52 @@ const Home = () => {
 
   // For animated background shapes
   const AnimatedBg = () => (
-    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
       <motion.div
-        className="absolute bg-blue-700 rounded-full w-96 h-96 opacity-20 blur-3xl"
-        initial={{ scale: 0, x: -200, y: -100 }}
-        animate={{ scale: 1, x: 0, y: 0 }}
-        transition={{ duration: 1.2, delay: 0.2 }}
-        style={{ top: '-6rem', left: '-8rem' }}
+        className={`absolute rounded-full w-[30rem] h-[30rem] blur-[100px] ${isDarkMode ? 'bg-blue-600 opacity-20' : 'bg-blue-400 opacity-30'}`}
+        animate={{
+          x: [0, 100, -100, 0],
+          y: [0, -100, 100, 0],
+          scale: [1, 1.1, 0.9, 1],
+        }}
+        transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+        style={{ top: '-10%', left: '-10%' }}
       />
       <motion.div
-        className="absolute bg-purple-600 rounded-full w-80 h-80 opacity-20 blur-3xl"
-        initial={{ scale: 0, x: 200, y: 100 }}
-        animate={{ scale: 1, x: 0, y: 0 }}
-        transition={{ duration: 1.2, delay: 0.4 }}
-        style={{ bottom: '-6rem', right: '-8rem' }}
+        className={`absolute rounded-full w-[25rem] h-[25rem] blur-[100px] ${isDarkMode ? 'bg-purple-600 opacity-20' : 'bg-purple-400 opacity-30'}`}
+        animate={{
+          x: [0, -100, 100, 0],
+          y: [0, 100, -100, 0],
+          scale: [1, 0.9, 1.1, 1],
+        }}
+        transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+        style={{ bottom: '-10%', right: '-5%' }}
       />
       <motion.div
-        className="absolute bg-pink-500 rounded-full w-72 h-72 opacity-10 blur-2xl"
-        initial={{ scale: 0, x: 0, y: 200 }}
-        animate={{ scale: 1, x: 0, y: 0 }}
-        transition={{ duration: 1.2, delay: 0.6 }}
-        style={{ bottom: '-8rem', left: '30%' }}
+        className={`absolute rounded-full w-[20rem] h-[20rem] blur-[80px] ${isDarkMode ? 'bg-pink-500 opacity-15' : 'bg-pink-300 opacity-30'}`}
+        animate={{
+          x: [0, 50, -50, 0],
+          y: [0, 100, 50, 0],
+          scale: [1, 1.2, 1, 1],
+        }}
+        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        style={{ top: '40%', left: '30%' }}
+      />
+      <motion.div
+        className={`absolute rounded-full w-[28rem] h-[28rem] blur-[100px] ${isDarkMode ? 'bg-emerald-500 opacity-15' : 'bg-emerald-300 opacity-30'}`}
+        animate={{
+          x: [0, -80, 80, 0],
+          y: [0, -80, 80, 0],
+          scale: [1, 1.1, 0.9, 1],
+        }}
+        transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
+        style={{ top: '60%', right: '20%' }}
       />
     </div>
   );
 
   return (
-    <div className={`flex flex-col min-h-screen overflow-x-hidden ${isDarkMode ? 'bg-gradient-to-r from-blue-900 via-gray-900 to-blue-900' : 'bg-gray-50'}`}>
+    <div className={`flex flex-col min-h-screen overflow-x-hidden ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       {/* Only render AnimatedBg if user does not prefer reduced motion */}
       {typeof window !== "undefined" && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && (
         <AnimatedBg />
@@ -220,7 +239,7 @@ const Home = () => {
           duration: 0.3,
           ease: "easeInOut"
         }}
-        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-4 bg-transparent backdrop-blur-sm ${isDarkMode ? 'bg-gray-900/10' : 'bg-white/80'}`}
+        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-4 backdrop-blur-md border-b ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/20'}`}
       >
         <div className="flex items-center gap-2">
           <i className={`text-3xl ${isDarkMode ? 'text-white' : 'text-blue-600'} ri-robot-2-line`}></i>
@@ -296,7 +315,7 @@ const Home = () => {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.7 }}
-          className={`max-w-2xl p-6 mx-auto mt-16 transition-all duration-300 border shadow-xl rounded-xl group hover:scale-105 hover:shadow-2xl hover:border-blue-400 ${isDarkMode ? 'bg-gray-900/80 border-blue-900/30 hover:bg-gray-800' : 'bg-gray-50 border-blue-100 hover:bg-white'}`}
+          className={`max-w-2xl p-6 mx-auto mt-16 transition-all duration-300 border shadow-xl rounded-xl group backdrop-blur-md hover:scale-105 hover:shadow-2xl hover:border-blue-400/50 ${isDarkMode ? 'bg-gray-900/40 border-white/10 hover:bg-gray-800/50' : 'bg-white/40 border-white/40 hover:bg-white/60'}`}
         >
           <pre className={`font-mono text-base leading-relaxed text-left ${isDarkMode ? 'text-blue-200' : 'text-black'}`}>
             {`// AI-powered code suggestion
@@ -311,7 +330,7 @@ function greet(name) {
       </section>
 
       {/* Features */}
-      <section className={`px-4 py-20 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
+      <section className="relative px-4 py-20 z-10">
         <div className="max-w-6xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Key Features</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
@@ -321,7 +340,7 @@ function greet(name) {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`p-6 transition-all duration-300 border rounded-lg shadow-lg ${isDarkMode ? 'bg-gray-800/50 border-blue-900/10' : 'bg-white'} hover:scale-105 hover:shadow-2xl hover:border-blue-400`}
+                className={`p-6 transition-all duration-300 border rounded-xl shadow-lg backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'} hover:scale-105 hover:shadow-2xl hover:border-blue-400/50`}
               >
                 <i className={`text-4xl ${isDarkMode ? 'text-blue-500' : 'text-blue-600'} ${feature.icon}`}></i>
                 <h3 className={`mt-4 mb-2 text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{feature.title}</h3>
@@ -333,7 +352,7 @@ function greet(name) {
         </div>
       </section>
 
-      <section className={`py-20 ${isDarkMode ? 'bg-gray-900/80' : 'bg-white'}`}>
+      <section className="relative py-20 z-10">
         <div className="max-w-6xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Popular Use Cases</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
@@ -343,7 +362,7 @@ function greet(name) {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`p-6 transition-all duration-300 rounded-lg shadow ${isDarkMode ? 'bg-gray-800/40' : 'bg-white'} hover:scale-105 hover:shadow-2xl`}
+                className={`p-6 transition-all duration-300 border rounded-xl shadow-lg backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'} hover:scale-105 hover:shadow-2xl hover:border-blue-400/50`}
               >
                 <i className={`text-3xl ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} ${useCase.icon}`}></i>
                 <h3 className={`mt-4 mb-2 text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{useCase.title}</h3>
@@ -354,7 +373,7 @@ function greet(name) {
         </div>
       </section>
 
-      <section className={`px-4 py-20 ${isDarkMode ? 'bg-gray-900/50' : 'bg-white'}`}>
+      <section className="relative px-4 py-20 z-10">
         <div className="max-w-6xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Why Choose ChatRaj</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
@@ -364,7 +383,7 @@ function greet(name) {
                 initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`flex gap-4 p-6 transition-all duration-300 rounded-lg shadow ${isDarkMode ? 'bg-gray-800/30' : 'bg-white'} hover:scale-105 hover:shadow-2xl`}
+                className={`flex gap-4 p-6 transition-all duration-300 border rounded-xl shadow-lg backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'} hover:scale-105 hover:shadow-2xl hover:border-blue-400/50`}
               >
                 <div className={`flex items-center justify-center w-12 h-12 rounded-lg ${isDarkMode ? 'bg-blue-500/10' : 'bg-blue-100'}`}>
                   <i className={`text-2xl ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} ${benefit.icon}`}></i>
@@ -379,7 +398,7 @@ function greet(name) {
         </div>
       </section>
 
-      <section className={`px-4 py-20 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+      <section className="relative px-4 py-20 z-10">
         <div className="max-w-6xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Powered By</h2>
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
@@ -389,7 +408,7 @@ function greet(name) {
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`flex flex-col items-center p-6 text-center rounded-lg shadow ${isDarkMode ? 'bg-gray-700/50' : 'bg-white'}`}
+                className={`flex flex-col items-center p-6 text-center border rounded-xl shadow-lg backdrop-blur-md transition-all duration-300 ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'} hover:scale-105 hover:shadow-2xl hover:border-blue-400/50`}
               >
                 <i className={`text-4xl ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} ${tech.icon}`}></i>
                 <span className={`mt-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{tech.name}</span>
@@ -399,7 +418,7 @@ function greet(name) {
         </div>
       </section>
 
-      <section className={`px-4 py-20 overflow-x-auto ${isDarkMode ? 'bg-gray-900/70' : 'bg-white'}`}>
+      <section className="relative px-4 py-20 overflow-x-auto z-10">
         <div className="flex flex-col items-center w-full max-w-6xl gap-12 mx-auto md:flex-row">
           <div className="flex-1 min-w-0">
             <h2 className={`mb-8 text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>How ChatRaj Works</h2>
@@ -439,44 +458,49 @@ function greet(name) {
       </section>
 
       {/* Project Showcase Section */}
-      <section className={`py-20 ${isDarkMode ? 'bg-white/5' : 'bg-white'}`}>
-        <div className="max-w-4xl mx-auto">
-          <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-gray-900">Project Showcase</h2>
+      <section className="relative py-20 z-10 px-4">
+        <div className={`max-w-4xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'}`}>
+          <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Project Showcase</h2>
           <ProjectShowcase />
         </div>
       </section>
 
       {/* User Leaderboard Section */}
-      <section className={`py-20 ${isDarkMode ? 'bg-gray-100/10' : 'bg-gray-100'}`}>
-        <div className="max-w-4xl mx-auto">
-          <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-gray-900">User Leaderboard</h2>
+      <section className="relative py-20 z-10 px-4">
+        <div className={`max-w-4xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'}`}>
+          <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>User Leaderboard</h2>
           <UserLeaderboard />
         </div>
       </section>
 
-      <section className={`px-4 py-20 ${isDarkMode ? 'bg-gray-800/80' : 'bg-gray-100'}`}>
+      <section className="relative px-4 py-20 z-10">
         <div className="max-w-4xl mx-auto">
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Frequently Asked Questions</h2>
           <div className="space-y-6">
             {faqs.map((faq, i) => (
-              <details key={i} className={`p-6 rounded-lg shadow ${isDarkMode ? 'bg-gray-900/70' : 'bg-white'}`}>
+              <details key={i} className={`p-6 border rounded-xl shadow-lg backdrop-blur-md transition-all duration-300 ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'}`}>
                 <summary className={`mb-2 text-lg font-semibold cursor-pointer ${isDarkMode ? 'text-blue-400' : 'text-gray-800'}`}>{faq.q}</summary>
-                <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{faq.a}</p>
+                <p className={`mt-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{faq.a}</p>
               </details>
             ))}
           </div>
         </div>
       </section>
-      <section className="py-20">
-        <div className="max-w-6xl mx-auto">
+      <section className="relative py-20 z-10 px-4">
+        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'}`}>
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Blogs</h2>
           <Blog user={user} />
         </div>
       </section>
-      <ContactUs />
 
-      <section className={`px-4 py-20 ${isDarkMode ? 'bg-blue-900/80' : 'bg-gray-100'}`}>
-        <div className="max-w-xl mx-auto text-center">
+      <section className="relative py-20 z-10 px-4">
+        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'}`}>
+            <ContactUs />
+        </div>
+      </section>
+
+      <section className="relative px-4 py-20 z-10">
+        <div className={`max-w-xl mx-auto text-center p-8 border rounded-2xl shadow-xl backdrop-blur-md ${isDarkMode ? 'bg-blue-900/40 border-blue-400/20' : 'bg-white/40 border-white/50'}`}>
           <h2 className={`mb-4 text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Stay Updated</h2>
           <p className={`mb-8 text-lg ${isDarkMode ? 'text-blue-100' : 'text-gray-600'}`}>
             Subscribe to our newsletter for the latest features and updates.
@@ -644,8 +668,8 @@ function greet(name) {
       </div>
 
       {/* Footer */}
-      <footer className={`px-8 py-6 mt-0 text-center ${isDarkMode ? 'bg-gray-900' : 'bg-gray-200'}`}>
-        <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>© 2025 ChatRaj All rights reserved.</p>
+      <footer className={`relative z-10 px-8 py-6 mt-0 text-center border-t backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/20'}`}>
+        <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>© 2025 ChatRaj All rights reserved.</p>
       </footer>
 
       <Suspense fallback={<div>Loading...</div>}>
