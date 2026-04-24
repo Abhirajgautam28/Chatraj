@@ -2,13 +2,10 @@ import { useState, useContext, useEffect, Suspense, lazy, useCallback } from 're
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { ThemeContext } from '../context/theme.context';
-import { UserContext } from '../context/user.context';
 import ThreeHero from '../components/ThreeHero';
 import ThreeBackground from '../components/ThreeBackground';
 import Blog from '../components/Blog';
 import ContactUs from '../components/ContactUs';
-import ProjectShowcase from '../components/ProjectShowcase';
-import UserLeaderboard from '../components/UserLeaderboard';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm';
 import FAQSection from '../components/FAQSection';
 import DarkModeToggle from '../components/DarkModeToggle';
@@ -25,10 +22,23 @@ const Home = () => {
 
   const NEWSLETTER_API_URL = "/api/newsletter/subscribe";
 
-  const handleTryChatRaj = useCallback(() => {
-    if (user) navigate('/chatraj');
-    else navigate('/login');
-  }, [user, navigate]);
+  const faqs = [
+    {
+      question: "What is ChatRaj?",
+      answer: "ChatRaj is an AI-powered code assistant that helps developers write better code faster."
+    },
+    {
+      question: "Is ChatRaj free?",
+      answer: "Yes, you can try ChatRaj for free."
+    },
+    {
+      question: "How do I get started?",
+      answer: "Just create an account and you can start exploring features."
+    }
+  ];
+
+  const [isNavVisible, setIsNavVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   const faqs = [
     { q: "What is ChatRaj?", a: "ChatRaj is an AI-powered real-time collaboration platform for developers." },
