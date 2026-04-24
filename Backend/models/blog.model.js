@@ -14,7 +14,7 @@ const commentSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
-}, { _id: false });
+}, { _id: false }); // Optimization: Reduce sub-doc overhead
 
 const blogSchema = new mongoose.Schema({
     title: {
@@ -61,10 +61,9 @@ const blogSchema = new mongoose.Schema({
     versionKey: false
 });
 
-// Full-text search index
+// Strategic indexes
 blogSchema.index({ title: 'text', content: 'text' });
-// Compound index for listing
-blogSchema.index({ createdAt: -1, likesCount: -1 });
+blogSchema.index({ createdAt: -1, author: 1 });
 
 const Blog = mongoose.model('Blog', blogSchema);
 
