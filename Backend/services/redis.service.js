@@ -6,24 +6,16 @@ let redisClient;
 
 if (process.env.REDIS_URL) {
     redisClient = new Redis(process.env.REDIS_URL);
-
-    redisClient.on('connect', () => {
-        // intentionally quiet in normal runs
-    });
-
-    redisClient.on('error', (err) => {
-        console.error('Redis error:', err && (err.stack || err.message || err));
-    });
+    redisClient.on('error', (err) => console.error('Redis error:', err));
 } else {
-    // Fallback lightweight in-memory mock for development when no REDIS_URL is provided.
-    console.warn('REDIS_URL not set — using in-memory Redis mock (development only)');
+    console.warn('REDIS_URL not set — using advanced in-memory Redis mock');
     const store = new Map();
     const timers = new Map();
+    const sortedSets = new Map(); // For Leaderboard support
 
     const clearTimerForKey = (k) => {
-        const t = timers.get(k);
-        if (t) {
-            clearTimeout(t);
+        if (timers.has(k)) {
+            clearTimeout(timers.get(k));
             timers.delete(k);
         }
     };
@@ -34,98 +26,87 @@ if (process.env.REDIS_URL) {
             if (!entry) return null;
             if (entry.expiresAt && Date.now() > entry.expiresAt) {
                 store.delete(k);
-                clearTimerForKey(k);
                 return null;
             }
-            return entry.value ?? null;
+            return entry.value;
         },
         set: async (k, v, ...args) => {
-            // Support: set(key, value) and set(key, value, 'EX', seconds) and set(key, value, 'PX', ms)
             let ttl = null;
-            if (args && args.length >= 2) {
-                const flag = String(args[0]).toUpperCase();
-                const val = args[1];
-                if (flag === 'EX') ttl = Number(val) * 1000;
-                else if (flag === 'PX') ttl = Number(val);
-            }
-
-            const expiresAt = ttl ? Date.now() + ttl : null;
-            store.set(k, { value: v, expiresAt });
+            if (args[0] === 'EX') ttl = parseInt(args[1]) * 1000;
+            store.set(k, { value: v, expiresAt: ttl ? Date.now() + ttl : null });
             clearTimerForKey(k);
             if (ttl) {
-                const to = setTimeout(() => {
-                    store.delete(k);
-                    timers.delete(k);
-                }, ttl);
-                timers.set(k, to);
+                timers.set(k, setTimeout(() => store.delete(k), ttl));
             }
             return 'OK';
         },
-        del: async (k) => {
-            const existed = store.delete(k) ? 1 : 0;
-            clearTimerForKey(k);
-            return existed;
+        del: async (...ks) => {
+            let count = 0;
+            ks.flat().forEach(k => {
+                if (store.delete(k) || sortedSets.delete(k)) count++;
+                clearTimerForKey(k);
+            });
+            return count;
         },
-        expire: async (k, seconds) => {
-            const entry = store.get(k);
-            if (!entry) return 0;
-            const ttl = Number(seconds) * 1000;
-            const expiresAt = Date.now() + ttl;
-            entry.expiresAt = expiresAt;
-            clearTimerForKey(k);
-            const to = setTimeout(() => {
-                store.delete(k);
-                timers.delete(k);
-            }, ttl);
-            timers.set(k, to);
+        // Sorted Set Mock
+        zadd: async (key, score, member) => {
+            if (!sortedSets.has(key)) sortedSets.set(key, new Map());
+            sortedSets.get(key).set(member, parseFloat(score));
             return 1;
         },
-        incr: async (k) => {
-            const entry = store.get(k);
-            let current = 0;
-            let expiresAt = null;
-            if (entry) {
-                if (entry.expiresAt && Date.now() > entry.expiresAt) {
-                    store.delete(k);
-                    clearTimerForKey(k);
-                } else {
-                    current = Number(entry.value) || 0;
-                    expiresAt = entry.expiresAt || null;
-                }
-            }
-            const next = current + 1;
-            store.set(k, { value: String(next), expiresAt });
-            if (expiresAt) {
-                clearTimerForKey(k);
-                const remaining = expiresAt - Date.now();
-                if (remaining > 0) timers.set(k, setTimeout(() => { store.delete(k); timers.delete(k); }, remaining));
-            }
+        zincrby: async (key, increment, member) => {
+            if (!sortedSets.has(key)) sortedSets.set(key, new Map());
+            const set = sortedSets.get(key);
+            const current = set.get(member) || 0;
+            const next = current + parseFloat(increment);
+            set.set(member, next);
             return next;
         },
-        decr: async (k) => {
-            const entry = store.get(k);
-            let current = 0;
-            let expiresAt = null;
-            if (entry) {
-                if (entry.expiresAt && Date.now() > entry.expiresAt) {
-                    store.delete(k);
-                    clearTimerForKey(k);
-                } else {
-                    current = Number(entry.value) || 0;
-                    expiresAt = entry.expiresAt || null;
-                }
+        zrevrange: async (key, start, stop, withScores) => {
+            if (!sortedSets.has(key)) return [];
+            const set = sortedSets.get(key);
+            const entries = Array.from(set.entries())
+                .sort((a, b) => b[1] - a[1])
+                .slice(start, stop + 1);
+
+            if (withScores === 'WITHSCORES') {
+                return entries.flatMap(e => [e[0], String(e[1])]);
             }
-            const next = current - 1;
-            store.set(k, { value: String(next), expiresAt });
-            if (expiresAt) {
-                clearTimerForKey(k);
-                const remaining = expiresAt - Date.now();
-                if (remaining > 0) timers.set(k, setTimeout(() => { store.delete(k); timers.delete(k); }, remaining));
-            }
-            return next;
+            return entries.map(e => e[0]);
         },
-        on: () => {},
-        quit: async () => { store.clear(); timers.forEach(t => clearTimeout(t)); timers.clear(); return 'OK'; }
+        smembers: async (key) => {
+            const entry = store.get(key);
+            return (entry && Array.isArray(entry.value)) ? entry.value : [];
+        },
+        sadd: async (key, member) => {
+            const entry = store.get(key) || { value: [] };
+            if (!entry.value.includes(member)) {
+                entry.value.push(member);
+                store.set(key, entry);
+            }
+            return 1;
+        },
+        // Pipeline Mock
+        pipeline: () => {
+            const commands = [];
+            const p = {
+                get: (k) => { commands.push(() => redisClient.get(k)); return p; },
+                set: (k, v, ...args) => { commands.push(() => redisClient.set(k, v, ...args)); return p; },
+                del: (k) => { commands.push(() => redisClient.del(k)); return p; },
+                zadd: (k, s, m) => { commands.push(() => redisClient.zadd(k, s, m)); return p; },
+                zincrby: (k, i, m) => { commands.push(() => redisClient.zincrby(k, i, m)); return p; },
+                exec: async () => {
+                    const results = [];
+                    for (const cmd of commands) {
+                        try { results.push([null, await cmd()]); }
+                        catch (e) { results.push([e, null]); }
+                    }
+                    return results;
+                }
+            };
+            return p;
+        },
+        quit: async () => 'OK'
     };
 }
 
