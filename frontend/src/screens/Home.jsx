@@ -1,5 +1,7 @@
 import React from 'react';
 import TextType from '../components/TextType.jsx';
+import LiquidCursor from '../components/LiquidCursor';
+
 import ProjectShowcase from '../components/ProjectShowcase.jsx';
 import UserLeaderboard from '../components/UserLeaderboard.jsx';
 import { useContext, useEffect, useState, lazy, Suspense } from 'react';
@@ -7,13 +9,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
-import { UserContext } from '../context/user.context';
 import ThreeHero from '../components/ThreeHero';
 import ThreeBackground from '../components/ThreeBackground';
 import Blog from '../components/Blog';
 import ContactUs from '../components/ContactUs';
-import ProjectShowcase from '../components/ProjectShowcase';
-import UserLeaderboard from '../components/UserLeaderboard';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm';
 import FAQSection from '../components/FAQSection';
 import RocketFAB from '../components/RocketFAB';
@@ -21,18 +20,32 @@ import RocketFAB from '../components/RocketFAB';
 const AskChatRajModal = lazy(() => import('../components/AskChatRajModal'));
 
 const Home = () => {
-  const { isDarkMode } = useContext(ThemeContext);
+  const { isDarkMode, toggleThemeGlobal } = useContext(ThemeContext);
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
   const [showAskChatRajModal, setShowAskChatRajModal] = useState(false);
+  const [showFabMenu, setShowFabMenu] = useState(false);
   const shouldReduceMotion = useReducedMotion();
 
   const NEWSLETTER_API_URL = "/api/newsletter/subscribe";
 
-  const handleTryChatRaj = useCallback(() => {
-    if (user) navigate('/chatraj');
-    else navigate('/login');
-  }, [user, navigate]);
+  const faqs = [
+    {
+      question: "What is ChatRaj?",
+      answer: "ChatRaj is an AI-powered code assistant that helps developers write better code faster."
+    },
+    {
+      question: "Is ChatRaj free?",
+      answer: "Yes, you can try ChatRaj for free."
+    },
+    {
+      question: "How do I get started?",
+      answer: "Just create an account and you can start exploring features."
+    }
+  ];
+
+  const [isNavVisible, setIsNavVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
