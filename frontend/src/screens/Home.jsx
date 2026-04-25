@@ -226,7 +226,7 @@ const Home = () => {
   );
 
   return (
-    <div className={`flex flex-col min-h-screen overflow-x-hidden ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className={`flex flex-col min-h-screen overflow-x-hidden ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} ${themeStyle.textMain}`}>
       {/* Only render AnimatedBg if user does not prefer reduced motion */}
       {typeof window !== "undefined" && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && (
         <AnimatedBg />
@@ -243,11 +243,11 @@ const Home = () => {
           duration: 0.3,
           ease: "easeInOut"
         }}
-        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-4 backdrop-blur-md border-b ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/20'}`}
+        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-4 border-b ${themeStyle.container}`}
       >
         <div className="flex items-center gap-2">
           <i className={`text-3xl ${isDarkMode ? 'text-white' : 'text-blue-600'} ri-robot-2-line`}></i>
-          <span className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>ChatRaj</span>
+          <span className={`text-2xl font-bold ${themeStyle.textMain}`}>ChatRaj</span>
         </div>
         <div className="flex items-center gap-4">
           <Link
@@ -291,7 +291,7 @@ const Home = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className={`max-w-2xl mb-8 text-xl ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
+          className={`max-w-2xl mb-8 text-xl ${themeStyle.textMuted}`}
         >
           Streamline your development workflow with AI-powered code assistance, real-time collaboration, and intelligent project management.
         </motion.p>
@@ -303,13 +303,13 @@ const Home = () => {
         >
           <button
             onClick={handleTryChatRaj}
-            className="px-8 py-3 text-lg font-medium text-white transition-all bg-blue-600 rounded-full shadow-lg hover:bg-blue-700"
+            className={`px-8 py-3 text-lg font-medium transition-all rounded-full shadow-lg ${themeStyle.buttonPrimary}`}
           >
             Try ChatRaj Free
           </button>
           <Link
             to="/register"
-            className={`px-8 py-3 text-lg font-medium transition-all rounded-full ${isDarkMode ? 'text-white hover:bg-white/10' : 'text-blue-600 hover:bg-blue-100'}`}
+            className={`px-8 py-3 text-lg font-medium transition-all border-2 rounded-full ${themeStyle.buttonSecondary}`}
           >
             Create Account
           </Link>
@@ -336,7 +336,7 @@ function greet(name) {
       {/* Features */}
       <section className="relative px-4 py-20 z-10">
         <div className="max-w-6xl mx-auto">
-          <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Key Features</h2>
+          <h2 className={`mb-12 text-3xl font-bold text-center ${themeStyle.textMain}`}>Key Features</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {features.map((feature, index) => (
               <motion.div
@@ -344,11 +344,11 @@ function greet(name) {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`p-6 transition-all duration-300 border rounded-xl shadow-lg backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'} hover:scale-105 hover:shadow-2xl hover:border-blue-400/50`}
+                className={`p-6 transition-all duration-300 border ${themeStyle.container} hover:scale-105 hover:shadow-2xl hover:border-blue-400/50`}
               >
                 <i className={`text-4xl ${isDarkMode ? 'text-blue-500' : 'text-blue-600'} ${feature.icon}`}></i>
-                <h3 className={`mt-4 mb-2 text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{feature.title}</h3>
-                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{feature.description}</p>
+                <h3 className={`mt-4 mb-2 text-xl font-semibold ${themeStyle.textMain}`}>{feature.title}</h3>
+                <p className={`${themeStyle.textMuted}`}>{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -379,7 +379,7 @@ function greet(name) {
 
       <section className="relative px-4 py-20 z-10">
         <div className="max-w-6xl mx-auto">
-          <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Why Choose ChatRaj</h2>
+          <h2 className={`mb-12 text-3xl font-bold text-center ${themeStyle.textMain}`}>Why Choose ChatRaj</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             {benefits.map((benefit, index) => (
               <motion.div
@@ -387,14 +387,14 @@ function greet(name) {
                 initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`flex gap-4 p-6 transition-all duration-300 border rounded-xl shadow-lg backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'} hover:scale-105 hover:shadow-2xl hover:border-blue-400/50`}
+                className={`flex gap-4 p-6 transition-all duration-300 border ${themeStyle.container} hover:scale-105 hover:shadow-2xl hover:border-blue-400/50`}
               >
                 <div className={`flex items-center justify-center w-12 h-12 rounded-lg ${isDarkMode ? 'bg-blue-500/10' : 'bg-blue-100'}`}>
                   <i className={`text-2xl ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} ${benefit.icon}`}></i>
                 </div>
                 <div>
-                  <h3 className={`mb-2 text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{benefit.title}</h3>
-                  <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{benefit.description}</p>
+                  <h3 className={`mb-2 text-lg font-semibold ${themeStyle.textMain}`}>{benefit.title}</h3>
+                  <p className={`${themeStyle.textMuted}`}>{benefit.description}</p>
                 </div>
               </motion.div>
             ))}
@@ -404,7 +404,7 @@ function greet(name) {
 
       <section className="relative px-4 py-20 z-10">
         <div className="max-w-6xl mx-auto">
-          <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Powered By</h2>
+          <h2 className={`mb-12 text-3xl font-bold text-center ${themeStyle.textMain}`}>Powered By</h2>
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
             {techStack.map((tech, index) => (
               <motion.div
@@ -412,10 +412,10 @@ function greet(name) {
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`flex flex-col items-center p-6 text-center border rounded-xl shadow-lg backdrop-blur-md transition-all duration-300 ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'} hover:scale-105 hover:shadow-2xl hover:border-blue-400/50`}
+                className={`flex flex-col items-center p-6 text-center border transition-all duration-300 ${themeStyle.container} hover:scale-105 hover:shadow-2xl hover:border-blue-400/50`}
               >
                 <i className={`text-4xl ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} ${tech.icon}`}></i>
-                <span className={`mt-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{tech.name}</span>
+                <span className={`mt-2 ${themeStyle.textMain}`}>{tech.name}</span>
               </motion.div>
             ))}
           </div>
@@ -425,8 +425,8 @@ function greet(name) {
       <section className="relative px-4 py-20 overflow-x-auto z-10">
         <div className="flex flex-col items-center w-full max-w-6xl gap-12 mx-auto md:flex-row">
           <div className="flex-1 min-w-0">
-            <h2 className={`mb-8 text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>How ChatRaj Works</h2>
-            <ol className={`space-y-6 text-lg ${isDarkMode ? 'text-gray-200' : 'text-gray-600'}`}>
+            <h2 className={`mb-8 text-3xl font-bold ${themeStyle.textMain}`}>How ChatRaj Works</h2>
+            <ol className={`space-y-6 text-lg ${themeStyle.textMuted}`}>
               <li>
                 <span className="font-bold text-blue-400">1.</span> Register or log in to your account.
               </li>
@@ -479,34 +479,34 @@ function greet(name) {
 
       <section className="relative px-4 py-20 z-10">
         <div className="max-w-4xl mx-auto">
-          <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Frequently Asked Questions</h2>
+          <h2 className={`mb-12 text-3xl font-bold text-center ${themeStyle.textMain}`}>Frequently Asked Questions</h2>
           <div className="space-y-6">
             {faqs.map((faq, i) => (
-              <details key={i} className={`p-6 border rounded-xl shadow-lg backdrop-blur-md transition-all duration-300 ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'}`}>
-                <summary className={`mb-2 text-lg font-semibold cursor-pointer ${isDarkMode ? 'text-blue-400' : 'text-gray-800'}`}>{faq.q}</summary>
-                <p className={`mt-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{faq.a}</p>
+              <details key={i} className={`p-6 border transition-all duration-300 ${themeStyle.container}`}>
+                <summary className={`mb-2 text-lg font-semibold cursor-pointer ${themeStyle.textMain}`}>{faq.q}</summary>
+                <p className={`mt-4 ${themeStyle.textMuted}`}>{faq.a}</p>
               </details>
             ))}
           </div>
         </div>
       </section>
       <section className="relative py-20 z-10 px-4">
-        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'}`}>
-          <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Blogs</h2>
+        <div className={`max-w-6xl mx-auto p-8 border ${themeStyle.container}`}>
+          <h2 className={`mb-12 text-3xl font-bold text-center ${themeStyle.textMain}`}>Blogs</h2>
           <Blog user={user} />
         </div>
       </section>
 
       <section className="relative py-20 z-10 px-4">
-        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'}`}>
+        <div className={`max-w-6xl mx-auto p-8 border ${themeStyle.container}`}>
             <ContactUs />
         </div>
       </section>
 
       <section className="relative px-4 py-20 z-10">
-        <div className={`max-w-xl mx-auto text-center p-8 border rounded-2xl shadow-xl backdrop-blur-md ${isDarkMode ? 'bg-blue-900/40 border-blue-400/20' : 'bg-white/40 border-white/50'}`}>
-          <h2 className={`mb-4 text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Stay Updated</h2>
-          <p className={`mb-8 text-lg ${isDarkMode ? 'text-blue-100' : 'text-gray-600'}`}>
+        <div className={`max-w-xl mx-auto text-center p-8 border ${themeStyle.container}`}>
+          <h2 className={`mb-4 text-3xl font-bold ${themeStyle.textMain}`}>Stay Updated</h2>
+          <p className={`mb-8 text-lg ${themeStyle.textMuted}`}>
             Subscribe to our newsletter for the latest features and updates.
           </p>
           <NewsletterSubscribeForm apiUrl={NEWSLETTER_API_URL} />
@@ -519,7 +519,7 @@ function greet(name) {
           <motion.button
             whileTap={{ scale: 0.96 }}
             onClick={() => setShowFabMenu((v) => !v)}
-            className="flex items-center justify-center w-12 h-12 text-2xl text-white bg-blue-600 rounded-full shadow-lg hover:bg-blue-700 focus:outline-none overflow-hidden"
+            className={`flex items-center justify-center w-12 h-12 text-2xl text-white rounded-full focus:outline-none overflow-hidden ${themeStyle.buttonPrimary}`}
             aria-label="Quick Actions"
             style={{ zIndex: 2, position: 'relative' }}
           >
@@ -621,28 +621,27 @@ function greet(name) {
                 animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
                 exit={{ opacity: 0, y: 40, scale: 0.8, filter: 'blur(8px)' }}
                 transition={{ type: 'spring', stiffness: 400, damping: 30, duration: 0.35 }}
-                className="absolute right-0 flex flex-col w-48 gap-2 p-4 bg-white rounded-lg shadow-xl bottom-14"
-                style={{ boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.25)' }}
+                className={`absolute right-0 flex flex-col w-48 gap-2 p-4 rounded-lg shadow-xl bottom-14 ${themeStyle.container}`}
               >
                 <button
                   onClick={() => {
                     setShowFabMenu(false);
                     handleTryChatRaj();
                   }}
-                  className="flex items-center gap-2 px-4 py-2 text-blue-600 transition rounded hover:bg-blue-50"
+                  className={`flex items-center gap-2 px-4 py-2 transition rounded hover:bg-blue-500/20 ${themeStyle.textMain}`}
                 >
                   <i className="ri-chat-3-line"></i> Try ChatRaj
                 </button>
                 <Link
                   to="/register"
-                  className="flex items-center gap-2 px-4 py-2 text-blue-600 transition rounded hover:bg-blue-50"
+                  className={`flex items-center gap-2 px-4 py-2 transition rounded hover:bg-blue-500/20 ${themeStyle.textMain}`}
                   onClick={() => setShowFabMenu(false)}
                 >
                   <i className="ri-user-add-line"></i> Create Account
                 </Link>
                 <Link
                   to="/login"
-                  className="flex items-center gap-2 px-4 py-2 text-blue-600 transition rounded hover:bg-blue-50"
+                  className={`flex items-center gap-2 px-4 py-2 transition rounded hover:bg-blue-500/20 ${themeStyle.textMain}`}
                   onClick={() => setShowFabMenu(false)}
                 >
                   <i className="ri-login-box-line"></i> Login
@@ -652,7 +651,7 @@ function greet(name) {
                     setShowFabMenu(false);
                     setShowAskChatRajModal(true);
                   }}
-                  className="flex items-center gap-2 px-4 py-2 text-blue-600 transition rounded hover:bg-blue-50"
+                  className={`flex items-center gap-2 px-4 py-2 transition rounded hover:bg-blue-500/20 ${themeStyle.textMain}`}
                 >
                   <i className="ri-question-answer-line"></i> Ask ChatRaj
                 </button>
@@ -661,7 +660,7 @@ function greet(name) {
                     setShowFabMenu(false);
                     setShowUiThemeModal(true);
                   }}
-                  className="flex items-center gap-2 px-4 py-2 text-blue-600 transition rounded hover:bg-blue-50"
+                  className={`flex items-center gap-2 px-4 py-2 transition rounded hover:bg-blue-500/20 ${themeStyle.textMain}`}
                 >
                   <i className="ri-palette-line"></i> Change UI Theme
                 </button>
@@ -669,7 +668,7 @@ function greet(name) {
                   href="https://github.com/Abhirajgautam28/Chatraj"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 text-blue-600 transition rounded hover:bg-blue-50"
+                  className={`flex items-center gap-2 px-4 py-2 transition rounded hover:bg-blue-500/20 ${themeStyle.textMain}`}
                   onClick={() => setShowFabMenu(false)}
                 >
                   <i className="ri-github-fill"></i> GitHub
@@ -681,8 +680,8 @@ function greet(name) {
       </div>
 
       {/* Footer */}
-      <footer className={`relative z-10 px-8 py-6 mt-0 text-center border-t backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/20'}`}>
-        <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>© 2025 ChatRaj All rights reserved.</p>
+      <footer className={`relative z-10 px-8 py-6 mt-0 text-center border-t ${themeStyle.container}`}>
+        <p className={`${themeStyle.textMuted}`}>© 2025 ChatRaj All rights reserved.</p>
       </footer>
 
       <Suspense fallback={<div>Loading...</div>}>

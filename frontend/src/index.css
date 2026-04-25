@@ -245,15 +245,18 @@ button {
 }
 
 /* Liquid Swipe View Transition specifically for Home Screen */
+.theme-transition-liquidglass::view-transition-group(root),
 .theme-transition-liquid::view-transition-group(root) {
   animation-duration: var(--theme-transition-duration);
 }
 
+.theme-transition-liquidglass::view-transition-old(root),
 .theme-transition-liquid::view-transition-old(root) {
   animation: liquid-exit var(--theme-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) forwards;
   z-index: 1;
 }
 
+.theme-transition-liquidglass::view-transition-new(root),
 .theme-transition-liquid::view-transition-new(root) {
   animation: liquid-enter var(--theme-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) forwards;
   z-index: 2;
@@ -294,8 +297,149 @@ button {
   }
 }
 
+/* Glassmorphism theme toggle transition */
+.theme-transition-glassmorphism::view-transition-group(root) {
+  animation-duration: var(--theme-transition-duration);
+}
+.theme-transition-glassmorphism::view-transition-old(root) {
+  animation: glass-exit var(--theme-transition-duration) ease-in-out forwards;
+}
+.theme-transition-glassmorphism::view-transition-new(root) {
+  animation: glass-enter var(--theme-transition-duration) ease-in-out forwards;
+}
+
+@keyframes glass-exit {
+  to { filter: blur(20px); opacity: 0; transform: scale(1.1); }
+}
+@keyframes glass-enter {
+  from { filter: blur(20px); opacity: 0; transform: scale(0.9); }
+}
+
+/* Claymorphism theme toggle transition */
+.theme-transition-claymorphism::view-transition-group(root) {
+  animation-duration: var(--theme-transition-duration);
+}
+.theme-transition-claymorphism::view-transition-old(root) {
+  animation: clay-exit var(--theme-transition-duration) ease-in-out forwards;
+}
+.theme-transition-claymorphism::view-transition-new(root) {
+  animation: clay-enter var(--theme-transition-duration) ease-in-out forwards;
+}
+
+@keyframes clay-exit {
+  to { transform: translateY(-100%) scale(0.8); opacity: 0; border-radius: 50%; }
+}
+@keyframes clay-enter {
+  from { transform: translateY(100%) scale(0.8); opacity: 0; border-radius: 50%; }
+}
+
+/* Minimalist theme toggle transition */
+.theme-transition-minimalist::view-transition-group(root) {
+  animation-duration: var(--theme-transition-duration);
+}
+.theme-transition-minimalist::view-transition-old(root) {
+  animation: none;
+  opacity: 0;
+}
+.theme-transition-minimalist::view-transition-new(root) {
+  animation: blink var(--theme-transition-duration) steps(2, start) forwards;
+}
+
+@keyframes blink {
+  0% { opacity: 0; filter: invert(1); }
+  50% { opacity: 1; filter: invert(0); }
+  100% { opacity: 1; filter: invert(0); }
+}
+
+.theme-transition-default::view-transition-group(root) {
+  animation-duration: var(--theme-transition-duration);
+  perspective: 2000px;
+  transform-style: preserve-3d;
+}
+
+.theme-transition-default::view-transition-old(root) {
+  animation: warp-exit var(--theme-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) forwards;
+  z-index: 1;
+  mix-blend-mode: normal;
+  transform-origin: center center;
+  backface-visibility: hidden;
+}
+
+.theme-transition-default::view-transition-new(root) {
+  animation: warp-enter var(--theme-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) forwards;
+  z-index: 2;
+  mix-blend-mode: normal;
+  transform-origin: center center;
+  backface-visibility: hidden;
+}
+
+
 /* Fallback for browsers that do not support View Transitions */
 .theme-transitioning,
 .theme-transitioning * {
   transition: background-color var(--theme-transition-duration) ease, color var(--theme-transition-duration) ease, border-color var(--theme-transition-duration) ease, fill var(--theme-transition-duration) ease, stroke var(--theme-transition-duration) ease !important;
+}
+
+/* Destruct/Reconstruct View Transition for UI Theme Change */
+.theme-transition-destruct::view-transition-group(root) {
+  animation-duration: 0.6s;
+  perspective: 1500px;
+  transform-style: preserve-3d;
+}
+
+.theme-transition-destruct::view-transition-old(root) {
+  animation: destruct-exit 0.6s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
+  z-index: 1;
+  backface-visibility: hidden;
+}
+
+.theme-transition-destruct::view-transition-new(root) {
+  animation: reconstruct-enter 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  z-index: 2;
+  backface-visibility: hidden;
+}
+
+@keyframes destruct-exit {
+  0% {
+    opacity: 1;
+    transform: scale(1) rotateX(0deg) rotateY(0deg) translateZ(0);
+    filter: brightness(1) sepia(0);
+  }
+  20% {
+    transform: scale(0.95) rotateX(5deg) rotateY(-5deg) translateZ(-100px);
+    filter: brightness(1.2) sepia(0.3);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(0.5) rotateX(45deg) rotateY(-45deg) translateZ(-500px);
+    filter: brightness(0.5) blur(5px) saturate(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0) rotateX(90deg) rotateY(-90deg) translateZ(-1000px);
+    filter: brightness(0) blur(20px) saturate(0);
+  }
+}
+
+@keyframes reconstruct-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotateX(-90deg) rotateY(90deg) translateZ(1000px);
+    filter: brightness(2) blur(20px) saturate(0);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(0.8) rotateX(-15deg) rotateY(15deg) translateZ(200px);
+    filter: brightness(1.5) blur(5px) saturate(0.5);
+  }
+  80% {
+    opacity: 1;
+    transform: scale(1.05) rotateX(-2deg) rotateY(2deg) translateZ(50px);
+    filter: brightness(1.1) blur(1px) saturate(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotateX(0deg) rotateY(0deg) translateZ(0);
+    filter: brightness(1) blur(0) saturate(1);
+  }
 }

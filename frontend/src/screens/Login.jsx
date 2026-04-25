@@ -4,6 +4,7 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
+import { getThemeClasses } from '../utils/themeClasses.js';
 import axios, { getCsrfToken } from '../config/axios';
 import anime from 'animejs';
 import { logger } from '../utils/logger';
@@ -12,8 +13,10 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const { setUser } = useContext(UserContext);
-    const { isDarkMode } = useContext(ThemeContext);
+    const { isDarkMode, uiTheme } = useContext(ThemeContext);
     const navigate = useNavigate();
+
+    const themeStyle = getThemeClasses(uiTheme, isDarkMode);
     const location = useLocation();
 
     const [showReset, setShowReset] = useState(false);
@@ -212,7 +215,7 @@ const Login = () => {
     };
 
     return (
-        <div ref={containerRef} className="relative flex items-center justify-center min-h-screen bg-transparent overflow-hidden">
+        <div ref={containerRef} className={`relative flex items-center justify-center min-h-screen overflow-hidden ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
             <div className="absolute inset-0 z-0">
                 {[...Array(10)].map((_, i) => (
                     <div
@@ -229,40 +232,40 @@ const Login = () => {
                 ))}
             </div>
 
-            <div className={`form-container relative z-10 w-full max-w-md p-8 backdrop-blur-sm rounded-lg shadow-2xl ${isDarkMode ? 'bg-gray-800/50 text-white' : 'bg-white/60 text-gray-900'}`}>
+            <div className={`form-container relative z-10 w-full max-w-md p-8 ${themeStyle.container}`}>
                 <button
                     type="button"
                     onClick={() => navigate(-1)}
-                    className="absolute left-4 top-4 text-gray-300 hover:text-white focus:outline-none"
+                    className={`absolute left-4 top-4 focus:outline-none ${themeStyle.textMuted}`}
                     aria-label="Go back"
                 >
                     <i className="ri-arrow-left-line text-2xl" />
                 </button>
-                <h2 className={`mb-6 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Welcome Back</h2>
+                <h2 className={`mb-6 text-3xl font-bold text-center ${themeStyle.textMain}`}>Welcome Back</h2>
                 <form onSubmit={submitHandler}>
                     <div className="mb-4">
-                        <label className="block mb-2 text-sm font-medium text-gray-300">
+                        <label className={`block mb-2 text-sm font-medium ${themeStyle.textMuted}`}>
                             Email
                         </label>
                         <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
+                            className={`w-full p-3 transition-all duration-300 outline-none ${themeStyle.input}`}
                             placeholder="your.email@example.com"
                             required
                         />
                     </div>
 
                     <div className="mb-2">
-                        <label className="block mb-2 text-sm font-medium text-gray-300">
+                        <label className={`block mb-2 text-sm font-medium ${themeStyle.textMuted}`}>
                             Password
                         </label>
                         <input
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
+                            className={`w-full p-3 transition-all duration-300 outline-none ${themeStyle.input}`}
                             placeholder="••••••••"
                             required
                         />
@@ -279,7 +282,7 @@ const Login = () => {
 
                     <button
                         type="submit"
-                        className="w-full p-3 text-white font-bold transition duration-300 bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500"
+                        className={`w-full p-3 font-bold transition duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 ${themeStyle.buttonPrimary}`}
                     >
                         Login
                     </button>
@@ -287,7 +290,7 @@ const Login = () => {
                 {/* Only show recaptcha modal if not disabled */}
                 {showRecaptcha && !isRecaptchaDisabled && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-                        <div className={`${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} rounded-lg shadow-2xl p-8 w-full max-w-sm flex flex-col items-center`}>
+                        <div className={`rounded-lg shadow-2xl p-8 w-full max-w-sm flex flex-col items-center ${themeStyle.container}`}>
                             {import.meta.env.VITE_RECAPTCHA_SITE_KEY ? (
                                 <ReCAPTCHA
                                     sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
@@ -314,27 +317,27 @@ const Login = () => {
 
                 {showReset && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-                    <div className={`${isDarkMode ? 'w-full max-w-sm p-8 bg-gray-800 text-white rounded-lg shadow-2xl' : 'w-full max-w-sm p-8 bg-white text-gray-900 rounded-lg shadow-2xl'}`}>
+                    <div className={`w-full max-w-sm p-8 rounded-lg shadow-2xl ${themeStyle.container}`}>
                         {!resetSuccess ? (
                             <>
-                                <h3 className="mb-4 text-xl font-bold text-center text-white">Reset Password</h3>
+                                <h3 className={`mb-4 text-xl font-bold text-center ${themeStyle.textMain}`}>Reset Password</h3>
                                 {!resetOtpSent && (
                                     <form onSubmit={handleSendOtp}>
-                                        <label className="block mb-2 text-sm font-medium text-gray-400">
+                                        <label className={`block mb-2 text-sm font-medium ${themeStyle.textMuted}`}>
                                             Enter your email address
                                         </label>
                                         <input
                                             type="email"
                                             value={resetEmail}
                                             onChange={(e) => setResetEmail(e.target.value)}
-                                            className={`w-full p-3 mb-4 transition duration-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700 border border-gray-600' : 'text-gray-900 bg-white border border-gray-300'}`}
+                                            className={`w-full p-3 mb-4 transition duration-300 outline-none ${themeStyle.input}`}
                                             placeholder="Enter your email"
                                             required
                                             disabled={resetOtpSent}
                                         />
                                         <button
                                             type="submit"
-                                            className="w-full p-3 text-white transition duration-300 bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className={`w-full p-3 ${themeStyle.buttonPrimary}`}
                                             disabled={resetOtpSent}
                                         >
                                             {resetOtpSent ? 'OTP Sent' : 'Send OTP'}
@@ -347,7 +350,7 @@ const Login = () => {
                                                 setResetEmail('');
                                                 setResetError('');
                                             }}
-                                            className="w-full p-2 mt-3 text-sm text-gray-300 hover:text-white"
+                                            className={`w-full p-2 mt-3 text-sm ${themeStyle.textMuted} hover:opacity-80`}
                                         >
                                             Cancel
                                         </button>
@@ -356,14 +359,14 @@ const Login = () => {
                                 )}
                                 {resetOtpSent && !resetOtpVerified && (
                                     <form onSubmit={handleVerifyOtp}>
-                                        <label className="block mb-2 text-sm font-medium text-gray-400">
+                                        <label className={`block mb-2 text-sm font-medium ${themeStyle.textMuted}`}>
                                             Enter OTP sent to your email
                                         </label>
                                         <input
                                             type="text"
                                             value={resetOtp}
                                             onChange={e => setResetOtp(e.target.value)}
-                                            className={`w-full p-3 mb-2 transition duration-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700 border border-gray-600' : 'text-gray-900 bg-white border border-gray-300'}`}
+                                            className={`w-full p-3 mb-2 transition duration-300 outline-none ${themeStyle.input}`}
                                             placeholder="Enter OTP"
                                             required
                                         />
@@ -407,14 +410,14 @@ const Login = () => {
                                         </div>
                                         <button
                                             type="submit"
-                                            className="w-full p-3 text-white transition duration-300 bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className={`w-full p-3 ${themeStyle.buttonPrimary}`}
                                         >
                                             Verify OTP
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => setShowReset(false)}
-                                            className="w-full p-2 mt-3 text-sm text-gray-300 hover:text-white"
+                                            className={`w-full p-2 mt-3 text-sm ${themeStyle.textMuted} hover:opacity-80`}
                                         >
                                             Cancel
                                         </button>
@@ -423,7 +426,7 @@ const Login = () => {
                                 )}
                                 {resetOtpVerified && (
                                     <form onSubmit={handleSetNewPassword}>
-                                        <label className="block mb-2 text-sm font-medium text-gray-400">
+                                        <label className={`block mb-2 text-sm font-medium ${themeStyle.textMuted}`}>
                                             New Password
                                         </label>
                                         <div className="relative mb-4">
@@ -431,7 +434,7 @@ const Login = () => {
                                                 type={showPassword ? "text" : "password"}
                                                 value={resetNewPassword}
                                                 onChange={e => setResetNewPassword(e.target.value)}
-                                                className={`w-full p-3 transition duration-300 rounded pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700 border border-gray-600' : 'text-gray-900 bg-white border border-gray-300'}`}
+                                                className={`w-full p-3 transition duration-300 outline-none pr-10 ${themeStyle.input}`}
                                                 placeholder="Enter new password"
                                                 required
                                                 disabled={resetSuccess}
@@ -443,21 +446,21 @@ const Login = () => {
                                                 <i className={`ri-eye${showPassword ? '' : '-close'}-line text-xl text-gray-400`}></i>
                                             </span>
                                         </div>
-                                        <label className="block mb-2 text-sm font-medium text-gray-400">
+                                        <label className={`block mb-2 text-sm font-medium ${themeStyle.textMuted}`}>
                                             Confirm Password
                                         </label>
                                         <input
                                             type="password"
                                             value={resetConfirmPassword}
                                             onChange={e => setResetConfirmPassword(e.target.value)}
-                                            className={`w-full p-3 mb-4 transition duration-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700 border border-gray-600' : 'text-gray-900 bg-white border border-gray-300'}`}
+                                            className={`w-full p-3 mb-4 transition duration-300 outline-none ${themeStyle.input}`}
                                             placeholder="Confirm new password"
                                             required
                                             disabled={resetSuccess}
                                         />
                                         <button
                                             type="submit"
-                                            className={`w-full p-3 text-white transition duration-300 bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 ${resetInProgress ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                            className={`w-full p-3 ${themeStyle.buttonPrimary} ${resetInProgress ? 'opacity-60 cursor-not-allowed' : ''}`}
                                             disabled={resetSuccess || resetInProgress}
                                         >
                                             {resetSuccess ? 'Password Reset Successful' : resetInProgress ? 'Resetting...' : 'Reset Password'}
@@ -465,7 +468,7 @@ const Login = () => {
                                         <button
                                             type="button"
                                             onClick={() => setShowReset(false)}
-                                            className="w-full p-2 mt-3 text-sm text-gray-300 hover:text-white"
+                                            className={`w-full p-2 mt-3 text-sm ${themeStyle.textMuted} hover:opacity-80`}
                                             disabled={resetSuccess}
                                         >
                                             Cancel
@@ -477,8 +480,8 @@ const Login = () => {
                         ) : (
                             <div className="flex flex-col items-center justify-center">
                                 <i className="mb-4 text-4xl text-blue-400 ri-checkbox-circle-line"></i>
-                                <p className={`mb-2 text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Password reset!</p>
-                                <p className={`text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>You can now log in with your new password.</p>
+                                <p className={`mb-2 text-lg font-semibold ${themeStyle.textMain}`}>Password reset!</p>
+                                <p className={`text-center ${themeStyle.textMuted}`}>You can now log in with your new password.</p>
                             </div>
                         )}
                     </div>

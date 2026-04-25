@@ -59,7 +59,7 @@ export function ThemeProvider({ children }) {
     const { executeThemeTransition } = await import('../utils/themeTransition.js');
     executeThemeTransition(() => {
       setIsDarkMode(prev => !prev);
-    }, shouldReduceMotion, isHome, false);
+    }, shouldReduceMotion, isHome, false, uiTheme);
   };
 
   const setUiThemeGlobal = async (themeName, shouldReduceMotion = false) => {

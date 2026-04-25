@@ -1,4 +1,4 @@
-export const executeThemeTransition = (toggleFn, shouldReduceMotion = false, isHome = false) => {
+export const executeThemeTransition = (toggleFn, shouldReduceMotion = false, isHome = false, isDestruct = false, activeTheme = 'default') => {
   if (
     !document.startViewTransition ||
     shouldReduceMotion ||
@@ -8,12 +8,24 @@ export const executeThemeTransition = (toggleFn, shouldReduceMotion = false, isH
     return;
   }
 
-  const durationClass = isHome ? 'theme-transition-liquid' : 'theme-transition';
+  let durationClass = 'theme-transition';
 
-  if (isHome) {
-     document.documentElement.style.setProperty('--theme-transition-duration', '1.5s');
+  if (isDestruct) {
+    durationClass = 'theme-transition-destruct';
+    document.documentElement.style.setProperty('--theme-transition-duration', '0.5s');
   } else {
-     document.documentElement.style.setProperty('--theme-transition-duration', '0.75s');
+     // Apply theme-specific Light/Dark mode transition
+     durationClass = `theme-transition-${activeTheme}`;
+     if(activeTheme === 'default' && isHome) {
+        durationClass = 'theme-transition-liquid';
+        document.documentElement.style.setProperty('--theme-transition-duration', '1.5s');
+     } else if (activeTheme === 'liquidglass') {
+        document.documentElement.style.setProperty('--theme-transition-duration', '1.5s');
+     } else if (activeTheme === 'minimalist') {
+        document.documentElement.style.setProperty('--theme-transition-duration', '0.2s');
+     } else {
+        document.documentElement.style.setProperty('--theme-transition-duration', '0.75s');
+     }
   }
 
   document.documentElement.classList.add(durationClass);
