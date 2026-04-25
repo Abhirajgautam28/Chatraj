@@ -247,7 +247,7 @@ const Home = () => {
           </button>
           <button
             onClick={() => toggleThemeGlobal(false, true)}
-            className={`p-2 transition-colors rounded-lg ${isDarkMode ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}
+            className={`p-2 transition-colors rounded-lg ${isDarkMode ? 'text-gray-100 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}
             aria-label="Toggle Theme"
           >
             <i className={`text-xl ${isDarkMode ? 'ri-sun-line' : 'ri-moon-line'}`}></i>
@@ -269,7 +269,7 @@ const Home = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className={`max-w-2xl mb-8 text-xl ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
+          className={`max-w-2xl mb-8 text-xl ${isDarkMode ? 'text-gray-100' : 'text-gray-600'}`}
         >
           Streamline your development workflow with AI-powered code assistance, real-time collaboration, and intelligent project management.
         </motion.p>
@@ -326,7 +326,7 @@ function greet(name) {
               >
                 <i className={`text-4xl ${isDarkMode ? 'text-blue-500' : 'text-blue-600'} ${feature.icon}`}></i>
                 <h3 className={`mt-4 mb-2 text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{feature.title}</h3>
-                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{feature.description}</p>
+                <p className={`${isDarkMode ? 'text-gray-200' : 'text-gray-600'}`}>{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -348,7 +348,7 @@ function greet(name) {
               >
                 <i className={`text-3xl ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} ${useCase.icon}`}></i>
                 <h3 className={`mt-4 mb-2 text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{useCase.title}</h3>
-                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{useCase.description}</p>
+                <p className={`${isDarkMode ? 'text-gray-200' : 'text-gray-600'}`}>{useCase.description}</p>
               </motion.div>
             ))}
           </div>
@@ -372,7 +372,7 @@ function greet(name) {
                 </div>
                 <div>
                   <h3 className={`mb-2 text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{benefit.title}</h3>
-                  <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{benefit.description}</p>
+                  <p className={`${isDarkMode ? 'text-gray-200' : 'text-gray-600'}`}>{benefit.description}</p>
                 </div>
               </motion.div>
             ))}
@@ -442,7 +442,7 @@ function greet(name) {
       {/* Project Showcase Section */}
       <section className="relative py-20 z-10">
         <div className={`max-w-4xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-slate-900/40 border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] backdrop-blur-2xl hover:bg-slate-900/50 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6),0_0_20px_rgba(59,130,246,0.15),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),inset_0_1px_1px_rgba(255,255,255,0.8)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.25),inset_0_1px_1px_rgba(255,255,255,1)] hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2rem] transition-all duration-500 ease-out transform-gpu`}>
-          <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-gray-900">Project Showcase</h2>
+          <h2 className="mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}">Project Showcase</h2>
           <ProjectShowcase />
         </div>
       </section>
@@ -450,7 +450,7 @@ function greet(name) {
       {/* User Leaderboard Section */}
       <section className="relative py-20 z-10">
         <div className={`max-w-4xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-slate-900/40 border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] backdrop-blur-2xl hover:bg-slate-900/50 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6),0_0_20px_rgba(59,130,246,0.15),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),inset_0_1px_1px_rgba(255,255,255,0.8)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.25),inset_0_1px_1px_rgba(255,255,255,1)] hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2rem] transition-all duration-500 ease-out transform-gpu`}>
-          <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-gray-900">User Leaderboard</h2>
+          <h2 className="mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}">User Leaderboard</h2>
           <UserLeaderboard />
         </div>
       </section>
@@ -462,7 +462,7 @@ function greet(name) {
             {faqs.map((faq, i) => (
               <details key={i} className={`p-6 rounded-lg shadow ${isDarkMode ? 'bg-gray-900/70' : 'bg-white'}`}>
                 <summary className={`mb-2 text-lg font-semibold cursor-pointer ${isDarkMode ? 'text-blue-400' : 'text-gray-800'}`}>{faq.q}</summary>
-                <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{faq.a}</p>
+                <p className={`${isDarkMode ? 'text-gray-100' : 'text-gray-600'}`}>{faq.a}</p>
               </details>
             ))}
           </div>
@@ -483,7 +483,7 @@ function greet(name) {
       <section className="relative px-4 py-20 z-10">
         <div className={`max-w-xl mx-auto text-center p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-slate-900/40 border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] backdrop-blur-2xl hover:bg-slate-900/50 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6),0_0_20px_rgba(59,130,246,0.15),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),inset_0_1px_1px_rgba(255,255,255,0.8)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.25),inset_0_1px_1px_rgba(255,255,255,1)] hover:-translate-y-2 hover:scale-[1.01]'} rounded-[3rem] hover:rounded-[2rem] transition-all duration-500 ease-out transform-gpu`}>
           <h2 className={`mb-4 text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Stay Updated</h2>
-          <p className={`mb-8 text-lg ${isDarkMode ? 'text-blue-100' : 'text-gray-600'}`}>
+          <p className={`mb-8 text-lg ${isDarkMode ? 'text-blue-50' : 'text-gray-600'}`}>
             Subscribe to our newsletter for the latest features and updates.
           </p>
           <NewsletterSubscribeForm apiUrl={NEWSLETTER_API_URL} />
@@ -650,7 +650,7 @@ function greet(name) {
 
       {/* Footer */}
       <footer className={`relative z-10 px-8 py-6 mt-0 text-center border-t backdrop-blur-xl ${isDarkMode ? 'bg-white/[0.05] border-white/10' : 'bg-white/[0.1] border-white/30'}`}>
-        <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>© 2025 ChatRaj All rights reserved.</p>
+        <p className={`${isDarkMode ? 'text-gray-200' : 'text-gray-600'}`}>© 2025 ChatRaj All rights reserved.</p>
       </footer>
 
       <Suspense fallback={<div>Loading...</div>}>
