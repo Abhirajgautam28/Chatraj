@@ -12,19 +12,19 @@ export const executeThemeTransition = (toggleFn, shouldReduceMotion = false, isH
 
   if (isDestruct) {
     durationClass = 'theme-transition-destruct';
-    document.documentElement.style.setProperty('--theme-transition-duration', '0.5s');
+    document.documentElement.style.setProperty('--theme-transition-duration', '0.4s');
   } else {
      // Apply theme-specific Light/Dark mode transition
      durationClass = `theme-transition-${activeTheme}`;
      if(activeTheme === 'default' && isHome) {
         durationClass = 'theme-transition-liquid';
-        document.documentElement.style.setProperty('--theme-transition-duration', '1.5s');
+        document.documentElement.style.setProperty('--theme-transition-duration', '0.4s');
      } else if (activeTheme === 'liquidglass') {
-        document.documentElement.style.setProperty('--theme-transition-duration', '1.5s');
+        document.documentElement.style.setProperty('--theme-transition-duration', '0.4s');
      } else if (activeTheme === 'minimalist') {
         document.documentElement.style.setProperty('--theme-transition-duration', '0.2s');
      } else {
-        document.documentElement.style.setProperty('--theme-transition-duration', '0.75s');
+        document.documentElement.style.setProperty('--theme-transition-duration', '0.3s');
      }
   }
 

@@ -18,8 +18,8 @@ export const getThemeClasses = (uiTheme, isDarkMode) => {
     },
     glassmorphism: {
       container: isDarkMode
-        ? 'bg-black/20 border-white/10 shadow-[0_8px_32px_0_rgba(255,255,255,0.05)] backdrop-blur-xl'
-        : 'bg-white/20 border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-xl',
+        ? 'bg-black/20 border border-white/10 shadow-[0_8px_32px_0_rgba(255,255,255,0.05)] backdrop-blur-xl rounded-2xl'
+        : 'bg-white/20 border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-xl rounded-2xl',
       textMain: isDarkMode ? 'text-gray-50' : 'text-gray-900',
       textMuted: isDarkMode ? 'text-gray-300' : 'text-gray-700',
       border: isDarkMode ? 'border-white/10' : 'border-black/5',
@@ -41,8 +41,8 @@ export const getThemeClasses = (uiTheme, isDarkMode) => {
       textMuted: isDarkMode ? 'text-gray-400' : 'text-gray-600',
       border: 'border-transparent',
       input: isDarkMode
-        ? 'bg-gray-900 text-white border-transparent shadow-[inset_4px_4px_8px_rgba(0,0,0,0.4),_inset_-4px_-4px_8px_rgba(255,255,255,0.05)] focus:ring-2 focus:ring-blue-500/50 rounded-2xl'
-        : 'bg-gray-200 text-gray-900 border-transparent shadow-[inset_4px_4px_8px_rgba(0,0,0,0.05),_inset_-4px_-4px_8px_rgba(255,255,255,0.8)] focus:ring-2 focus:ring-blue-400/50 rounded-2xl',
+        ? 'bg-gray-900 text-white border-transparent shadow-[inset_4px_4px_8px_rgba(0,0,0,0.4),_inset_-4px_-4px_8px_rgba(255,255,255,0.05)] focus:outline-none focus:ring-2 focus:ring-blue-500/50 rounded-2xl transition-all'
+        : 'bg-gray-200 text-gray-900 border-transparent shadow-[inset_4px_4px_8px_rgba(0,0,0,0.05),_inset_-4px_-4px_8px_rgba(255,255,255,0.8)] focus:outline-none focus:ring-2 focus:ring-blue-400/50 rounded-2xl transition-all',
       buttonPrimary: isDarkMode
         ? 'bg-blue-600 text-white shadow-[inset_2px_2px_4px_rgba(255,255,255,0.3),_4px_4px_8px_rgba(0,0,0,0.4)] hover:shadow-[inset_2px_2px_4px_rgba(255,255,255,0.3),_2px_2px_4px_rgba(0,0,0,0.4)] hover:translate-y-[2px] transition-all rounded-2xl border-none'
         : 'bg-blue-500 text-white shadow-[inset_2px_2px_4px_rgba(255,255,255,0.4),_4px_4px_8px_rgba(0,0,0,0.15)] hover:shadow-[inset_2px_2px_4px_rgba(255,255,255,0.4),_2px_2px_4px_rgba(0,0,0,0.15)] hover:translate-y-[2px] transition-all rounded-2xl border-none',
@@ -75,8 +75,8 @@ export const getThemeClasses = (uiTheme, isDarkMode) => {
       textMuted: isDarkMode ? 'text-gray-500' : 'text-gray-500',
       border: isDarkMode ? 'border-[#2A2A2A]' : 'border-gray-200',
       input: isDarkMode
-        ? 'bg-[#1A1A1A] text-gray-100 border-[#333] focus:border-blue-500 rounded-md placeholder-gray-600'
-        : 'bg-gray-50 text-gray-900 border-gray-300 focus:border-black rounded-md placeholder-gray-400',
+        ? 'bg-[#1A1A1A] text-gray-100 border border-[#333] focus:border-blue-500 rounded-md placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all'
+        : 'bg-gray-50 text-gray-900 border border-gray-300 focus:border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-black transition-all',
       buttonPrimary: isDarkMode
         ? 'bg-white text-black hover:bg-gray-200 border border-transparent rounded-md font-medium'
         : 'bg-black text-white hover:bg-gray-800 border border-transparent rounded-md font-medium',
