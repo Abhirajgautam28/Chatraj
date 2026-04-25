@@ -256,7 +256,7 @@ const Home = () => {
       </motion.nav>
 
       {/* Hero */}
-      <section className="relative flex flex-col items-center justify-center min-h-screen text-center">
+      <section className="relative flex flex-col items-center justify-center min-h-screen text-center z-10">
         <TextType
           text={["Your Intelligent Software Engineering Assistant"]}
           typingSpeed={75}
@@ -312,8 +312,8 @@ function greet(name) {
       </section>
 
       {/* Features */}
-      <section className={`px-4 py-20 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
-        <div className="max-w-6xl mx-auto">
+      <section className="relative px-4 py-20 z-10">
+        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-white/[0.05] border-white/10 shadow-[0_4px_24px_-1px_rgba(0,0,0,0.5)]' : 'bg-white/[0.15] border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.2)]'} rounded-[2rem] hover:rounded-[1rem] transition-all duration-500`}>
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Key Features</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {features.map((feature, index) => (
@@ -334,8 +334,8 @@ function greet(name) {
         </div>
       </section>
 
-      <section className={`py-20 ${isDarkMode ? 'bg-gray-900/80' : 'bg-white'}`}>
-        <div className="max-w-6xl mx-auto">
+      <section className="relative py-20 z-10">
+        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-white/[0.05] border-white/10 shadow-[0_4px_24px_-1px_rgba(0,0,0,0.5)]' : 'bg-white/[0.15] border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.2)]'} rounded-[2rem] hover:rounded-[3rem] transition-all duration-500`}>
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Popular Use Cases</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {useCases.map((useCase, index) => (
@@ -355,8 +355,8 @@ function greet(name) {
         </div>
       </section>
 
-      <section className={`px-4 py-20 ${isDarkMode ? 'bg-gray-900/50' : 'bg-white'}`}>
-        <div className="max-w-6xl mx-auto">
+      <section className="relative px-4 py-20 z-10">
+        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-white/[0.05] border-white/10 shadow-[0_4px_24px_-1px_rgba(0,0,0,0.5)]' : 'bg-white/[0.15] border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.2)]'} rounded-[2rem] hover:rounded-[1.5rem] transition-all duration-500`}>
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Why Choose ChatRaj</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             {benefits.map((benefit, index) => (
@@ -380,8 +380,8 @@ function greet(name) {
         </div>
       </section>
 
-      <section className={`px-4 py-20 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-        <div className="max-w-6xl mx-auto">
+      <section className="relative px-4 py-20 z-10">
+        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-white/[0.05] border-white/10 shadow-[0_4px_24px_-1px_rgba(0,0,0,0.5)]' : 'bg-white/[0.15] border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.2)]'} rounded-[2rem] hover:rounded-[2.5rem] transition-all duration-500`}>
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Powered By</h2>
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
             {techStack.map((tech, index) => (
@@ -400,8 +400,8 @@ function greet(name) {
         </div>
       </section>
 
-      <section className={`px-4 py-20 overflow-x-auto ${isDarkMode ? 'bg-gray-900/70' : 'bg-white'}`}>
-        <div className="flex flex-col items-center w-full max-w-6xl gap-12 mx-auto md:flex-row">
+      <section className="relative px-4 py-20 overflow-x-auto z-10">
+        <div className={`flex flex-col items-center w-full max-w-6xl gap-12 mx-auto md:flex-row p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-white/[0.05] border-white/10 shadow-[0_4px_24px_-1px_rgba(0,0,0,0.5)]' : 'bg-white/[0.15] border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.2)]'} rounded-[2.5rem] transition-all duration-500`}>
           <div className="flex-1 min-w-0">
             <h2 className={`mb-8 text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>How ChatRaj Works</h2>
             <ol className={`space-y-6 text-lg ${isDarkMode ? 'text-gray-200' : 'text-gray-600'}`}>
@@ -440,23 +440,23 @@ function greet(name) {
       </section>
 
       {/* Project Showcase Section */}
-      <section className={`py-20 ${isDarkMode ? 'bg-white/5' : 'bg-white'}`}>
-        <div className="max-w-4xl mx-auto">
+      <section className="relative py-20 z-10">
+        <div className={`max-w-4xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-white/[0.05] border-white/10 shadow-[0_4px_24px_-1px_rgba(0,0,0,0.5)]' : 'bg-white/[0.15] border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.2)]'} rounded-[2rem] transition-all duration-500`}>
           <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-gray-900">Project Showcase</h2>
           <ProjectShowcase />
         </div>
       </section>
 
       {/* User Leaderboard Section */}
-      <section className={`py-20 ${isDarkMode ? 'bg-gray-100/10' : 'bg-gray-100'}`}>
-        <div className="max-w-4xl mx-auto">
+      <section className="relative py-20 z-10">
+        <div className={`max-w-4xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-white/[0.05] border-white/10 shadow-[0_4px_24px_-1px_rgba(0,0,0,0.5)]' : 'bg-white/[0.15] border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.2)]'} rounded-[2rem] transition-all duration-500`}>
           <h2 className="mb-12 text-3xl font-bold text-center text-gray-800 dark:text-gray-900">User Leaderboard</h2>
           <UserLeaderboard />
         </div>
       </section>
 
-      <section className={`px-4 py-20 ${isDarkMode ? 'bg-gray-800/80' : 'bg-gray-100'}`}>
-        <div className="max-w-4xl mx-auto">
+      <section className="relative px-4 py-20 z-10">
+        <div className={`max-w-4xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-white/[0.05] border-white/10 shadow-[0_4px_24px_-1px_rgba(0,0,0,0.5)]' : 'bg-white/[0.15] border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.2)]'} rounded-[2rem] transition-all duration-500`}>
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Frequently Asked Questions</h2>
           <div className="space-y-6">
             {faqs.map((faq, i) => (
@@ -468,16 +468,20 @@ function greet(name) {
           </div>
         </div>
       </section>
-      <section className="py-20">
-        <div className="max-w-6xl mx-auto">
+      <section className="relative py-20 z-10">
+        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-white/[0.05] border-white/10 shadow-[0_4px_24px_-1px_rgba(0,0,0,0.5)]' : 'bg-white/[0.15] border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.2)]'} rounded-[2.5rem] transition-all duration-500`}>
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Blogs</h2>
           <Blog user={user} />
         </div>
       </section>
-      <ContactUs />
+      <section className="relative py-20 z-10 px-4">
+        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-white/[0.05] border-white/10 shadow-[0_4px_24px_-1px_rgba(0,0,0,0.5)]' : 'bg-white/[0.15] border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.2)]'} rounded-[2.5rem] transition-all duration-500`}>
+            <ContactUs />
+        </div>
+      </section>
 
-      <section className={`px-4 py-20 ${isDarkMode ? 'bg-blue-900/80' : 'bg-gray-100'}`}>
-        <div className="max-w-xl mx-auto text-center">
+      <section className="relative px-4 py-20 z-10">
+        <div className={`max-w-xl mx-auto text-center p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-blue-900/[0.1] border-blue-400/20 shadow-[0_4px_32px_-1px_rgba(59,130,246,0.3)]' : 'bg-white/[0.2] border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)]'} rounded-[3rem] hover:rounded-[2rem] transition-all duration-700`}>
           <h2 className={`mb-4 text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Stay Updated</h2>
           <p className={`mb-8 text-lg ${isDarkMode ? 'text-blue-100' : 'text-gray-600'}`}>
             Subscribe to our newsletter for the latest features and updates.
@@ -645,7 +649,7 @@ function greet(name) {
       </div>
 
       {/* Footer */}
-      <footer className={`px-8 py-6 mt-0 text-center ${isDarkMode ? 'bg-gray-900' : 'bg-gray-200'}`}>
+      <footer className={`relative z-10 px-8 py-6 mt-0 text-center border-t backdrop-blur-xl ${isDarkMode ? 'bg-white/[0.05] border-white/10' : 'bg-white/[0.1] border-white/30'}`}>
         <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>© 2025 ChatRaj All rights reserved.</p>
       </footer>
 
