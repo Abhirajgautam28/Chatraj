@@ -287,7 +287,7 @@ const Home = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className={`max-w-2xl mb-8 text-xl ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
+          className={`max-w-2xl mb-8 text-xl ${isDarkMode ? 'text-gray-100' : 'text-gray-600'}`}
         >
           Streamline your development workflow with AI-powered code assistance, real-time collaboration, and intelligent project management.
         </motion.p>
@@ -344,7 +344,7 @@ function greet(name) {
               >
                 <i className={`text-4xl ${isDarkMode ? 'text-blue-500' : 'text-blue-600'} ${feature.icon}`}></i>
                 <h3 className={`mt-4 mb-2 text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{feature.title}</h3>
-                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{feature.description}</p>
+                <p className={`${isDarkMode ? 'text-gray-200' : 'text-gray-600'}`}>{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -366,7 +366,7 @@ function greet(name) {
               >
                 <i className={`text-3xl ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} ${useCase.icon}`}></i>
                 <h3 className={`mt-4 mb-2 text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{useCase.title}</h3>
-                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{useCase.description}</p>
+                <p className={`${isDarkMode ? 'text-gray-200' : 'text-gray-600'}`}>{useCase.description}</p>
               </motion.div>
             ))}
           </div>
@@ -390,7 +390,7 @@ function greet(name) {
                 </div>
                 <div>
                   <h3 className={`mb-2 text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{benefit.title}</h3>
-                  <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{benefit.description}</p>
+                  <p className={`${isDarkMode ? 'text-gray-200' : 'text-gray-600'}`}>{benefit.description}</p>
                 </div>
               </motion.div>
             ))}
@@ -480,7 +480,7 @@ function greet(name) {
             {faqs.map((faq, i) => (
               <details key={i} className={`p-6 border rounded-xl shadow-lg backdrop-blur-md transition-all duration-300 ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'}`}>
                 <summary className={`mb-2 text-lg font-semibold cursor-pointer ${isDarkMode ? 'text-blue-400' : 'text-gray-800'}`}>{faq.q}</summary>
-                <p className={`mt-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{faq.a}</p>
+                <p className={`mt-4 ${isDarkMode ? 'text-gray-100' : 'text-gray-600'}`}>{faq.a}</p>
               </details>
             ))}
           </div>
@@ -669,7 +669,7 @@ function greet(name) {
 
       {/* Footer */}
       <footer className={`relative z-10 px-8 py-6 mt-0 text-center border-t backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/20'}`}>
-        <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>© 2025 ChatRaj All rights reserved.</p>
+        <p className={`${isDarkMode ? 'text-gray-100' : 'text-gray-600'}`}>© 2025 ChatRaj All rights reserved.</p>
       </footer>
 
       <Suspense fallback={<div>Loading...</div>}>
