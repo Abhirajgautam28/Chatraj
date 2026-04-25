@@ -244,45 +244,45 @@ button {
   }
 }
 
-/* Liquid Wave Up View Transition specifically for Home Screen */
+/* Modern Card Reveal View Transition specifically for Home Screen */
 .theme-transition-liquid::view-transition-group(root) {
   animation-duration: var(--theme-transition-duration);
 }
 
 .theme-transition-liquid::view-transition-old(root) {
-  animation: wave-exit var(--theme-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) forwards;
+  animation: card-exit var(--theme-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) forwards;
   z-index: 1;
+  transform-origin: center top;
 }
 
 .theme-transition-liquid::view-transition-new(root) {
-  animation: wave-enter var(--theme-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) forwards;
+  animation: card-enter var(--theme-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) forwards;
   z-index: 2;
 }
 
-@keyframes wave-exit {
+@keyframes card-exit {
   0% {
     opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0px) brightness(1);
+    border-radius: 0;
   }
   100% {
-    opacity: 0;
+    opacity: 0.5;
+    transform: scale(0.9) translateY(-20px);
+    filter: blur(10px) brightness(0.6);
+    border-radius: 40px;
   }
 }
 
-@keyframes wave-enter {
+@keyframes card-enter {
   0% {
-    clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%, 0% 100%, 100% 100%, 100% 100%, 0% 100%);
-  }
-  25% {
-    clip-path: polygon(0% 100%, 100% 100%, 100% 70%, 75% 80%, 50% 65%, 25% 85%, 0% 70%, 0% 100%);
-  }
-  50% {
-    clip-path: polygon(0% 100%, 100% 100%, 100% 40%, 80% 30%, 55% 45%, 30% 25%, 0% 40%, 0% 100%);
-  }
-  75% {
-    clip-path: polygon(0% 100%, 100% 100%, 100% 10%, 75% 15%, 50% 5%, 25% 15%, 0% 5%, 0% 100%);
+    clip-path: inset(100% 10% 0 10% round 40px 40px 0 0);
+    transform: translateY(20px);
   }
   100% {
-    clip-path: polygon(0% 100%, 100% 100%, 100% 0%, 100% 0%, 50% 0%, 0% 0%, 0% 0%, 0% 100%);
+    clip-path: inset(0 0 0 0 round 0);
+    transform: translateY(0);
   }
 }
 
