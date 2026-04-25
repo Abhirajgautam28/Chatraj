@@ -245,49 +245,45 @@ button {
 }
 
 
-/* Vortex Diamond View Transition specifically for Home Screen */
+/* Liquid Wave Up View Transition specifically for Home Screen */
 .theme-transition-liquid::view-transition-group(root) {
   animation-duration: var(--theme-transition-duration);
 }
 
 .theme-transition-liquid::view-transition-old(root) {
-  animation: vortex-exit var(--theme-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) forwards;
+  animation: wave-exit var(--theme-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) forwards;
   z-index: 1;
-  transform-origin: center;
 }
 
 .theme-transition-liquid::view-transition-new(root) {
-  animation: vortex-enter var(--theme-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) forwards;
+  animation: wave-enter var(--theme-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) forwards;
   z-index: 2;
-  transform-origin: center;
 }
 
-@keyframes vortex-exit {
+@keyframes wave-exit {
   0% {
     opacity: 1;
-    transform: scale(1) rotate(0deg);
-    filter: blur(0px);
   }
   100% {
     opacity: 0;
-    transform: scale(0.8) rotate(-10deg);
-    filter: blur(10px);
   }
 }
 
-@keyframes vortex-enter {
+@keyframes wave-enter {
   0% {
-    clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%);
-    transform: scale(1.2) rotate(10deg);
-    filter: blur(10px);
+    clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%, 0% 100%, 100% 100%, 100% 100%, 0% 100%);
+  }
+  25% {
+    clip-path: polygon(0% 100%, 100% 100%, 100% 70%, 75% 80%, 50% 65%, 25% 85%, 0% 70%, 0% 100%);
   }
   50% {
-    clip-path: polygon(50% -50%, 150% 50%, 50% 150%, -50% 50%);
+    clip-path: polygon(0% 100%, 100% 100%, 100% 40%, 80% 30%, 55% 45%, 30% 25%, 0% 40%, 0% 100%);
+  }
+  75% {
+    clip-path: polygon(0% 100%, 100% 100%, 100% 10%, 75% 15%, 50% 5%, 25% 15%, 0% 5%, 0% 100%);
   }
   100% {
-    clip-path: polygon(50% -150%, 250% 50%, 50% 250%, -150% 50%);
-    transform: scale(1) rotate(0deg);
-    filter: blur(0px);
+    clip-path: polygon(0% 100%, 100% 100%, 100% 0%, 100% 0%, 50% 0%, 0% 0%, 0% 0%, 0% 100%);
   }
 }
 /* Fallback for browsers that do not support View Transitions */
