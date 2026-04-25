@@ -8,7 +8,7 @@ export const executeThemeTransition = (toggleFn, shouldReduceMotion = false, isH
     return;
   }
 
-  const durationClass = isHome ? 'theme-transition-liquid' : 'theme-transition';
+  const durationClass = isHome ? 'theme-transition-circle' : 'theme-transition';
 
   if (isHome) {
      document.documentElement.style.setProperty('--theme-transition-duration', '1.5s');

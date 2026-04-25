@@ -138,7 +138,7 @@ const faqs = [
 
 const Home = () => {
   const { user } = useContext(UserContext);
-  const { isDarkMode, setIsDarkMode } = useContext(ThemeContext);
+  const { isDarkMode, setIsDarkMode, toggleThemeGlobal } = useContext(ThemeContext);
   const navigate = useNavigate();
 
   const [isNavVisible, setIsNavVisible] = useState(true);
@@ -239,7 +239,7 @@ const Home = () => {
           duration: 0.3,
           ease: "easeInOut"
         }}
-        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-4 backdrop-blur-md border-b ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/20'}`}
+        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-4 clay-md border-none-b `}
       >
         <div className="flex items-center gap-2">
           <i className={`text-3xl ${isDarkMode ? 'text-white' : 'text-blue-600'} ri-robot-2-line`}></i>
@@ -248,24 +248,24 @@ const Home = () => {
         <div className="flex items-center gap-4">
           <Link
             to="/register"
-            className={`px-6 py-2 transition-all rounded-full ${isDarkMode ? 'text-white hover:bg-white/10' : 'text-gray-600 hover:text-blue-600'}`}
+            className={`px-6 py-2 transition-all rounded-full ${isDarkMode ? 'text-white' : 'text-gray-600'} clay-button`}
           >
             Register
           </Link>
           <Link
             to="/login"
-            className={`px-6 py-2 transition-all rounded-full ${isDarkMode ? 'text-blue-500 bg-white hover:bg-blue-50' : 'text-gray-600 hover:text-blue-600'}`}
+            className={`px-6 py-2 transition-all rounded-full ${isDarkMode ? 'text-blue-500' : 'text-gray-600'} clay-button`}
           >
             Login
           </Link>
           <button
             onClick={handleTryChatRaj}
-            className="px-6 py-2 text-white transition-all bg-blue-600 rounded-full hover:bg-blue-700"
+            className="px-6 py-2 text-white transition-all bg-blue-600 rounded-full hover:bg-blue-700 clay-button"
           >
             Try ChatRaj
           </button>
           <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
+            onClick={() => toggleThemeGlobal(false, true)}
             className={`p-2 transition-colors rounded-lg ${isDarkMode ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}
           >
             <i className={`text-xl ${isDarkMode ? 'ri-sun-line' : 'ri-moon-line'}`}></i>
@@ -299,13 +299,13 @@ const Home = () => {
         >
           <button
             onClick={handleTryChatRaj}
-            className="px-8 py-3 text-lg font-medium text-white transition-all bg-blue-600 rounded-full shadow-lg hover:bg-blue-700"
+            className="px-8 py-3 text-lg font-medium text-white transition-all bg-blue-600 rounded-full shadow-lg hover:bg-blue-700 clay-button"
           >
             Try ChatRaj Free
           </button>
           <Link
             to="/register"
-            className={`px-8 py-3 text-lg font-medium transition-all rounded-full ${isDarkMode ? 'text-white hover:bg-white/10' : 'text-blue-600 hover:bg-blue-100'}`}
+            className={`px-8 py-3 text-lg font-medium transition-all rounded-full ${isDarkMode ? 'text-white' : 'text-blue-600'} clay-button`}
           >
             Create Account
           </Link>
@@ -315,7 +315,7 @@ const Home = () => {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.7 }}
-          className={`max-w-2xl p-6 mx-auto mt-16 transition-all duration-300 border shadow-xl rounded-xl group backdrop-blur-md hover:scale-105 hover:shadow-2xl hover:border-blue-400/50 ${isDarkMode ? 'bg-gray-900/40 border-white/10 hover:bg-gray-800/50' : 'bg-white/40 border-white/40 hover:bg-white/60'}`}
+          className={`max-w-2xl p-6 mx-auto mt-16 transition-all duration-300 border-none shadow-xl rounded-xl group clay-md hover:scale-105 hover:shadow-2xl`}
         >
           <pre className={`font-mono text-base leading-relaxed text-left ${isDarkMode ? 'text-blue-200' : 'text-black'}`}>
             {`// AI-powered code suggestion
@@ -340,7 +340,7 @@ function greet(name) {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`p-6 transition-all duration-300 border rounded-xl shadow-lg backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'} hover:scale-105 hover:shadow-2xl hover:border-blue-400/50`}
+                className={`p-6 transition-all duration-300 border-none rounded-xl shadow-lg clay-md  hover:scale-105 hover:shadow-2xl`}
               >
                 <i className={`text-4xl ${isDarkMode ? 'text-blue-500' : 'text-blue-600'} ${feature.icon}`}></i>
                 <h3 className={`mt-4 mb-2 text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{feature.title}</h3>
@@ -362,7 +362,7 @@ function greet(name) {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`p-6 transition-all duration-300 border rounded-xl shadow-lg backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'} hover:scale-105 hover:shadow-2xl hover:border-blue-400/50`}
+                className={`p-6 transition-all duration-300 border-none rounded-xl shadow-lg clay-md  hover:scale-105 hover:shadow-2xl`}
               >
                 <i className={`text-3xl ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} ${useCase.icon}`}></i>
                 <h3 className={`mt-4 mb-2 text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{useCase.title}</h3>
@@ -383,7 +383,7 @@ function greet(name) {
                 initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`flex gap-4 p-6 transition-all duration-300 border rounded-xl shadow-lg backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'} hover:scale-105 hover:shadow-2xl hover:border-blue-400/50`}
+                className={`flex gap-4 p-6 transition-all duration-300 border-none rounded-xl shadow-lg clay-md  hover:scale-105 hover:shadow-2xl`}
               >
                 <div className={`flex items-center justify-center w-12 h-12 rounded-lg ${isDarkMode ? 'bg-blue-500/10' : 'bg-blue-100'}`}>
                   <i className={`text-2xl ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} ${benefit.icon}`}></i>
@@ -408,7 +408,7 @@ function greet(name) {
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`flex flex-col items-center p-6 text-center border rounded-xl shadow-lg backdrop-blur-md transition-all duration-300 ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'} hover:scale-105 hover:shadow-2xl hover:border-blue-400/50`}
+                className={`flex flex-col items-center p-6 text-center border-none rounded-xl shadow-lg clay-md transition-all duration-300  hover:scale-105 hover:shadow-2xl`}
               >
                 <i className={`text-4xl ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} ${tech.icon}`}></i>
                 <span className={`mt-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{tech.name}</span>
@@ -459,7 +459,7 @@ function greet(name) {
 
       {/* Project Showcase Section */}
       <section className="relative py-20 z-10 px-4">
-        <div className={`max-w-4xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'}`}>
+        <div className={`max-w-4xl mx-auto p-8 border-none rounded-2xl shadow-xl clay-md `}>
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Project Showcase</h2>
           <ProjectShowcase />
         </div>
@@ -467,7 +467,7 @@ function greet(name) {
 
       {/* User Leaderboard Section */}
       <section className="relative py-20 z-10 px-4">
-        <div className={`max-w-4xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'}`}>
+        <div className={`max-w-4xl mx-auto p-8 border-none rounded-2xl shadow-xl clay-md `}>
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>User Leaderboard</h2>
           <UserLeaderboard />
         </div>
@@ -478,7 +478,7 @@ function greet(name) {
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Frequently Asked Questions</h2>
           <div className="space-y-6">
             {faqs.map((faq, i) => (
-              <details key={i} className={`p-6 border rounded-xl shadow-lg backdrop-blur-md transition-all duration-300 ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'}`}>
+              <details key={i} className={`p-6 border-none rounded-xl shadow-lg clay-md transition-all duration-300 `}>
                 <summary className={`mb-2 text-lg font-semibold cursor-pointer ${isDarkMode ? 'text-blue-400' : 'text-gray-800'}`}>{faq.q}</summary>
                 <p className={`mt-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{faq.a}</p>
               </details>
@@ -487,20 +487,20 @@ function greet(name) {
         </div>
       </section>
       <section className="relative py-20 z-10 px-4">
-        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'}`}>
+        <div className={`max-w-6xl mx-auto p-8 border-none rounded-2xl shadow-xl clay-md `}>
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Blogs</h2>
           <Blog user={user} />
         </div>
       </section>
 
       <section className="relative py-20 z-10 px-4">
-        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'}`}>
+        <div className={`max-w-6xl mx-auto p-8 border-none rounded-2xl shadow-xl clay-md `}>
             <ContactUs />
         </div>
       </section>
 
       <section className="relative px-4 py-20 z-10">
-        <div className={`max-w-xl mx-auto text-center p-8 border rounded-2xl shadow-xl backdrop-blur-md ${isDarkMode ? 'bg-blue-900/40 border-blue-400/20' : 'bg-white/40 border-white/50'}`}>
+        <div className={`max-w-xl mx-auto text-center p-8 border-none rounded-2xl shadow-xl clay-md `}>
           <h2 className={`mb-4 text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Stay Updated</h2>
           <p className={`mb-8 text-lg ${isDarkMode ? 'text-blue-100' : 'text-gray-600'}`}>
             Subscribe to our newsletter for the latest features and updates.
@@ -515,7 +515,7 @@ function greet(name) {
           <motion.button
             whileTap={{ scale: 0.96 }}
             onClick={() => setShowFabMenu((v) => !v)}
-            className="flex items-center justify-center w-12 h-12 text-2xl text-white bg-blue-600 rounded-full shadow-lg hover:bg-blue-700 focus:outline-none overflow-hidden"
+            className="flex items-center justify-center w-12 h-12 text-2xl text-white bg-blue-600 rounded-full shadow-lg hover:bg-blue-700 clay-button focus:outline-none overflow-hidden"
             aria-label="Quick Actions"
             style={{ zIndex: 2, position: 'relative' }}
           >
@@ -668,7 +668,7 @@ function greet(name) {
       </div>
 
       {/* Footer */}
-      <footer className={`relative z-10 px-8 py-6 mt-0 text-center border-t backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/20'}`}>
+      <footer className={`relative z-10 px-8 py-6 mt-0 text-center border-none clay-md `}>
         <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>© 2025 ChatRaj All rights reserved.</p>
       </footer>
 

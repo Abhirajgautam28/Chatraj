@@ -299,3 +299,106 @@ button {
 .theme-transitioning * {
   transition: background-color var(--theme-transition-duration) ease, color var(--theme-transition-duration) ease, border-color var(--theme-transition-duration) ease, fill var(--theme-transition-duration) ease, stroke var(--theme-transition-duration) ease !important;
 }
+
+.theme-transition-circle::view-transition-group(root) {
+  animation-duration: var(--theme-transition-duration);
+}
+
+.theme-transition-circle::view-transition-old(root) {
+  animation: circle-exit var(--theme-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) forwards;
+  z-index: 1;
+}
+
+.theme-transition-circle::view-transition-new(root) {
+  animation: circle-enter var(--theme-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) forwards;
+  z-index: 2;
+}
+
+@keyframes circle-exit {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes circle-enter {
+  0% {
+    clip-path: circle(0% at 50% 50%);
+  }
+  100% {
+    clip-path: circle(150% at 50% 50%);
+  }
+}
+
+
+@layer components {
+  .clay {
+    box-shadow:
+      inset 4px 4px 10px rgba(255, 255, 255, 0.7),
+      inset -4px -4px 10px rgba(0, 0, 0, 0.1),
+      8px 8px 16px rgba(0, 0, 0, 0.1),
+      -8px -8px 16px rgba(255, 255, 255, 0.5);
+    background-color: #f3f4f6; /* Gray-100 */
+    border-radius: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .dark .clay {
+    box-shadow:
+      inset 4px 4px 10px rgba(255, 255, 255, 0.05),
+      inset -4px -4px 10px rgba(0, 0, 0, 0.4),
+      8px 8px 16px rgba(0, 0, 0, 0.4),
+      -8px -8px 16px rgba(255, 255, 255, 0.02);
+    background-color: #1f2937; /* Gray-800 */
+  }
+
+  .clay-md {
+    box-shadow:
+      inset 6px 6px 15px rgba(255, 255, 255, 0.6),
+      inset -6px -6px 15px rgba(0, 0, 0, 0.1),
+      10px 10px 20px rgba(0, 0, 0, 0.1),
+      -10px -10px 20px rgba(255, 255, 255, 0.4);
+    background-color: #f3f4f6;
+    border-radius: 1.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .dark .clay-md {
+    box-shadow:
+      inset 6px 6px 15px rgba(255, 255, 255, 0.04),
+      inset -6px -6px 15px rgba(0, 0, 0, 0.5),
+      10px 10px 20px rgba(0, 0, 0, 0.5),
+      -10px -10px 20px rgba(255, 255, 255, 0.02);
+    background-color: #1f2937;
+  }
+
+  .clay-button {
+    box-shadow:
+      inset 2px 2px 5px rgba(255, 255, 255, 0.5),
+      inset -2px -2px 5px rgba(0, 0, 0, 0.2),
+      4px 4px 8px rgba(0, 0, 0, 0.1),
+      -4px -4px 8px rgba(255, 255, 255, 0.5);
+    background-color: #3b82f6; /* Blue-500 */
+    color: white;
+    transition: all 0.2s ease;
+  }
+
+  .clay-button:active {
+    box-shadow:
+      inset 4px 4px 10px rgba(0, 0, 0, 0.2),
+      inset -4px -4px 10px rgba(255, 255, 255, 0.2),
+      0px 0px 0px rgba(0, 0, 0, 0.1),
+      0px 0px 0px rgba(255, 255, 255, 0.5);
+    transform: translateY(2px);
+  }
+
+  .dark .clay-button {
+    box-shadow:
+      inset 2px 2px 5px rgba(255, 255, 255, 0.2),
+      inset -2px -2px 5px rgba(0, 0, 0, 0.4),
+      4px 4px 8px rgba(0, 0, 0, 0.3),
+      -4px -4px 8px rgba(255, 255, 255, 0.05);
+  }
+}
