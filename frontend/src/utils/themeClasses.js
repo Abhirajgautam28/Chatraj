@@ -69,37 +69,37 @@ export const getThemeClasses = (uiTheme, isDarkMode) => {
     },
     minimalist: {
       container: isDarkMode
-        ? 'bg-[#000000] border border-[#333333] shadow-none rounded-none'
-        : 'bg-[#ffffff] border border-[#e5e5e5] shadow-none rounded-none',
-      textMain: isDarkMode ? 'text-white font-light tracking-wide' : 'text-black font-light tracking-wide',
-      textMuted: isDarkMode ? 'text-gray-400 font-light' : 'text-gray-500 font-light',
-      border: isDarkMode ? 'border-[#333333]' : 'border-[#e5e5e5]',
+        ? 'bg-[#09090b] border border-[#27272a] shadow-sm rounded-3xl'
+        : 'bg-white border border-[#e4e4e7] shadow-sm rounded-3xl',
+      textMain: isDarkMode ? 'text-[#f4f4f5] font-medium tracking-tight' : 'text-[#09090b] font-medium tracking-tight',
+      textMuted: isDarkMode ? 'text-[#a1a1aa]' : 'text-[#71717a]',
+      border: isDarkMode ? 'border-[#27272a]' : 'border-[#e4e4e7]',
       input: isDarkMode
-        ? 'bg-[#0a0a0a] text-white border-b border-[#333333] focus:border-white rounded-none placeholder-gray-600 focus:outline-none transition-all px-0'
-        : 'bg-[#fafafa] text-black border-b border-[#e5e5e5] focus:border-black rounded-none placeholder-gray-400 focus:outline-none transition-all px-0',
+        ? 'bg-[#09090b] text-[#f4f4f5] border border-[#27272a] focus:border-[#f4f4f5] rounded-full placeholder-[#71717a] focus:outline-none focus:ring-1 focus:ring-[#f4f4f5] transition-all px-6'
+        : 'bg-white text-[#09090b] border border-[#e4e4e7] focus:border-[#09090b] rounded-full placeholder-[#a1a1aa] focus:outline-none focus:ring-1 focus:ring-[#09090b] transition-all px-6',
       buttonPrimary: isDarkMode
-        ? 'bg-white text-black hover:bg-[#e5e5e5] border border-transparent rounded-none font-medium tracking-widest uppercase text-sm'
-        : 'bg-black text-white hover:bg-[#1a1a1a] border border-transparent rounded-none font-medium tracking-widest uppercase text-sm',
+        ? 'bg-[#f4f4f5] text-[#09090b] hover:bg-[#e4e4e7] border border-transparent rounded-full font-medium transition-colors'
+        : 'bg-[#09090b] text-[#f4f4f5] hover:bg-[#27272a] border border-transparent rounded-full font-medium transition-colors',
       buttonSecondary: isDarkMode
-        ? 'bg-transparent text-white hover:bg-[#111111] border border-[#333333] hover:border-white rounded-none font-medium tracking-widest uppercase text-sm transition-all'
-        : 'bg-transparent text-black hover:bg-[#fafafa] border border-[#e5e5e5] hover:border-black rounded-none font-medium tracking-widest uppercase text-sm transition-all'
+        ? 'bg-transparent text-[#f4f4f5] hover:bg-[#27272a] border border-[#27272a] rounded-full font-medium transition-colors'
+        : 'bg-transparent text-[#09090b] hover:bg-[#f4f4f5] border border-[#e4e4e7] rounded-full font-medium transition-colors'
     },
-    neumorphism: {
+    oneui: {
       container: isDarkMode
-        ? 'bg-[#1a1a2e] border-transparent shadow-[8px_8px_16px_#121220,-8px_-8px_16px_#22223c] rounded-2xl'
-        : 'bg-[#e0e5ec] border-transparent shadow-[9px_9px_16px_rgb(163,177,198,0.6),-9px_-9px_16px_rgba(255,255,255,0.5)] rounded-2xl',
-      textMain: isDarkMode ? 'text-[#e2e2e2]' : 'text-[#4d4d4d]',
-      textMuted: isDarkMode ? 'text-[#8c8c8c]' : 'text-[#797979]',
+        ? 'bg-[#1c1c1e] border-transparent shadow-lg rounded-[2.5rem] p-8'
+        : 'bg-[#f2f2f7] border-transparent shadow-lg rounded-[2.5rem] p-8',
+      textMain: isDarkMode ? 'text-white font-medium' : 'text-black font-medium',
+      textMuted: isDarkMode ? 'text-[#8e8e93]' : 'text-[#8e8e93]',
       border: 'border-transparent',
       input: isDarkMode
-        ? 'bg-[#1a1a2e] text-[#e2e2e2] border-transparent shadow-[inset_6px_6px_12px_#121220,inset_-6px_-6px_12px_#22223c] focus:outline-none focus:ring-1 focus:ring-[#22223c] rounded-xl transition-all'
-        : 'bg-[#e0e5ec] text-[#4d4d4d] border-transparent shadow-[inset_6px_6px_10px_0_rgba(163,177,198,0.6),inset_-6px_-6px_10px_0_rgba(255,255,255,0.5)] focus:outline-none focus:ring-1 focus:ring-white rounded-xl transition-all',
+        ? 'bg-[#2c2c2e] text-white border-transparent focus:bg-[#3a3a3c] rounded-full placeholder-[#8e8e93] focus:outline-none transition-colors px-6 py-4 shadow-inner'
+        : 'bg-white text-black border-transparent focus:bg-[#e5e5ea] rounded-full placeholder-[#8e8e93] focus:outline-none transition-colors px-6 py-4 shadow-sm',
       buttonPrimary: isDarkMode
-        ? 'bg-[#1a1a2e] text-[#4a90e2] shadow-[6px_6px_12px_#121220,-6px_-6px_12px_#22223c] hover:shadow-[inset_6px_6px_12px_#121220,inset_-6px_-6px_12px_#22223c] border-transparent rounded-xl font-semibold transition-all'
-        : 'bg-[#e0e5ec] text-[#4a90e2] shadow-[6px_6px_10px_0_rgba(163,177,198,0.6),-6px_-6px_10px_0_rgba(255,255,255,0.5)] hover:shadow-[inset_6px_6px_10px_0_rgba(163,177,198,0.6),inset_-6px_-6px_10px_0_rgba(255,255,255,0.5)] border-transparent rounded-xl font-semibold transition-all',
+        ? 'bg-[#0a84ff] text-white hover:bg-[#007aff] border-transparent rounded-full font-bold transition-transform hover:scale-[1.02] active:scale-95 shadow-md py-4'
+        : 'bg-[#007aff] text-white hover:bg-[#0a84ff] border-transparent rounded-full font-bold transition-transform hover:scale-[1.02] active:scale-95 shadow-md py-4',
       buttonSecondary: isDarkMode
-        ? 'bg-[#1a1a2e] text-[#e2e2e2] shadow-[6px_6px_12px_#121220,-6px_-6px_12px_#22223c] hover:shadow-[inset_6px_6px_12px_#121220,inset_-6px_-6px_12px_#22223c] border-transparent rounded-xl transition-all'
-        : 'bg-[#e0e5ec] text-[#4d4d4d] shadow-[6px_6px_10px_0_rgba(163,177,198,0.6),-6px_-6px_10px_0_rgba(255,255,255,0.5)] hover:shadow-[inset_6px_6px_10px_0_rgba(163,177,198,0.6),inset_-6px_-6px_10px_0_rgba(255,255,255,0.5)] border-transparent rounded-xl transition-all'
+        ? 'bg-[#2c2c2e] text-white hover:bg-[#3a3a3c] border-transparent rounded-full font-semibold transition-transform hover:scale-[1.02] active:scale-95 py-4'
+        : 'bg-white text-black hover:bg-[#e5e5ea] border-transparent rounded-full font-semibold transition-transform hover:scale-[1.02] active:scale-95 py-4 shadow-sm'
     }
   };
 

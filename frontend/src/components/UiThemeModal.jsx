@@ -11,8 +11,8 @@ const UiThemeModal = ({ isOpen, onRequestClose }) => {
     { id: 'glassmorphism', name: 'Glassmorphism', icon: 'ri-window-line' },
     { id: 'claymorphism', name: 'Claymorphism', icon: 'ri-shape-line' },
     { id: 'liquidglass', name: 'Liquid Glass', icon: 'ri-drop-line' },
-    { id: 'minimalist', name: 'Minimalist', icon: 'ri-checkbox-blank-line' },
-    { id: 'neumorphism', name: 'Neumorphism', icon: 'ri-macbook-line' }
+    { id: 'minimalist', name: 'Modern Minimal', icon: 'ri-artboard-line' },
+    { id: 'oneui', name: 'One UI', icon: 'ri-smartphone-line' }
   ];
 
   const handleSelect = (themeId) => {
