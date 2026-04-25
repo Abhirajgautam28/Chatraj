@@ -140,7 +140,7 @@ const faqs = [
 
 const Home = () => {
   const { user } = useContext(UserContext);
-  const { isDarkMode, setIsDarkMode, uiTheme } = useContext(ThemeContext);
+  const { isDarkMode, toggleThemeGlobal, uiTheme } = useContext(ThemeContext);
   const navigate = useNavigate();
 
   const [isNavVisible, setIsNavVisible] = useState(true);
@@ -269,7 +269,7 @@ const Home = () => {
             Try ChatRaj
           </button>
           <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
+            onClick={() => toggleThemeGlobal(false, true)}
             className={`p-2 transition-colors rounded-lg ${isDarkMode ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}
           >
             <i className={`text-xl ${isDarkMode ? 'ri-sun-line' : 'ri-moon-line'}`}></i>

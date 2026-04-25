@@ -69,20 +69,37 @@ export const getThemeClasses = (uiTheme, isDarkMode) => {
     },
     minimalist: {
       container: isDarkMode
-        ? 'bg-[#121212] border border-[#2A2A2A] shadow-sm rounded-lg'
-        : 'bg-white border border-gray-200 shadow-sm rounded-lg',
-      textMain: isDarkMode ? 'text-gray-100' : 'text-gray-900',
-      textMuted: isDarkMode ? 'text-gray-500' : 'text-gray-500',
-      border: isDarkMode ? 'border-[#2A2A2A]' : 'border-gray-200',
+        ? 'bg-[#000000] border border-[#333333] shadow-none rounded-none'
+        : 'bg-[#ffffff] border border-[#e5e5e5] shadow-none rounded-none',
+      textMain: isDarkMode ? 'text-white font-light tracking-wide' : 'text-black font-light tracking-wide',
+      textMuted: isDarkMode ? 'text-gray-400 font-light' : 'text-gray-500 font-light',
+      border: isDarkMode ? 'border-[#333333]' : 'border-[#e5e5e5]',
       input: isDarkMode
-        ? 'bg-[#1A1A1A] text-gray-100 border border-[#333] focus:border-blue-500 rounded-md placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all'
-        : 'bg-gray-50 text-gray-900 border border-gray-300 focus:border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-black transition-all',
+        ? 'bg-[#0a0a0a] text-white border-b border-[#333333] focus:border-white rounded-none placeholder-gray-600 focus:outline-none transition-all px-0'
+        : 'bg-[#fafafa] text-black border-b border-[#e5e5e5] focus:border-black rounded-none placeholder-gray-400 focus:outline-none transition-all px-0',
       buttonPrimary: isDarkMode
-        ? 'bg-white text-black hover:bg-gray-200 border border-transparent rounded-md font-medium'
-        : 'bg-black text-white hover:bg-gray-800 border border-transparent rounded-md font-medium',
+        ? 'bg-white text-black hover:bg-[#e5e5e5] border border-transparent rounded-none font-medium tracking-widest uppercase text-sm'
+        : 'bg-black text-white hover:bg-[#1a1a1a] border border-transparent rounded-none font-medium tracking-widest uppercase text-sm',
       buttonSecondary: isDarkMode
-        ? 'bg-transparent text-gray-300 hover:text-white border border-[#333] hover:border-gray-500 rounded-md'
-        : 'bg-transparent text-gray-600 hover:text-black border border-gray-300 hover:border-gray-500 rounded-md'
+        ? 'bg-transparent text-white hover:bg-[#111111] border border-[#333333] hover:border-white rounded-none font-medium tracking-widest uppercase text-sm transition-all'
+        : 'bg-transparent text-black hover:bg-[#fafafa] border border-[#e5e5e5] hover:border-black rounded-none font-medium tracking-widest uppercase text-sm transition-all'
+    },
+    neumorphism: {
+      container: isDarkMode
+        ? 'bg-[#1a1a2e] border-transparent shadow-[8px_8px_16px_#121220,-8px_-8px_16px_#22223c] rounded-2xl'
+        : 'bg-[#e0e5ec] border-transparent shadow-[9px_9px_16px_rgb(163,177,198,0.6),-9px_-9px_16px_rgba(255,255,255,0.5)] rounded-2xl',
+      textMain: isDarkMode ? 'text-[#e2e2e2]' : 'text-[#4d4d4d]',
+      textMuted: isDarkMode ? 'text-[#8c8c8c]' : 'text-[#797979]',
+      border: 'border-transparent',
+      input: isDarkMode
+        ? 'bg-[#1a1a2e] text-[#e2e2e2] border-transparent shadow-[inset_6px_6px_12px_#121220,inset_-6px_-6px_12px_#22223c] focus:outline-none focus:ring-1 focus:ring-[#22223c] rounded-xl transition-all'
+        : 'bg-[#e0e5ec] text-[#4d4d4d] border-transparent shadow-[inset_6px_6px_10px_0_rgba(163,177,198,0.6),inset_-6px_-6px_10px_0_rgba(255,255,255,0.5)] focus:outline-none focus:ring-1 focus:ring-white rounded-xl transition-all',
+      buttonPrimary: isDarkMode
+        ? 'bg-[#1a1a2e] text-[#4a90e2] shadow-[6px_6px_12px_#121220,-6px_-6px_12px_#22223c] hover:shadow-[inset_6px_6px_12px_#121220,inset_-6px_-6px_12px_#22223c] border-transparent rounded-xl font-semibold transition-all'
+        : 'bg-[#e0e5ec] text-[#4a90e2] shadow-[6px_6px_10px_0_rgba(163,177,198,0.6),-6px_-6px_10px_0_rgba(255,255,255,0.5)] hover:shadow-[inset_6px_6px_10px_0_rgba(163,177,198,0.6),inset_-6px_-6px_10px_0_rgba(255,255,255,0.5)] border-transparent rounded-xl font-semibold transition-all',
+      buttonSecondary: isDarkMode
+        ? 'bg-[#1a1a2e] text-[#e2e2e2] shadow-[6px_6px_12px_#121220,-6px_-6px_12px_#22223c] hover:shadow-[inset_6px_6px_12px_#121220,inset_-6px_-6px_12px_#22223c] border-transparent rounded-xl transition-all'
+        : 'bg-[#e0e5ec] text-[#4d4d4d] shadow-[6px_6px_10px_0_rgba(163,177,198,0.6),-6px_-6px_10px_0_rgba(255,255,255,0.5)] hover:shadow-[inset_6px_6px_10px_0_rgba(163,177,198,0.6),inset_-6px_-6px_10px_0_rgba(255,255,255,0.5)] border-transparent rounded-xl transition-all'
     }
   };
 

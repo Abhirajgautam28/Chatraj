@@ -434,3 +434,33 @@ button {
 
   }
 }
+
+/* Neumorphism theme toggle transition */
+.theme-transition-neumorphism::view-transition-group(root) {
+  animation-duration: var(--theme-transition-duration);
+}
+.theme-transition-neumorphism::view-transition-old(root) {
+  animation: neu-exit var(--theme-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.theme-transition-neumorphism::view-transition-new(root) {
+  animation: neu-enter var(--theme-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes neu-exit {
+  to { transform: translateX(-100%); opacity: 0.5; }
+}
+@keyframes neu-enter {
+  from { transform: translateX(100%); opacity: 0.5; }
+}
+
+/* Performance Optimizations for View Transitions */
+::view-transition-old(root),
+::view-transition-new(root) {
+  will-change: transform, opacity, filter;
+}
+
+/* Pause heavy background animations during view transition to reduce lag */
+html.theme-transitioning *,
+html[class*="theme-transition-"] * {
+  animation-play-state: paused !important;
+}
