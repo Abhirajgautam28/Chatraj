@@ -10,6 +10,8 @@ import { ThemeContext } from '../context/theme.context';
 import NewsletterSubscribeForm from '../components/NewsletterSubscribeForm.jsx';
 import Blog from '../components/Blog.jsx';
 import ContactUs from '../components/ContactUs.jsx';
+import UiThemeModal from '../components/UiThemeModal.jsx';
+import { getThemeClasses } from '../utils/themeClasses.js';
 
 const AskChatRajModal = lazy(() => import('../components/AskChatRajModal.jsx'));
 
@@ -138,14 +140,16 @@ const faqs = [
 
 const Home = () => {
   const { user } = useContext(UserContext);
-  const { isDarkMode, setIsDarkMode } = useContext(ThemeContext);
+  const { isDarkMode, setIsDarkMode, uiTheme } = useContext(ThemeContext);
   const navigate = useNavigate();
 
   const [isNavVisible, setIsNavVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showFabMenu, setShowFabMenu] = useState(false);
   const [showAskChatRajModal, setShowAskChatRajModal] = useState(false);
+  const [showUiThemeModal, setShowUiThemeModal] = useState(false);
 
+  const themeStyle = getThemeClasses(uiTheme, isDarkMode);
 
   useEffect(() => {
     if (user) {
@@ -652,6 +656,15 @@ function greet(name) {
                 >
                   <i className="ri-question-answer-line"></i> Ask ChatRaj
                 </button>
+                <button
+                  onClick={() => {
+                    setShowFabMenu(false);
+                    setShowUiThemeModal(true);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 text-blue-600 transition rounded hover:bg-blue-50"
+                >
+                  <i className="ri-palette-line"></i> Change UI Theme
+                </button>
                 <a
                   href="https://github.com/Abhirajgautam28/Chatraj"
                   target="_blank"
@@ -679,6 +692,10 @@ function greet(name) {
             onRequestClose={() => setShowAskChatRajModal(false)}
           />
         )}
+        <UiThemeModal
+           isOpen={showUiThemeModal}
+           onRequestClose={() => setShowUiThemeModal(false)}
+        />
       </Suspense>
     </div>
   );
