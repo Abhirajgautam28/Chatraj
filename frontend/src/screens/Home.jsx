@@ -179,21 +179,21 @@ const Home = () => {
   const AnimatedBg = () => (
     <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
       <motion.div
-        className="absolute bg-blue-700 rounded-full w-96 h-96 opacity-20 blur-3xl"
+        className={`absolute rounded-full w-96 h-96 blur-[100px] ${isDarkMode ? "bg-blue-500/50" : "bg-blue-400/60"}`}
         initial={{ scale: 0, x: -200, y: -100 }}
         animate={{ scale: 1, x: 0, y: 0 }}
         transition={{ duration: 1.2, delay: 0.2 }}
         style={{ top: '-6rem', left: '-8rem' }}
       />
       <motion.div
-        className="absolute bg-purple-600 rounded-full w-80 h-80 opacity-20 blur-3xl"
+        className={`absolute rounded-full w-80 h-80 blur-[100px] ${isDarkMode ? "bg-purple-500/50" : "bg-purple-400/60"}`}
         initial={{ scale: 0, x: 200, y: 100 }}
         animate={{ scale: 1, x: 0, y: 0 }}
         transition={{ duration: 1.2, delay: 0.4 }}
         style={{ bottom: '-6rem', right: '-8rem' }}
       />
       <motion.div
-        className="absolute bg-pink-500 rounded-full w-72 h-72 opacity-10 blur-2xl"
+        className={`absolute rounded-full w-72 h-72 blur-[100px] ${isDarkMode ? "bg-pink-500/40" : "bg-pink-400/50"}`}
         initial={{ scale: 0, x: 0, y: 200 }}
         animate={{ scale: 1, x: 0, y: 0 }}
         transition={{ duration: 1.2, delay: 0.6 }}
@@ -313,7 +313,7 @@ function greet(name) {
 
       {/* Features */}
       <section className="relative px-4 py-20 z-10">
-        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-slate-900/40 border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] backdrop-blur-2xl hover:bg-slate-900/50 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6),0_0_20px_rgba(59,130,246,0.15),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),inset_0_1px_1px_rgba(255,255,255,0.8)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.25),inset_0_1px_1px_rgba(255,255,255,1)] hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2rem] hover:rounded-[1rem] transition-all duration-500 ease-out transform-gpu`}>
+        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-gray-800/40 border-t border-l border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl hover:bg-gray-800/60 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6)] hover:border-white/30 hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-t border-l border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.1)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.2)] hover:border-white/80 hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2rem] hover:rounded-[1rem] transition-all duration-500 ease-out transform-gpu`}>
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Key Features</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {features.map((feature, index) => (
@@ -326,7 +326,7 @@ function greet(name) {
               >
                 <i className={`text-4xl ${isDarkMode ? 'text-blue-500' : 'text-blue-600'} ${feature.icon}`}></i>
                 <h3 className={`mt-4 mb-2 text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{feature.title}</h3>
-                <p className={`${isDarkMode ? 'text-gray-200' : 'text-gray-600'}`}>{feature.description}</p>
+                <p className={`${isDarkMode ? 'text-gray-100' : 'text-gray-600'}`}>{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -335,7 +335,7 @@ function greet(name) {
       </section>
 
       <section className="relative py-20 z-10">
-        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-slate-900/40 border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] backdrop-blur-2xl hover:bg-slate-900/50 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6),0_0_20px_rgba(59,130,246,0.15),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),inset_0_1px_1px_rgba(255,255,255,0.8)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.25),inset_0_1px_1px_rgba(255,255,255,1)] hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2rem] hover:rounded-[3rem] transition-all duration-500 ease-out transform-gpu`}>
+        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-gray-800/40 border-t border-l border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl hover:bg-gray-800/60 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6)] hover:border-white/30 hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-t border-l border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.1)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.2)] hover:border-white/80 hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2rem] hover:rounded-[3rem] transition-all duration-500 ease-out transform-gpu`}>
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Popular Use Cases</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {useCases.map((useCase, index) => (
@@ -348,7 +348,7 @@ function greet(name) {
               >
                 <i className={`text-3xl ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} ${useCase.icon}`}></i>
                 <h3 className={`mt-4 mb-2 text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{useCase.title}</h3>
-                <p className={`${isDarkMode ? 'text-gray-200' : 'text-gray-600'}`}>{useCase.description}</p>
+                <p className={`${isDarkMode ? 'text-gray-100' : 'text-gray-600'}`}>{useCase.description}</p>
               </motion.div>
             ))}
           </div>
@@ -356,7 +356,7 @@ function greet(name) {
       </section>
 
       <section className="relative px-4 py-20 z-10">
-        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-slate-900/40 border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] backdrop-blur-2xl hover:bg-slate-900/50 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6),0_0_20px_rgba(59,130,246,0.15),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),inset_0_1px_1px_rgba(255,255,255,0.8)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.25),inset_0_1px_1px_rgba(255,255,255,1)] hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2rem] hover:rounded-[1.5rem] transition-all duration-500 ease-out transform-gpu`}>
+        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-gray-800/40 border-t border-l border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl hover:bg-gray-800/60 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6)] hover:border-white/30 hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-t border-l border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.1)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.2)] hover:border-white/80 hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2rem] hover:rounded-[1.5rem] transition-all duration-500 ease-out transform-gpu`}>
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Why Choose ChatRaj</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             {benefits.map((benefit, index) => (
@@ -372,7 +372,7 @@ function greet(name) {
                 </div>
                 <div>
                   <h3 className={`mb-2 text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{benefit.title}</h3>
-                  <p className={`${isDarkMode ? 'text-gray-200' : 'text-gray-600'}`}>{benefit.description}</p>
+                  <p className={`${isDarkMode ? 'text-gray-100' : 'text-gray-600'}`}>{benefit.description}</p>
                 </div>
               </motion.div>
             ))}
@@ -381,7 +381,7 @@ function greet(name) {
       </section>
 
       <section className="relative px-4 py-20 z-10">
-        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-slate-900/40 border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] backdrop-blur-2xl hover:bg-slate-900/50 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6),0_0_20px_rgba(59,130,246,0.15),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),inset_0_1px_1px_rgba(255,255,255,0.8)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.25),inset_0_1px_1px_rgba(255,255,255,1)] hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2rem] hover:rounded-[2.5rem] transition-all duration-500 ease-out transform-gpu`}>
+        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-gray-800/40 border-t border-l border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl hover:bg-gray-800/60 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6)] hover:border-white/30 hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-t border-l border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.1)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.2)] hover:border-white/80 hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2rem] hover:rounded-[2.5rem] transition-all duration-500 ease-out transform-gpu`}>
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Powered By</h2>
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
             {techStack.map((tech, index) => (
@@ -401,10 +401,10 @@ function greet(name) {
       </section>
 
       <section className="relative px-4 py-20 overflow-x-auto z-10">
-        <div className={`flex flex-col items-center w-full max-w-6xl gap-12 mx-auto md:flex-row p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-slate-900/40 border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] backdrop-blur-2xl hover:bg-slate-900/50 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6),0_0_20px_rgba(59,130,246,0.15),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),inset_0_1px_1px_rgba(255,255,255,0.8)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.25),inset_0_1px_1px_rgba(255,255,255,1)] hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2.5rem] transition-all duration-500 ease-out transform-gpu`}>
+        <div className={`flex flex-col items-center w-full max-w-6xl gap-12 mx-auto md:flex-row p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-gray-800/40 border-t border-l border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl hover:bg-gray-800/60 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6)] hover:border-white/30 hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-t border-l border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.1)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.2)] hover:border-white/80 hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2.5rem] transition-all duration-500 ease-out transform-gpu`}>
           <div className="flex-1 min-w-0">
             <h2 className={`mb-8 text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>How ChatRaj Works</h2>
-            <ol className={`space-y-6 text-lg ${isDarkMode ? 'text-gray-200' : 'text-gray-600'}`}>
+            <ol className={`space-y-6 text-lg ${isDarkMode ? 'text-gray-100' : 'text-gray-600'}`}>
               <li>
                 <span className="font-bold text-blue-400">1.</span> Register or log in to your account.
               </li>
@@ -441,22 +441,22 @@ function greet(name) {
 
       {/* Project Showcase Section */}
       <section className="relative py-20 z-10">
-        <div className={`max-w-4xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-slate-900/40 border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] backdrop-blur-2xl hover:bg-slate-900/50 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6),0_0_20px_rgba(59,130,246,0.15),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),inset_0_1px_1px_rgba(255,255,255,0.8)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.25),inset_0_1px_1px_rgba(255,255,255,1)] hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2rem] transition-all duration-500 ease-out transform-gpu`}>
-          <h2 className="mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}">Project Showcase</h2>
+        <div className={`max-w-4xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-gray-800/40 border-t border-l border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl hover:bg-gray-800/60 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6)] hover:border-white/30 hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-t border-l border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.1)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.2)] hover:border-white/80 hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2rem] transition-all duration-500 ease-out transform-gpu`}>
+          <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? "text-white" : "text-gray-800"}`}>Project Showcase</h2>
           <ProjectShowcase />
         </div>
       </section>
 
       {/* User Leaderboard Section */}
       <section className="relative py-20 z-10">
-        <div className={`max-w-4xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-slate-900/40 border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] backdrop-blur-2xl hover:bg-slate-900/50 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6),0_0_20px_rgba(59,130,246,0.15),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),inset_0_1px_1px_rgba(255,255,255,0.8)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.25),inset_0_1px_1px_rgba(255,255,255,1)] hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2rem] transition-all duration-500 ease-out transform-gpu`}>
-          <h2 className="mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}">User Leaderboard</h2>
+        <div className={`max-w-4xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-gray-800/40 border-t border-l border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl hover:bg-gray-800/60 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6)] hover:border-white/30 hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-t border-l border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.1)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.2)] hover:border-white/80 hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2rem] transition-all duration-500 ease-out transform-gpu`}>
+          <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? "text-white" : "text-gray-800"}`}>User Leaderboard</h2>
           <UserLeaderboard />
         </div>
       </section>
 
       <section className="relative px-4 py-20 z-10">
-        <div className={`max-w-4xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-slate-900/40 border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] backdrop-blur-2xl hover:bg-slate-900/50 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6),0_0_20px_rgba(59,130,246,0.15),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),inset_0_1px_1px_rgba(255,255,255,0.8)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.25),inset_0_1px_1px_rgba(255,255,255,1)] hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2rem] transition-all duration-500 ease-out transform-gpu`}>
+        <div className={`max-w-4xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-gray-800/40 border-t border-l border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl hover:bg-gray-800/60 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6)] hover:border-white/30 hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-t border-l border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.1)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.2)] hover:border-white/80 hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2rem] transition-all duration-500 ease-out transform-gpu`}>
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Frequently Asked Questions</h2>
           <div className="space-y-6">
             {faqs.map((faq, i) => (
@@ -469,19 +469,19 @@ function greet(name) {
         </div>
       </section>
       <section className="relative py-20 z-10">
-        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-slate-900/40 border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] backdrop-blur-2xl hover:bg-slate-900/50 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6),0_0_20px_rgba(59,130,246,0.15),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),inset_0_1px_1px_rgba(255,255,255,0.8)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.25),inset_0_1px_1px_rgba(255,255,255,1)] hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2.5rem] transition-all duration-500 ease-out transform-gpu`}>
+        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-gray-800/40 border-t border-l border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl hover:bg-gray-800/60 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6)] hover:border-white/30 hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-t border-l border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.1)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.2)] hover:border-white/80 hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2.5rem] transition-all duration-500 ease-out transform-gpu`}>
           <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Blogs</h2>
           <Blog user={user} />
         </div>
       </section>
       <section className="relative py-20 z-10 px-4">
-        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-slate-900/40 border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] backdrop-blur-2xl hover:bg-slate-900/50 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6),0_0_20px_rgba(59,130,246,0.15),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),inset_0_1px_1px_rgba(255,255,255,0.8)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.25),inset_0_1px_1px_rgba(255,255,255,1)] hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2.5rem] transition-all duration-500 ease-out transform-gpu`}>
+        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-gray-800/40 border-t border-l border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl hover:bg-gray-800/60 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6)] hover:border-white/30 hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-t border-l border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.1)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.2)] hover:border-white/80 hover:-translate-y-2 hover:scale-[1.01]'} rounded-[2.5rem] transition-all duration-500 ease-out transform-gpu`}>
             <ContactUs />
         </div>
       </section>
 
       <section className="relative px-4 py-20 z-10">
-        <div className={`max-w-xl mx-auto text-center p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-slate-900/40 border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] backdrop-blur-2xl hover:bg-slate-900/50 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6),0_0_20px_rgba(59,130,246,0.15),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),inset_0_1px_1px_rgba(255,255,255,0.8)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.25),inset_0_1px_1px_rgba(255,255,255,1)] hover:-translate-y-2 hover:scale-[1.01]'} rounded-[3rem] hover:rounded-[2rem] transition-all duration-500 ease-out transform-gpu`}>
+        <div className={`max-w-xl mx-auto text-center p-8 border rounded-2xl shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-gray-800/40 border-t border-l border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl hover:bg-gray-800/60 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.6)] hover:border-white/30 hover:-translate-y-2 hover:scale-[1.01]' : 'bg-white/40 border-t border-l border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.1)] backdrop-blur-2xl hover:bg-white/50 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.2)] hover:border-white/80 hover:-translate-y-2 hover:scale-[1.01]'} rounded-[3rem] hover:rounded-[2rem] transition-all duration-500 ease-out transform-gpu`}>
           <h2 className={`mb-4 text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Stay Updated</h2>
           <p className={`mb-8 text-lg ${isDarkMode ? 'text-blue-50' : 'text-gray-600'}`}>
             Subscribe to our newsletter for the latest features and updates.
@@ -650,7 +650,7 @@ function greet(name) {
 
       {/* Footer */}
       <footer className={`relative z-10 px-8 py-6 mt-0 text-center border-t backdrop-blur-xl ${isDarkMode ? 'bg-white/[0.05] border-white/10' : 'bg-white/[0.1] border-white/30'}`}>
-        <p className={`${isDarkMode ? 'text-gray-200' : 'text-gray-600'}`}>© 2025 ChatRaj All rights reserved.</p>
+        <p className={`${isDarkMode ? 'text-gray-100' : 'text-gray-600'}`}>© 2025 ChatRaj All rights reserved.</p>
       </footer>
 
       <Suspense fallback={<div>Loading...</div>}>
