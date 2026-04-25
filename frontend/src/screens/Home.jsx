@@ -175,54 +175,28 @@ const Home = () => {
     }
   };
 
-  // For animated background shapes
+  // For animated background shapes using blob animations
   const AnimatedBg = () => (
-    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-      <motion.div
-        className={`absolute rounded-full w-[30rem] h-[30rem] blur-[100px] ${isDarkMode ? 'bg-blue-600 opacity-20' : 'bg-blue-400 opacity-30'}`}
-        animate={{
-          x: [0, 100, -100, 0],
-          y: [0, -100, 100, 0],
-          scale: [1, 1.1, 0.9, 1],
-        }}
-        transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-        style={{ top: '-10%', left: '-10%' }}
-      />
-      <motion.div
-        className={`absolute rounded-full w-[25rem] h-[25rem] blur-[100px] ${isDarkMode ? 'bg-purple-600 opacity-20' : 'bg-purple-400 opacity-30'}`}
-        animate={{
-          x: [0, -100, 100, 0],
-          y: [0, 100, -100, 0],
-          scale: [1, 0.9, 1.1, 1],
-        }}
-        transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-        style={{ bottom: '-10%', right: '-5%' }}
-      />
-      <motion.div
-        className={`absolute rounded-full w-[20rem] h-[20rem] blur-[80px] ${isDarkMode ? 'bg-pink-500 opacity-15' : 'bg-pink-300 opacity-30'}`}
-        animate={{
-          x: [0, 50, -50, 0],
-          y: [0, 100, 50, 0],
-          scale: [1, 1.2, 1, 1],
-        }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        style={{ top: '40%', left: '30%' }}
-      />
-      <motion.div
-        className={`absolute rounded-full w-[28rem] h-[28rem] blur-[100px] ${isDarkMode ? 'bg-emerald-500 opacity-15' : 'bg-emerald-300 opacity-30'}`}
-        animate={{
-          x: [0, -80, 80, 0],
-          y: [0, -80, 80, 0],
-          scale: [1, 1.1, 0.9, 1],
-        }}
-        transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
-        style={{ top: '60%', right: '20%' }}
-      />
+    <div className={`fixed inset-0 z-0 overflow-hidden pointer-events-none transition-colors duration-700 ${isDarkMode ? 'bg-[#1a1b26]' : 'bg-[#e0e5ec]'}`}>
+      <div className="absolute top-0 -left-4 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-2xl opacity-70 animate-blob"></div>
+      <div className="absolute top-0 -right-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-2xl opacity-70 animate-blob animation-delay-2000"></div>
+      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-2xl opacity-70 animate-blob animation-delay-4000"></div>
+      {isDarkMode && (
+        <>
+          <div className="absolute inset-0 bg-black/40 z-0"></div>
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-900/50 rounded-full mix-blend-screen filter blur-[100px] animate-blob"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-900/50 rounded-full mix-blend-screen filter blur-[100px] animate-blob animation-delay-4000"></div>
+        </>
+      )}
     </div>
   );
 
+  const themeClasses = isDarkMode ? 'clay-md-dark text-gray-200' : 'clay-md text-gray-800';
+  const navClasses = isDarkMode ? 'clay-sm-dark' : 'clay-sm';
+  const textClasses = isDarkMode ? 'text-gray-200' : 'text-gray-800';
+
   return (
-    <div className={`flex flex-col min-h-screen overflow-x-hidden ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className={`flex flex-col min-h-screen overflow-x-hidden ${isDarkMode ? 'bg-[#1a1b26]' : 'bg-[#e0e5ec]'}`}>
       {/* Only render AnimatedBg if user does not prefer reduced motion */}
       {typeof window !== "undefined" && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && (
         <AnimatedBg />
@@ -239,34 +213,34 @@ const Home = () => {
           duration: 0.3,
           ease: "easeInOut"
         }}
-        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-4 backdrop-blur-md border-b ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/20'}`}
+        className={`fixed top-4 left-4 right-4 z-50 flex items-center justify-between px-8 py-4 rounded-3xl ${navClasses}`}
       >
         <div className="flex items-center gap-2">
           <i className={`text-3xl ${isDarkMode ? 'text-white' : 'text-blue-600'} ri-robot-2-line`}></i>
-          <span className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>ChatRaj</span>
+          <span className={`text-2xl font-bold ${textClasses}`}>ChatRaj</span>
         </div>
         <div className="flex items-center gap-4">
           <Link
             to="/register"
-            className={`px-6 py-2 transition-all rounded-full ${isDarkMode ? 'text-white hover:bg-white/10' : 'text-gray-600 hover:text-blue-600'}`}
+            className={`px-6 py-2 transition-all rounded-xl ${isDarkMode ? 'clay-btn-dark text-white' : 'clay-btn text-gray-800'}`}
           >
             Register
           </Link>
           <Link
             to="/login"
-            className={`px-6 py-2 transition-all rounded-full ${isDarkMode ? 'text-blue-500 bg-white hover:bg-blue-50' : 'text-gray-600 hover:text-blue-600'}`}
+            className={`px-6 py-2 transition-all rounded-xl ${isDarkMode ? 'clay-btn-dark text-blue-400' : 'clay-btn text-blue-600'}`}
           >
             Login
           </Link>
           <button
             onClick={handleTryChatRaj}
-            className="px-6 py-2 text-white transition-all bg-blue-600 rounded-full hover:bg-blue-700"
+            className={`px-6 py-2 transition-all rounded-xl text-white ${isDarkMode ? 'clay-btn-dark bg-blue-600' : 'clay-btn bg-blue-500'}`}
           >
             Try ChatRaj
           </button>
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
-            className={`p-2 transition-colors rounded-lg ${isDarkMode ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}
+            className={`p-2 transition-all rounded-xl ${isDarkMode ? 'clay-btn-dark text-gray-300' : 'clay-btn text-gray-600'}`}
           >
             <i className={`text-xl ${isDarkMode ? 'ri-sun-line' : 'ri-moon-line'}`}></i>
           </button>
@@ -274,20 +248,20 @@ const Home = () => {
       </motion.nav>
 
       {/* Hero */}
-      <section className="relative flex flex-col items-center justify-center min-h-screen text-center">
+      <section className="relative flex flex-col items-center justify-center min-h-screen text-center mt-20">
         <TextType
           text={["Your Intelligent Software Engineering Assistant"]}
           typingSpeed={75}
           pauseDuration={1500}
           showCursor={true}
           cursorCharacter="|"
-          className="text-4xl md:text-5xl font-bold text-center text-blue-900 dark:text-blue-200 block w-full mb-6"
+          className={`text-4xl md:text-5xl font-bold text-center block w-full mb-6 ${isDarkMode ? 'text-blue-300' : 'text-blue-600'}`}
         />
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className={`max-w-2xl mb-8 text-xl ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
+          className={`max-w-2xl mb-8 text-xl ${textClasses}`}
         >
           Streamline your development workflow with AI-powered code assistance, real-time collaboration, and intelligent project management.
         </motion.p>
@@ -299,13 +273,13 @@ const Home = () => {
         >
           <button
             onClick={handleTryChatRaj}
-            className="px-8 py-3 text-lg font-medium text-white transition-all bg-blue-600 rounded-full shadow-lg hover:bg-blue-700"
+            className={`px-8 py-3 text-lg font-medium text-white transition-all rounded-2xl ${isDarkMode ? 'clay-btn-dark bg-blue-600' : 'clay-btn bg-blue-500'}`}
           >
             Try ChatRaj Free
           </button>
           <Link
             to="/register"
-            className={`px-8 py-3 text-lg font-medium transition-all rounded-full ${isDarkMode ? 'text-white hover:bg-white/10' : 'text-blue-600 hover:bg-blue-100'}`}
+            className={`px-8 py-3 text-lg font-medium transition-all rounded-2xl ${isDarkMode ? 'clay-btn-dark text-white' : 'clay-btn text-blue-600'}`}
           >
             Create Account
           </Link>
@@ -315,9 +289,9 @@ const Home = () => {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.7 }}
-          className={`max-w-2xl p-6 mx-auto mt-16 transition-all duration-300 border shadow-xl rounded-xl group backdrop-blur-md hover:scale-105 hover:shadow-2xl hover:border-blue-400/50 ${isDarkMode ? 'bg-gray-900/40 border-white/10 hover:bg-gray-800/50' : 'bg-white/40 border-white/40 hover:bg-white/60'}`}
+          className={`max-w-2xl p-6 mx-auto mt-16 transition-all duration-300 rounded-3xl group hover:scale-105 ${themeClasses}`}
         >
-          <pre className={`font-mono text-base leading-relaxed text-left ${isDarkMode ? 'text-blue-200' : 'text-black'}`}>
+          <pre className={`font-mono text-base leading-relaxed text-left ${isDarkMode ? 'text-blue-200' : 'text-gray-800'}`}>
             {`// AI-powered code suggestion
 function greet(name) {
   return \`Hello, \${name} 👋\`;
@@ -332,7 +306,7 @@ function greet(name) {
       {/* Features */}
       <section className="relative px-4 py-20 z-10">
         <div className="max-w-6xl mx-auto">
-          <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Key Features</h2>
+          <h2 className={`mb-12 text-4xl font-bold text-center ${textClasses}`}>Key Features</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {features.map((feature, index) => (
               <motion.div
@@ -340,11 +314,11 @@ function greet(name) {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`p-6 transition-all duration-300 border rounded-xl shadow-lg backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'} hover:scale-105 hover:shadow-2xl hover:border-blue-400/50`}
+                className={`p-6 transition-all duration-300 rounded-3xl hover:scale-105 ${themeClasses}`}
               >
-                <i className={`text-4xl ${isDarkMode ? 'text-blue-500' : 'text-blue-600'} ${feature.icon}`}></i>
-                <h3 className={`mt-4 mb-2 text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{feature.title}</h3>
-                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{feature.description}</p>
+                <i className={`text-4xl ${isDarkMode ? 'text-blue-400' : 'text-blue-500'} ${feature.icon}`}></i>
+                <h3 className={`mt-4 mb-2 text-xl font-semibold ${textClasses}`}>{feature.title}</h3>
+                <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -354,7 +328,7 @@ function greet(name) {
 
       <section className="relative py-20 z-10">
         <div className="max-w-6xl mx-auto">
-          <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Popular Use Cases</h2>
+          <h2 className={`mb-12 text-4xl font-bold text-center ${textClasses}`}>Popular Use Cases</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {useCases.map((useCase, index) => (
               <motion.div
@@ -362,11 +336,11 @@ function greet(name) {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`p-6 transition-all duration-300 border rounded-xl shadow-lg backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'} hover:scale-105 hover:shadow-2xl hover:border-blue-400/50`}
+                className={`p-6 transition-all duration-300 rounded-3xl hover:scale-105 ${themeClasses}`}
               >
-                <i className={`text-3xl ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} ${useCase.icon}`}></i>
-                <h3 className={`mt-4 mb-2 text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{useCase.title}</h3>
-                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{useCase.description}</p>
+                <i className={`text-3xl ${isDarkMode ? 'text-blue-400' : 'text-blue-500'} ${useCase.icon}`}></i>
+                <h3 className={`mt-4 mb-2 text-lg font-semibold ${textClasses}`}>{useCase.title}</h3>
+                <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{useCase.description}</p>
               </motion.div>
             ))}
           </div>
@@ -375,7 +349,7 @@ function greet(name) {
 
       <section className="relative px-4 py-20 z-10">
         <div className="max-w-6xl mx-auto">
-          <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Why Choose ChatRaj</h2>
+          <h2 className={`mb-12 text-4xl font-bold text-center ${textClasses}`}>Why Choose ChatRaj</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             {benefits.map((benefit, index) => (
               <motion.div
@@ -383,14 +357,14 @@ function greet(name) {
                 initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`flex gap-4 p-6 transition-all duration-300 border rounded-xl shadow-lg backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'} hover:scale-105 hover:shadow-2xl hover:border-blue-400/50`}
+                className={`flex gap-4 p-6 transition-all duration-300 rounded-3xl hover:scale-105 ${themeClasses}`}
               >
-                <div className={`flex items-center justify-center w-12 h-12 rounded-lg ${isDarkMode ? 'bg-blue-500/10' : 'bg-blue-100'}`}>
-                  <i className={`text-2xl ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} ${benefit.icon}`}></i>
+                <div className={`flex items-center justify-center w-12 h-12 rounded-2xl ${isDarkMode ? 'clay-sm-dark text-blue-400' : 'clay-sm text-blue-500'}`}>
+                  <i className={`text-2xl ${benefit.icon}`}></i>
                 </div>
                 <div>
-                  <h3 className={`mb-2 text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{benefit.title}</h3>
-                  <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{benefit.description}</p>
+                  <h3 className={`mb-2 text-lg font-semibold ${textClasses}`}>{benefit.title}</h3>
+                  <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{benefit.description}</p>
                 </div>
               </motion.div>
             ))}
@@ -400,7 +374,7 @@ function greet(name) {
 
       <section className="relative px-4 py-20 z-10">
         <div className="max-w-6xl mx-auto">
-          <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Powered By</h2>
+          <h2 className={`mb-12 text-4xl font-bold text-center ${textClasses}`}>Powered By</h2>
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
             {techStack.map((tech, index) => (
               <motion.div
@@ -408,10 +382,10 @@ function greet(name) {
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`flex flex-col items-center p-6 text-center border rounded-xl shadow-lg backdrop-blur-md transition-all duration-300 ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'} hover:scale-105 hover:shadow-2xl hover:border-blue-400/50`}
+                className={`flex flex-col items-center p-6 text-center transition-all duration-300 rounded-3xl hover:scale-105 ${themeClasses}`}
               >
-                <i className={`text-4xl ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} ${tech.icon}`}></i>
-                <span className={`mt-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{tech.name}</span>
+                <i className={`text-4xl ${isDarkMode ? 'text-blue-400' : 'text-blue-500'} ${tech.icon}`}></i>
+                <span className={`mt-2 font-medium ${textClasses}`}>{tech.name}</span>
               </motion.div>
             ))}
           </div>
@@ -421,28 +395,28 @@ function greet(name) {
       <section className="relative px-4 py-20 overflow-x-auto z-10">
         <div className="flex flex-col items-center w-full max-w-6xl gap-12 mx-auto md:flex-row">
           <div className="flex-1 min-w-0">
-            <h2 className={`mb-8 text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>How ChatRaj Works</h2>
-            <ol className={`space-y-6 text-lg ${isDarkMode ? 'text-gray-200' : 'text-gray-600'}`}>
-              <li>
-                <span className="font-bold text-blue-400">1.</span> Register or log in to your account.
+            <h2 className={`mb-8 text-4xl font-bold ${textClasses}`}>How ChatRaj Works</h2>
+            <ol className={`space-y-6 text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              <li className={`p-4 rounded-2xl ${themeClasses}`}>
+                <span className={`font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>1.</span> Register or log in to your account.
               </li>
-              <li>
-                <span className="font-bold text-blue-400">2.</span> Create or join a project and invite your team.
+              <li className={`p-4 rounded-2xl ${themeClasses}`}>
+                <span className={`font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>2.</span> Create or join a project and invite your team.
               </li>
-              <li>
-                <span className="font-bold text-blue-400">3.</span> Start coding with AI-powered suggestions and real-time chat.
+              <li className={`p-4 rounded-2xl ${themeClasses}`}>
+                <span className={`font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>3.</span> Start coding with AI-powered suggestions and real-time chat.
               </li>
-              <li>
-                <span className="font-bold text-blue-400">4.</span> Run, test, and review code collaboratively.
+              <li className={`p-4 rounded-2xl ${themeClasses}`}>
+                <span className={`font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>4.</span> Run, test, and review code collaboratively.
               </li>
-              <li>
-                <span className="font-bold text-blue-400">5.</span> Export, share, and manage your projects securely.
+              <li className={`p-4 rounded-2xl ${themeClasses}`}>
+                <span className={`font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>5.</span> Export, share, and manage your projects securely.
               </li>
             </ol>
           </div>
           <div className="flex items-center justify-center flex-1 min-w-0">
             {/* 3D-like SVG illustration */}
-            <svg className="w-full h-auto max-w-xs" viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg className="w-full h-auto max-w-xs drop-shadow-2xl" viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg">
               <ellipse cx="160" cy="200" rx="120" ry="18" fill="#1e293b" opacity="0.5" />
               <rect x="60" y="40" width="200" height="120" rx="20" fill="#334155" stroke="#60a5fa" strokeWidth="3" />
               <rect x="90" y="70" width="140" height="60" rx="12" fill="#1e293b" stroke="#818cf8" strokeWidth="2" />
@@ -459,27 +433,27 @@ function greet(name) {
 
       {/* Project Showcase Section */}
       <section className="relative py-20 z-10 px-4">
-        <div className={`max-w-4xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'}`}>
-          <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Project Showcase</h2>
+        <div className={`max-w-4xl mx-auto p-8 rounded-3xl ${themeClasses}`}>
+          <h2 className={`mb-12 text-4xl font-bold text-center ${textClasses}`}>Project Showcase</h2>
           <ProjectShowcase />
         </div>
       </section>
 
       {/* User Leaderboard Section */}
       <section className="relative py-20 z-10 px-4">
-        <div className={`max-w-4xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'}`}>
-          <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>User Leaderboard</h2>
+        <div className={`max-w-4xl mx-auto p-8 rounded-3xl ${themeClasses}`}>
+          <h2 className={`mb-12 text-4xl font-bold text-center ${textClasses}`}>User Leaderboard</h2>
           <UserLeaderboard />
         </div>
       </section>
 
       <section className="relative px-4 py-20 z-10">
         <div className="max-w-4xl mx-auto">
-          <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Frequently Asked Questions</h2>
+          <h2 className={`mb-12 text-4xl font-bold text-center ${textClasses}`}>Frequently Asked Questions</h2>
           <div className="space-y-6">
             {faqs.map((faq, i) => (
-              <details key={i} className={`p-6 border rounded-xl shadow-lg backdrop-blur-md transition-all duration-300 ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'}`}>
-                <summary className={`mb-2 text-lg font-semibold cursor-pointer ${isDarkMode ? 'text-blue-400' : 'text-gray-800'}`}>{faq.q}</summary>
+              <details key={i} className={`p-6 rounded-3xl transition-all duration-300 ${themeClasses}`}>
+                <summary className={`mb-2 text-lg font-semibold cursor-pointer ${isDarkMode ? 'text-blue-300' : 'text-blue-600'}`}>{faq.q}</summary>
                 <p className={`mt-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{faq.a}</p>
               </details>
             ))}
@@ -487,20 +461,20 @@ function greet(name) {
         </div>
       </section>
       <section className="relative py-20 z-10 px-4">
-        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'}`}>
-          <h2 className={`mb-12 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Blogs</h2>
+        <div className={`max-w-6xl mx-auto p-8 rounded-3xl ${themeClasses}`}>
+          <h2 className={`mb-12 text-4xl font-bold text-center ${textClasses}`}>Blogs</h2>
           <Blog user={user} />
         </div>
       </section>
 
       <section className="relative py-20 z-10 px-4">
-        <div className={`max-w-6xl mx-auto p-8 border rounded-2xl shadow-xl backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/40'}`}>
+        <div className={`max-w-6xl mx-auto p-8 rounded-3xl ${themeClasses}`}>
             <ContactUs />
         </div>
       </section>
 
       <section className="relative px-4 py-20 z-10">
-        <div className={`max-w-xl mx-auto text-center p-8 border rounded-2xl shadow-xl backdrop-blur-md ${isDarkMode ? 'bg-blue-900/40 border-blue-400/20' : 'bg-white/40 border-white/50'}`}>
+        <div className={`max-w-xl mx-auto text-center p-8 rounded-3xl ${themeClasses}`}>
           <h2 className={`mb-4 text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Stay Updated</h2>
           <p className={`mb-8 text-lg ${isDarkMode ? 'text-blue-100' : 'text-gray-600'}`}>
             Subscribe to our newsletter for the latest features and updates.
@@ -515,7 +489,7 @@ function greet(name) {
           <motion.button
             whileTap={{ scale: 0.96 }}
             onClick={() => setShowFabMenu((v) => !v)}
-            className="flex items-center justify-center w-12 h-12 text-2xl text-white bg-blue-600 rounded-full shadow-lg hover:bg-blue-700 focus:outline-none overflow-hidden"
+            className={`flex items-center justify-center w-16 h-16 text-3xl transition-all rounded-3xl text-white focus:outline-none overflow-hidden ${isDarkMode ? 'clay-btn-dark bg-blue-600' : 'clay-btn bg-blue-500'}`}
             aria-label="Quick Actions"
             style={{ zIndex: 2, position: 'relative' }}
           >
@@ -617,8 +591,7 @@ function greet(name) {
                 animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
                 exit={{ opacity: 0, y: 40, scale: 0.8, filter: 'blur(8px)' }}
                 transition={{ type: 'spring', stiffness: 400, damping: 30, duration: 0.35 }}
-                className="absolute right-0 flex flex-col w-48 gap-2 p-4 bg-white rounded-lg shadow-xl bottom-14"
-                style={{ boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.25)' }}
+                className={`absolute right-0 flex flex-col w-48 gap-2 p-4 rounded-3xl bottom-20 ${themeClasses}`}
               >
                 <button
                   onClick={() => {
@@ -668,7 +641,7 @@ function greet(name) {
       </div>
 
       {/* Footer */}
-      <footer className={`relative z-10 px-8 py-6 mt-0 text-center border-t backdrop-blur-md ${isDarkMode ? 'bg-gray-900/40 border-white/10' : 'bg-white/40 border-white/20'}`}>
+      <footer className={`relative z-10 px-8 py-6 mt-0 text-center rounded-t-3xl ${themeClasses}`}>
         <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>© 2025 ChatRaj All rights reserved.</p>
       </footer>
 
