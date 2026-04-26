@@ -435,21 +435,21 @@ button {
   }
 }
 
-/* One UI theme toggle transition */
-.theme-transition-oneui::view-transition-group(root) {
+/* Material UI theme toggle transition */
+.theme-transition-materialui::view-transition-group(root) {
   animation-duration: var(--theme-transition-duration);
 }
-.theme-transition-oneui::view-transition-old(root) {
-  animation: oneui-exit var(--theme-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+.theme-transition-materialui::view-transition-old(root) {
+  animation: materialui-exit var(--theme-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
-.theme-transition-oneui::view-transition-new(root) {
-  animation: oneui-enter var(--theme-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+.theme-transition-materialui::view-transition-new(root) {
+  animation: materialui-enter var(--theme-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-@keyframes oneui-exit {
+@keyframes materialui-exit {
   to { transform: translateX(-100%); opacity: 0.5; }
 }
-@keyframes oneui-enter {
+@keyframes materialui-enter {
   from { transform: translateX(100%); opacity: 0.5; }
 }
 

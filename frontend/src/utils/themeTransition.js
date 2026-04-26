@@ -24,7 +24,7 @@ export const executeThemeTransition = (toggleFn, shouldReduceMotion = false, isH
         document.documentElement.style.setProperty('--theme-transition-duration', '0.6s');
      } else if (activeTheme === 'minimalist') {
         document.documentElement.style.setProperty('--theme-transition-duration', '0.2s');
-     } else if (activeTheme === 'oneui') {
+     } else if (activeTheme === 'materialui') {
         document.documentElement.style.setProperty('--theme-transition-duration', '0.4s');
      } else {
         document.documentElement.style.setProperty('--theme-transition-duration', '0.35s');

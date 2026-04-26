@@ -12,7 +12,7 @@ const UiThemeModal = ({ isOpen, onRequestClose }) => {
     { id: 'claymorphism', name: 'Claymorphism', icon: 'ri-shape-line' },
     { id: 'liquidglass', name: 'Liquid Glass', icon: 'ri-drop-line' },
     { id: 'minimalist', name: 'Modern Minimal', icon: 'ri-artboard-line' },
-    { id: 'oneui', name: 'One UI', icon: 'ri-smartphone-line' }
+    { id: 'materialui', name: 'Material UI', icon: 'ri-google-fill' }
   ];
 
   const handleSelect = (themeId) => {

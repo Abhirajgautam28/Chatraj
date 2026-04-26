@@ -75,8 +75,8 @@ export const getThemeClasses = (uiTheme, isDarkMode) => {
       textMuted: isDarkMode ? 'text-[#a1a1aa]' : 'text-[#71717a]',
       border: isDarkMode ? 'border-[#27272a]' : 'border-[#e4e4e7]',
       input: isDarkMode
-        ? 'bg-[#09090b] text-[#f4f4f5] border border-[#27272a] focus:border-[#f4f4f5] rounded-full placeholder-[#71717a] focus:outline-none focus:ring-1 focus:ring-[#f4f4f5] transition-all px-6'
-        : 'bg-white text-[#09090b] border border-[#e4e4e7] focus:border-[#09090b] rounded-full placeholder-[#a1a1aa] focus:outline-none focus:ring-1 focus:ring-[#09090b] transition-all px-6',
+        ? 'bg-[#09090b] text-[#f4f4f5] border border-[#27272a] focus:border-[#f4f4f5] rounded-full placeholder-[#71717a] focus:outline-none focus:ring-1 focus:ring-[#f4f4f5] transition-all px-4'
+        : 'bg-white text-[#09090b] border border-[#e4e4e7] focus:border-[#09090b] rounded-full placeholder-[#a1a1aa] focus:outline-none focus:ring-1 focus:ring-[#09090b] transition-all px-4',
       buttonPrimary: isDarkMode
         ? 'bg-[#f4f4f5] text-[#09090b] hover:bg-[#e4e4e7] border border-transparent rounded-full font-medium transition-colors'
         : 'bg-[#09090b] text-[#f4f4f5] hover:bg-[#27272a] border border-transparent rounded-full font-medium transition-colors',
@@ -84,22 +84,22 @@ export const getThemeClasses = (uiTheme, isDarkMode) => {
         ? 'bg-transparent text-[#f4f4f5] hover:bg-[#27272a] border border-[#27272a] rounded-full font-medium transition-colors'
         : 'bg-transparent text-[#09090b] hover:bg-[#f4f4f5] border border-[#e4e4e7] rounded-full font-medium transition-colors'
     },
-    oneui: {
+    materialui: {
       container: isDarkMode
-        ? 'bg-[#1c1c1e] border-transparent shadow-lg rounded-[2.5rem] p-8'
-        : 'bg-[#f2f2f7] border-transparent shadow-lg rounded-[2.5rem] p-8',
-      textMain: isDarkMode ? 'text-white font-medium' : 'text-black font-medium',
-      textMuted: isDarkMode ? 'text-[#8e8e93]' : 'text-[#8e8e93]',
+        ? 'bg-[#1e1e1e] border-transparent shadow-[0_4px_6px_rgba(0,0,0,0.3)] rounded-2xl'
+        : 'bg-white border-transparent shadow-[0_4px_6px_rgba(0,0,0,0.1)] rounded-2xl',
+      textMain: isDarkMode ? 'text-[#e3e3e3] font-medium' : 'text-[#1f1f1f] font-medium',
+      textMuted: isDarkMode ? 'text-[#c4c7c5]' : 'text-[#444746]',
       border: 'border-transparent',
       input: isDarkMode
-        ? 'bg-[#2c2c2e] text-white border-transparent focus:bg-[#3a3a3c] rounded-full placeholder-[#8e8e93] focus:outline-none transition-colors px-6 py-4 shadow-inner'
-        : 'bg-white text-black border-transparent focus:bg-[#e5e5ea] rounded-full placeholder-[#8e8e93] focus:outline-none transition-colors px-6 py-4 shadow-sm',
+        ? 'bg-[#303030] text-white border-b-2 border-transparent focus:border-[#a8c7fa] rounded-t-lg rounded-b-none placeholder-[#c4c7c5] focus:outline-none transition-colors px-4 shadow-[inset_0_-1px_0_0_#474747]'
+        : 'bg-[#f0f4f9] text-black border-b-2 border-transparent focus:border-[#0b57d0] rounded-t-lg rounded-b-none placeholder-[#444746] focus:outline-none transition-colors px-4 shadow-[inset_0_-1px_0_0_#c4c7c5]',
       buttonPrimary: isDarkMode
-        ? 'bg-[#0a84ff] text-white hover:bg-[#007aff] border-transparent rounded-full font-bold transition-transform hover:scale-[1.02] active:scale-95 shadow-md py-4'
-        : 'bg-[#007aff] text-white hover:bg-[#0a84ff] border-transparent rounded-full font-bold transition-transform hover:scale-[1.02] active:scale-95 shadow-md py-4',
+        ? 'bg-[#a8c7fa] text-[#062e6f] hover:bg-[#b9d2fa] border-transparent rounded-full font-medium transition-all hover:shadow-[0_1px_3px_1px_rgba(0,0,0,0.15)] active:shadow-none'
+        : 'bg-[#0b57d0] text-white hover:bg-[#1b62d4] border-transparent rounded-full font-medium transition-all hover:shadow-[0_1px_3px_1px_rgba(0,0,0,0.15)] active:shadow-none',
       buttonSecondary: isDarkMode
-        ? 'bg-[#2c2c2e] text-white hover:bg-[#3a3a3c] border-transparent rounded-full font-semibold transition-transform hover:scale-[1.02] active:scale-95 py-4'
-        : 'bg-white text-black hover:bg-[#e5e5ea] border-transparent rounded-full font-semibold transition-transform hover:scale-[1.02] active:scale-95 py-4 shadow-sm'
+        ? 'bg-transparent text-[#a8c7fa] hover:bg-[#a8c7fa]/10 border border-[#444746] rounded-full font-medium transition-colors'
+        : 'bg-transparent text-[#0b57d0] hover:bg-[#0b57d0]/10 border border-[#747775] rounded-full font-medium transition-colors'
     }
   };
 

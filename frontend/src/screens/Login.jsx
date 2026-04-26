@@ -251,7 +251,7 @@ const Login = () => {
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className={`w-full p-3 transition-all duration-300 outline-none ${themeStyle.input}`}
+                            className={`w-full py-3 px-4 transition-all duration-300 outline-none ${themeStyle.input}`}
                             placeholder="your.email@example.com"
                             required
                         />
@@ -265,7 +265,7 @@ const Login = () => {
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className={`w-full p-3 transition-all duration-300 outline-none ${themeStyle.input}`}
+                            className={`w-full py-3 px-4 transition-all duration-300 outline-none ${themeStyle.input}`}
                             placeholder="••••••••"
                             required
                         />
@@ -282,7 +282,7 @@ const Login = () => {
 
                     <button
                         type="submit"
-                        className={`w-full p-3 font-bold transition duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 ${themeStyle.buttonPrimary}`}
+                        className={`w-full py-3 px-4 font-bold transition duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 ${themeStyle.buttonPrimary}`}
                     >
                         Login
                     </button>
@@ -330,14 +330,14 @@ const Login = () => {
                                             type="email"
                                             value={resetEmail}
                                             onChange={(e) => setResetEmail(e.target.value)}
-                                            className={`w-full p-3 mb-4 transition duration-300 outline-none ${themeStyle.input}`}
+                                            className={`w-full py-3 px-4 mb-4 transition duration-300 outline-none ${themeStyle.input}`}
                                             placeholder="Enter your email"
                                             required
                                             disabled={resetOtpSent}
                                         />
                                         <button
                                             type="submit"
-                                            className={`w-full p-3 ${themeStyle.buttonPrimary}`}
+                                            className={`w-full py-3 px-4 ${themeStyle.buttonPrimary}`}
                                             disabled={resetOtpSent}
                                         >
                                             {resetOtpSent ? 'OTP Sent' : 'Send OTP'}
@@ -366,7 +366,7 @@ const Login = () => {
                                             type="text"
                                             value={resetOtp}
                                             onChange={e => setResetOtp(e.target.value)}
-                                            className={`w-full p-3 mb-2 transition duration-300 outline-none ${themeStyle.input}`}
+                                            className={`w-full py-3 px-4 mb-2 transition duration-300 outline-none ${themeStyle.input}`}
                                             placeholder="Enter OTP"
                                             required
                                         />
@@ -410,7 +410,7 @@ const Login = () => {
                                         </div>
                                         <button
                                             type="submit"
-                                            className={`w-full p-3 ${themeStyle.buttonPrimary}`}
+                                            className={`w-full py-3 px-4 ${themeStyle.buttonPrimary}`}
                                         >
                                             Verify OTP
                                         </button>
@@ -434,7 +434,7 @@ const Login = () => {
                                                 type={showPassword ? "text" : "password"}
                                                 value={resetNewPassword}
                                                 onChange={e => setResetNewPassword(e.target.value)}
-                                                className={`w-full p-3 transition duration-300 outline-none pr-10 ${themeStyle.input}`}
+                                                className={`w-full py-3 pl-4 pr-10 transition duration-300 outline-none ${themeStyle.input}`}
                                                 placeholder="Enter new password"
                                                 required
                                                 disabled={resetSuccess}
@@ -453,14 +453,14 @@ const Login = () => {
                                             type="password"
                                             value={resetConfirmPassword}
                                             onChange={e => setResetConfirmPassword(e.target.value)}
-                                            className={`w-full p-3 mb-4 transition duration-300 outline-none ${themeStyle.input}`}
+                                            className={`w-full py-3 px-4 mb-4 transition duration-300 outline-none ${themeStyle.input}`}
                                             placeholder="Confirm new password"
                                             required
                                             disabled={resetSuccess}
                                         />
                                         <button
                                             type="submit"
-                                            className={`w-full p-3 ${themeStyle.buttonPrimary} ${resetInProgress ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                            className={`w-full py-3 px-4 ${themeStyle.buttonPrimary} ${resetInProgress ? 'opacity-60 cursor-not-allowed' : ''}`}
                                             disabled={resetSuccess || resetInProgress}
                                         >
                                             {resetSuccess ? 'Password Reset Successful' : resetInProgress ? 'Resetting...' : 'Reset Password'}

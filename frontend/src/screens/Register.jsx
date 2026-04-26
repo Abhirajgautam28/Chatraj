@@ -182,11 +182,11 @@ const Register = () => {
                                 type="text"
                                 value={otp}
                                 onChange={e => setOtp(e.target.value)}
-                                className={`w-full p-3 mb-4 transition duration-300 outline-none ${themeStyle.input}`}
+                                className={`w-full py-3 px-4 mb-4 transition duration-300 outline-none ${themeStyle.input}`}
                                 placeholder="Enter the OTP sent to your email"
                                 required
                             />
-                            <button type="submit" className={`w-full p-3 ${themeStyle.buttonPrimary}`}>Verify OTP</button>
+                            <button type="submit" className={`w-full py-3 px-4 ${themeStyle.buttonPrimary}`}>Verify OTP</button>
                         </form>
                     </div>
                 </div>
@@ -227,7 +227,7 @@ const Register = () => {
                                 type="text"
                                 value={firstName}
                                 onChange={(e) => setFirstName(e.target.value)}
-                                className={`w-full p-3 transition-all duration-300 outline-none ${themeStyle.input}`}
+                                className={`w-full py-3 px-4 transition-all duration-300 outline-none ${themeStyle.input}`}
                                 placeholder="John"
                                 required
                             />
@@ -240,7 +240,7 @@ const Register = () => {
                                 type="text"
                                 value={lastName}
                                 onChange={(e) => setLastName(e.target.value)}
-                                className={`w-full p-3 transition-all duration-300 outline-none ${themeStyle.input}`}
+                                className={`w-full py-3 px-4 transition-all duration-300 outline-none ${themeStyle.input}`}
                                 placeholder="Doe"
                                 required
                             />
@@ -254,7 +254,7 @@ const Register = () => {
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className={`w-full p-3 transition-all duration-300 outline-none ${themeStyle.input}`}
+                            className={`w-full py-3 px-4 transition-all duration-300 outline-none ${themeStyle.input}`}
                             placeholder="your.email@example.com"
                             required
                         />
@@ -277,7 +277,7 @@ const Register = () => {
                             type="text"
                             value={googleApiKey}
                             onChange={(e) => setGoogleApiKey(e.target.value)}
-                            className={`w-full p-3 transition-all duration-300 outline-none ${themeStyle.input}`}
+                            className={`w-full py-3 px-4 transition-all duration-300 outline-none ${themeStyle.input}`}
                             placeholder="Enter your Google API Key"
                             required
                         />
@@ -291,7 +291,7 @@ const Register = () => {
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className={`w-full p-3 transition-all duration-300 outline-none ${themeStyle.input}`}
+                                className={`w-full py-3 px-4 transition-all duration-300 outline-none ${themeStyle.input}`}
                                 placeholder="••••••••"
                                 required
                             />
@@ -304,7 +304,7 @@ const Register = () => {
                                 type="password"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                className={`w-full p-3 transition-all duration-300 outline-none ${themeStyle.input}`}
+                                className={`w-full py-3 px-4 transition-all duration-300 outline-none ${themeStyle.input}`}
                                 placeholder="••••••••"
                                 required
                             />
@@ -313,7 +313,7 @@ const Register = () => {
 
                     <button
                         type="submit"
-                        className={`w-full p-3 font-bold transition duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 ${themeStyle.buttonPrimary}`}
+                        className={`w-full py-3 px-4 font-bold transition duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 ${themeStyle.buttonPrimary}`}
                     >
                         Register
                     </button>
