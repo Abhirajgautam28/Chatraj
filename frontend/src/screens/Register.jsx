@@ -18,8 +18,8 @@ const Register = () => {
     const [showOtpModal, setShowOtpModal] = useState(false);
     const [otp, setOtp] = useState('');
     const [userId, setUserId] = useState('');
-    const { setUser } = useContext(UserContext);
-    const { isDarkMode, uiTheme } = useContext(ThemeContext);
+    const { setUser } = useContext(UserContext) || {};
+    const { isDarkMode = false, uiTheme = "default" } = useContext(ThemeContext) || {};
     const { showToast } = useToast();
     const navigate = useNavigate();
 

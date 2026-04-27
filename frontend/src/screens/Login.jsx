@@ -12,8 +12,8 @@ import { logger } from '../utils/logger';
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { setUser } = useContext(UserContext);
-    const { isDarkMode, uiTheme } = useContext(ThemeContext);
+    const { setUser } = useContext(UserContext) || {};
+    const { isDarkMode = false, uiTheme = "default" } = useContext(ThemeContext) || {};
     const navigate = useNavigate();
 
     const themeStyle = getThemeClasses(uiTheme, isDarkMode);
