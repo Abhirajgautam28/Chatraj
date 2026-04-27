@@ -299,3 +299,46 @@ button {
 .theme-transitioning * {
   transition: background-color var(--theme-transition-duration) ease, color var(--theme-transition-duration) ease, border-color var(--theme-transition-duration) ease, fill var(--theme-transition-duration) ease, stroke var(--theme-transition-duration) ease !important;
 }
+
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+.animate-blob {
+  animation: blob 7s infinite;
+}
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.clay-btn {
+  box-shadow: 6px 6px 12px #a3b1c6, -6px -6px 12px #ffffff;
+}
+.clay-btn-dark {
+  box-shadow: 6px 6px 12px #0d0d13, -6px -6px 12px #272939;
+}
+.clay-sm {
+  background-color: rgba(255, 255, 255, 0.4);
+  box-shadow: inset 2px 2px 4px rgba(255, 255, 255, 0.9), inset -2px -2px 4px rgba(0, 0, 0, 0.1), 4px 4px 8px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+.clay-sm-dark {
+  background-color: rgba(26, 27, 38, 0.4);
+  box-shadow: inset 2px 2px 4px rgba(255, 255, 255, 0.1), inset -2px -2px 4px rgba(0, 0, 0, 0.3), 4px 4px 8px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+.clay-md {
+  background-color: rgba(255, 255, 255, 0.5);
+  box-shadow: inset 4px 4px 8px rgba(255, 255, 255, 0.9), inset -4px -4px 8px rgba(0, 0, 0, 0.1), 8px 8px 16px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(15px);
+}
+.clay-md-dark {
+  background-color: rgba(30, 31, 40, 0.6);
+  box-shadow: inset 4px 4px 8px rgba(255, 255, 255, 0.1), inset -4px -4px 8px rgba(0, 0, 0, 0.3), 8px 8px 16px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(15px);
+}
