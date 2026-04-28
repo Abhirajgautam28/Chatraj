@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
-const RocketFAB = ({ showFabMenu, setShowFabMenu, handleTryChatRaj, setShowAskChatRajModal }) => {
+const RocketFAB = ({ showFabMenu, setShowFabMenu, handleTryChatRaj, setShowAskChatRajModal, setShowUiThemeModal }) => {
   return (
     <div className="fixed z-50 bottom-8 right-8">
       <div className="relative flex items-end justify-end" style={{ minHeight: 120, minWidth: 120 }}>
@@ -47,6 +47,7 @@ const RocketFAB = ({ showFabMenu, setShowFabMenu, handleTryChatRaj, setShowAskCh
               {[
                 { label: 'Try ChatRaj', icon: 'ri-chat-3-line', onClick: handleTryChatRaj },
                 { label: 'Ask ChatRaj', icon: 'ri-question-answer-line', onClick: () => setShowAskChatRajModal(true) },
+                { label: 'Change UI Theme', icon: 'ri-palette-line', onClick: () => setShowUiThemeModal && setShowUiThemeModal(true) },
                 { label: 'Create Account', icon: 'ri-user-add-line', link: '/register' },
                 { label: 'Login', icon: 'ri-login-box-line', link: '/login' },
                 { label: 'GitHub', icon: 'ri-github-fill', href: 'https://github.com/Abhirajgautam28/Chatraj' }
@@ -96,6 +97,7 @@ RocketFAB.propTypes = {
   setShowFabMenu: PropTypes.func.isRequired,
   handleTryChatRaj: PropTypes.func.isRequired,
   setShowAskChatRajModal: PropTypes.func.isRequired,
+  setShowUiThemeModal: PropTypes.func,
 };
 
 export default RocketFAB;
