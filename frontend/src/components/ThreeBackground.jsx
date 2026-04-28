@@ -143,7 +143,7 @@ const ThreeBackground = () => {
   return (
     <div
       ref={mountRef}
-      className="absolute inset-0 pointer-events-none bg-transparent"
+      className={`absolute inset-0 pointer-events-none ${isDarkMode ? 'bg-gradient-to-r from-blue-900 via-gray-900 to-blue-900' : 'bg-gray-50'}`}
       style={{
         position: 'fixed',
         top: 0,
@@ -151,6 +151,7 @@ const ThreeBackground = () => {
         width: '100%',
         height: '100%',
         zIndex: 0, // Place canvas behind app content but above page background
+        opacity: 1 // Background should be fully opaque (or handled by gradient)
       }}
     />
   );

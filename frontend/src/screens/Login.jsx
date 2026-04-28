@@ -215,7 +215,7 @@ const Login = () => {
     };
 
     return (
-        <div ref={containerRef} className={`relative flex items-center justify-center min-h-screen overflow-hidden ${themeStyle.background} transition-colors duration-500`}>
+        <div ref={containerRef} className={`relative flex items-center justify-center min-h-screen overflow-hidden ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
             <div className="absolute inset-0 z-0">
                 {[...Array(10)].map((_, i) => (
                     <div

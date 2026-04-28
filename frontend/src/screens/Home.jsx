@@ -226,7 +226,7 @@ const Home = () => {
   );
 
   return (
-    <div className={`flex flex-col min-h-screen overflow-x-hidden ${themeStyle.background} ${themeStyle.textMain} transition-colors duration-500`}>
+    <div className={`flex flex-col min-h-screen overflow-x-hidden ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} ${themeStyle.textMain}`}>
       {/* Only render AnimatedBg if user does not prefer reduced motion */}
       {typeof window !== "undefined" && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && (
         <AnimatedBg />
