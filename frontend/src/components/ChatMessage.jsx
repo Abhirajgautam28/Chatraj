@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import Markdown from 'markdown-to-jsx';
 import Avatar from './Avatar';
@@ -55,6 +55,14 @@ const ChatMessage = React.memo(({
     msg.sender._id &&
     msg.sender._id.toString() === user?._id?.toString();
 
+  const userLookupMap = useMemo(() => {
+    const map = new Map();
+    project?.users?.forEach(u => {
+      if (u._id) map.set(u._id.toString(), u);
+    });
+    return map;
+  }, [project?.users]);
+
   const parentMsg = msg.parentMessageId && messages.find((m) => m._id === msg.parentMessageId);
 
   let reactionGroups = {};
@@ -79,7 +87,7 @@ const ChatMessage = React.memo(({
     if (!settings?.behavior?.showSystemMessages) return null;
     let notificationText = msg.message;
     if (/^User joined the project/i.test(msg.message) && msg.sender && msg.sender._id && msg.sender._id !== 'system') {
-      const joinedUser = project.users?.find(u => u._id === msg.sender._id);
+      const joinedUser = userLookupMap.get(msg.sender._id.toString());
       if (joinedUser) {
         notificationText = `${joinedUser.firstName}${joinedUser.lastName ? ' ' + joinedUser.lastName : ''} joined the project`;
       }
@@ -242,7 +250,7 @@ const ChatMessage = React.memo(({
                   : 'bg-gray-100 dark:bg-gray-700'
                   }`}
                 title={users.map(userId => {
-                  const reactingUser = project.users?.find(u => u._id === userId);
+                  const reactingUser = userId ? userLookupMap.get(userId.toString()) : null;
                   return reactingUser ? reactingUser.firstName : 'Unknown';
                 }).join(', ')}
               >

@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import { createHmac, timingSafeEqual, randomBytes } from 'node:crypto';
 
 // CSRF signing secret used for stateless signed tokens (fallback for cross-origin clients)
 const CSRF_SIGNING_SECRET = (() => {
@@ -10,7 +10,7 @@ const CSRF_SIGNING_SECRET = (() => {
 })();
 
 export function signRawToken(raw) {
-  return `${raw}.${crypto.createHmac('sha256', CSRF_SIGNING_SECRET).update(raw).digest('base64url')}`;
+  return `${raw}.${createHmac('sha256', CSRF_SIGNING_SECRET).update(raw).digest('base64url')}`;
 }
 
 export function verifySignedCsrfToken(signed) {
@@ -19,11 +19,11 @@ export function verifySignedCsrfToken(signed) {
     const parts = signed.split('.');
     if (parts.length !== 2) return false;
     const [raw, sig] = parts;
-    const expected = crypto.createHmac('sha256', CSRF_SIGNING_SECRET).update(raw).digest('base64url');
+    const expected = createHmac('sha256', CSRF_SIGNING_SECRET).update(raw).digest('base64url');
     const a = Buffer.from(sig);
     const b = Buffer.from(expected);
     if (a.length !== b.length) return false;
-    if (!crypto.timingSafeEqual(a, b)) return false;
+    if (!timingSafeEqual(a, b)) return false;
     const idx = raw.indexOf(':');
     if (idx === -1) return false;
     const ts = Number(raw.slice(0, idx));
@@ -37,7 +37,7 @@ export function verifySignedCsrfToken(signed) {
 }
 
 export function createSignedCsrf() {
-  const raw = `${Date.now()}:${crypto.randomBytes(12).toString('base64url')}`;
+  const raw = `${Date.now()}:${randomBytes(12).toString('base64url')}`;
   return signRawToken(raw);
 }
 
