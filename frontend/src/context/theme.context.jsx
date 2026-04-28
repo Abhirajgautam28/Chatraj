@@ -16,6 +16,18 @@ export function ThemeProvider({ children }) {
     return false;
   });
 
+  const [uiTheme, setUiTheme] = useState(() => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.getItem === 'function') {
+        const savedUiTheme = window.localStorage.getItem('uiTheme');
+        return savedUiTheme ? JSON.parse(savedUiTheme) : 'default';
+      }
+    } catch (e) {
+      // ignore and fallback to default
+    }
+    return 'default';
+  });
+
   useEffect(() => {
     try {
       if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.setItem === 'function') {
@@ -33,15 +45,32 @@ export function ThemeProvider({ children }) {
     }
   }, [isDarkMode]);
 
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.setItem === 'function') {
+        window.localStorage.setItem('uiTheme', JSON.stringify(uiTheme));
+      }
+    } catch (e) {
+      // ignore errors in non-browser environments (tests)
+    }
+  }, [uiTheme]);
+
   const toggleThemeGlobal = async (shouldReduceMotion = false, isHome = false) => {
     const { executeThemeTransition } = await import('../utils/themeTransition.js');
     executeThemeTransition(() => {
       setIsDarkMode(prev => !prev);
-    }, shouldReduceMotion, isHome);
+    }, shouldReduceMotion, isHome, false, uiTheme);
+  };
+
+  const setUiThemeGlobal = async (themeName, shouldReduceMotion = false) => {
+    const { executeThemeTransition } = await import('../utils/themeTransition.js');
+    executeThemeTransition(() => {
+      setUiTheme(themeName);
+    }, shouldReduceMotion, false, true);
   };
 
   return (
-    <ThemeContext.Provider value={{ isDarkMode, setIsDarkMode, toggleThemeGlobal }}>
+    <ThemeContext.Provider value={{ isDarkMode, setIsDarkMode, toggleThemeGlobal, uiTheme, setUiThemeGlobal }}>
       {children}
     </ThemeContext.Provider>
   );
