@@ -55,23 +55,23 @@ export const getThemeClasses = (uiTheme, isDarkMode) => {
     },
     liquidglass: {
       background: isDarkMode
-        ? "bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop')] bg-cover bg-center bg-fixed bg-no-repeat"
-        : "bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop')] bg-cover bg-center bg-fixed bg-no-repeat",
+        ? 'bg-gradient-to-tr from-cyan-900 via-blue-900 to-indigo-900'
+        : 'bg-gradient-to-tr from-cyan-100 via-blue-50 to-indigo-100',
       container: isDarkMode
-        ? 'bg-black/40 border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl backdrop-saturate-[1.5] rounded-3xl'
-        : 'bg-white/40 border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl backdrop-saturate-[1.5] rounded-3xl',
-      textMain: isDarkMode ? 'text-white font-medium tracking-tight' : 'text-gray-900 font-medium tracking-tight',
-      textMuted: isDarkMode ? 'text-gray-300' : 'text-gray-600',
-      border: isDarkMode ? 'border-white/10' : 'border-white/40',
+        ? 'bg-gradient-to-br from-gray-900/60 to-gray-800/40 border-t border-l border-white/10 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] backdrop-blur-lg rounded-[40px]'
+        : 'bg-gradient-to-br from-white/70 to-white/30 border-t border-l border-white/60 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] backdrop-blur-lg rounded-[40px]',
+      textMain: isDarkMode ? 'text-blue-50' : 'text-blue-950',
+      textMuted: isDarkMode ? 'text-blue-200/70' : 'text-blue-800/70',
+      border: isDarkMode ? 'border-white/10' : 'border-white/50',
       input: isDarkMode
-        ? 'bg-black/20 text-white border-white/10 focus:bg-black/40 focus:border-white/20 rounded-xl placeholder-gray-400 focus:outline-none transition-all shadow-inner backdrop-blur-xl backdrop-saturate-[1.5]'
-        : 'bg-white/40 text-gray-900 border-white/40 focus:bg-white/60 focus:border-white/60 rounded-xl placeholder-gray-500 focus:outline-none transition-all shadow-inner backdrop-blur-xl backdrop-saturate-[1.5]',
+        ? 'bg-black/20 text-white border-t border-l border-white/10 focus:border-blue-400/50 shadow-inner rounded-3xl backdrop-blur-md'
+        : 'bg-white/40 text-gray-900 border-t border-l border-white/80 focus:border-blue-400/50 shadow-inner rounded-3xl backdrop-blur-md',
       buttonPrimary: isDarkMode
-        ? 'bg-white/20 hover:bg-white/30 text-white border border-white/10 rounded-xl font-medium transition-all shadow-[0_4px_12px_rgba(0,0,0,0.2)] backdrop-blur-xl backdrop-saturate-[1.5]'
-        : 'bg-black/10 hover:bg-black/20 text-gray-900 border border-black/5 rounded-xl font-medium transition-all shadow-[0_4px_12px_rgba(0,0,0,0.1)] backdrop-blur-xl backdrop-saturate-[1.5]',
+        ? 'bg-gradient-to-br from-blue-500/80 to-blue-600/80 text-white border-t border-l border-white/20 shadow-[0_10px_20px_-5px_rgba(59,130,246,0.4)] hover:shadow-[0_15px_25px_-5px_rgba(59,130,246,0.5)] rounded-full backdrop-blur-md'
+        : 'bg-gradient-to-br from-blue-400/90 to-blue-500/90 text-white border-t border-l border-white/50 shadow-[0_10px_20px_-5px_rgba(59,130,246,0.4)] hover:shadow-[0_15px_25px_-5px_rgba(59,130,246,0.5)] rounded-full backdrop-blur-md',
       buttonSecondary: isDarkMode
-        ? 'bg-black/20 text-white hover:bg-black/40 border border-white/10 rounded-xl font-medium transition-all backdrop-blur-xl backdrop-saturate-[1.5]'
-        : 'bg-white/30 text-gray-900 hover:bg-white/50 border border-white/40 rounded-xl font-medium transition-all backdrop-blur-xl backdrop-saturate-[1.5]'
+        ? 'bg-gradient-to-br from-gray-800/60 to-gray-900/60 text-white border-t border-l border-white/10 shadow-[0_10px_20px_-5px_rgba(0,0,0,0.3)] hover:shadow-[0_15px_25px_-5px_rgba(0,0,0,0.4)] rounded-full backdrop-blur-md'
+        : 'bg-gradient-to-br from-white/80 to-white/40 text-gray-800 border-t border-l border-white/80 shadow-[0_10px_20px_-5px_rgba(0,0,0,0.05)] hover:shadow-[0_15px_25px_-5px_rgba(0,0,0,0.1)] rounded-full backdrop-blur-md'
     },
     minimalist: {
       background: isDarkMode ? 'bg-[#000000]' : 'bg-[#ffffff]',
