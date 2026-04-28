@@ -482,7 +482,7 @@ function greet(name) {
           <h2 className={`mb-12 text-3xl font-bold text-center ${themeStyle.textMain}`}>Frequently Asked Questions</h2>
           <div className="space-y-6">
             {faqs.map((faq, i) => (
-              <details key={i} className={`p-6 border transition-all duration-300 ${themeStyle.container}`}>
+              <details key={i} className={`relative p-6 border transition-all duration-300 overflow-hidden ${themeStyle.container}`}>
                 <summary className={`mb-2 text-lg font-semibold cursor-pointer ${themeStyle.textMain}`}>{faq.q}</summary>
                 <p className={`mt-4 ${themeStyle.textMuted}`}>{faq.a}</p>
               </details>
@@ -491,20 +491,20 @@ function greet(name) {
         </div>
       </section>
       <section className="relative py-20 z-10 px-4">
-        <div className={`max-w-6xl mx-auto p-8 border ${themeStyle.container}`}>
+        <div className={`relative max-w-6xl mx-auto p-8 border ${themeStyle.container}`}>
           <h2 className={`mb-12 text-3xl font-bold text-center ${themeStyle.textMain}`}>Blogs</h2>
           <Blog user={user} />
         </div>
       </section>
 
       <section className="relative py-20 z-10 px-4">
-        <div className={`max-w-6xl mx-auto p-8 border ${themeStyle.container}`}>
+        <div className={`relative max-w-6xl mx-auto p-8 border ${themeStyle.container}`}>
             <ContactUs />
         </div>
       </section>
 
       <section className="relative px-4 py-20 z-10">
-        <div className={`max-w-xl mx-auto text-center p-8 border ${themeStyle.container}`}>
+        <div className={`relative max-w-xl mx-auto text-center p-8 border ${themeStyle.container}`}>
           <h2 className={`mb-4 text-3xl font-bold ${themeStyle.textMain}`}>Stay Updated</h2>
           <p className={`mb-8 text-lg ${themeStyle.textMuted}`}>
             Subscribe to our newsletter for the latest features and updates.
