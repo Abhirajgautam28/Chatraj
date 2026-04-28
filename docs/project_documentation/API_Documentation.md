@@ -138,7 +138,7 @@ Generates a response from the Google Generative AI model, utilizing Redis cachin
 ### 2.4 Blogs & Community (`/api/blogs`)
 
 #### 2.4.1 POST `/create`
-Publishes a new markdown-based blog post.
+Publishes a new Markdown-based blog post.
 - **Headers:** `Authorization: Bearer <token>`
 - **Request Body:** `{ "title": "System Design", "content": "# Architecture..." }`
 
