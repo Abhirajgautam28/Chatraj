@@ -18,6 +18,9 @@ dist
 dist-ssr
 *.local
 
+# Playwright test outputs
+test-results/
+
 .vscode/*
 !.vscode/extensions.json
 .idea

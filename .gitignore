@@ -13,4 +13,6 @@ build/
 frontend/.env
 cypress/cypress/screenshots
 cypress/screenshots
+# Playwright test outputs
+frontend/test-results/
 Backend/node_modules/
