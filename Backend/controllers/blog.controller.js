@@ -1,37 +1,34 @@
 import Blog from '../models/blog.model.js';
-import User from '../models/user.model.js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import mongoose from 'mongoose';
+import { logger } from '../utils/logger.js';
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
 export const createBlog = async (req, res) => {
     try {
         const { title, content } = req.body;
-        const author = await User.findOne({ email: req.user.email });
-
-        if (!author) {
-            return res.status(401).json({ error: 'User not found' });
-        }
 
         const newBlog = new Blog({
             title,
             content,
-            author: author._id
+            author: req.user._id
         });
 
         await newBlog.save();
         res.status(201).json(newBlog);
     } catch (error) {
+        logger.error('createBlog error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
 
 export const getAllBlogs = async (req, res) => {
     try {
-        const blogs = await Blog.find().populate('author', 'firstName lastName').sort({ createdAt: -1 }).lean();
+        const blogs = await Blog.find().populate('author', 'firstName lastName').sort({ createdAt: -1 });
         res.status(200).json(blogs);
     } catch (error) {
+        logger.error('getAllBlogs error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -39,13 +36,14 @@ export const getAllBlogs = async (req, res) => {
 export const getBlogById = async (req, res) => {
     try {
         const id = req.params.id;
-        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
-        const blog = await Blog.findById(id).populate('author', 'firstName lastName').populate('comments.user', 'firstName lastName').lean();
+        if (!mongoose.Types.ObjectId.isValid(id)) return response.error(res, 'Invalid blog id', 400);
+        const blog = await blogService.getBlogById(id);
         if (!blog) {
-            return res.status(404).json({ error: 'Blog not found' });
+            return response.error(res, 'Blog not found', 404);
         }
         res.status(200).json(blog);
     } catch (error) {
+        logger.error('getBlogById error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -55,30 +53,22 @@ export const likeBlog = async (req, res) => {
         const id = req.params.id;
         if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
 
-        const user = await User.findOne({ email: req.user.email });
-        if (!user) return res.status(401).json({ error: 'User not found' });
+        const blog = await Blog.findById(id);
+        if (!blog) return res.status(404).json({ error: 'Blog not found' });
 
-        // Atomic toggle logic: try to remove user._id, if not found, add it.
-        // First attempt removal.
-        let blog = await Blog.findOneAndUpdate(
-            { _id: id, likes: user._id },
-            { $pull: { likes: user._id } },
-            { new: true }
-        );
+        const userId = req.user._id.toString();
+        const likedIndex = blog.likes.findIndex(id => id.toString() === userId);
 
-        if (!blog) {
-            // If removal did nothing, it means user hasn't liked it yet. Add it.
-            blog = await Blog.findOneAndUpdate(
-                { _id: id },
-                { $addToSet: { likes: user._id } },
-                { new: true }
-            );
+        if (likedIndex > -1) {
+            blog.likes.splice(likedIndex, 1);
+        } else {
+            blog.likes.push(req.user._id);
         }
 
-        if (!blog) return res.status(404).json({ error: 'Blog not found' });
+        await blog.save();
         res.status(200).json(blog);
     } catch (error) {
-        console.error('likeBlog error:', error);
+        logger.error('likeBlog error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -88,20 +78,22 @@ export const commentOnBlog = async (req, res) => {
         const { text } = req.body;
         const id = req.params.id;
         if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid blog id' });
+        const blog = await Blog.findById(id);
 
-        const user = await User.findOne({ email: req.user.email });
-        if (!user) return res.status(401).json({ error: 'User not found' });
+        if (!blog) {
+            return res.status(404).json({ error: 'Blog not found' });
+        }
 
-        const blog = await Blog.findByIdAndUpdate(
-            id,
-            { $push: { comments: { user: user._id, text } } },
-            { new: true }
-        ).populate('author', 'firstName lastName').populate('comments.user', 'firstName lastName');
+        const newComment = {
+            user: req.user._id,
+            text
+        };
 
-        if (!blog) return res.status(404).json({ error: 'Blog not found' });
+        blog.comments.push(newComment);
+        await blog.save();
         res.status(201).json(blog);
     } catch (error) {
-        console.error('commentOnBlog error:', error);
+        logger.error('commentOnBlog error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -117,6 +109,7 @@ export const generateBlogContent = async (req, res) => {
         const text = response.text();
         res.status(200).json({ content: text });
     } catch (error) {
+        logger.error('generateBlogContent error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };

@@ -1,4 +1,5 @@
 import projectModel from '../models/project.model.js';
+import userModel from '../models/user.model.js';
 import mongoose from 'mongoose';
 
 // Basic recursive validation to ensure fileTree is a plain JSON-like structure
@@ -6,7 +7,6 @@ import mongoose from 'mongoose';
 const validateFileTree = (value) => {
   const validateNode = (node) => {
     if (node === null || node === undefined) {
-      // Treat null/undefined as simple literal values; they are not traversed further.
       return;
     }
 
@@ -23,7 +23,6 @@ const validateFileTree = (value) => {
     }
 
     if (nodeType === 'object') {
-      // Only allow plain objects (no special prototypes like Date, ObjectId, etc.)
       const proto = Object.getPrototypeOf(node);
       if (proto !== Object.prototype && proto !== null) {
         throw new Error('Invalid fileTree');
@@ -37,17 +36,14 @@ const validateFileTree = (value) => {
       return;
     }
 
-    // Disallow functions, symbols, etc.
     throw new Error('Invalid fileTree');
   };
 
-  // Allow null as an explicit "no fileTree" value, but still reject undefined.
   if (value === undefined) {
     throw new Error('fileTree is required');
   }
 
   const valueType = typeof value;
-  // Root must be a non-array plain object or null
   if (value !== null && (valueType !== 'object' || Array.isArray(value))) {
     throw new Error('Invalid fileTree');
   }
@@ -55,110 +51,50 @@ const validateFileTree = (value) => {
   validateNode(value);
 };
 
-export const createProject = async ({ name, userId, category }) => {
-  if (!name) {
-    throw new Error('Name is required');
+export const createProject = async ({ name, userId, category, users = [] }) => {
+  if (!name || !category) {
+    throw new Error('Name and category are required');
   }
   if (!userId) {
     throw new Error('UserId is required');
   }
-  if (!category) {
-    throw new Error('Category is required');
-  }
 
-  let project;
   try {
-    project = await projectModel.create({
+    const project = await projectModel.create({
       name,
-      users: [userId],
-      category
+      category,
+      users: [...new Set([...users, userId])],
+      createdBy: userId
     });
+    return project;
   } catch (error) {
     if (error.code === 11000) {
       throw new Error('Project name already exists');
     }
     throw error;
   }
-
-  return project;
 };
 
-export const getAllProjectByUserId = async ({ userId, category }) => {
-  if (!userId) {
-    throw new Error('UserId is required');
-  }
+export const getUserProjects = async (userEmail) => {
+  const user = await userModel.findOne({ email: userEmail });
+  if (!user) throw new Error('User not found');
 
-  const query = {
-    users: { $in: [userId] }
-  };
-
-  if (category) {
-    query.category = category;
-  }
-
-  const allUserProjects = await projectModel.find(query);
-  return allUserProjects;
+  return await projectModel.find({ users: { $in: [user._id] } });
 };
-
-export const addUsersToProject = async ({ projectId, users, userId }) => {
-
-    if (!projectId) {
-        throw new Error("projectId is required")
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(projectId)) {
-        throw new Error("Invalid projectId")
-    }
-
-    if (!users) {
-        throw new Error("users are required")
-    }
-
-    if (!Array.isArray(users) || users.some(uId => !mongoose.Types.ObjectId.isValid(uId))) {
-        throw new Error("Invalid userId(s) in users array")
-    }
-
-    if (!userId) {
-        throw new Error("userId is required")
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-        throw new Error("Invalid userId")
-    }
-
-    // Atomic update: ensure the requester (userId) is a member, then add new users.
-    const updatedProject = await projectModel.findOneAndUpdate(
-        { _id: projectId, users: userId },
-        { $addToSet: { users: { $each: users } } },
-        { new: true }
-    );
-
-    if (!updatedProject) {
-        throw new Error("User not belong to this project or project not found")
-    }
-
-    return updatedProject
-}
 
 export const getProjectById = async ({ projectId, userId }) => {
-    if (!projectId) {
-        throw new Error("projectId is required")
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+    if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
         throw new Error("Invalid projectId")
     }
 
-    // Populate only _id, firstName, lastName for users
     const project = await projectModel.findOne({
         _id: projectId
-    }).populate('users', '_id firstName lastName').lean();
+    }).populate('users', '_id firstName lastName');
 
     if (!project) {
         throw new Error("Project not found");
     }
 
-    // Check if requesting user is a member
     if (userId) {
         const isMember = project.users.some(u => u._id && u._id.toString() === userId.toString());
         if (!isMember) {
@@ -166,47 +102,117 @@ export const getProjectById = async ({ projectId, userId }) => {
         }
     }
 
-    // Always return a valid fileTree object
     if (project && (!project.fileTree || typeof project.fileTree !== 'object')) {
         project.fileTree = {};
     }
 
     return project;
-}
+};
+
+export const addUsersToProject = async ({ projectId, users, userId }) => {
+    if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
+        throw new Error("Invalid projectId");
+    }
+    if (!users || !Array.isArray(users)) {
+        throw new Error("users are required");
+    }
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+        throw new Error("Invalid userId");
+    }
+
+    const project = await projectModel.findOne({ _id: projectId, users: userId });
+    if (!project) {
+        throw new Error("Unauthorized access");
+    }
+
+    return await projectModel.findOneAndUpdate(
+        { _id: projectId },
+        { $addToSet: { users: { $each: users } } },
+        { new: true }
+    );
+};
 
 export const updateFileTree = async ({ projectId, fileTree, userId }) => {
-    if (!projectId) {
-        throw new Error("projectId is required")
+    if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
+        throw new Error("Invalid projectId");
     }
 
-    if (!mongoose.Types.ObjectId.isValid(projectId)) {
-        throw new Error("Invalid projectId")
-    }
-
-    // Validate fileTree structure to prevent injection of MongoDB operators or invalid types
     validateFileTree(fileTree);
-
-    // Normalize to plain JSON to strip any unexpected prototypes or non-serializable values
     const safeFileTree = JSON.parse(JSON.stringify(fileTree));
 
     if (userId) {
-        const project = await projectModel.findOne({
-            _id: projectId,
-            users: userId
-        });
-
-        if (!project) {
-            throw new Error("Unauthorized access");
-        }
+        const project = await projectModel.findOne({ _id: projectId, users: userId });
+        if (!project) throw new Error("Unauthorized access");
     }
 
-    const project = await projectModel.findOneAndUpdate({
-        _id: projectId
-    }, {
-        $set: { fileTree: safeFileTree }
-    }, {
-        new: true
-    })
+    return await projectModel.findOneAndUpdate(
+        { _id: projectId },
+        { $set: { fileTree: safeFileTree } },
+        { new: true }
+    );
+};
 
-    return project;
-}
+export const getCountsByCategory = async (userEmail) => {
+    const allCategories = [
+        'DSA', 'Frontend Development', 'Backend Development', 'Fullstack Development',
+        'Code Review & Optimization', 'Testing & QA', 'API Development', 'Database Engineering',
+        'Software Architecture', 'Version Control & Git', 'Agile Project Management',
+        'CI/CD Automation', 'Debugging & Troubleshooting', 'Documentation Generation', 'Code Refactoring'
+    ];
+
+    const user = await userModel.findOne({ email: userEmail });
+    if (!user) throw new Error('User not found');
+
+    const counts = await projectModel.aggregate([
+        { $match: { users: { $in: [user._id] } } },
+        { $group: { _id: "$category", count: { $sum: 1 } } }
+    ]);
+
+    const result = {};
+    allCategories.forEach(cat => { result[cat] = 0; });
+    counts.forEach(item => {
+        if (result.hasOwnProperty(item._id)) result[item._id] = item.count;
+    });
+    return result;
+};
+
+export const getShowcase = async () => {
+    return await projectModel.find({}).sort({ users: -1 }).limit(10);
+};
+
+export const getSettings = async (projectId, userId) => {
+    const project = await projectModel.findById(projectId);
+    if (!project) throw new Error('Project not found');
+
+    const isMember = project.users && project.users.some(u => u.toString() === userId.toString());
+    if (!isMember) throw new Error('Unauthorized access');
+
+    return project.settings || {};
+};
+
+export const updateSettings = async (projectId, userId, settings) => {
+    const project = await projectModel.findById(projectId);
+    if (!project) throw new Error('Project not found');
+
+    const isMember = project.users && project.users.some(u => u.toString() === userId.toString());
+    if (!isMember) throw new Error('Unauthorized access');
+
+    project.settings = settings;
+    await project.save();
+    return project.settings;
+};
+
+export const updateSidebarSettings = async (projectId, userId, sidebar) => {
+    if (!sidebar || typeof sidebar !== 'object') throw new Error('Sidebar settings required');
+
+    const project = await projectModel.findById(projectId);
+    if (!project) throw new Error('Project not found');
+
+    const isMember = project.users && project.users.some(u => u.toString() === userId.toString());
+    if (!isMember) throw new Error('Unauthorized access');
+
+    project.settings = project.settings || {};
+    project.settings.sidebar = { ...project.settings.sidebar, ...sidebar };
+    await project.save();
+    return project.settings.sidebar;
+};

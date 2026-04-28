@@ -1,6 +1,4 @@
-import React from 'react';
-// ...existing code...
-import { useEffect, useContext } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/user.context';

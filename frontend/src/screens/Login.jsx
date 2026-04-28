@@ -6,6 +6,7 @@ import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
 import axios, { getCsrfToken } from '../config/axios';
 import anime from 'animejs';
+import { logger } from '../utils/logger';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -20,6 +21,7 @@ const Login = () => {
     const [resetOtpSent, setResetOtpSent] = useState(false);
     const [otpResendTimer, setOtpResendTimer] = useState(0);
     const [otpResendActive, setOtpResendActive] = useState(false);
+    const otpTimerRef = useRef(null);
     const [resetOtp, setResetOtp] = useState('');
     const [resetOtpVerified, setResetOtpVerified] = useState(false);
     const [resetNewPassword, setResetNewPassword] = useState('');
@@ -29,6 +31,12 @@ const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
 
     const containerRef = useRef(null);
+
+    useEffect(() => {
+        return () => {
+            if (otpTimerRef.current) clearInterval(otpTimerRef.current);
+        };
+    }, []);
 
     useEffect(() => {
         if (containerRef.current) {
@@ -109,7 +117,7 @@ const Login = () => {
                 }
                 setShowRecaptcha(false);
             } catch (error) {
-                console.error('Login error:', error.response?.data || error);
+                logger.error('Login error:', error.response?.data || error);
                 setLoginError('Login failed. Please check your credentials.');
                 setShowRecaptcha(false);
             }
@@ -132,12 +140,13 @@ const Login = () => {
             await axios.post('/api/users/send-otp', { email: resetEmail });
             setResetOtpSent(true);
             let timer = 30;
-            const interval = setInterval(() => {
+            if (otpTimerRef.current) clearInterval(otpTimerRef.current);
+            otpTimerRef.current = setInterval(() => {
                 timer--;
                 setOtpResendTimer(timer);
                 if (timer <= 0) {
                     setOtpResendActive(true);
-                    clearInterval(interval);
+                    if (otpTimerRef.current) clearInterval(otpTimerRef.current);
                 }
             }, 1000);
         } catch {
@@ -380,12 +389,13 @@ const Login = () => {
                                                             setOtpResendActive(true);
                                                         });
                                                     let timer = 30;
-                                                    const interval = setInterval(() => {
+                                                    if (otpTimerRef.current) clearInterval(otpTimerRef.current);
+                                                    otpTimerRef.current = setInterval(() => {
                                                         timer--;
                                                         setOtpResendTimer(timer);
                                                         if (timer <= 0) {
                                                             setOtpResendActive(true);
-                                                            clearInterval(interval);
+                                                            if (otpTimerRef.current) clearInterval(otpTimerRef.current);
                                                         }
                                                     }, 1000);
                                                 }}

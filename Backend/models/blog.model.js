@@ -28,8 +28,7 @@ const blogSchema = new mongoose.Schema({
     author: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user',
-        required: true,
-        index: true
+        required: true
     },
     likes: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -38,8 +37,7 @@ const blogSchema = new mongoose.Schema({
     comments: [commentSchema],
     createdAt: {
         type: Date,
-        default: Date.now,
-        index: -1
+        default: Date.now
     }
 });
 

@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import Redis from 'ioredis';
+import { maskKey } from '../utils/strings.js';
 
 // Load Backend .env relative to this script file
 const __filename = fileURLToPath(import.meta.url);
@@ -14,12 +15,6 @@ const REDIS_URL = process.env.REDIS_URL;
 if (!REDIS_URL) {
   console.error('REDIS_URL not found in Backend/.env. Set REDIS_URL or pass via env.');
   process.exit(1);
-}
-
-function maskKey(k) {
-  if (!k) return '';
-  if (k.length <= 12) return k.slice(0, 3) + '...' + k.slice(-3);
-  return k.slice(0, 6) + '...' + k.slice(-6);
 }
 
 function parseArgs() {
@@ -56,7 +51,6 @@ async function run() {
     let cursor = '0';
     let seen = 0;
     let buffer = [];
-    const processedKeys = new Set();
 
     const processBatch = async (keys) => {
       if (!keys || keys.length === 0) return;
@@ -106,14 +100,11 @@ async function run() {
       cursor = res[0];
       const keys = res[1] || [];
       for (const k of keys) {
-        if (!processedKeys.has(k)) {
-          processedKeys.add(k);
-          buffer.push(k);
-          seen++;
-          if (buffer.length >= BATCH_SIZE) {
-            await processBatch(buffer);
-            buffer = [];
-          }
+        buffer.push(k);
+        seen++;
+        if (buffer.length >= BATCH_SIZE) {
+          await processBatch(buffer);
+          buffer = [];
         }
         if (seen >= opts.limit) break;
       }

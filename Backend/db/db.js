@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import dns from 'dns/promises';
+import { logger } from "../utils/logger.js";
 
 function shouldAttemptSrvFallback(mongoUri, error) {
     if (!mongoUri || !mongoUri.startsWith('mongodb+srv://')) return false;
@@ -21,7 +22,7 @@ async function resolveSrvWithFallback(resolver, cluster) {
     try {
         return await resolver.resolveSrv(`_mongodb._tcp.${cluster}`);
     } catch (rerr) {
-        console.error('SRV resolution failed:', rerr && (rerr.stack || rerr.message || rerr));
+        logger.error('SRV resolution failed:', rerr && (rerr.stack || rerr.message || rerr));
 
         const isConnRefused = String(rerr.code || '').includes('ECONNREFUSED') || /ECONNREFUSED/i.test(String(rerr.message || rerr));
         const customDnsProvided = Boolean(process.env.MONGODB_DNS_SERVERS);
@@ -30,7 +31,7 @@ async function resolveSrvWithFallback(resolver, cluster) {
         if (!isConnRefused || !allowPublicFallback) throw rerr;
 
         resolver.setServers(['8.8.8.8', '1.1.1.1']);
-        console.warn('System DNS resolver refused connection — retrying SRV lookup using public DNS (8.8.8.8,1.1.1.1).');
+        logger.warn('System DNS resolver refused connection — retrying SRV lookup using public DNS (8.8.8.8,1.1.1.1).');
         return await resolver.resolveSrv(`_mongodb._tcp.${cluster}`);
     }
 }
@@ -66,14 +67,14 @@ async function connect() {
             socketTimeoutMS: 45000,
         });
 
-        console.log(`MongoDB Connected: ${conn.connection.host}`);
+        logger.info(`MongoDB Connected: ${conn.connection.host}`);
 
         mongoose.connection.on('error', err => {
-            console.error('MongoDB connection error:', err);
+            logger.error('MongoDB connection error:', err);
         });
 
         mongoose.connection.on('disconnected', () => {
-            console.log('MongoDB disconnected');
+            logger.info('MongoDB disconnected');
             setTimeout(connect, 5000);
         });
 
@@ -83,7 +84,7 @@ async function connect() {
         });
 
     } catch (error) {
-        console.error('Error connecting to MongoDB:', error && error.stack ? error.stack : (error.message || error));
+        logger.error('Error connecting to MongoDB:', error && error.stack ? error.stack : (error.message || error));
 
         const mongoUri = process.env.MONGODB_URI || '';
         if (shouldAttemptSrvFallback(mongoUri, error)) {
@@ -118,16 +119,16 @@ async function connect() {
                 const dbSegment = dbName ? `/${dbName}` : '';
                 const resolvedUri = `mongodb://${authPrefix}${hosts}${dbSegment}?${mergedParams.toString()}`;
 
-                console.log('Retrying MongoDB connection using resolved hosts via DNS resolver (custom or system)');
+                logger.info('Retrying MongoDB connection using resolved hosts via DNS resolver (custom or system)');
                 const conn2 = await mongoose.connect(resolvedUri, {
                     maxPoolSize: 10,
                     serverSelectionTimeoutMS: 10000,
                     socketTimeoutMS: 45000,
                 });
-                console.log(`MongoDB Connected (resolved): ${conn2.connection.host}`);
+                logger.info(`MongoDB Connected (resolved): ${conn2.connection.host}`);
                 return;
             } catch (fallbackErr) {
-                console.error('SRV fallback failed:', fallbackErr && (fallbackErr.stack || fallbackErr.message || fallbackErr));
+                logger.error('SRV fallback failed:', fallbackErr && (fallbackErr.stack || fallbackErr.message || fallbackErr));
             }
         }
 
