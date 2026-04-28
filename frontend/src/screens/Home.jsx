@@ -226,7 +226,7 @@ const Home = () => {
   );
 
   return (
-    <div className={`flex flex-col min-h-screen overflow-x-hidden ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} ${themeStyle.textMain}`}>
+    <div className={`flex flex-col min-h-screen overflow-x-hidden ${themeStyle.background} transition-colors duration-500 ${themeStyle.textMain}`}>
       {/* Only render AnimatedBg if user does not prefer reduced motion */}
       {typeof window !== "undefined" && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && (
         <AnimatedBg />
@@ -681,7 +681,7 @@ function greet(name) {
 
       {/* Footer */}
       <footer className={`relative z-10 px-8 py-6 mt-0 text-center border-t ${themeStyle.container}`}>
-        <p className={`${themeStyle.textMuted}`}>© 2025 ChatRaj All rights reserved.</p>
+        <p className={`${themeStyle.textMuted}`}>© 2026 ChatRaj All rights reserved.</p>
       </footer>
 
       <Suspense fallback={<div>Loading...</div>}>

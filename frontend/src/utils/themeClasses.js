@@ -2,6 +2,7 @@ export const getThemeClasses = (uiTheme, isDarkMode) => {
   // Base classes that change according to the chosen UI theme
   const themes = {
     default: {
+      background: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
       container: isDarkMode
         ? 'bg-gray-900/40 border-white/10 shadow-xl backdrop-blur-md'
         : 'bg-white/40 border-white/40 shadow-xl backdrop-blur-md',
@@ -17,6 +18,7 @@ export const getThemeClasses = (uiTheme, isDarkMode) => {
         : 'bg-white text-gray-800 hover:bg-gray-50 border-gray-300'
     },
     glassmorphism: {
+      background: isDarkMode ? 'bg-gradient-to-br from-indigo-950 via-gray-900 to-black' : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50',
       container: isDarkMode
         ? 'bg-white/10 border border-white/20 shadow-[0_8px_32px_0_rgba(255,255,255,0.1)] backdrop-blur-3xl rounded-2xl'
         : 'bg-white/30 border border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.1)] backdrop-blur-3xl rounded-2xl',
@@ -34,6 +36,7 @@ export const getThemeClasses = (uiTheme, isDarkMode) => {
         : 'bg-white/40 text-gray-900 hover:bg-white/60 border-white/40 backdrop-blur-sm'
     },
     claymorphism: {
+      background: isDarkMode ? 'bg-[#1f2937]' : 'bg-[#e0e5ec]',
       container: isDarkMode
         ? 'bg-gray-800 shadow-[inset_4px_4px_8px_rgba(255,255,255,0.05),_8px_8px_16px_rgba(0,0,0,0.5)] border-transparent rounded-[32px]'
         : 'bg-gray-100 shadow-[inset_4px_4px_8px_rgba(255,255,255,0.8),_8px_8px_16px_rgba(0,0,0,0.1)] border-transparent rounded-[32px]',
@@ -51,23 +54,27 @@ export const getThemeClasses = (uiTheme, isDarkMode) => {
         : 'bg-gray-100 text-gray-800 shadow-[inset_2px_2px_4px_rgba(255,255,255,0.8),_4px_4px_8px_rgba(0,0,0,0.1)] hover:shadow-[inset_2px_2px_4px_rgba(255,255,255,0.8),_2px_2px_4px_rgba(0,0,0,0.1)] hover:translate-y-[2px] transition-all rounded-2xl border-none'
     },
     liquidglass: {
+      background: isDarkMode
+        ? "bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop')] bg-cover bg-center bg-fixed bg-no-repeat"
+        : "bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop')] bg-cover bg-center bg-fixed bg-no-repeat",
       container: isDarkMode
-        ? 'bg-gray-800/90 border border-gray-700 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.8)] backdrop-blur-md rounded-[40px]'
-        : 'bg-white/90 border border-white shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] backdrop-blur-md rounded-[40px]',
-      textMain: isDarkMode ? 'text-blue-50' : 'text-blue-950',
-      textMuted: isDarkMode ? 'text-blue-200/70' : 'text-blue-800/70',
-      border: isDarkMode ? 'border-white/10' : 'border-white/50',
+        ? 'bg-black/40 border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl backdrop-saturate-[1.5] rounded-3xl'
+        : 'bg-white/40 border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl backdrop-saturate-[1.5] rounded-3xl',
+      textMain: isDarkMode ? 'text-white font-medium tracking-tight' : 'text-gray-900 font-medium tracking-tight',
+      textMuted: isDarkMode ? 'text-gray-300' : 'text-gray-600',
+      border: isDarkMode ? 'border-white/10' : 'border-white/40',
       input: isDarkMode
-        ? 'bg-black/20 text-white border-t border-l border-white/10 focus:border-blue-400/50 shadow-inner rounded-3xl backdrop-blur-md'
-        : 'bg-white/40 text-gray-900 border-t border-l border-white/80 focus:border-blue-400/50 shadow-inner rounded-3xl backdrop-blur-md',
+        ? 'bg-black/20 text-white border-white/10 focus:bg-black/40 focus:border-white/20 rounded-xl placeholder-gray-400 focus:outline-none transition-all shadow-inner backdrop-blur-xl backdrop-saturate-[1.5]'
+        : 'bg-white/40 text-gray-900 border-white/40 focus:bg-white/60 focus:border-white/60 rounded-xl placeholder-gray-500 focus:outline-none transition-all shadow-inner backdrop-blur-xl backdrop-saturate-[1.5]',
       buttonPrimary: isDarkMode
-        ? 'bg-gradient-to-br from-blue-500/80 to-blue-600/80 text-white border-t border-l border-white/20 shadow-[0_10px_20px_-5px_rgba(59,130,246,0.4)] hover:shadow-[0_15px_25px_-5px_rgba(59,130,246,0.5)] rounded-full backdrop-blur-md'
-        : 'bg-gradient-to-br from-blue-400/90 to-blue-500/90 text-white border-t border-l border-white/50 shadow-[0_10px_20px_-5px_rgba(59,130,246,0.4)] hover:shadow-[0_15px_25px_-5px_rgba(59,130,246,0.5)] rounded-full backdrop-blur-md',
+        ? 'bg-white/20 hover:bg-white/30 text-white border border-white/10 rounded-xl font-medium transition-all shadow-[0_4px_12px_rgba(0,0,0,0.2)] backdrop-blur-xl backdrop-saturate-[1.5]'
+        : 'bg-black/10 hover:bg-black/20 text-gray-900 border border-black/5 rounded-xl font-medium transition-all shadow-[0_4px_12px_rgba(0,0,0,0.1)] backdrop-blur-xl backdrop-saturate-[1.5]',
       buttonSecondary: isDarkMode
-        ? 'bg-gradient-to-br from-gray-800/60 to-gray-900/60 text-white border-t border-l border-white/10 shadow-[0_10px_20px_-5px_rgba(0,0,0,0.3)] hover:shadow-[0_15px_25px_-5px_rgba(0,0,0,0.4)] rounded-full backdrop-blur-md'
-        : 'bg-gradient-to-br from-white/80 to-white/40 text-gray-800 border-t border-l border-white/80 shadow-[0_10px_20px_-5px_rgba(0,0,0,0.05)] hover:shadow-[0_15px_25px_-5px_rgba(0,0,0,0.1)] rounded-full backdrop-blur-md'
+        ? 'bg-black/20 text-white hover:bg-black/40 border border-white/10 rounded-xl font-medium transition-all backdrop-blur-xl backdrop-saturate-[1.5]'
+        : 'bg-white/30 text-gray-900 hover:bg-white/50 border border-white/40 rounded-xl font-medium transition-all backdrop-blur-xl backdrop-saturate-[1.5]'
     },
     minimalist: {
+      background: isDarkMode ? 'bg-[#000000]' : 'bg-[#ffffff]',
       container: isDarkMode
         ? 'bg-[#09090b] border-2 border-[#27272a] shadow-sm rounded-md hover:-translate-y-0.5 hover:shadow-md transition-all'
         : 'bg-white border-2 border-gray-900 shadow-sm rounded-md hover:-translate-y-0.5 hover:shadow-md transition-all',
@@ -85,6 +92,7 @@ export const getThemeClasses = (uiTheme, isDarkMode) => {
         : 'bg-transparent text-[#09090b] hover:bg-[#f4f4f5] border border-[#e4e4e7] rounded-full font-medium transition-colors'
     },
     materialui: {
+      background: isDarkMode ? 'bg-[#121212]' : 'bg-[#f4f7fc]',
       container: isDarkMode
         ? 'bg-[#1e1e1e] border border-transparent shadow-md rounded-2xl'
         : 'bg-[#ffffff] border border-transparent shadow-md rounded-2xl',
