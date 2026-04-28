@@ -143,32 +143,18 @@ const Home = () => {
   const { isDarkMode, toggleThemeGlobal, uiTheme } = useContext(ThemeContext);
   const navigate = useNavigate();
 
-  const [isNavVisible, setIsNavVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+
   const [showFabMenu, setShowFabMenu] = useState(false);
   const [showAskChatRajModal, setShowAskChatRajModal] = useState(false);
   const [showUiThemeModal, setShowUiThemeModal] = useState(false);
 
   const themeStyle = getThemeClasses(uiTheme, isDarkMode);
 
-  useEffect(() => {
+    useEffect(() => {
     if (user) {
       navigate('/categories', { replace: true });
     }
   }, [user, navigate]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY === 0) {
-        setIsNavVisible(true);
-        return;
-      }
-      setIsNavVisible(window.scrollY < lastScrollY);
-      setLastScrollY(window.scrollY);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
 
   const handleTryChatRaj = () => {
     if (user) {
@@ -180,57 +166,8 @@ const Home = () => {
   };
 
   // For animated background shapes
-  const AnimatedBg = () => (
-    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-      <motion.div
-        className={`absolute rounded-full w-[30rem] h-[30rem] blur-[100px] ${isDarkMode ? 'bg-blue-600 opacity-20' : 'bg-blue-400 opacity-30'}`}
-        animate={{
-          x: [0, 100, -100, 0],
-          y: [0, -100, 100, 0],
-          scale: [1, 1.1, 0.9, 1],
-        }}
-        transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-        style={{ top: '-10%', left: '-10%' }}
-      />
-      <motion.div
-        className={`absolute rounded-full w-[25rem] h-[25rem] blur-[100px] ${isDarkMode ? 'bg-purple-600 opacity-20' : 'bg-purple-400 opacity-30'}`}
-        animate={{
-          x: [0, -100, 100, 0],
-          y: [0, 100, -100, 0],
-          scale: [1, 0.9, 1.1, 1],
-        }}
-        transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-        style={{ bottom: '-10%', right: '-5%' }}
-      />
-      <motion.div
-        className={`absolute rounded-full w-[20rem] h-[20rem] blur-[80px] ${isDarkMode ? 'bg-pink-500 opacity-15' : 'bg-pink-300 opacity-30'}`}
-        animate={{
-          x: [0, 50, -50, 0],
-          y: [0, 100, 50, 0],
-          scale: [1, 1.2, 1, 1],
-        }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        style={{ top: '40%', left: '30%' }}
-      />
-      <motion.div
-        className={`absolute rounded-full w-[28rem] h-[28rem] blur-[100px] ${isDarkMode ? 'bg-emerald-500 opacity-15' : 'bg-emerald-300 opacity-30'}`}
-        animate={{
-          x: [0, -80, 80, 0],
-          y: [0, -80, 80, 0],
-          scale: [1, 1.1, 0.9, 1],
-        }}
-        transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
-        style={{ top: '60%', right: '20%' }}
-      />
-    </div>
-  );
-
-  return (
+    return (
     <div className={`flex flex-col min-h-screen overflow-x-hidden ${themeStyle.background} transition-colors duration-500 ${themeStyle.textMain}`}>
-      {/* Only render AnimatedBg if user does not prefer reduced motion */}
-      {typeof window !== "undefined" && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && (
-        <AnimatedBg />
-      )}
 
       {/* Navbar */}
       <motion.nav
