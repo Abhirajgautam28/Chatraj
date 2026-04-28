@@ -14,10 +14,3 @@ frontend/.env
 cypress/cypress/screenshots
 cypress/screenshots
 Backend/node_modules/
-frontend/test-results/playwright/.last-run.json
-frontend/test-results/playwright-screenshots/home-material-theme.png
-.gitignore
-.gitignore
-frontend/test-results/playwright-screenshots/register.png
-frontend/test-results/playwright-screenshots/home.png
-frontend/test-results/playwright-screenshots/login.png

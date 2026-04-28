@@ -2,6 +2,9 @@ export const getThemeClasses = (uiTheme, isDarkMode) => {
   // Base classes that change according to the chosen UI theme
   const themes = {
     default: {
+      background: isDarkMode
+        ? 'bg-gradient-to-r from-blue-900 via-gray-900 to-blue-900'
+        : 'bg-gray-50',
       container: isDarkMode
         ? 'bg-gray-900/40 border-white/10 shadow-xl backdrop-blur-md'
         : 'bg-white/40 border-white/40 shadow-xl backdrop-blur-md',
@@ -17,6 +20,9 @@ export const getThemeClasses = (uiTheme, isDarkMode) => {
         : 'bg-white text-gray-800 hover:bg-gray-50 border-gray-300'
     },
     glassmorphism: {
+      background: isDarkMode
+        ? 'bg-gradient-to-br from-indigo-900 via-purple-900 to-black'
+        : 'bg-gradient-to-br from-indigo-100 via-purple-50 to-blue-100',
       container: isDarkMode
         ? 'bg-black/20 border border-white/10 shadow-[0_8px_32px_0_rgba(255,255,255,0.05)] backdrop-blur-xl rounded-2xl'
         : 'bg-white/20 border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-xl rounded-2xl',
@@ -34,6 +40,9 @@ export const getThemeClasses = (uiTheme, isDarkMode) => {
         : 'bg-white/40 text-gray-900 hover:bg-white/60 border-white/40 backdrop-blur-sm'
     },
     claymorphism: {
+      background: isDarkMode
+        ? 'bg-[#1f2937]'
+        : 'bg-[#e5e7eb]',
       container: isDarkMode
         ? 'bg-gray-800 shadow-[inset_4px_4px_8px_rgba(255,255,255,0.05),_8px_8px_16px_rgba(0,0,0,0.5)] border-transparent rounded-[32px]'
         : 'bg-gray-100 shadow-[inset_4px_4px_8px_rgba(255,255,255,0.8),_8px_8px_16px_rgba(0,0,0,0.1)] border-transparent rounded-[32px]',
@@ -51,6 +60,9 @@ export const getThemeClasses = (uiTheme, isDarkMode) => {
         : 'bg-gray-100 text-gray-800 shadow-[inset_2px_2px_4px_rgba(255,255,255,0.8),_4px_4px_8px_rgba(0,0,0,0.1)] hover:shadow-[inset_2px_2px_4px_rgba(255,255,255,0.8),_2px_2px_4px_rgba(0,0,0,0.1)] hover:translate-y-[2px] transition-all rounded-2xl border-none'
     },
     liquidglass: {
+      background: isDarkMode
+        ? 'bg-gradient-to-tr from-cyan-900 via-blue-900 to-indigo-900'
+        : 'bg-gradient-to-tr from-cyan-100 via-blue-50 to-indigo-100',
       container: isDarkMode
         ? 'bg-gradient-to-br from-gray-900/60 to-gray-800/40 border-t border-l border-white/10 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] backdrop-blur-lg rounded-[40px]'
         : 'bg-gradient-to-br from-white/70 to-white/30 border-t border-l border-white/60 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] backdrop-blur-lg rounded-[40px]',
@@ -68,6 +80,9 @@ export const getThemeClasses = (uiTheme, isDarkMode) => {
         : 'bg-gradient-to-br from-white/80 to-white/40 text-gray-800 border-t border-l border-white/80 shadow-[0_10px_20px_-5px_rgba(0,0,0,0.05)] hover:shadow-[0_15px_25px_-5px_rgba(0,0,0,0.1)] rounded-full backdrop-blur-md'
     },
     minimalist: {
+      background: isDarkMode
+        ? 'bg-[#000000]'
+        : 'bg-[#fafafa]',
       container: isDarkMode
         ? 'bg-[#09090b] border border-[#27272a] shadow-sm rounded-3xl'
         : 'bg-white border border-[#e4e4e7] shadow-sm rounded-3xl',
@@ -85,6 +100,9 @@ export const getThemeClasses = (uiTheme, isDarkMode) => {
         : 'bg-transparent text-[#09090b] hover:bg-[#f4f4f5] border border-[#e4e4e7] rounded-full font-medium transition-colors'
     },
     materialui: {
+      background: isDarkMode
+        ? 'bg-[#121212]'
+        : 'bg-[#f4f7fc]',
       container: isDarkMode
         ? 'bg-[#1e1e1e] border border-transparent shadow-md rounded-2xl'
         : 'bg-[#ffffff] border border-transparent shadow-md rounded-2xl',
