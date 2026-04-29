@@ -76,17 +76,17 @@ export const getThemeClasses = (uiTheme, isDarkMode) => {
     minimalist: {
       background: isDarkMode ? 'bg-[#000000]' : 'bg-[#ffffff]',
       container: isDarkMode
-        ? 'bg-[#09090b] border-2 border-[#27272a] shadow-sm rounded-md hover:-translate-y-0.5 hover:shadow-md transition-all'
-        : 'bg-white border-2 border-gray-900 shadow-sm rounded-md hover:-translate-y-0.5 hover:shadow-md transition-all',
+        ? 'bg-[#09090b] border border-[#27272a] rounded-lg shadow-sm'
+        : 'bg-white border border-gray-200 rounded-lg shadow-sm',
       textMain: isDarkMode ? 'text-[#f4f4f5] font-medium tracking-tight' : 'text-[#09090b] font-medium tracking-tight',
       textMuted: isDarkMode ? 'text-[#a1a1aa]' : 'text-[#71717a]',
       border: isDarkMode ? 'border-[#27272a]' : 'border-[#e4e4e7]',
       input: isDarkMode
-        ? 'bg-[#09090b] text-[#f4f4f5] border-2 border-[#27272a] focus:border-[#f4f4f5] rounded-md placeholder-[#71717a] focus:outline-none transition-all'
-        : 'bg-white text-[#09090b] border-2 border-gray-900 focus:border-black rounded-md placeholder-[#a1a1aa] focus:outline-none transition-all',
+        ? 'bg-[#09090b] text-[#f4f4f5] border border-[#27272a] focus:border-[#f4f4f5] rounded-lg placeholder-[#71717a] focus:outline-none transition-all'
+        : 'bg-white text-[#09090b] border border-gray-300 focus:border-gray-900 rounded-lg placeholder-[#a1a1aa] focus:outline-none transition-all',
       buttonPrimary: isDarkMode
-        ? 'bg-white text-black border-2 border-transparent hover:bg-gray-200 rounded-sm font-bold uppercase tracking-wider text-sm transition-all shadow-[2px_2px_0_0_#ffffff] hover:shadow-[4px_4px_0_0_#ffffff] hover:-translate-y-0.5 hover:-translate-x-0.5'
-        : 'bg-black text-white border-2 border-transparent hover:bg-gray-800 rounded-sm font-bold uppercase tracking-wider text-sm transition-all shadow-[2px_2px_0_0_#000000] hover:shadow-[4px_4px_0_0_#000000] hover:-translate-y-0.5 hover:-translate-x-0.5',
+        ? 'bg-white text-black hover:bg-gray-200 rounded font-medium transition-all'
+        : 'bg-black text-white hover:bg-gray-800 rounded font-medium transition-all',
       buttonSecondary: isDarkMode
         ? 'bg-transparent text-[#f4f4f5] hover:bg-[#27272a] border border-[#27272a] rounded-full font-medium transition-colors'
         : 'bg-transparent text-[#09090b] hover:bg-[#f4f4f5] border border-[#e4e4e7] rounded-full font-medium transition-colors'
