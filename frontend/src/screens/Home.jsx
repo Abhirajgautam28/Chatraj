@@ -173,8 +173,8 @@ const Home = () => {
       <motion.nav
         initial={{ opacity: 1, y: 0 }}
         animate={{
-          opacity: isNavVisible ? 1 : 0,
-          y: isNavVisible ? 0 : -100
+          opacity: 1,
+          y: 0
         }}
         transition={{
           duration: 0.3,
