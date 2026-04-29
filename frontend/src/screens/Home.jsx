@@ -12,6 +12,8 @@ import Blog from '../components/Blog.jsx';
 import ContactUs from '../components/ContactUs.jsx';
 import UiThemeModal from '../components/UiThemeModal.jsx';
 import { getThemeClasses } from '../utils/themeClasses.js';
+import TermsModal from '../components/TermsModal.jsx';
+import PrivacyModal from '../components/PrivacyModal.jsx';
 
 const AskChatRajModal = lazy(() => import('../components/AskChatRajModal.jsx'));
 
@@ -148,6 +150,8 @@ const Home = () => {
   const [showFabMenu, setShowFabMenu] = useState(false);
   const [showAskChatRajModal, setShowAskChatRajModal] = useState(false);
   const [showUiThemeModal, setShowUiThemeModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
   const themeStyle = getThemeClasses(uiTheme, isDarkMode);
 
@@ -679,9 +683,13 @@ function greet(name) {
         </div>
       </div>
 
+      {/* Legal Modals */}
+      <TermsModal isOpen={showTermsModal} onRequestClose={() => setShowTermsModal(false)} />
+      <PrivacyModal isOpen={showPrivacyModal} onRequestClose={() => setShowPrivacyModal(false)} />
+
       {/* Footer */}
       <footer className={`relative z-10 px-8 py-6 mt-0 text-center border-t ${themeStyle.container}`}>
-        <p className={`${themeStyle.textMuted}`}>© 2025 ChatRaj All rights reserved.</p>
+        <p className={`${themeStyle.textMuted}`}>© 2026 ChatRaj All rights reserved. | <button type="button" onClick={() => setShowTermsModal(true)} className="hover:underline focus:outline-none">Terms of Service</button> | <button type="button" onClick={() => setShowPrivacyModal(true)} className="hover:underline focus:outline-none">Privacy Policy</button></p>
       </footer>
 
       <Suspense fallback={<div>Loading...</div>}>
