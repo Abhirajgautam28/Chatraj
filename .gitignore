@@ -31,3 +31,5 @@ e2e-tests/.last-run.json
 test-results/
 playwright-report/
 blob-report/
+
+e2e-tests/.env

@@ -2,20 +2,23 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e-tests',
-  timeout: 180000,
+  // Very long timeout to allow for manual OTP entry and a massive test flow
+  timeout: 600000,
   expect: {
-    timeout: 15000,
+    timeout: 30000,
   },
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: 0,
-  workers: 1,
-  reporter: 'list',
+  workers: 1, // Must be 1 for a continuous massive sequential flow
+  reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
-    headless: false,
+    headless: false, // Must be headed for manual OTP and visual confirmation
     viewport: { width: 1280, height: 720 },
+    actionTimeout: 30000,
+    navigationTimeout: 30000,
   },
   projects: [
     {
