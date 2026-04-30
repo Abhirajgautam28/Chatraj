@@ -6,7 +6,10 @@ import {
     checkDatabase,
     checkRedis,
     checkAI,
-    checkEmail
+    checkEmail,
+    checkEnv,
+    checkMetrics,
+    clearRedisCache
 } from '../controllers/diagnostic.controller.js';
 
 const router = Router();
@@ -24,8 +27,11 @@ router.use(diagnosticLimiter);
 router.use(verifyDevPassword);
 
 router.get('/ping', pingBackend);
+router.get('/env', checkEnv);
+router.get('/metrics', checkMetrics);
 router.get('/db', checkDatabase);
 router.get('/redis', checkRedis);
+router.post('/redis/clear', clearRedisCache);
 router.get('/ai', checkAI);
 router.post('/email', checkEmail);
 
