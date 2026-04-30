@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from '../config/axios';
 import { io } from 'socket.io-client';
 
@@ -9,15 +9,7 @@ const SystemDiagnostics = () => {
     const [emailTarget, setEmailTarget] = useState('');
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        const savedPassword = sessionStorage.getItem('dev_ui_password');
-        if (savedPassword) {
-            setPassword(savedPassword);
-            verifyPassword(savedPassword);
-        }
-    }, []);
-
-    const addLog = (message, type = 'info') => {
+    const addLog = useCallback((message, type = 'info') => {
         setLogs(prev => {
             const newLogs = [...prev, { time: new Date().toLocaleTimeString(), message, type }];
             if (newLogs.length > 100) {
@@ -25,9 +17,9 @@ const SystemDiagnostics = () => {
             }
             return newLogs;
         });
-    };
+    }, []);
 
-    const verifyPassword = async (passToVerify) => {
+    const verifyPassword = useCallback(async (passToVerify) => {
         setLoading(true);
         try {
             const res = await axios.get('/api/diagnostics/ping', {
@@ -45,7 +37,15 @@ const SystemDiagnostics = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [addLog]);
+
+    useEffect(() => {
+        const savedPassword = sessionStorage.getItem('dev_ui_password');
+        if (savedPassword) {
+            setPassword(savedPassword);
+            verifyPassword(savedPassword);
+        }
+    }, [verifyPassword]);
 
     const handleLogin = (e) => {
         e.preventDefault();
@@ -254,7 +254,6 @@ const SystemDiagnostics = () => {
                             </div>
                         </div>
                     </div>
-                    </div>
 
                     {/* Terminal/Logs Panel */}
                     <div className="bg-black rounded-lg border border-gray-700 shadow-lg flex flex-col h-[700px]">
@@ -287,6 +286,7 @@ const SystemDiagnostics = () => {
                         </div>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     );
