@@ -25,9 +25,12 @@
     "test:backend:unit": "cd Backend && npx jest tests/unit/**/*.test.js --config jest.config.cjs",
     "test:backend:coverage": "cd Backend && npx jest --coverage --config jest.config.cjs",
     "test:frontend:unit": "cd frontend && npx vitest run src/__tests__/unit/",
-    "test:frontend:components": "cd frontend && npx vitest run src/__tests__/components/"
+    "test:frontend:components": "cd frontend && npx vitest run src/__tests__/components/",
+    "test:e2e:playwright": "npx playwright test",
+    "test:e2e": "npx playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "concurrently": "^8.2.0",
     "cypress": "^13.0.0",
     "socket.io-client": "^4.8.1"
