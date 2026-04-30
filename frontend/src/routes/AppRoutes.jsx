@@ -16,6 +16,7 @@ const ChatRaj = lazy(() => import('../screens/ChatRaj'));
 const Blogs = lazy(() => import('../screens/Blogs'));
 const CreateBlogForm = lazy(() => import('../components/CreateBlogForm'));
 const SingleBlogPage = lazy(() => import('../screens/SingleBlogPage'));
+const SystemDiagnostics = lazy(() => import('../screens/SystemDiagnostics'));
 
 const AppRoutes = () => {
     return (
@@ -41,6 +42,7 @@ const AppRoutes = () => {
                     <Route path="/blogs" element={<UserAuth><Blogs /></UserAuth>} />
                     <Route path="/blogs/create" element={<UserAuth><CreateBlogForm /></UserAuth>} />
                     <Route path="/blogs/:id" element={<UserAuth><SingleBlogPage /></UserAuth>} />
+                    <Route path="/chatraj-sys-check" element={<SystemDiagnostics />} />
                     <Route path="*" element={
                         <div className="flex flex-col items-center justify-center min-h-screen text-white bg-transparent">
                             <h1 className="mb-4 text-6xl font-bold">404</h1>
