@@ -147,7 +147,7 @@ const SystemDiagnostics = () => {
         <div className="min-h-screen bg-gray-900 text-gray-100 p-4 md:p-8 font-mono">
             <div className="max-w-6xl mx-auto space-y-6">
                 <div className="flex justify-between items-center bg-gray-800 p-4 rounded-lg border border-gray-700">
-                    <h1 className="text-2xl font-bold text-blue-400">System Diagnostics Dashboard</h1>
+                    <h1 className="text-2xl font-bold text-blue-400">Chatraj System Diagnostics Dashboard</h1>
                     <button
                         onClick={() => {
                             sessionStorage.removeItem('dev_ui_password');
