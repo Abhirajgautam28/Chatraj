@@ -145,9 +145,17 @@ const SystemDiagnostics = () => {
 
     return (
         <div className="min-h-screen bg-gray-900 text-gray-100 p-4 md:p-8 font-mono">
-            <div className="max-w-6xl mx-auto space-y-6">
-                <div className="flex justify-between items-center bg-gray-800 p-4 rounded-lg border border-gray-700">
+            <div className="max-w-7xl mx-auto space-y-6">
+                <div className="flex justify-between items-center bg-gray-800 p-4 rounded-lg border border-gray-700 shadow-sm">
                     <h1 className="text-2xl font-bold text-blue-400">System Diagnostics Dashboard</h1>
+                    <div className="flex gap-4">
+                    <button
+                        onClick={() => runTest('Environment Config', '/env')}
+                        disabled={loading}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded text-sm transition shadow-sm"
+                    >
+                        Verify Env
+                    </button>
                     <button
                         onClick={() => {
                             sessionStorage.removeItem('dev_ui_password');
