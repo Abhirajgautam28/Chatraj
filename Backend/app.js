@@ -8,6 +8,7 @@ import aiRoutes from './routes/ai.routes.js';
 import setupRoutes from './routes/setup.routes.js';
 import newsletterRoutes from './routes/newsletter.routes.js';
 import blogRoutes from './routes/blog.routes.js';
+import diagnosticRoutes from './routes/diagnostic.routes.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import csurf from 'csurf';
@@ -177,6 +178,7 @@ app.use('/api/projects', projectRoutes);
 app.use("/api/ai", aiRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/blogs', blogRoutes);
+app.use('/api/diagnostics', diagnosticRoutes);
 
 app.use((err, req, res, next) => {
   logger.error(err.stack);
