@@ -32,7 +32,11 @@ const MessageList = ({
       className="flex flex-col flex-grow gap-1 p-1 pb-20 overflow-auto pt-14 message-box scrollbar-hide bg-slate-50 dark:bg-gray-800"
     >
       {Object.keys(groupedMessages)
-        .sort((a, b) => a.localeCompare(b))
+        .sort((a, b) => {
+          const msgA = groupedMessages[a][0];
+          const msgB = groupedMessages[b][0];
+          return new Date(msgA.createdAt) - new Date(msgB.createdAt);
+        })
         .map((groupLabel) => (
           <div key={groupLabel}>
             <div className="py-2 text-sm text-center text-gray-500 dark:text-gray-400">{groupLabel}</div>

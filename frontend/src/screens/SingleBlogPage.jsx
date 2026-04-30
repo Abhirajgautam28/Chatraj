@@ -63,21 +63,57 @@ const SingleBlogPage = () => {
         try {
             const parsed = JSON.parse(blog.content);
             if (Array.isArray(parsed)) {
-                return parsed.map((block, i) => (
-                    <div key={i} className="mb-6">
-                        {block.type === 'heading' && <h2 className="text-2xl font-bold mb-3">{block.content}</h2>}
-                        {block.type === 'paragraph' && <p className="leading-relaxed mb-4">{block.content}</p>}
-                        {block.type === 'code' && (
-                            <pre className="bg-gray-900 text-green-400 p-4 rounded-xl overflow-x-auto mb-4 font-mono text-sm">
-                                <code>{block.content}</code>
-                            </pre>
-                        )}
-                    </div>
-                ));
+                return parsed.map((block, i) => {
+                    const blockKey = block.id || i;
+                    return (
+                        <div key={blockKey} className="mb-8">
+                            {(block.type === 'text' || block.type === 'paragraph') && (
+                                <p className="leading-relaxed text-lg whitespace-pre-wrap">{block.content}</p>
+                            )}
+                            {block.type === 'heading' && (
+                                <h2 className="text-3xl font-bold mt-8 mb-4 text-gray-900 dark:text-white">
+                                    {block.content}
+                                </h2>
+                            )}
+                            {block.type === 'image' && block.content && (
+                                <figure className="my-8">
+                                    <img
+                                        src={block.content}
+                                        alt=""
+                                        className="w-full rounded-2xl shadow-lg border dark:border-gray-800"
+                                    />
+                                </figure>
+                            )}
+                            {block.type === 'video' && block.content && (
+                                <div className="my-8 aspect-video rounded-2xl overflow-hidden shadow-lg border dark:border-gray-800">
+                                    <iframe
+                                        src={block.content.includes('youtube.com') || block.content.includes('youtu.be')
+                                            ? `https://www.youtube.com/embed/${block.content.split('v=')[1] || block.content.split('/').pop()}`
+                                            : block.content}
+                                        title={`Video ${blockKey}`}
+                                        className="w-full h-full"
+                                        allowFullScreen
+                                    />
+                                </div>
+                            )}
+                            {block.type === 'code' && (
+                                <pre className="bg-gray-950 text-blue-400 p-6 rounded-2xl overflow-x-auto my-6 font-mono text-sm shadow-inner border border-gray-800">
+                                    <code>{block.content}</code>
+                                </pre>
+                            )}
+                            {block.type === 'quote' && (
+                                <blockquote className="border-l-4 border-blue-500 pl-6 py-2 my-8 italic text-xl text-gray-700 dark:text-gray-300 bg-blue-50/50 dark:bg-blue-900/10 rounded-r-xl">
+                                    &ldquo;{block.content}&rdquo;
+                                </blockquote>
+                            )}
+                        </div>
+                    );
+                });
             }
-        } catch {
+        } catch (err) {
             return <p className="whitespace-pre-wrap leading-relaxed">{blog.content}</p>;
         }
+        return <p className="whitespace-pre-wrap leading-relaxed">{blog.content}</p>;
     }, [blog]);
 
     if (loading && !blog) return (

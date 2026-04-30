@@ -70,9 +70,10 @@ export const verifyOtpController = async (req, res) => {
     }
 
     const query = userId ? { _id: userId } : { email: normalizeEmail(email).value };
-    const user = await userModel.findOneAndUpdate({ ...query, otp }, { $set: { isVerified: true }, $unset: { otp: 1 } }, { new: true }).lean();
+    const user = await userModel.findOneAndUpdate({ ...query, otp }, { $set: { isVerified: true }, $unset: { otp: 1 } }, { new: true });
     if (!user) return errorResponse(res, 'Invalid OTP or user not found', 401);
-    return successResponse(res, { token: jwt.sign({ _id: user._id }, process.env.JWT_SECRET), user });
+    const token = user.generateJWT();
+    return successResponse(res, { token, user: user.toObject() });
 };
 
 export const loginController = async (req, res) => {
