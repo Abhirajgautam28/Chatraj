@@ -147,7 +147,7 @@ const SystemDiagnostics = () => {
         <div className="min-h-screen bg-gray-900 text-gray-100 p-4 md:p-8 font-mono">
             <div className="max-w-6xl mx-auto space-y-6">
                 <div className="flex justify-between items-center bg-gray-800 p-4 rounded-lg border border-gray-700">
-                    <h1 className="text-2xl font-bold text-blue-400">Chatraj System Diagnostics Dashboard</h1>
+                    <h1 className="text-2xl font-bold text-blue-400">System Diagnostics Dashboard</h1>
                     <button
                         onClick={() => {
                             sessionStorage.removeItem('dev_ui_password');
@@ -155,18 +155,20 @@ const SystemDiagnostics = () => {
                             setLogs([]);
                             setPassword('');
                         }}
-                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm transition"
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm transition shadow-sm"
                     >
                         Logout
                     </button>
+                    </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Controls Panel */}
-                    <div className="bg-gray-800 p-6 rounded-lg border border-gray-700 space-y-6">
-                        <h2 className="text-xl font-semibold border-b border-gray-700 pb-2 mb-4">Run Tests</h2>
+                    <div className="space-y-6">
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-gray-800 p-6 rounded-lg border border-gray-700 shadow-sm space-y-4">
+                        <h2 className="text-xl font-semibold border-b border-gray-700 pb-2">Connection Tests</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <button
                                 onClick={() => runTest('Backend Ping', '/ping')}
                                 disabled={loading}
@@ -174,7 +176,6 @@ const SystemDiagnostics = () => {
                             >
                                 🌐 Ping Backend
                             </button>
-
                             <button
                                 onClick={() => runTest('Database Connection', '/db')}
                                 disabled={loading}
@@ -182,7 +183,6 @@ const SystemDiagnostics = () => {
                             >
                                 🗄️ Test Database
                             </button>
-
                             <button
                                 onClick={() => runTest('Redis Connection', '/redis')}
                                 disabled={loading}
@@ -190,7 +190,6 @@ const SystemDiagnostics = () => {
                             >
                                 ⚡ Test Redis
                             </button>
-
                             <button
                                 onClick={() => runTest('Google AI Connection', '/ai')}
                                 disabled={loading}
@@ -198,7 +197,6 @@ const SystemDiagnostics = () => {
                             >
                                 🤖 Test Google AI
                             </button>
-
                             <button
                                 onClick={testSocket}
                                 disabled={loading}
@@ -207,9 +205,29 @@ const SystemDiagnostics = () => {
                                 🔌 Test Socket.io
                             </button>
                         </div>
+                    </div>
 
-                        <div className="mt-8 border-t border-gray-700 pt-6">
-                            <h3 className="text-sm font-semibold mb-3">✉️ Test Email Configuration</h3>
+                    <div className="bg-gray-800 p-6 rounded-lg border border-gray-700 shadow-sm space-y-4">
+                        <h2 className="text-xl font-semibold border-b border-gray-700 pb-2">System Metrics & Actions</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <button
+                                onClick={() => runTest('System Metrics', '/metrics')}
+                                disabled={loading}
+                                className="bg-gray-700 hover:bg-gray-600 p-3 rounded text-left transition disabled:opacity-50"
+                            >
+                                📊 Fetch Metrics
+                            </button>
+                            <button
+                                onClick={() => runTest('Clear Redis Cache', '/redis/clear', 'POST')}
+                                disabled={loading}
+                                className="bg-red-900 hover:bg-red-800 p-3 rounded text-left transition disabled:opacity-50 text-red-100"
+                            >
+                                🗑️ Clear Redis Cache
+                            </button>
+                        </div>
+
+                        <div className="mt-4 pt-4 border-t border-gray-700">
+                            <h3 className="text-sm font-semibold mb-3 text-gray-300">✉️ Test Email Configuration</h3>
                             <div className="flex space-x-2">
                                 <input
                                     type="email"
@@ -228,9 +246,10 @@ const SystemDiagnostics = () => {
                             </div>
                         </div>
                     </div>
+                    </div>
 
                     {/* Terminal/Logs Panel */}
-                    <div className="bg-black rounded-lg border border-gray-700 flex flex-col h-[600px]">
+                    <div className="bg-black rounded-lg border border-gray-700 shadow-lg flex flex-col h-[700px]">
                         <div className="bg-gray-800 px-4 py-2 border-b border-gray-700 flex justify-between items-center rounded-t-lg">
                             <span className="text-sm text-gray-400">Diagnostic Logs</span>
                             <button
