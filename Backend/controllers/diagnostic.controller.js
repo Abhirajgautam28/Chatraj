@@ -74,7 +74,9 @@ export const checkAI = async (req, res) => {
     try {
         const prompt = "Reply with 'ok' and nothing else.";
         const result = await aiService.generateResult(prompt);
-        res.json({ status: 'ok', message: 'AI Service responded successfully.', result });
+        // We do not return the full result object to prevent exposing internal state.
+        const isOk = result && result.includes('ok');
+        res.json({ status: 'ok', message: `AI Service responded successfully. Echo ok: ${isOk}` });
     } catch (err) {
         logger.error('Diagnostic AI error:', err);
         res.status(500).json({ error: err.message || 'AI Service connection error' });

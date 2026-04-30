@@ -18,7 +18,13 @@ const SystemDiagnostics = () => {
     }, []);
 
     const addLog = (message, type = 'info') => {
-        setLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message, type }]);
+        setLogs(prev => {
+            const newLogs = [...prev, { time: new Date().toLocaleTimeString(), message, type }];
+            if (newLogs.length > 100) {
+                return newLogs.slice(newLogs.length - 100);
+            }
+            return newLogs;
+        });
     };
 
     const verifyPassword = async (passToVerify) => {
