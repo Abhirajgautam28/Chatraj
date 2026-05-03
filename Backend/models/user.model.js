@@ -35,6 +35,10 @@ const userSchema = new mongoose.Schema({
         select: false,
         required: true
     },
+    resetPasswordOtp: {
+        type: String,
+        select: false
+    },
     otp: {
         type: String,
         select: false
