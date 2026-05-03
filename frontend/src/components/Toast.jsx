@@ -22,7 +22,7 @@ const Toast = ({ message, type = 'info', onClose, duration = 3000 }) => {
       <button onClick={onClose} className="hover:opacity-75">
         <i className="ri-close-line text-lg"></i>
       </button>
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style>{`
         @keyframes bounce-in {
           0% { transform: translate(-50%, 100%); opacity: 0; }
           60% { transform: translate(-50%, -10%); opacity: 1; }
@@ -31,7 +31,7 @@ const Toast = ({ message, type = 'info', onClose, duration = 3000 }) => {
         .animate-bounce-in {
           animation: bounce-in 0.4s ease-out forwards;
         }
-      `}} />
+      `}</style>
     </div>
   );
 };

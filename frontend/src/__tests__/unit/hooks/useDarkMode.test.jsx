@@ -9,15 +9,15 @@ describe('useDarkMode Hook', () => {
 
   it('defaults to false if no localStorage', () => {
     const { result } = renderHook(() => useDarkMode());
-    expect(result.current.isDarkMode).toBe(false);
+    expect(result.current[0]).toBe(false);
   });
 
   it('toggles dark mode', () => {
-    const { result } = renderHook(() => useDarkMode());
+    const { result } = renderHook(() => useDarkMode('test_theme'));
     act(() => {
-      result.current.setIsDarkMode(true);
+      result.current[1](true);
     });
-    expect(result.current.isDarkMode).toBe(true);
-    expect(localStorage.getItem('theme')).toBe('dark');
+    expect(result.current[0]).toBe(true);
+    expect(localStorage.getItem('test_theme')).toBe('true');
   });
 });

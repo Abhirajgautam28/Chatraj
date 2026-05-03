@@ -1,3 +1,10 @@
+import userModel from '../models/user.model.js';
+import * as userService from '../services/user.service.js';
+import { validationResult } from 'express-validator';
+import response from '../utils/response.js';
+import { sendMailWithRetry } from '../utils/mailer.js';
+import { normalizeEmail } from '../utils/email.js';
+import redisClient from '../services/redis.service.js';
 import mongoose from 'mongoose';
 import { logger } from '../utils/logger.js';
 
@@ -258,6 +265,15 @@ export const verifyOtpController = async (req, res) => {
                             existingUser.otp = undefined;
                             await existingUser.save();
                             const token = await existingUser.generateJWT();
+
+                            // Set the token cookie
+                            res.cookie('token', token, {
+                                httpOnly: true,
+                                secure: process.env.NODE_ENV === 'production',
+                                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+                                maxAge: 24 * 60 * 60 * 1000 // 24 hours
+                            });
+
                             return res.status(200).json({ message: 'Verified successfully', token, user: existingUser });
                         }
                     }
@@ -349,6 +365,15 @@ export const loginController = async (req, res) => {
     try {
         const { email, password } = req.body;
         const result = await userService.loginUser(email, password);
+
+        // Set the token cookie
+        res.cookie('token', result.token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        });
+
         return response.success(res, result, 'Login successful');
     } catch (err) {
         logger.error('loginController error:', err);
@@ -364,6 +389,10 @@ export const logoutController = async (req, res) => {
     try {
         const token = req.cookies.token || (req.headers.authorization ? req.headers.authorization.split(' ')[1] : null);
         if (token) redisClient.set(token, 'logout', 'EX', 60 * 60 * 24);
+
+        // Clear the token cookie
+        res.cookie('token', '', { expires: new Date(0), httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax' });
+
         return response.success(res, null, 'Logged out successfully');
     } catch (err) {
         logger.error('logoutController error:', err);

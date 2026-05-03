@@ -11,6 +11,8 @@ import blogRoutes from './routes/blog.routes.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import csurf from 'csurf';
+import helmet from 'helmet';
+import mongoSanitize from 'express-mongo-sanitize';
 import { logger } from './utils/logger.js';
 import {
   verifySignedCsrfToken,
@@ -70,6 +72,9 @@ app.use(cors({
 // CORS preflight is handled by the global CORS middleware above
 
 app.use(corsErrorLogger);
+
+app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(mongoSanitize());
 
 app.use(morgan('dev'));
 app.use(express.json());
