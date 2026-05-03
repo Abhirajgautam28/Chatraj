@@ -185,7 +185,7 @@ app.use((err, req, res, next) => {
     logger.error('CSRF validation failed:', err.message);
     return res.status(403).json({
       error: 'Invalid CSRF token',
-      message: process.env.NODE_ENV === 'development' ? err.message : 'Forbidden'
+      message: 'Forbidden'
     });
   }
 
@@ -193,7 +193,7 @@ app.use((err, req, res, next) => {
   if (!res.headersSent) {
     res.status(status).json({
       error: 'Something broke!',
-      message: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
+      message: 'Internal Server Error'
     });
   }
 });
