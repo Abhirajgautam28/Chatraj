@@ -9,6 +9,7 @@
     "build": "npm run generate-sitemap && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "playwright:screenshots": "playwright test --config=playwright.config.js --project=chromium",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:ci": "vitest run --reporter=json --outputFile=report.json",
@@ -37,7 +38,7 @@
     "antd": "^6.3.1",
     "axios": "^1.15.0",
     "bootstrap": "^5.3.8",
-    "dompurify": "^3.3.3",
+    "dompurify": "^3.4.2",
     "framer-motion": "^12.34.3",
     "gsap": "^3.14.2",
     "highlight.js": "^11.11.1",
@@ -62,6 +63,7 @@
   "devDependencies": {
     "@babel/preset-env": "^7.29.0",
     "@babel/preset-react": "^7.28.5",
+    "@playwright/test": "^1.59.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -88,7 +90,7 @@
     "vitest": "^3.2.4"
   },
   "overrides": {
-    "dompurify": "^3.3.3",
+    "dompurify": "^3.4.2",
     "js-yaml": "^4.1.1"
   }
 }

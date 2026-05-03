@@ -1,10 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import BaseModal from './BaseModal.jsx';
-import useTheme from '../context/useTheme';
+import { useContext } from 'react';
+import { ThemeContext } from '../context/theme.context';
 
 const UiThemeModal = ({ isOpen, onRequestClose }) => {
-  const { uiTheme, setUiThemeGlobal, isDarkMode } = useTheme();
+  const { uiTheme, setUiThemeGlobal, isDarkMode } = useContext(ThemeContext) || {};
 
   const themes = [
     { id: 'default', name: 'Default', icon: 'ri-layout-line' },

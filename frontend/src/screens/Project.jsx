@@ -284,13 +284,14 @@ const Project = () => {
             if (prev.some(m => m._id === data._id && m.sender?._id === data.sender?._id)) {
               return prev;
             }
-            return [
+            const updated = [
               ...prev,
               {
                 ...data,
                 message: aiResponse.text || data.message
               }
             ];
+            return deduplicateMessages(updated);
           });
           return;
         } catch {
@@ -302,7 +303,8 @@ const Project = () => {
         if (prev.some(m => m._id === data._id && m.sender?._id === data.sender?._id)) {
           return prev;
         }
-        return [...prev, data];
+        const updated = [...prev, data];
+        return deduplicateMessages(updated);
       });
     }
 
@@ -346,10 +348,6 @@ const Project = () => {
     on("message-reaction", handleReactionUpdate);
     return () => off("message-reaction", handleReactionUpdate);
   }, [on, off]);
-
-  useEffect(() => {
-    setMessages(prev => deduplicateMessages(prev));
-  }, [messages.length]);
 
   // Patch messages to simulate readBy for current user's messages
   const patchedMessages = React.useMemo(() => {
