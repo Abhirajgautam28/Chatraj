@@ -1,5 +1,15 @@
 import mongoose from 'mongoose';
+import crypto from 'node:crypto';
+import { validationResult } from 'express-validator';
+import userModel from '../models/user.model.js';
+import * as userService from '../services/user.service.js';
+import redisClient from '../services/redis.service.js';
 import { logger } from '../utils/logger.js';
+import response from '../utils/response.js';
+import normalizeEmail from '../utils/email.js';
+import { generateOTP } from '../utils/otp.js';
+import { sendMailWithRetry } from '../utils/mailer.js';
+import { escapeHtml } from '../utils/strings.js';
 
 // Send OTP for password reset (used in Login.jsx)
 export const sendOtpController = async (req, res) => {
@@ -171,17 +181,6 @@ export const createUserController = async (req, res) => {
 
         return res.status(400).json({ message: 'Invalid request' });
     }
-}
-
-// Helper: Generate 7-char OTP
-function generateOTP(length) {
-    const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*';
-    let otp = '';
-    for (let i = 0; i < length; i++) {
-        const index = crypto.randomInt(chars.length);
-        otp += chars[index];
-    }
-    return otp;
 }
 
 // Helper: Send OTP email

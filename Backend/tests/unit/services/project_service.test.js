@@ -62,9 +62,9 @@ describe('Project Service - Deepened', () => {
             const pid = new mongoose.Types.ObjectId().toString();
             const uid = new mongoose.Types.ObjectId();
             projectModel.findOne.mockResolvedValue({ _id: pid, users: [uid] });
-            projectModel.findOneAndUpdate.mockResolvedValue({ _id: pid, fileTree: { 'a.js': {} } });
+            projectModel.findOneAndUpdate.mockResolvedValue({ _id: pid, fileTree: { 'a_js': {} } });
 
-            const res = await projectService.updateFileTree({ projectId: pid, fileTree: { 'a.js': {} }, userId: uid });
+            const res = await projectService.updateFileTree({ projectId: pid, fileTree: { 'a_js': {} }, userId: uid });
             expect(res._id).toBe(pid);
         });
     });
