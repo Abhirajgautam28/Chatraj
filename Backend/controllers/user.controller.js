@@ -1,3 +1,10 @@
+import userModel from '../models/user.model.js';
+import * as userService from '../services/user.service.js';
+import { validationResult } from 'express-validator';
+import response from '../utils/response.js';
+import { sendMailWithRetry } from '../utils/mailer.js';
+import { normalizeEmail } from '../utils/email.js';
+import redisClient from '../services/redis.service.js';
 import mongoose from 'mongoose';
 import crypto from 'node:crypto';
 import { validationResult } from 'express-validator';
@@ -20,8 +27,7 @@ export const sendOtpController = async (req, res) => {
         if (!user) return res.status(404).json({ message: 'User not found' });
         // Generate OTP
         const otp = generateOTP(7);
-        user.otp = otp;
-        user.isVerified = false;
+        user.resetPasswordOtp = otp;
         await user.save();
         await sendOtpEmail(user.email, otp);
         res.status(200).json({ message: 'OTP sent to email.' });
@@ -182,17 +188,6 @@ export const createUserController = async (req, res) => {
     }
 }
 
-// Helper: Generate 7-char OTP
-function generateOTP(length) {
-    const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*';
-    let otp = '';
-    for (let i = 0; i < length; i++) {
-        const index = crypto.randomInt(chars.length);
-        otp += chars[index];
-    }
-    return otp;
-}
-
 // Helper: Send OTP email
 async function sendOtpEmail(email, otp) {
     // In test environments skip sending real emails to avoid external
@@ -214,10 +209,17 @@ export const verifyOtpController = async (req, res) => {
             return res.status(400).json({ message: 'Invalid User ID' });
         }
         user = await userModel.findById(userId).select('+otp');
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        if (user.otp !== otp) return res.status(401).json({ message: 'Invalid OTP' });
+        user.isVerified = true;
+        user.otp = undefined;
+        await user.save();
+        const token = await user.generateJWT();
+        return res.status(200).json({ message: 'Verified successfully', token, user });
     } else if (email) {
         const { value: normalizedEmail, isValid } = normalizeEmail(email);
         if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
-        user = await userModel.findOne({ email: normalizedEmail }).select('+otp');
+        user = await userModel.findOne({ email: normalizedEmail }).select('+otp +resetPasswordOtp');
         // If user not found in DB, check for a pending registration stored in Redis
         // (we persist pending registrations there until the user verifies via OTP).
         if (!user) {
@@ -267,12 +269,44 @@ export const verifyOtpController = async (req, res) => {
                             existingUser.otp = undefined;
                             await existingUser.save();
                             const token = await existingUser.generateJWT();
+
+                            // Set the token cookie
+                            res.cookie('token', token, {
+                                httpOnly: true,
+                                secure: process.env.NODE_ENV === 'production',
+                                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+                                maxAge: 24 * 60 * 60 * 1000 // 24 hours
+                            });
+
                             return res.status(200).json({ message: 'Verified successfully', token, user: existingUser });
                         }
                     }
                     return res.status(500).json({ message: 'Failed to create account' });
                 }
             }
+            return res.status(404).json({ message: 'User not found' });
+        } else {
+            // Password reset verification flow
+            if (user.resetPasswordOtp && user.resetPasswordOtp === otp) {
+                user.resetPasswordOtp = undefined;
+                await user.save();
+                // Issue a short-lived reset token
+                const resetToken = jwt.sign(
+                    { email: user.email, purpose: 'password-reset' },
+                    process.env.JWT_SECRET,
+                    { expiresIn: '15m' }
+                );
+                return res.status(200).json({ message: 'OTP verified', resetToken });
+            }
+            // Registration verification fallback logic for email (legacy approach)
+            if (user.otp === otp) {
+                 user.isVerified = true;
+                 user.otp = undefined;
+                 await user.save();
+                 const token = await user.generateJWT();
+                 return res.status(200).json({ message: 'Verified successfully', token, user });
+            }
+            return res.status(401).json({ message: 'Invalid OTP' });
         }
     }
 };
@@ -321,7 +355,7 @@ export const adminGetOtpController = async (req, res) => {
 
         // Audit access: log who requested this and what they requested.
         try {
-            const requesterIp = req.ip || req.headers['x-forwarded-for'] || req.connection && req.connection.remoteAddress;
+            const requesterIp = req.ip;
             const adminMasked = typeof adminKey === 'string' ? `***${adminKey.slice(-4)}` : '<none>';
             const audit = {
                 timestamp: new Date().toISOString(),
@@ -358,6 +392,15 @@ export const loginController = async (req, res) => {
     try {
         const { email, password } = req.body;
         const result = await userService.loginUser(email, password);
+
+        // Set the token cookie
+        res.cookie('token', result.token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        });
+
         return response.success(res, result, 'Login successful');
     } catch (err) {
         logger.error('loginController error:', err);
@@ -373,6 +416,10 @@ export const logoutController = async (req, res) => {
     try {
         const token = req.cookies.token || (req.headers.authorization ? req.headers.authorization.split(' ')[1] : null);
         if (token) redisClient.set(token, 'logout', 'EX', 60 * 60 * 24);
+
+        // Clear the token cookie
+        res.cookie('token', '', { expires: new Date(0), httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax' });
+
         return response.success(res, null, 'Logged out successfully');
     } catch (err) {
         logger.error('logoutController error:', err);
@@ -391,20 +438,11 @@ export const getAllUsersController = async (req, res) => {
     }
 }
 
-export const resetPasswordController = async (req, res) => {
-    try {
-        const { email } = req.body;
-        const result = await userService.resetPassword(email);
-        return response.success(res, result);
-    } catch (err) {
-        logger.error('resetPasswordController error:', err);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-};
-
 export const updatePasswordController = async (req, res) => {
     try {
-        const { email, newPassword } = req.body;
+        const { newPassword } = req.body;
+        // The email is extracted from the JWT token via the authResetPassword middleware
+        const email = req.resetUser.email;
         const result = await userService.updatePassword(email, newPassword);
         return response.success(res, result);
     } catch (err) {

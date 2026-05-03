@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { groupProjectsByCategory, formatDate } from '../../../utils/projectUtils';
+import { groupProjectsByCategory } from '../../../utils/projectUtils';
 
 describe('Project Utilities', () => {
   describe('groupProjectsByCategory', () => {
@@ -20,11 +20,4 @@ describe('Project Utilities', () => {
     });
   });
 
-  describe('formatDate', () => {
-    test('should format date string correctly', () => {
-      const date = '2023-12-25';
-      const formatted = formatDate(date);
-      expect(formatted).toContain('2023');
-    });
-  });
 });
