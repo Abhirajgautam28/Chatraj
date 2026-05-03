@@ -10,7 +10,11 @@ const ChatRajInput = ({
   startListening,
   isListening,
   isThinking,
-  t
+  t,
+  showSearch,
+  setShowSearch,
+  searchTerm,
+  setSearchTerm
 }) => {
   return (
     <footer className="p-4 md:p-6 bg-transparent sticky bottom-0">
@@ -38,6 +42,19 @@ const ChatRajInput = ({
             className="flex-1 max-h-48 py-2.5 bg-transparent border-none outline-none resize-none text-gray-900 dark:text-white scrollbar-hide"
           />
           <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setShowSearch(!showSearch)}
+              className={`p-2.5 rounded-xl transition-all ${
+                showSearch
+                  ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                  : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+              title="Search messages"
+              aria-label="Toggle search"
+            >
+              <i className="ri-search-eye-line text-xl"></i>
+            </button>
             {settings.accessibility.speechToText && (
               <button
                 type="button"
@@ -62,6 +79,30 @@ const ChatRajInput = ({
             </button>
           </div>
         </form>
+
+        {showSearch && (
+          <div className="mt-2 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-2 flex items-center gap-2 shadow-lg">
+            <i className="ri-search-line text-gray-400 ml-2"></i>
+            <input
+              type="text"
+              placeholder={t('searchMessages') || "Search in conversation..."}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              autoFocus
+              className="flex-1 bg-transparent border-none outline-none text-sm py-1 dark:text-white"
+            />
+            <button
+              onClick={() => {
+                setShowSearch(false);
+                setSearchTerm('');
+              }}
+              className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+            >
+              <i className="ri-close-line"></i>
+            </button>
+          </div>
+        )}
+
         <p className="mt-3 text-center text-[10px] text-gray-400 dark:text-gray-500">
           {t('disclaimer')}
         </p>
@@ -80,6 +121,10 @@ ChatRajInput.propTypes = {
   isListening: PropTypes.bool.isRequired,
   isThinking: PropTypes.bool.isRequired,
   t: PropTypes.func.isRequired,
+  showSearch: PropTypes.bool.isRequired,
+  setShowSearch: PropTypes.func.isRequired,
+  searchTerm: PropTypes.string.isRequired,
+  setSearchTerm: PropTypes.func.isRequired,
 };
 
 export default React.memo(ChatRajInput);

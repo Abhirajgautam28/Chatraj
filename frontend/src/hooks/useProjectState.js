@@ -1,12 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
+import axios from '../config/axios';
+import { useToast } from '../context/toast.context';
 
-/**
- * Custom hook to manage the internal state of a project workspace.
- */
 export const useProjectState = (initialProject) => {
     const [project, setProject] = useState(initialProject);
     const [messages, setMessages] = useState([]);
-    const [fileTree, setFileTree] = useState(initialProject.fileTree || {});
+    const [fileTree, setFileTree] = useState(initialProject?.fileTree || {});
     const [currentFile, setCurrentFile] = useState(null);
     const [openFiles, setOpenFiles] = useState([]);
     const [users, setUsers] = useState([]);
@@ -16,27 +15,26 @@ export const useProjectState = (initialProject) => {
     const [searchTerm, setSearchTerm] = useState("");
     const [expandedReplies, setExpandedReplies] = useState({});
 
-    const updateFileContents = useCallback((fileName, contents) => {
+    const updateFileContents = useCallback((path, contents) => {
         setFileTree(prev => ({
             ...prev,
-            [fileName]: {
-                ...prev[fileName],
-                file: { ...prev[fileName].file, contents }
+            [path]: {
+                ...prev[path],
+                file: { contents }
             }
         }));
     }, []);
 
-    const toggleUserSelection = useCallback((id) => {
+    const toggleUserSelection = useCallback((userId) => {
         setSelectedUserId(prev => {
             const next = new Set(prev);
-            if (next.has(id)) next.delete(id); else next.add(id);
+            if (next.has(userId)) next.delete(userId);
+            else next.add(userId);
             return next;
         });
     }, []);
 
-    const clearMessages = useCallback(() => {
-        setMessages([]);
-    }, []);
+    const clearMessages = useCallback(() => setMessages([]), []);
 
     return {
         project, setProject,
@@ -45,7 +43,7 @@ export const useProjectState = (initialProject) => {
         currentFile, setCurrentFile,
         openFiles, setOpenFiles,
         users, setUsers,
-        selectedUserId, setSelectedUserId,
+        selectedUserId,
         typingUsers, setTypingUsers,
         replyingTo, setReplyingTo,
         searchTerm, setSearchTerm,

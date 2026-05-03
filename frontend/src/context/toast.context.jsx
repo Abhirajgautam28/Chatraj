@@ -1,43 +1,40 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import PropTypes from 'prop-types';
+import React, { createContext, useState, useCallback, useMemo } from 'react';
 import Toast from '../components/Toast';
 
-const ToastContext = createContext();
+export const ToastContext = createContext();
 
 export const ToastProvider = ({ children }) => {
-    const [toast, setToast] = useState(null);
+    const [toasts, setToasts] = useState([]);
 
     const showToast = useCallback((message, type = 'info', duration = 3000) => {
-        setToast({ message, type, duration });
+        const id = Date.now();
+        setToasts(prev => [...prev, { id, message, type, duration }]);
     }, []);
 
-    const hideToast = useCallback(() => {
-        setToast(null);
+    const removeToast = useCallback((id) => {
+        setToasts(prev => prev.filter(toast => toast.id !== id));
     }, []);
+
+    const value = useMemo(() => ({ showToast }), [showToast]);
 
     return (
-        <ToastContext.Provider value={{ showToast, hideToast }}>
+        <ToastContext.Provider value={value}>
             {children}
-            {toast && (
-                <Toast
-                    message={toast.message}
-                    type={toast.type}
-                    duration={toast.duration}
-                    onClose={hideToast}
-                />
-            )}
+            <div className="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none">
+                {toasts.map(toast => (
+                    <Toast
+                        key={toast.id}
+                        {...toast}
+                        onClose={() => removeToast(toast.id)}
+                    />
+                ))}
+            </div>
         </ToastContext.Provider>
     );
 };
 
-ToastProvider.propTypes = {
-    children: PropTypes.node.isRequired,
-};
-
 export const useToast = () => {
-    const context = useContext(ToastContext);
-    if (!context) {
-        throw new Error('useToast must be used within a ToastProvider');
-    }
+    const context = React.useContext(ToastContext);
+    if (!context) throw new Error('useToast must be used within ToastProvider');
     return context;
 };
