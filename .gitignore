@@ -21,3 +21,15 @@ frontend/test-results/playwright-screenshots/home-material-theme.png
 frontend/test-results/playwright-screenshots/home.png
 frontend/test-results/playwright-screenshots/login.png
 frontend/test-results/playwright-screenshots/register.png
+# Playwright Test Artifacts
+e2e-tests/test-results/
+e2e-tests/playwright-report/
+e2e-tests/blob-report/
+e2e-tests/playwright/.cache/
+e2e-tests/.last-run.json
+
+test-results/
+playwright-report/
+blob-report/
+
+e2e-tests/.env
