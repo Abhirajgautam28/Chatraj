@@ -4,8 +4,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/user.context';
 import { ThemeContext } from '../context/theme.context';
 import { useToast } from '../context/toast.context';
+import { getThemeClasses } from '../utils/themeClasses.js';
 import axios from '../config/axios';
 import anime from 'animejs';
+import TermsModal from '../components/TermsModal.jsx';
+import PrivacyModal from '../components/PrivacyModal.jsx';
 
 const Register = () => {
     const [email, setEmail] = useState('');
@@ -17,10 +20,15 @@ const Register = () => {
     const [showOtpModal, setShowOtpModal] = useState(false);
     const [otp, setOtp] = useState('');
     const [userId, setUserId] = useState('');
-    const { setUser } = useContext(UserContext);
-    const { isDarkMode } = useContext(ThemeContext);
+    const [acceptTerms, setAcceptTerms] = useState(false);
+    const [showTermsModal, setShowTermsModal] = useState(false);
+    const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+    const { setUser } = useContext(UserContext) || {};
+    const { isDarkMode = false, uiTheme = "default" } = useContext(ThemeContext) || {};
     const { showToast } = useToast();
     const navigate = useNavigate();
+
+    const themeStyle = getThemeClasses(uiTheme, isDarkMode);
 
     const [errorMsg, setErrorMsg] = useState('');
     const [showRecaptcha, setShowRecaptcha] = useState(false);
@@ -58,6 +66,10 @@ const Register = () => {
     function submitHandler(e) {
         e.preventDefault();
         setErrorMsg('');
+        if (!acceptTerms) {
+            setErrorMsg('You must accept the Terms of Service and Privacy Policy to register.');
+            return;
+        }
         if (password !== confirmPassword) {
             setErrorMsg('Passwords do not match.');
             return;
@@ -164,7 +176,7 @@ const Register = () => {
     }
 
     return (
-        <div ref={containerRef} className="relative flex items-center justify-center min-h-screen bg-transparent overflow-hidden">
+        <div ref={containerRef} className={`relative flex items-center justify-center min-h-screen overflow-hidden ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
             {errorMsg && (
                 <div className="fixed top-8 left-1/2 z-50 -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded shadow-lg text-center font-semibold animate__animated animate__fadeInDown">
                     {errorMsg}
@@ -172,18 +184,18 @@ const Register = () => {
             )}
             {showOtpModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-                    <div className={`${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} rounded-lg shadow-2xl p-8 w-full max-w-sm`}>
-                        <h2 className="mb-4 text-xl font-bold text-center">Enter OTP</h2>
+                    <div className={`rounded-lg shadow-2xl p-8 w-full max-w-sm ${themeStyle.container}`}>
+                        <h2 className={`mb-4 text-xl font-bold text-center ${themeStyle.textMain}`}>Enter OTP</h2>
                         <form onSubmit={handleOtpSubmit}>
                             <input
                                 type="text"
                                 value={otp}
                                 onChange={e => setOtp(e.target.value)}
-                                className={`w-full p-3 mb-4 transition duration-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700 border border-gray-600' : 'text-gray-900 bg-white border border-gray-300'}`}
+                                className={`w-full py-3 px-4 mb-4 transition duration-300 outline-none ${themeStyle.input}`}
                                 placeholder="Enter the OTP sent to your email"
                                 required
                             />
-                            <button type="submit" className="w-full p-3 text-white bg-blue-500 rounded hover:bg-blue-600">Verify OTP</button>
+                            <button type="submit" className={`w-full py-3 px-4 ${themeStyle.buttonPrimary}`}>Verify OTP</button>
                         </form>
                     </div>
                 </div>
@@ -204,61 +216,65 @@ const Register = () => {
                 ))}
             </div>
 
-            <div className={`form-container relative z-10 w-full max-w-md p-8 backdrop-blur-sm rounded-lg shadow-2xl ${isDarkMode ? 'bg-gray-800/50 text-white' : 'bg-white/60 text-gray-900'}`}>
+            {/* Legal Modals */}
+            <TermsModal isOpen={showTermsModal} onRequestClose={() => setShowTermsModal(false)} />
+            <PrivacyModal isOpen={showPrivacyModal} onRequestClose={() => setShowPrivacyModal(false)} />
+
+            <div className={`form-container relative z-10 w-full max-w-md p-8 ${themeStyle.container}`}>
                 <button
                     type="button"
                     onClick={() => navigate(-1)}
-                    className="absolute left-4 top-4 text-gray-300 hover:text-white focus:outline-none"
+                    className={`absolute left-4 top-4 focus:outline-none ${themeStyle.textMuted}`}
                     aria-label="Go back"
                 >
                     <i className="ri-arrow-left-line text-2xl" />
                 </button>
-                <h2 className={`mb-6 text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Create an Account</h2>
+                <h2 className={`mb-6 text-3xl font-bold text-center ${themeStyle.textMain}`}>Create an Account</h2>
                 <form onSubmit={submitHandler}>
                     <div className="flex gap-4 mb-4">
                         <div className="w-1/2">
-                            <label className="block mb-2 text-sm font-medium text-gray-300">
+                            <label className={`block mb-2 text-sm font-medium ${themeStyle.textMuted}`}>
                                 First Name
                             </label>
                             <input
                                 type="text"
                                 value={firstName}
                                 onChange={(e) => setFirstName(e.target.value)}
-                                className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
+                                className={`w-full py-3 px-4 transition-all duration-300 outline-none ${themeStyle.input}`}
                                 placeholder="John"
                                 required
                             />
                         </div>
                         <div className="w-1/2">
-                            <label className="block mb-2 text-sm font-medium text-gray-300">
+                            <label className={`block mb-2 text-sm font-medium ${themeStyle.textMuted}`}>
                                 Last Name
                             </label>
                             <input
                                 type="text"
                                 value={lastName}
                                 onChange={(e) => setLastName(e.target.value)}
-                                className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
+                                className={`w-full py-3 px-4 transition-all duration-300 outline-none ${themeStyle.input}`}
                                 placeholder="Doe"
                                 required
                             />
                         </div>
                     </div>
                     <div className="mb-4">
-                        <label className="block mb-2 text-sm font-medium text-gray-300">
+                        <label className={`block mb-2 text-sm font-medium ${themeStyle.textMuted}`}>
                             Email
                         </label>
                         <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
+                            className={`w-full py-3 px-4 transition-all duration-300 outline-none ${themeStyle.input}`}
                             placeholder="your.email@example.com"
                             required
                         />
                     </div>
                     <div className="mb-4">
                         <div className="flex items-center justify-between mb-2">
-                            <label className="text-sm font-medium text-gray-300">
+                            <label className={`text-sm font-medium ${themeStyle.textMuted}`}>
                                 Google API Key
                             </label>
                             <a
@@ -274,43 +290,63 @@ const Register = () => {
                             type="text"
                             value={googleApiKey}
                             onChange={(e) => setGoogleApiKey(e.target.value)}
-                            className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
+                            className={`w-full py-3 px-4 transition-all duration-300 outline-none ${themeStyle.input}`}
                             placeholder="Enter your Google API Key"
                             required
                         />
                     </div>
                     <div className="flex gap-4 mb-6">
                         <div className="w-1/2">
-                            <label className="block mb-2 text-sm font-medium text-gray-300">
+                            <label className={`block mb-2 text-sm font-medium ${themeStyle.textMuted}`}>
                                 Password
                             </label>
                             <input
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
+                                className={`w-full py-3 px-4 transition-all duration-300 outline-none ${themeStyle.input}`}
                                 placeholder="••••••••"
                                 required
                             />
                         </div>
                         <div className="w-1/2">
-                            <label className="block mb-2 text-sm font-medium text-gray-300">
+                            <label className={`block mb-2 text-sm font-medium ${themeStyle.textMuted}`}>
                                 Confirm Password
                             </label>
                             <input
                                 type="password"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                className={`w-full p-3 transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? 'text-white bg-gray-700/50 border border-gray-600' : 'text-gray-900 bg-white/50 border border-gray-300'}`}
+                                className={`w-full py-3 px-4 transition-all duration-300 outline-none ${themeStyle.input}`}
                                 placeholder="••••••••"
                                 required
                             />
                         </div>
                     </div>
 
+                    <div className="mb-6 flex items-start">
+                        <div className="flex items-center h-5">
+                            <input
+                                id="terms"
+                                type="checkbox"
+                                checked={acceptTerms}
+                                onChange={(e) => setAcceptTerms(e.target.checked)}
+                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                            />
+                        </div>
+                        <div className="ml-3 text-sm">
+                            <label htmlFor="terms" className={`font-medium ${themeStyle.textMain}`}>
+                                I accept the{' '}
+                                <button type="button" onClick={() => setShowTermsModal(true)} className="text-blue-500 hover:underline focus:outline-none">Terms of Service</button>
+                                {' '}and{' '}
+                                <button type="button" onClick={() => setShowPrivacyModal(true)} className="text-blue-500 hover:underline focus:outline-none">Privacy Policy</button>
+                            </label>
+                        </div>
+                    </div>
+
                     <button
                         type="submit"
-                        className="w-full p-3 text-white font-bold transition duration-300 bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500"
+                        className={`w-full py-3 px-4 font-bold transition duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 ${themeStyle.buttonPrimary}`}
                     >
                         Register
                     </button>
