@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import jwt from 'jsonwebtoken';
 import { logger } from '../utils/logger.js';
 
 // Send OTP for password reset (used in Login.jsx)
@@ -11,8 +12,7 @@ export const sendOtpController = async (req, res) => {
         if (!user) return res.status(404).json({ message: 'User not found' });
         // Generate OTP
         const otp = generateOTP(7);
-        user.otp = otp;
-        user.isVerified = false;
+        user.resetPasswordOtp = otp;
         await user.save();
         await sendOtpEmail(user.email, otp);
         res.status(200).json({ message: 'OTP sent to email.' });
@@ -205,10 +205,17 @@ export const verifyOtpController = async (req, res) => {
             return res.status(400).json({ message: 'Invalid User ID' });
         }
         user = await userModel.findById(userId).select('+otp');
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        if (user.otp !== otp) return res.status(401).json({ message: 'Invalid OTP' });
+        user.isVerified = true;
+        user.otp = undefined;
+        await user.save();
+        const token = await user.generateJWT();
+        return res.status(200).json({ message: 'Verified successfully', token, user });
     } else if (email) {
         const { value: normalizedEmail, isValid } = normalizeEmail(email);
         if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
-        user = await userModel.findOne({ email: normalizedEmail }).select('+otp');
+        user = await userModel.findOne({ email: normalizedEmail }).select('+otp +resetPasswordOtp');
         // If user not found in DB, check for a pending registration stored in Redis
         // (we persist pending registrations there until the user verifies via OTP).
         if (!user) {
@@ -264,6 +271,29 @@ export const verifyOtpController = async (req, res) => {
                     return res.status(500).json({ message: 'Failed to create account' });
                 }
             }
+            return res.status(404).json({ message: 'User not found' });
+        } else {
+            // Password reset verification flow
+            if (user.resetPasswordOtp && user.resetPasswordOtp === otp) {
+                user.resetPasswordOtp = undefined;
+                await user.save();
+                // Issue a short-lived reset token
+                const resetToken = jwt.sign(
+                    { email: user.email, purpose: 'password-reset' },
+                    process.env.JWT_SECRET,
+                    { expiresIn: '15m' }
+                );
+                return res.status(200).json({ message: 'OTP verified', resetToken });
+            }
+            // Registration verification fallback logic for email (legacy approach)
+            if (user.otp === otp) {
+                 user.isVerified = true;
+                 user.otp = undefined;
+                 await user.save();
+                 const token = await user.generateJWT();
+                 return res.status(200).json({ message: 'Verified successfully', token, user });
+            }
+            return res.status(401).json({ message: 'Invalid OTP' });
         }
     }
 };
@@ -382,20 +412,11 @@ export const getAllUsersController = async (req, res) => {
     }
 }
 
-export const resetPasswordController = async (req, res) => {
-    try {
-        const { email } = req.body;
-        const result = await userService.resetPassword(email);
-        return response.success(res, result);
-    } catch (err) {
-        logger.error('resetPasswordController error:', err);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-};
-
 export const updatePasswordController = async (req, res) => {
     try {
-        const { email, newPassword } = req.body;
+        const { newPassword } = req.body;
+        // The email is extracted from the JWT token via the authResetPassword middleware
+        const email = req.resetUser.email;
         const result = await userService.updatePassword(email, newPassword);
         return response.success(res, result);
     } catch (err) {

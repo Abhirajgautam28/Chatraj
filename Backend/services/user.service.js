@@ -26,8 +26,7 @@ export const sendOtp = async (email) => {
     if (!user) throw new Error('User not found');
 
     const otp = generateOTP(7);
-    user.otp = otp;
-    user.isVerified = false;
+    user.resetPasswordOtp = otp;
     await user.save();
 
     await sendOtpEmail(user.email, otp);
@@ -63,7 +62,7 @@ export const verifyOtp = async ({ userId, email, otp }) => {
     } else if (email) {
         const { value: normalizedEmail, isValid } = normalizeEmail(email);
         if (!isValid) throw new Error('Valid email is required');
-        user = await userModel.findOne({ email: normalizedEmail }).select('+otp');
+        user = await userModel.findOne({ email: normalizedEmail }).select('+otp +resetPasswordOtp');
 
         if (!user) {
             const pendingKey = `pending:registration:${normalizedEmail}`;
@@ -92,6 +91,18 @@ export const verifyOtp = async ({ userId, email, otp }) => {
     }
 
     if (!user) throw new Error('User not found');
+
+    if (user.resetPasswordOtp && user.resetPasswordOtp === otp) {
+        user.resetPasswordOtp = undefined;
+        await user.save();
+        const resetToken = jwt.sign(
+            { email: user.email, purpose: 'password-reset' },
+            process.env.JWT_SECRET,
+            { expiresIn: '15m' }
+        );
+        return { message: 'OTP verified', resetToken };
+    }
+
     if (user.otp !== otp) throw new Error('Invalid OTP');
 
     user.isVerified = true;
@@ -150,20 +161,6 @@ export const loginUser = async (email, password) => {
 
 export const getAllUsers = async ({ userId }) => {
     return await userModel.find({ _id: { $ne: userId } });
-};
-
-export const resetPassword = async (email) => {
-    const { value: normalizedEmail, isValid } = normalizeEmail(email);
-    if (!isValid) throw new Error('Valid email is required');
-    const user = await userModel.findOne({ email: normalizedEmail });
-    if (!user) throw new Error('User not found');
-
-    const resetToken = jwt.sign(
-        { email: user.email },
-        process.env.JWT_SECRET,
-        { expiresIn: '15m' }
-    );
-    return { message: 'Reset link sent to email', resetToken };
 };
 
 export const updatePassword = async (email, newPassword) => {
