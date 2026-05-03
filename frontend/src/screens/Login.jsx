@@ -27,6 +27,7 @@ const Login = () => {
     const otpTimerRef = useRef(null);
     const [resetOtp, setResetOtp] = useState('');
     const [resetOtpVerified, setResetOtpVerified] = useState(false);
+    const [resetToken, setResetToken] = useState('');
     const [resetNewPassword, setResetNewPassword] = useState('');
     const [resetConfirmPassword, setResetConfirmPassword] = useState('');
     const [resetSuccess, setResetSuccess] = useState(false);
@@ -167,7 +168,8 @@ const Login = () => {
             return;
         }
         try {
-            await axios.post('/api/users/verify-otp', { email: resetEmail, otp: resetOtp });
+            const res = await axios.post('/api/users/verify-otp', { email: resetEmail, otp: resetOtp });
+            setResetToken(res.data.resetToken);
             setResetOtpVerified(true);
         } catch {
             setResetError('Invalid OTP. Please check your email and try again.');
@@ -191,8 +193,11 @@ const Login = () => {
         setResetInProgress(true);
         try {
             await axios.post('/api/users/update-password', {
-                email: resetEmail,
                 newPassword: resetNewPassword
+            }, {
+                headers: {
+                    Authorization: `Bearer ${resetToken}`
+                }
             });
             setResetSuccess(true);
             setTimeout(() => {
@@ -202,6 +207,7 @@ const Login = () => {
                 setResetOtp('');
                 setResetOtpSent(false);
                 setResetOtpVerified(false);
+                setResetToken('');
                 setResetNewPassword('');
                 setResetConfirmPassword('');
                 setShowPassword(false);
@@ -215,7 +221,7 @@ const Login = () => {
     };
 
     return (
-        <div ref={containerRef} className={`relative flex items-center justify-center min-h-screen overflow-hidden ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div ref={containerRef} className={`relative flex items-center justify-center min-h-screen overflow-hidden ${themeStyle.background} transition-colors duration-500`}>
             <div className="absolute inset-0 z-0">
                 {[...Array(10)].map((_, i) => (
                     <div

@@ -176,7 +176,7 @@ const Register = () => {
     }
 
     return (
-        <div ref={containerRef} className={`relative flex items-center justify-center min-h-screen overflow-hidden ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div ref={containerRef} className={`relative flex items-center justify-center min-h-screen overflow-hidden ${themeStyle.background} transition-colors duration-500`}>
             {errorMsg && (
                 <div className="fixed top-8 left-1/2 z-50 -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded shadow-lg text-center font-semibold animate__animated animate__fadeInDown">
                     {errorMsg}
