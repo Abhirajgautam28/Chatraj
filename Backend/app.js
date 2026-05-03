@@ -30,6 +30,10 @@ const allowedOrigins = [
 
 const app = express();
 
+// Trust the first proxy (e.g. Vercel, Render) to allow Express to correctly
+// extract the client's real IP from X-Forwarded-For and detect HTTPS.
+app.set('trust proxy', 1);
+
 // CORS debug logger
 const corsErrorLogger = (err, req, res, next) => {
   if (err && err.message && err.message.includes('CORS')) {
