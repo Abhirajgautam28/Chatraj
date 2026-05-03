@@ -126,7 +126,8 @@ if (process.env.REDIS_URL) {
             return next;
         },
         on: () => {},
-        quit: async () => { store.clear(); timers.forEach(t => clearTimeout(t)); timers.clear(); return 'OK'; }
+        quit: async () => { store.clear(); timers.forEach(t => clearTimeout(t)); timers.clear(); return 'OK'; },
+        flushdb: async () => { store.clear(); timers.forEach(t => clearTimeout(t)); timers.clear(); return 'OK'; }
     };
 }
 
