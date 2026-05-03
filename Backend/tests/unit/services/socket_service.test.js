@@ -32,7 +32,7 @@ describe('Socket Service', () => {
     test('middleware should reject invalid projectId', async () => {
         initializeSocket(mockServer);
         const middleware = mockIo.use.mock.calls[0][0];
-        const socket = { handshake: { query: { projectId: 'invalid' }, headers: { authorization: 'Bearer token' } } };
+        const socket = { handshake: { query: { projectId: 'invalid' }, headers: { authorization: 'Bearer token' }, auth: {} } };
         const next = jest.fn();
 
         await middleware(socket, next);
