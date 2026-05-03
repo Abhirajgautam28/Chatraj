@@ -1,4 +1,13 @@
 import mongoose from 'mongoose';
+import crypto from 'node:crypto';
+import { validationResult } from 'express-validator';
+import userModel from '../models/user.model.js';
+import * as userService from '../services/user.service.js';
+import redisClient from '../services/redis.service.js';
+import response from '../utils/response.js';
+import { normalizeEmail } from '../utils/email.js';
+import { escapeHtml } from '../utils/strings.js';
+import { sendMailWithRetry } from '../utils/mailer.js';
 import { logger } from '../utils/logger.js';
 
 // Send OTP for password reset (used in Login.jsx)
