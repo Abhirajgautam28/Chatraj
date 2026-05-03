@@ -48,7 +48,9 @@ export function isSecureFromRequest(req) {
   if (process.env.FORCE_SECURE_COOKIES === 'true' || process.env.NODE_ENV === 'production') return true;
   if (!req) return false;
   try {
-    return Boolean(req.secure || (req.headers && String(req.headers['x-forwarded-proto']) === 'https'));
+    // When 'trust proxy' is enabled in Express, req.secure correctly
+    // reflects the X-Forwarded-Proto header from the trusted proxy.
+    return Boolean(req.secure);
   } catch (e) {
     return false;
   }

@@ -312,7 +312,7 @@ export const adminGetOtpController = async (req, res) => {
 
         // Audit access: log who requested this and what they requested.
         try {
-            const requesterIp = req.ip || req.headers['x-forwarded-for'] || req.connection && req.connection.remoteAddress;
+            const requesterIp = req.ip;
             const adminMasked = typeof adminKey === 'string' ? `***${adminKey.slice(-4)}` : '<none>';
             const audit = {
                 timestamp: new Date().toISOString(),
