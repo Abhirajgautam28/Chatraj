@@ -48,7 +48,7 @@
     "xss": "^1.0.15"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.29.2",
+    "@babel/preset-env": "^7.29.3",
     "babel-jest": "^30.3.0",
     "jest": "^30.2.0",
     "rimraf": "^6.1.3",
