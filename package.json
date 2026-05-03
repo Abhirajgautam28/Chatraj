@@ -27,11 +27,12 @@
     "test:frontend:unit": "cd frontend && npx vitest run src/__tests__/unit/",
     "test:frontend:components": "cd frontend && npx vitest run src/__tests__/components/",
     "test:e2e:playwright": "npx playwright test",
-    "test:e2e": "./e2e-tests/run-gate.sh"
+    "test:e2e": "node e2e-tests/run-gate.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",
     "concurrently": "^8.2.0",
+    "cross-env": "^10.1.0",
     "cypress": "^13.0.0",
     "dotenv": "^17.4.2",
     "socket.io-client": "^4.8.1"
