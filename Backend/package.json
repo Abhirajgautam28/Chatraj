@@ -38,7 +38,7 @@
     "mongodb": "7.1.1",
     "mongoose": "^9.5.0",
     "morgan": "1.10.1",
-    "nodemailer": "^8.0.5",
+    "nodemailer": "^8.0.7",
     "nodemon": "3.1.14",
     "path-to-regexp": "^8.4.2",
     "socket.io": "4.8.3",
