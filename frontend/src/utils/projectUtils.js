@@ -37,6 +37,18 @@ export const deduplicateMessages = (messages) => {
     });
 };
 
+export const groupProjectsByCategory = (projects) => {
+    if (!Array.isArray(projects) || projects.length === 0) return {};
+    return projects.reduce((groups, project) => {
+        const category = project.category || 'Uncategorized';
+        if (!groups[category]) {
+            groups[category] = [];
+        }
+        groups[category].push(project);
+        return groups;
+    }, {});
+};
+
 export const isSameDay = (d1, d2) => {
     return (
         d1.getFullYear() === d2.getFullYear() &&

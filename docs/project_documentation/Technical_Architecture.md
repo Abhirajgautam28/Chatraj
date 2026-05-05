@@ -1,79 +1,77 @@
-# Technical Architecture Document: ChatRaj
+# ChatRaj Technical Architecture & Infrastructure
 
-## 1. System Overview
-ChatRaj is built on a modern JavaScript-based stack (MERN + Redis + WebSockets), ensuring high performance, scalability, and seamless real-time interactions for users globally.
+## 1. Global System Architecture
 
-## 2. High-Level Architecture Diagram
+The ChatRaj platform utilizes a deeply decoupled client-server architecture, specifically optimized for real-time WebSockets and edge-based code execution.
+
+### 1.1 High-Level Component Interaction (Data Flow)
+
 ```text
-[Client Browsers]
-      | (HTTP/REST & WebSockets)
-      v
-[Load Balancer / Nginx]
-      |
-      +-----> [Frontend (React / Vite)] (Served via CDN or static hosting)
-      |
-      +-----> [Backend API (Node.js / Express)]
-                    |
-                    +---> [Socket.io Server] (Real-time events: Chat, Code Sync)
-                    |
-                    +---> [Google Generative AI] (External API for AI Assistant)
-                    |
-                    +---> [Redis Cache] (Session management, Rate Limiting, AI Caching)
-                    |
-                    +---> [MongoDB Atlas] (Primary Database: Users, Projects, Messages, Blogs)
+[ Developer Browser ]
+   |-- Executes WebContainers locally (WASM Node.js)
+   |-- Renders UI via React 18 / Vite
+   |
+   | (1. HTTP/REST: Auth, Project Metadata, CRUD)
+   | (2. WSS/WebSockets: Keystrokes, Chat, Cursor Positions)
+   v
+[ Edge CDN / Load Balancer (Nginx / Cloudflare) ]
+   |
+   |-- (REST Traffic) ----> [ Express.js API Cluster ]
+   |                             |-- Validates JWTs
+   |                             |-- Interacts with MongoDB
+   |
+   |-- (WSS Traffic) -----> [ Socket.io Node Cluster ]
+                                 |-- Manages Room State
+                                 |-- Uses Redis Pub/Sub adapter to sync across nodes
 ```
 
-## 3. Technology Stack
+---
 
-### 3.1 Frontend
-* **Framework:** React 18 built with Vite for optimal HMR and build performance.
-* **Styling:** Tailwind CSS, Animate.css, with complex UI layouts handled via custom theming (e.g., Claymorphism, Glassmorphism).
-* **State Management:** React Context API and custom hooks (`useProjectState`).
-* **Real-time Communication:** Socket.io-client.
-* **Code Editor:** Integrated WebContainers and custom Vim-compatible editors using highlight.js.
-* **3D & Animations:** Three.js, GSAP, Motion.js.
+## 2. Technology Stack & Justification
 
-### 3.2 Backend
-* **Runtime:** Node.js.
-* **Framework:** Express.js.
-* **Real-time Server:** Socket.io (handling namespaces and rooms per project).
-* **AI Integration:** `@google/generative-ai` SDK.
-* **Authentication:** JSON Web Tokens (JWT), bcrypt for password hashing.
-* **Email Service:** Nodemailer using Gmail SMTP.
+### 2.1 The Frontend (Client-Side)
+- **Framework:** React 18. Chose React for its massive ecosystem and component reusability. Vite is used for tooling due to its ES-module-based HMR, drastically reducing local build times compared to Webpack.
+- **State Management:** Native React Context (`UserContext`, `ThemeContext`) and highly specific custom hooks (`useProjectState.js`). Redux was evaluated but rejected to minimize boilerplate, given the heavy reliance on WebSocket event-driven state changes.
+- **Code Execution:** `@webcontainer/api`. This allows booting a full Node.js environment *inside the user's browser* using WebAssembly. This shifts the compute cost of code execution from ChatRaj servers to the user's local machine, saving massive infrastructure costs.
 
-### 3.3 Data Layer
-* **Primary Database:** MongoDB (hosted on Atlas) using Mongoose ODM.
-* **Caching Layer:** Redis. Used for:
-  * Prompt caching (MD5 hashing AI queries).
-  * Rate limiting middleware.
-  * Session and OTP storage.
+### 2.2 The Backend (Server-Side)
+- **Runtime & Framework:** Node.js + Express.js. Chosen for its non-blocking I/O, which is critical for handling thousands of concurrent WebSocket connections.
+- **Caching & Rate Limiting:** Redis (via `ioredis`). Redis handles session blacklisting, rate limiting (crucial for protecting expensive AI API routes), and prompt caching.
+- **Database:** MongoDB Atlas. A NoSQL document store is perfect for the highly flexible, deeply nested JSON structures required to store virtual file trees (`fileTree`).
 
-### 3.4 Infrastructure & Deployment
-* **Hosting (Frontend):** Vercel (includes Vercel Analytics).
-* **Hosting (Backend):** Containerized via Docker or deployed on platforms like Render/Heroku/AWS EC2.
-* **CI/CD:** GitHub Actions running unit/integration tests (Jest for backend, Vitest for frontend) and E2E testing (Cypress).
+---
 
-## 4. Key Workflows & Data Models
+## 3. Core Architectural Workflows
 
-### 4.1 Real-Time Code Synchronization
-* **Mechanism:** When a user types in the code editor, the frontend emits a `code-update` event via Socket.io to the backend.
-* **Broadcasting:** The backend identifies the specific project "room" and broadcasts the update to all other connected clients in that room, updating their UI state instantly.
-* **Conflict Resolution:** Last-write-wins (currently), with future roadmap plans for CRDTs (Conflict-free Replicated Data Types).
+### 3.1 Real-Time Code Synchronization (Concurrency)
+Currently, ChatRaj utilizes a **Last-Write-Wins (LWW)** model over WebSockets.
+1. User A types a character.
+2. The frontend debounces the input (150ms).
+3. The frontend emits a `file-update` event containing the absolute path and the full file string.
+4. The server receives this and broadcasts it to the specific project room.
+5. User B receives the payload and replaces their local state.
+*Note: The V2 roadmap includes migrating to CRDTs (Conflict-free Replicated Data Types) via Yjs to handle simultaneous line edits without overwriting.*
 
-### 4.2 AI Assistant Workflow
-* **Trigger:** A message containing `@ChatRaj` is sent in the chat.
-* **Processing:** The frontend parses the mention and triggers an API call to the `/ai/generate` endpoint.
-* **Context Assembly:** The backend gathers the current project context (files, recent messages) and constructs a structured prompt.
-* **Caching:** The backend checks Redis for a cached response based on the prompt hash. If missing, it queries the Google AI API.
-* **Delivery:** The AI response is streamed or returned as JSON, parsed, and broadcasted back to the chat room.
+### 3.2 The AI Generation Pipeline
+1. The Express server intercepts a `@ChatRaj` chat message.
+2. The backend constructs a mega-prompt combining the user's message and the current active file's code string.
+3. **The Cache Intercept:** The server hashes the prompt using MD5. `redis.get(hash)` is executed. If a result exists, it is instantly returned to the Socket stream.
+4. If a cache miss occurs, the server awaits the `@google/generative-ai` API, formats the markdown, saves it to Redis with an 86400 TTL (24 hours), and broadcasts it.
 
-## 5. Security Architecture
-* **Authentication:** All secure endpoints require a valid JWT passed in the `Authorization` header.
-* **Rate Limiting:** IP-based rate limiting implemented via Redis and centralized in `rateLimiter.js` to prevent brute-force and DDoS attacks.
-* **Data Validation:** Mongoose schemas enforce data integrity at the database level.
-* **CORS & CSRF:** Strict CORS policies ensure the backend only accepts requests from the designated frontend domain.
+---
 
-## 6. Scalability Strategy
-* **Stateless Backend:** The Node.js API is stateless. User sessions and rate limits are stored in Redis, allowing horizontal scaling of the backend servers behind a load balancer.
-* **Socket Clustering:** Socket.io instances use Redis adapters to sync events across multiple Node.js worker nodes.
-* **Database Sharding:** MongoDB Atlas provides automated scaling and sharding capabilities as data volume grows.
+## 4. DevOps, CI/CD, and Monitoring
+
+### 4.1 CI/CD Pipeline (GitHub Actions)
+- **PR Stage:** On every pull request, GitHub Actions provisions an Ubuntu runner. It runs `npm run test:backend:unit` (Jest) and `npm run test:frontend:unit` (Vitest).
+- **E2E Stage:** Cypress tests verify the login and project creation flows.
+- **Deploy Stage (Frontend):** Merges to `main` trigger a Vercel deployment automatically.
+- **Deploy Stage (Backend):** Merges to `main` trigger a Docker build, push to an elastic container registry, and a rolling update to the Kubernetes cluster.
+
+### 4.2 Telemetry and Monitoring
+- **Frontend:** Vercel Analytics tracks Core Web Vitals (LCP, FID, CLS).
+- **Backend:** `winston` is used for structured JSON logging. All server errors, rate limit breaches, and cache miss rates are logged to standard output for aggregation by Datadog or ELK stack.
+
+### 4.3 Disaster Recovery
+- **Database:** MongoDB Atlas is configured for automated daily snapshots with a 7-day retention policy and Point-in-Time Recovery (PITR) enabled.
+- **Redis Loss:** Since Redis is used entirely ephemerally (caching and rate limits), a Redis node crash requires zero data recovery. The system will temporarily experience higher API latency while the cache rebuilds organically.

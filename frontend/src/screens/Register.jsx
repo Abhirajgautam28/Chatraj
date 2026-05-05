@@ -7,6 +7,8 @@ import { useToast } from '../context/toast.context';
 import { getThemeClasses } from '../utils/themeClasses.js';
 import axios from '../config/axios';
 import anime from 'animejs';
+import TermsModal from '../components/TermsModal.jsx';
+import PrivacyModal from '../components/PrivacyModal.jsx';
 
 const Register = () => {
     const [email, setEmail] = useState('');
@@ -18,6 +20,9 @@ const Register = () => {
     const [showOtpModal, setShowOtpModal] = useState(false);
     const [otp, setOtp] = useState('');
     const [userId, setUserId] = useState('');
+    const [acceptTerms, setAcceptTerms] = useState(false);
+    const [showTermsModal, setShowTermsModal] = useState(false);
+    const [showPrivacyModal, setShowPrivacyModal] = useState(false);
     const { setUser } = useContext(UserContext) || {};
     const { isDarkMode = false, uiTheme = "default" } = useContext(ThemeContext) || {};
     const { showToast } = useToast();
@@ -61,6 +66,10 @@ const Register = () => {
     function submitHandler(e) {
         e.preventDefault();
         setErrorMsg('');
+        if (!acceptTerms) {
+            setErrorMsg('You must accept the Terms of Service and Privacy Policy to register.');
+            return;
+        }
         if (password !== confirmPassword) {
             setErrorMsg('Passwords do not match.');
             return;
@@ -208,6 +217,10 @@ const Register = () => {
                 ))}
             </div>
 
+            {/* Legal Modals */}
+            <TermsModal isOpen={showTermsModal} onRequestClose={() => setShowTermsModal(false)} />
+            <PrivacyModal isOpen={showPrivacyModal} onRequestClose={() => setShowPrivacyModal(false)} />
+
             <div className={`form-container relative z-10 w-full max-w-md p-8 ${themeStyle.container}`}>
                 <button
                     type="button"
@@ -309,6 +322,26 @@ const Register = () => {
                                 placeholder="••••••••"
                                 required
                             />
+                        </div>
+                    </div>
+
+                    <div className="mb-6 flex items-start">
+                        <div className="flex items-center h-5">
+                            <input
+                                id="terms"
+                                type="checkbox"
+                                checked={acceptTerms}
+                                onChange={(e) => setAcceptTerms(e.target.checked)}
+                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                            />
+                        </div>
+                        <div className="ml-3 text-sm">
+                            <label htmlFor="terms" className={`font-medium ${themeStyle.textMain}`}>
+                                I accept the{' '}
+                                <button type="button" onClick={() => setShowTermsModal(true)} className="text-blue-500 hover:underline focus:outline-none">Terms of Service</button>
+                                {' '}and{' '}
+                                <button type="button" onClick={() => setShowPrivacyModal(true)} className="text-blue-500 hover:underline focus:outline-none">Privacy Policy</button>
+                            </label>
                         </div>
                     </div>
 

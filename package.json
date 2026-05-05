@@ -26,11 +26,20 @@
     "test:backend:unit": "cd Backend && npx jest tests/unit/**/*.test.js --config jest.config.cjs",
     "test:backend:coverage": "cd Backend && npx jest --coverage --config jest.config.cjs",
     "test:frontend:unit": "cd frontend && npx vitest run src/__tests__/unit/",
-    "test:frontend:components": "cd frontend && npx vitest run src/__tests__/components/"
+    "test:frontend:components": "cd frontend && npx vitest run src/__tests__/components/",
+    "test:e2e:playwright": "npx playwright test",
+    "test:e2e": "node e2e-tests/run-gate.js"
   },
   "devDependencies": {
-    "concurrently": "^8.2.0",
+    "concurrently": "^8.2.2",
     "cypress": "^13.0.0",
+    "dotenv": "^17.4.2",
     "socket.io-client": "^4.8.1"
+  },
+  "dependencies": {
+    "cookie": "^0.7.0",
+    "csurf": "^1.11.0",
+    "dompurify": "^3.4.2",
+    "mongo-sanitize": "^1.1.0"
   }
 }

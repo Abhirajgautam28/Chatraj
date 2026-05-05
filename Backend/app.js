@@ -8,9 +8,12 @@ import aiRoutes from './routes/ai.routes.js';
 import setupRoutes from './routes/setup.routes.js';
 import newsletterRoutes from './routes/newsletter.routes.js';
 import blogRoutes from './routes/blog.routes.js';
+import diagnosticRoutes from './routes/diagnostic.routes.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import csurf from 'csurf';
+import helmet from 'helmet';
+import mongoSanitize from 'express-mongo-sanitize';
 import { logger } from './utils/logger.js';
 import {
   verifySignedCsrfToken,
@@ -28,6 +31,10 @@ const allowedOrigins = [
 
 
 const app = express();
+
+// Trust the first proxy (e.g. Vercel, Render) to allow Express to correctly
+// extract the client's real IP from X-Forwarded-For and detect HTTPS.
+app.set('trust proxy', 1);
 
 // CORS debug logger
 const corsErrorLogger = (err, req, res, next) => {
@@ -70,6 +77,9 @@ app.use(cors({
 // CORS preflight is handled by the global CORS middleware above
 
 app.use(corsErrorLogger);
+
+app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(mongoSanitize());
 
 app.use(morgan('dev'));
 app.use(express.json());
@@ -177,6 +187,7 @@ app.use('/api/projects', projectRoutes);
 app.use("/api/ai", aiRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/blogs', blogRoutes);
+app.use('/api/diagnostics', diagnosticRoutes);
 
 app.use((err, req, res, next) => {
   logger.error(err.stack);
@@ -185,7 +196,7 @@ app.use((err, req, res, next) => {
     logger.error('CSRF validation failed:', err.message);
     return res.status(403).json({
       error: 'Invalid CSRF token',
-      message: process.env.NODE_ENV === 'development' ? err.message : 'Forbidden'
+      message: 'Forbidden'
     });
   }
 
@@ -193,7 +204,7 @@ app.use((err, req, res, next) => {
   if (!res.headersSent) {
     res.status(status).json({
       error: 'Something broke!',
-      message: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
+      message: 'Internal Server Error'
     });
   }
 });
