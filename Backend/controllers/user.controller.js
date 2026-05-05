@@ -5,15 +5,9 @@ import * as response from '../utils/response.js';
 import redisClient from '../services/redis.service.js';
 import crypto from 'crypto';
 import { normalizeEmail } from '../utils/email.js';
+import { logger } from "../utils/logger.js";
 import mongoose from 'mongoose';
-import crypto from 'node:crypto';
-import { validationResult } from 'express-validator';
-import userModel from '../models/user.model.js';
-import * as userService from '../services/user.service.js';
-import redisClient from '../services/redis.service.js';
-import { logger } from '../utils/logger.js';
-import response from '../utils/response.js';
-import normalizeEmail from '../utils/email.js';
+
 import { sendMailWithRetry } from '../utils/mailer.js';
 import { escapeHtml } from '../utils/strings.js';
 

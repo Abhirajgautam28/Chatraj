@@ -10,7 +10,7 @@
     "start:frontend": "cd frontend && npm run dev",
     "smoke-test": "node Backend/scripts/smoke-test.js",
     "smoke-test:e2e": "node Backend/scripts/e2e-test.js",
-    "test:e2e": "cd frontend && npx playwright test playwright/tests/e2e-coverage.spec.js",
+    "test:e2e": "npx playwright test --headed",
     "test:backend:utils": "cd Backend && npx jest tests/unit/utils/*.test.js --config jest.config.cjs",
     "test:frontend": "cd frontend && npm run test",
     "test:all": "npm run test:backend:unit && npm run test:backend:integration && npm run test:backend:security && npm run test:backend:controllers && npm run test:backend:models && npm run test:frontend:unit && npm run test:frontend:components",
@@ -26,11 +26,10 @@
     "test:backend:unit": "cd Backend && npx jest tests/unit/**/*.test.js --config jest.config.cjs",
     "test:backend:coverage": "cd Backend && npx jest --coverage --config jest.config.cjs",
     "test:frontend:unit": "cd frontend && npx vitest run src/__tests__/unit/",
-    "test:frontend:components": "cd frontend && npx vitest run src/__tests__/components/",
-    "test:e2e:playwright": "npx playwright test",
-    "test:e2e": "node e2e-tests/run-gate.js"
+    "test:frontend:components": "cd frontend && npx vitest run src/__tests__/components/"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "concurrently": "^8.2.2",
     "cypress": "^13.0.0",
     "dotenv": "^17.4.2",
