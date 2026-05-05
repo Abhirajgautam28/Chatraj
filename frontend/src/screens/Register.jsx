@@ -156,8 +156,9 @@ const Register = () => {
         e.preventDefault();
         axios.post('/api/users/verify-otp', { userId, otp })
             .then((res) => {
-                localStorage.setItem('token', res.data.token);
-                setUser(res.data.user);
+                const responseData = res.data.data || res.data;
+                localStorage.setItem('token', responseData.token);
+                setUser(responseData.user);
                 setShowOtpModal(false);
                 navigate('/categories', { replace: true });
             })

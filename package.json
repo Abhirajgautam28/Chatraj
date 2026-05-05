@@ -10,6 +10,7 @@
     "start:frontend": "cd frontend && npm run dev",
     "smoke-test": "node Backend/scripts/smoke-test.js",
     "smoke-test:e2e": "node Backend/scripts/e2e-test.js",
+    "test:e2e": "cd frontend && npx playwright test playwright/tests/e2e-coverage.spec.js",
     "test:backend:utils": "cd Backend && npx jest tests/unit/utils/*.test.js --config jest.config.cjs",
     "test:frontend": "cd frontend && npm run test",
     "test:all": "npm run test:backend:unit && npm run test:backend:integration && npm run test:backend:security && npm run test:backend:controllers && npm run test:backend:models && npm run test:frontend:unit && npm run test:frontend:components",
