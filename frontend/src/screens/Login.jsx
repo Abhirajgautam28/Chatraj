@@ -102,8 +102,9 @@ const Login = () => {
             try {
                 await getCsrfToken();
                 const res = await axios.post('/api/users/login', { email, password, recaptchaToken: token }, { withCredentials: true });
-                localStorage.setItem('token', res.data.token);
-                setUser(res.data.user);
+                const responseData = res.data.data || res.data;
+                localStorage.setItem('token', responseData.token);
+                setUser(responseData.user);
                 const fromTryChatRaj = localStorage.getItem('fromTryChatRaj');
                 if (fromTryChatRaj === 'true') {
                     localStorage.removeItem('fromTryChatRaj');
