@@ -91,19 +91,45 @@ app.use(cookieParser());
 // these properties are getter-only and assignment throws (observed with
 // certain proxies). Calling `sanitize()` mutates objects in-place and
 // avoids reassigning the parent `req` properties.
+// The middleware centralizes error logging and supports a fail-fast mode
+// controlled by `SANITIZE_FAIL_FAST=true` (defaults to non-failing/lenient).
 app.use((req, res, next) => {
+  const scopes = ['query', 'body', 'params'];
+  const failFast = process.env.SANITIZE_FAIL_FAST === 'true';
+
+  const logSanitizeError = (err, scope) => {
+    logger.warn('mongoSanitize failed', {
+      err: err && err.message ? err.message : err,
+      method: req.method,
+      url: req.originalUrl,
+      scope,
+    });
+  };
+
   try {
-    if (req.query && typeof req.query === 'object') {
-      try { mongoSanitize.sanitize(req.query); } catch (e) { logger.warn('mongoSanitize query failed', e && e.message ? e.message : e); }
-    }
-    if (req.body && typeof req.body === 'object') {
-      try { mongoSanitize.sanitize(req.body); } catch (e) { logger.warn('mongoSanitize body failed', e && e.message ? e.message : e); }
-    }
-    if (req.params && typeof req.params === 'object') {
-      try { mongoSanitize.sanitize(req.params); } catch (e) { logger.warn('mongoSanitize params failed', e && e.message ? e.message : e); }
+    for (const scope of scopes) {
+      const obj = req[scope];
+      if (obj && typeof obj === 'object') {
+        try {
+          mongoSanitize.sanitize(obj);
+        } catch (e) {
+          logSanitizeError(e, scope);
+          if (failFast) {
+            return res.status(400).json({ error: 'Invalid request payload' });
+          }
+        }
+      }
     }
   } catch (err) {
-    logger.warn('Custom mongoSanitize middleware encountered an error', err && err.message ? err.message : err);
+    logger.warn('Custom mongoSanitize middleware encountered an error', {
+      err: err && err.message ? err.message : err,
+      method: req.method,
+      url: req.originalUrl,
+      scope: 'middleware',
+    });
+    if (failFast) {
+      return res.status(500).json({ error: 'Server error during request sanitization' });
+    }
   }
   next();
 });
