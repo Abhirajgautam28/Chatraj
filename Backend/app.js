@@ -79,12 +79,34 @@ app.use(cors({
 app.use(corsErrorLogger);
 
 app.use(helmet({ crossOriginResourcePolicy: false }));
-app.use(mongoSanitize());
 
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Custom mongo-sanitize usage: call the library's `sanitize` function on
+// individual request containers rather than using the default middleware
+// which attempts to reassign `req.query`/`req.body` etc. In some runtimes
+// these properties are getter-only and assignment throws (observed with
+// certain proxies). Calling `sanitize()` mutates objects in-place and
+// avoids reassigning the parent `req` properties.
+app.use((req, res, next) => {
+  try {
+    if (req.query && typeof req.query === 'object') {
+      try { mongoSanitize.sanitize(req.query); } catch (e) { logger.warn('mongoSanitize query failed', e && e.message ? e.message : e); }
+    }
+    if (req.body && typeof req.body === 'object') {
+      try { mongoSanitize.sanitize(req.body); } catch (e) { logger.warn('mongoSanitize body failed', e && e.message ? e.message : e); }
+    }
+    if (req.params && typeof req.params === 'object') {
+      try { mongoSanitize.sanitize(req.params); } catch (e) { logger.warn('mongoSanitize params failed', e && e.message ? e.message : e); }
+    }
+  } catch (err) {
+    logger.warn('Custom mongoSanitize middleware encountered an error', err && err.message ? err.message : err);
+  }
+  next();
+});
 
 // CSRF protection middleware using cookies
 const csrfProtection = csurf({
