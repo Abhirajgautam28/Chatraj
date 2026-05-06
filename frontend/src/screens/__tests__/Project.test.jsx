@@ -1,7 +1,16 @@
 import React from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import * as Router from 'react-router-dom';
+
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+    useLocation: () => ({ pathname: '/project', state: undefined }),
+  };
+});
 
 // Mock modules before importing the component to avoid heavy runtime dependencies
 vi.mock('../../config/webContainer', () => ({ getWebContainer: vi.fn() }));
@@ -17,9 +26,7 @@ import { ThemeContext } from '../../context/theme.context';
 
 describe('Project route', () => {
   it('redirects to dashboard when no project provided in location.state', async () => {
-    const mockNavigate = vi.fn();
-    vi.spyOn(Router, 'useNavigate').mockImplementation(() => mockNavigate);
-    vi.spyOn(Router, 'useLocation').mockImplementation(() => ({ pathname: '/project', state: undefined }));
+    // react-router hooks are mocked at module scope
 
     render(
       <UserContext.Provider value={{ user: { _id: 'u1' } }}>

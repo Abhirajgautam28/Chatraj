@@ -521,6 +521,10 @@ const Project = () => {
     }));
   }, [vimMode]);
 
+  if (!project) {
+    return null;
+  }
+
   return (
     <main className="flex w-screen h-screen overflow-hidden bg-transparent">
       <section className="relative flex flex-col h-screen left min-w-96 bg-slate-100 dark:bg-gray-800">
@@ -638,7 +642,7 @@ const Project = () => {
             </button>
           </div>
         )}
-        {typingUsers.size > 0 && (
+            {typingUsers.size > 0 && (
           <div
             className="absolute text-sm text-gray-500 bottom-14 left-4 dark:text-gray-400"
           >
@@ -649,7 +653,7 @@ const Project = () => {
                 <span className="delay-200 animate-bounce">.</span>
               </div>
               {Array.from(typingUsers).map(userId => {
-                const typingUser = project.users.find(u => u._id === userId);
+                const typingUser = project?.users?.find(u => u._id === userId);
                 return typingUser?.firstName || 'Unknown';
               }).join(', ')} {typingUsers.size === 1 ? 'is' : 'are'} typing...
             </div>
@@ -700,8 +704,7 @@ const Project = () => {
             </button>
           </header>
           <div className="flex flex-col gap-2 users">
-            {project.users &&
-              project.users.map((u) => (
+            {project?.users?.map((u) => (
                 <div key={u._id} className="flex items-center gap-2 p-2 cursor-pointer user hover:bg-slate-200 dark:hover:bg-gray-700">
                   <Avatar
                     firstName={u.firstName}
