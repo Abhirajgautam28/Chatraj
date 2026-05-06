@@ -456,8 +456,6 @@ const Project = () => {
     return { label: 'Sent', icon: 'single' };
   }
 
-  const projectId = project?._id;
-
   useEffect(() => {
     // Load settings from backend on mount
     if (projectId) {
