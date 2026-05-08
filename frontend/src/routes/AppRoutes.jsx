@@ -3,6 +3,7 @@ import { Route, BrowserRouter, Routes } from 'react-router-dom'
 import UserAuth from '../auth/UserAuth'
 import { ChatRajThemeProvider } from '../context/chatraj-theme.context';
 import LoadingScreen from '../components/LoadingScreen';
+import usePageTracking from '../hooks/usePageTracking';
 
 const Login = lazy(() => import('../screens/Login'));
 const Register = lazy(() => import('../screens/Register'));
@@ -18,9 +19,15 @@ const CreateBlogForm = lazy(() => import('../components/CreateBlogForm'));
 const SingleBlogPage = lazy(() => import('../screens/SingleBlogPage'));
 const SystemDiagnostics = lazy(() => import('../screens/SystemDiagnostics'));
 
+const PageTracker = () => {
+    usePageTracking();
+    return null;
+};
+
 const AppRoutes = () => {
     return (
         <BrowserRouter>
+            <PageTracker />
             <Suspense fallback={<LoadingScreen />}>
                 <Routes>
                     <Route path="/" element={<Home />} />
