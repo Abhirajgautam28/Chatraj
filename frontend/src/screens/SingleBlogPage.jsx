@@ -42,7 +42,6 @@ Comment.propTypes = {
 const SingleBlogPageContent = () => {
     const [blog, setBlog] = useState(null);
     const [loading, setLoading] = useState(true);
-    // ...removed unused comment and setComment
     const { id } = useParams();
     const heroRef = useRef(null);
     const contentRef = useRef(null);
