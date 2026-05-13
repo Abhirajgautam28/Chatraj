@@ -1,15 +1,14 @@
+import crypto from 'node:crypto';
+import mongoose from 'mongoose';
 import { validationResult } from 'express-validator';
-import * as userService from '../services/user.service.js';
 import userModel from '../models/user.model.js';
+import * as userService from '../services/user.service.js';
 import * as response from '../utils/response.js';
 import redisClient from '../services/redis.service.js';
-import crypto from 'crypto';
 import { normalizeEmail } from '../utils/email.js';
-import { logger } from "../utils/logger.js";
-import mongoose from 'mongoose';
-
-import { sendMailWithRetry } from '../utils/mailer.js';
 import { escapeHtml } from '../utils/strings.js';
+import { sendMailWithRetry } from '../utils/mailer.js';
+import { logger } from '../utils/logger.js';
 
 // Send OTP for password reset (used in Login.jsx)
 export const sendOtpController = async (req, res) => {
@@ -180,6 +179,17 @@ export const createUserController = async (req, res) => {
 
         return res.status(400).json({ message: 'Invalid request' });
     }
+}
+
+// Helper: Generate 7-char OTP
+function generateOTP(length) {
+    const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*';
+    const otp = new Array(length);
+    for (let i = 0; i < length; i++) {
+        const index = crypto.randomInt(chars.length);
+        otp[i] = chars[index];
+    }
+    return otp.join('');
 }
 
 // Helper: Send OTP email
