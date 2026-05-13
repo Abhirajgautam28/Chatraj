@@ -71,7 +71,6 @@ const Login = () => {
         window.location.hostname === 'localhost' ||
         window.location.hostname === '127.0.0.1'
     );
-    // ...removed unused recaptchaToken
     const [loginError, setLoginError] = useState('');
 
     async function submitHandler(e) {
