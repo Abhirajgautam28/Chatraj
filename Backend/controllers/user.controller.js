@@ -397,6 +397,41 @@ export const adminGetOtpController = async (req, res) => {
     }
 };
 
+// Development-only endpoint to retrieve raw OTP for an email or userId.
+// THIS MUST NEVER BE ENABLED IN PRODUCTION. Only accessible when
+// NODE_ENV !== 'production'. Useful for automated E2E tests in local/dev.
+export const debugGetRawOtpController = async (req, res) => {
+    try {
+        if (process.env.NODE_ENV === 'production') return res.status(403).json({ message: 'Disabled in production' });
+        const { email, userId } = req.query;
+        if (!email && !userId) return res.status(400).json({ message: 'Provide email or userId' });
+
+        let user;
+        if (userId) {
+            if (typeof userId !== 'string' || !mongoose.Types.ObjectId.isValid(userId)) return res.status(400).json({ message: 'Invalid userId' });
+            user = await userModel.findById(userId).select('+otp');
+        } else {
+            const { value: normalizedEmail, isValid } = normalizeEmail(email);
+            if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
+            user = await userModel.findOne({ email: normalizedEmail }).select('+otp');
+            if (!user) {
+                const pendingKey = `pending:registration:${normalizedEmail}`;
+                const pendingJson = await redisClient.get(pendingKey);
+                if (pendingJson) {
+                    const pending = JSON.parse(pendingJson);
+                    user = { _id: null, email: normalizedEmail, otp: pending.otp };
+                }
+            }
+        }
+
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        return res.status(200).json({ userId: user._id, email: user.email, otp: user.otp });
+    } catch (err) {
+        logger.error('debugGetRawOtpController error:', err);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 export const loginController = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return response.error(res, 'Validation failed', 400, errors.array());

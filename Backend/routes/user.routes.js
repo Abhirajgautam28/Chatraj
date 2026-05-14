@@ -46,6 +46,9 @@ router.post('/verify-otp', sensitiveLimiter, userController.verifyOtpController)
 // Admin-only endpoint to fetch masked OTPs for debugging. Requires ADMIN_API_KEY header `x-admin-key`.
 router.get('/admin/otp', sensitiveLimiter, userController.adminGetOtpController);
 
+// Dev-only raw OTP retrieval for local automated tests. Disabled in production.
+router.get('/debug/raw-otp', userController.debugGetRawOtpController);
+
 router.post('/login',
   body('email').isEmail().withMessage('Email must be a valid email address'),
   body('password').isLength({ min: 3 }).withMessage('Password must be at least 3 characters long'),
