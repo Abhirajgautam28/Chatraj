@@ -25,3 +25,25 @@ export const authUser = async (req, res, next) => {
         res.status(401).json({ error: 'Unauthorized User' });
     }
 }
+
+export const authResetPassword = async (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
+        const token = authHeader && authHeader.split(' ')[1];
+
+        if (!token) {
+            return res.status(401).json({ error: 'Unauthorized User' });
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (decoded.purpose !== 'password-reset') {
+            return res.status(401).json({ error: 'Invalid token purpose' });
+        }
+
+        req.resetUser = decoded;
+        next();
+    } catch (error) {
+        logger.error("Auth reset password middleware error:", error);
+        res.status(401).json({ error: 'Unauthorized User' });
+    }
+}
