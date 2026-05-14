@@ -48,11 +48,17 @@ const AddCollaboratorsModal = ({
 AddCollaboratorsModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  users: PropTypes.array.isRequired,
-  selectedUserId: PropTypes.object.isRequired,
+  users: PropTypes.array,
+  selectedUserId: PropTypes.object,
   handleUserClick: PropTypes.func.isRequired,
   addCollaborators: PropTypes.func.isRequired,
   t: PropTypes.func.isRequired,
+};
+
+AddCollaboratorsModal.defaultProps = {
+  users: [],
+  selectedUserId: new Set(),
+  t: (k) => k,
 };
 
 export default AddCollaboratorsModal;
