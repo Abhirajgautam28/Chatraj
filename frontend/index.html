@@ -28,11 +28,8 @@
   <meta name="twitter:description" content="AI-powered code assistant with real-time collaboration and project management." />
   <meta name="twitter:image" content="/chatraj-icon.svg" />
   <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.9.0/styles/nord.min.css"
-  />
-  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
+  <!-- Use local highlight.js package during development/build to avoid blocked CDN requests -->
+  <link rel="stylesheet" href="/node_modules/highlight.js/styles/nord.css" />
 </head>
 <body>
   <div id="root"></div>
