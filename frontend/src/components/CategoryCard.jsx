@@ -1,14 +1,15 @@
-import React, { memo } from 'react';
+import React, { memo, forwardRef } from 'react';
 import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 
-const CategoryCard = memo(({ cat, index, view, tileSize, count, onClick }) => {
+const CategoryCard = memo(forwardRef(({ cat, index, view, tileSize, count, onClick }, ref) => {
   const isSmall = tileSize === 'sm';
   const isLarge = tileSize === 'lg';
 
   if (view === 'grid') {
     return (
       <motion.div
+        ref={ref}
         onClick={onClick}
         className={`flex flex-col items-center justify-center p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg cursor-pointer group transition-all ${isSmall ? 'min-h-[100px]' : isLarge ? 'min-h-[240px]' : 'min-h-[160px]'}`}
         initial={{ opacity: 0, y: 20 }}
@@ -41,6 +42,7 @@ const CategoryCard = memo(({ cat, index, view, tileSize, count, onClick }) => {
   if (view === 'list') {
     return (
       <motion.div
+        ref={ref}
         onClick={onClick}
         className={`flex items-center gap-4 p-4 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-sm cursor-pointer group hover:bg-blue-600 transition-all ${isSmall ? 'py-2' : isLarge ? 'py-8' : ''}`}
         initial={{ opacity: 0, x: -20 }}
@@ -67,6 +69,7 @@ const CategoryCard = memo(({ cat, index, view, tileSize, count, onClick }) => {
   if (view === 'compact') {
     return (
       <motion.div
+        ref={ref}
         onClick={onClick}
         className={`flex flex-col items-center justify-center p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm cursor-pointer group transition-all ${isSmall ? 'min-h-[60px]' : isLarge ? 'min-h-[160px]' : 'min-h-[100px]'}`}
         initial={{ opacity: 0, scale: 0.9 }}
@@ -82,6 +85,7 @@ const CategoryCard = memo(({ cat, index, view, tileSize, count, onClick }) => {
   // Default to 'detailed' or fallback card
   return (
     <motion.div
+      ref={ref}
       onClick={onClick}
       className={`flex flex-col md:flex-row items-start md:items-center gap-6 p-6 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm cursor-pointer group transition-all hover:shadow-xl hover:border-blue-500/50 ${isSmall ? 'py-3' : isLarge ? 'py-12' : ''}`}
       initial={{ opacity: 0, y: 20 }}
@@ -101,7 +105,7 @@ const CategoryCard = memo(({ cat, index, view, tileSize, count, onClick }) => {
       <i className="ri-arrow-right-s-line text-2xl text-gray-300 group-hover:text-blue-500 group-hover:translate-x-2 transition-all"></i>
     </motion.div>
   );
-});
+}));
 
 CategoryCard.displayName = 'CategoryCard';
 

@@ -35,7 +35,6 @@ const Register = () => {
     // disable reCAPTCHA locally (sitekey often restricted to deployed domain)
     const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
     const recaptchaEnabled = import.meta.env.VITE_DISABLE_RECAPTCHA !== 'true' && !isLocalhost;
-    // ...removed unused recaptchaToken
     const containerRef = useRef(null);
     const modalRef = useRef(null);
     const lastActiveElementRef = useRef(null);
@@ -165,8 +164,9 @@ const Register = () => {
         e.preventDefault();
         axios.post('/api/users/verify-otp', { userId, otp })
             .then((res) => {
-                localStorage.setItem('token', res.data.token);
-                setUser(res.data.user);
+                const responseData = res.data.data || res.data;
+                localStorage.setItem('token', responseData.token);
+                setUser(responseData.user);
                 setShowOtpModal(false);
                 navigate('/categories', { replace: true });
             })
@@ -176,7 +176,7 @@ const Register = () => {
     }
 
     return (
-        <div ref={containerRef} className={`relative flex items-center justify-center min-h-screen overflow-hidden ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div ref={containerRef} className={`relative flex items-center justify-center min-h-screen overflow-hidden ${themeStyle.background} transition-colors duration-500`}>
             {errorMsg && (
                 <div className="fixed top-8 left-1/2 z-50 -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded shadow-lg text-center font-semibold animate__animated animate__fadeInDown">
                     {errorMsg}

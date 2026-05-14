@@ -132,7 +132,7 @@ async function run() {
   } catch (err) {
     console.error('Error during redis scan:', err && (err.stack || err.message || err));
   } finally {
-    try { await redis.quit(); } catch (e) { }
+    try { await redis.quit(); } catch (e) { console.error('Error during redis quit:', e.message); }
   }
 }
 
