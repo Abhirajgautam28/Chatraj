@@ -13,7 +13,7 @@ Modal.setAppElement('#root');
 createRoot(document.getElementById('root')).render(
   <>
     <App />
-    <SpeedInsights />
-    <Analytics />
+    {!import.meta.env.DEV && <SpeedInsights />}
+    {!import.meta.env.DEV && <Analytics />}
   </>
 );
