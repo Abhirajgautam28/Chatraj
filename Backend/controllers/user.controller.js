@@ -355,6 +355,14 @@ export const adminGetOtpController = async (req, res) => {
         }
         if (!user) return res.status(404).json({ message: 'User not found' });
         const otp = user.otp;
+
+        // DEV/TEST helper: when running locally and explicitly requested, return
+        // the raw OTP for deterministic E2E tests. This is gated behind a valid
+        // Admin API key and must not be enabled in production.
+        if (process.env.NODE_ENV !== 'production' && req.query.raw === 'true') {
+            return res.status(200).json({ userId: user._id, email: user.email, otp });
+        }
+
         const masked = typeof otp === 'string' && otp.length > 2 ? `${otp[0]}***${otp[otp.length - 1]}` : '<redacted>';
 
         // Audit access: log who requested this and what they requested.
