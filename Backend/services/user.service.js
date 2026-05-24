@@ -63,7 +63,25 @@ export const verifyOtp = async ({ userId, email, otp }) => {
     } else if (email) {
         const { value: normalizedEmail, isValid } = normalizeEmail(email);
         if (!isValid) throw new Error('Valid email is required');
-        user = await userModel.findOne({ email: normalizedEmail }).select('+otp');
+        user = await userModel.findOne({ email: normalizedEmail }).select('+otp +resetPasswordOtp');
+
+        if (user && user.isVerified && user.resetPasswordOtp === otp) {
+            user.resetPasswordOtp = undefined;
+            await user.save();
+
+            const resetToken = jwt.sign(
+                { email: user.email, purpose: 'password-reset' },
+                process.env.JWT_SECRET,
+                { expiresIn: '15m' }
+            );
+
+            const userObj = user.toObject();
+            delete userObj.password;
+            delete userObj.otp;
+            delete userObj.resetPasswordOtp;
+            delete userObj.googleApiKey;
+            return { message: 'Verified successfully', token: resetToken, user: userObj };
+        }
 
         if (!user) {
             const pendingKey = `pending:registration:${normalizedEmail}`;
