@@ -1,4 +1,13 @@
+import crypto from 'node:crypto';
 import mongoose from 'mongoose';
+import { validationResult } from 'express-validator';
+import userModel from '../models/user.model.js';
+import * as userService from '../services/user.service.js';
+import * as response from '../utils/response.js';
+import redisClient from '../services/redis.service.js';
+import { normalizeEmail } from '../utils/email.js';
+import { escapeHtml } from '../utils/strings.js';
+import { sendMailWithRetry } from '../utils/mailer.js';
 import { logger } from '../utils/logger.js';
 
 // Send OTP for password reset (used in Login.jsx)
@@ -180,12 +189,12 @@ export const createUserController = async (req, res) => {
 // Helper: Generate 7-char OTP
 function generateOTP(length) {
     const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*';
-    let otp = '';
+    const otp = new Array(length);
     for (let i = 0; i < length; i++) {
         const index = crypto.randomInt(chars.length);
-        otp += chars[index];
+        otp[i] = chars[index];
     }
-    return otp;
+    return otp.join('');
 }
 
 // Helper: Send OTP email
@@ -209,6 +218,13 @@ export const verifyOtpController = async (req, res) => {
             return res.status(400).json({ message: 'Invalid User ID' });
         }
         user = await userModel.findById(userId).select('+otp');
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        if (user.otp !== otp) return res.status(401).json({ message: 'Invalid OTP' });
+        user.isVerified = true;
+        user.otp = undefined;
+        await user.save();
+        const token = await user.generateJWT();
+        return res.status(200).json({ message: 'Verified successfully', token, user });
     } else if (email) {
         const { value: normalizedEmail, isValid } = normalizeEmail(email);
         if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
@@ -291,12 +307,44 @@ export const verifyOtpController = async (req, res) => {
                             existingUser.otp = undefined;
                             await existingUser.save();
                             const token = await existingUser.generateJWT();
+
+                            // Set the token cookie
+                            res.cookie('token', token, {
+                                httpOnly: true,
+                                secure: process.env.NODE_ENV === 'production',
+                                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+                                maxAge: 24 * 60 * 60 * 1000 // 24 hours
+                            });
+
                             return res.status(200).json({ message: 'Verified successfully', token, user: existingUser });
                         }
                     }
                     return res.status(500).json({ message: 'Failed to create account' });
                 }
             }
+            return res.status(404).json({ message: 'User not found' });
+        } else {
+            // Password reset verification flow
+            if (user.resetPasswordOtp && user.resetPasswordOtp === otp) {
+                user.resetPasswordOtp = undefined;
+                await user.save();
+                // Issue a short-lived reset token
+                const resetToken = jwt.sign(
+                    { email: user.email, purpose: 'password-reset' },
+                    process.env.JWT_SECRET,
+                    { expiresIn: '15m' }
+                );
+                return res.status(200).json({ message: 'OTP verified', resetToken });
+            }
+            // Registration verification fallback logic for email (legacy approach)
+            if (user.otp === otp) {
+                 user.isVerified = true;
+                 user.otp = undefined;
+                 await user.save();
+                 const token = await user.generateJWT();
+                 return res.status(200).json({ message: 'Verified successfully', token, user });
+            }
+            return res.status(401).json({ message: 'Invalid OTP' });
         }
     }
 };
@@ -341,11 +389,19 @@ export const adminGetOtpController = async (req, res) => {
         }
         if (!user) return res.status(404).json({ message: 'User not found' });
         const otp = user.otp;
+
+        // DEV/TEST helper: when running locally and explicitly requested, return
+        // the raw OTP for deterministic E2E tests. This is gated behind a valid
+        // Admin API key and must not be enabled in production.
+        if (process.env.NODE_ENV !== 'production' && req.query.raw === 'true') {
+            return res.status(200).json({ userId: user._id, email: user.email, otp });
+        }
+
         const masked = typeof otp === 'string' && otp.length > 2 ? `${otp[0]}***${otp[otp.length - 1]}` : '<redacted>';
 
         // Audit access: log who requested this and what they requested.
         try {
-            const requesterIp = req.ip || req.headers['x-forwarded-for'] || req.connection && req.connection.remoteAddress;
+            const requesterIp = req.ip;
             const adminMasked = typeof adminKey === 'string' ? `***${adminKey.slice(-4)}` : '<none>';
             const audit = {
                 timestamp: new Date().toISOString(),
@@ -375,6 +431,41 @@ export const adminGetOtpController = async (req, res) => {
     }
 };
 
+// Development-only endpoint to retrieve raw OTP for an email or userId.
+// THIS MUST NEVER BE ENABLED IN PRODUCTION. Only accessible when
+// NODE_ENV !== 'production'. Useful for automated E2E tests in local/dev.
+export const debugGetRawOtpController = async (req, res) => {
+    try {
+        if (process.env.NODE_ENV === 'production') return res.status(403).json({ message: 'Disabled in production' });
+        const { email, userId } = req.query;
+        if (!email && !userId) return res.status(400).json({ message: 'Provide email or userId' });
+
+        let user;
+        if (userId) {
+            if (typeof userId !== 'string' || !mongoose.Types.ObjectId.isValid(userId)) return res.status(400).json({ message: 'Invalid userId' });
+            user = await userModel.findById(userId).select('+otp');
+        } else {
+            const { value: normalizedEmail, isValid } = normalizeEmail(email);
+            if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
+            user = await userModel.findOne({ email: normalizedEmail }).select('+otp');
+            if (!user) {
+                const pendingKey = `pending:registration:${normalizedEmail}`;
+                const pendingJson = await redisClient.get(pendingKey);
+                if (pendingJson) {
+                    const pending = JSON.parse(pendingJson);
+                    user = { _id: null, email: normalizedEmail, otp: pending.otp };
+                }
+            }
+        }
+
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        return res.status(200).json({ userId: user._id, email: user.email, otp: user.otp });
+    } catch (err) {
+        logger.error('debugGetRawOtpController error:', err);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 export const loginController = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return response.error(res, 'Validation failed', 400, errors.array());
@@ -382,6 +473,15 @@ export const loginController = async (req, res) => {
     try {
         const { email, password } = req.body;
         const result = await userService.loginUser(email, password);
+
+        // Set the token cookie
+        res.cookie('token', result.token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        });
+
         return response.success(res, result, 'Login successful');
     } catch (err) {
         logger.error('loginController error:', err);
@@ -397,6 +497,10 @@ export const logoutController = async (req, res) => {
     try {
         const token = req.cookies.token || (req.headers.authorization ? req.headers.authorization.split(' ')[1] : null);
         if (token) redisClient.set(token, 'logout', 'EX', 60 * 60 * 24);
+
+        // Clear the token cookie
+        res.cookie('token', '', { expires: new Date(0), httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax' });
+
         return response.success(res, null, 'Logged out successfully');
     } catch (err) {
         logger.error('logoutController error:', err);
@@ -414,17 +518,6 @@ export const getAllUsersController = async (req, res) => {
         res.status(400).json({ error: 'Unable to fetch users' })
     }
 }
-
-export const resetPasswordController = async (req, res) => {
-    try {
-        const { email } = req.body;
-        const result = await userService.resetPassword(email);
-        return response.success(res, result);
-    } catch (err) {
-        logger.error('resetPasswordController error:', err);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-};
 
 export const updatePasswordController = async (req, res) => {
     try {

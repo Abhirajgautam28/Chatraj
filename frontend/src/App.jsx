@@ -6,15 +6,18 @@ import { ThemeProvider } from './context/theme.context'
 import { ToastProvider } from './context/toast.context'
 import ThreeBackground from './components/ThreeBackground';
 import axios from './config/axios';
+import { initGA } from './utils/analytics';
 
 const App = () => {
   useEffect(() => {
+    initGA();
     // Warm-up call to ensure CSRF cookie is set for the SPA (axios is configured withCredentials)
     axios.get('/csrf-token').catch(() => {
       // ignore errors; token endpoint is best-effort because some environments
       // may set the cookie on other GET responses as well
     });
   }, []);
+
   return (
     <ThemeProvider>
       <UserProvider>

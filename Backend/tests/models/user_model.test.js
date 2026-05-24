@@ -2,7 +2,7 @@ import User from '../../models/user.model.js';
 
 describe('User Model', () => {
     test('should validate a valid user', async () => {
-        const user = new User({ firstName: 'J', lastName: 'D', email: 'j@d.com', googleApiKey: 'k' });
+        const user = new User({ firstName: 'John', lastName: 'Doe', email: 'j@d.com', googleApiKey: 'k' });
         const err = user.validateSync();
         expect(err).toBeUndefined();
     });

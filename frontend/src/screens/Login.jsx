@@ -72,7 +72,6 @@ const Login = () => {
         window.location.hostname === 'localhost' ||
         window.location.hostname === '127.0.0.1'
     );
-    // ...removed unused recaptchaToken
     const [loginError, setLoginError] = useState('');
 
     async function submitHandler(e) {
@@ -102,8 +101,9 @@ const Login = () => {
             try {
                 await getCsrfToken();
                 const res = await axios.post('/api/users/login', { email, password, recaptchaToken: token }, { withCredentials: true });
-                localStorage.setItem('token', res.data.token);
-                setUser(res.data.user);
+                const responseData = res.data.data || res.data;
+                localStorage.setItem('token', responseData.token);
+                setUser(responseData.user);
                 const fromTryChatRaj = localStorage.getItem('fromTryChatRaj');
                 if (fromTryChatRaj === 'true') {
                     localStorage.removeItem('fromTryChatRaj');
@@ -221,7 +221,7 @@ const Login = () => {
     };
 
     return (
-        <div ref={containerRef} className={`relative flex items-center justify-center min-h-screen overflow-hidden ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div ref={containerRef} className={`relative flex items-center justify-center min-h-screen overflow-hidden ${themeStyle.background} transition-colors duration-500`}>
             <div className="absolute inset-0 z-0">
                 {[...Array(10)].map((_, i) => (
                     <div

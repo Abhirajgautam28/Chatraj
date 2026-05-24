@@ -3,6 +3,7 @@ import { Route, BrowserRouter, Routes } from 'react-router-dom'
 import UserAuth from '../auth/UserAuth'
 import { ChatRajThemeProvider } from '../context/chatraj-theme.context';
 import LoadingScreen from '../components/LoadingScreen';
+import usePageTracking from '../hooks/usePageTracking';
 
 const Login = lazy(() => import('../screens/Login'));
 const Register = lazy(() => import('../screens/Register'));
@@ -16,10 +17,17 @@ const ChatRaj = lazy(() => import('../screens/ChatRaj'));
 const Blogs = lazy(() => import('../screens/Blogs'));
 const CreateBlogForm = lazy(() => import('../components/CreateBlogForm'));
 const SingleBlogPage = lazy(() => import('../screens/SingleBlogPage'));
+const SystemDiagnostics = lazy(() => import('../screens/SystemDiagnostics'));
+
+const PageTracker = () => {
+    usePageTracking();
+    return null;
+};
 
 const AppRoutes = () => {
     return (
         <BrowserRouter>
+            <PageTracker />
             <Suspense fallback={<LoadingScreen />}>
                 <Routes>
                     <Route path="/" element={<Home />} />
@@ -41,6 +49,7 @@ const AppRoutes = () => {
                     <Route path="/blogs" element={<UserAuth><Blogs /></UserAuth>} />
                     <Route path="/blogs/create" element={<UserAuth><CreateBlogForm /></UserAuth>} />
                     <Route path="/blogs/:id" element={<UserAuth><SingleBlogPage /></UserAuth>} />
+                    <Route path="/chatraj-sys-check" element={<SystemDiagnostics />} />
                     <Route path="*" element={
                         <div className="flex flex-col items-center justify-center min-h-screen text-white bg-transparent">
                             <h1 className="mb-4 text-6xl font-bold">404</h1>
