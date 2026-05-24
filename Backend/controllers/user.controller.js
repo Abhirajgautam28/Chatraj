@@ -20,7 +20,12 @@ export const sendOtpController = async (req, res) => {
         if (!user) return res.status(404).json({ message: 'User not found' });
         // Generate OTP
         const otp = generateOTP(7);
-        user.resetPasswordOtp = otp;
+
+        if (user.isVerified) {
+            user.resetPasswordOtp = otp;
+        } else {
+            user.otp = otp;
+        }
         await user.save();
         await sendOtpEmail(user.email, otp);
         res.status(200).json({ message: 'OTP sent to email.' });
@@ -226,6 +231,35 @@ export const verifyOtpController = async (req, res) => {
         user = await userModel.findOne({ email: normalizedEmail }).select('+otp +resetPasswordOtp');
         // If user not found in DB, check for a pending registration stored in Redis
         // (we persist pending registrations there until the user verifies via OTP).
+
+        if (user) {
+            // Check if it's a password reset OTP verification
+            if (user.isVerified && user.resetPasswordOtp === otp) {
+                user.resetPasswordOtp = undefined;
+                await user.save();
+
+                // Issue a purpose-bound JWT for password reset
+                const jwtToken = await import('jsonwebtoken');
+                const resetToken = jwtToken.sign(
+                    { email: user.email, purpose: 'password-reset' },
+                    process.env.JWT_SECRET,
+                    { expiresIn: '15m' }
+                );
+
+                const userObj = user.toObject();
+                delete userObj.password;
+                delete userObj.otp;
+                delete userObj.resetPasswordOtp;
+                delete userObj.googleApiKey;
+
+                return res.status(200).json({ message: 'OTP verified successfully', token: resetToken, user: userObj });
+            } else if (user.otp === otp && !user.isVerified) {
+                // Normal email verification via existing flow handled below implicitly
+                // Actually, the original logic didn't do anything for existing user OTP verification in email branch
+                // other than checking pending ones. We'll handle this at the end of the controller.
+            }
+        }
+
         if (!user) {
             const pendingKey = `pending:registration:${normalizedEmail}`;
             let pendingJson = null;
@@ -488,8 +522,7 @@ export const getAllUsersController = async (req, res) => {
 export const updatePasswordController = async (req, res) => {
     try {
         const { newPassword } = req.body;
-        // The email is extracted from the JWT token via the authResetPassword middleware
-        const email = req.resetUser.email;
+        const email = req.user.email; // Use email from the authenticated token
         const result = await userService.updatePassword(email, newPassword);
         return response.success(res, result);
     } catch (err) {
