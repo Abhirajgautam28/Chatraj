@@ -10,12 +10,10 @@ const REAL_KEY = 'YOUR_REAL_GEMINI_API_KEY_HERE'; // <-- CHANGE THIS!
 
 async function updateAllUsers() {
   await mongoose.connect(MONGODB_URI);
-  const users = await User.find({});
-  for (const user of users) {
-    user.googleApiKey = REAL_KEY;
-    await user.save();
-    console.log(`Updated user: ${user.email}`);
-  }
+
+  const result = await User.updateMany({}, { googleApiKey: REAL_KEY });
+  console.log(`Updated ${result.modifiedCount} users.`);
+
   await mongoose.disconnect();
   console.log('All users updated.');
 }
