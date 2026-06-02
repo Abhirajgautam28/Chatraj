@@ -57,7 +57,7 @@
     "react-router-dom": "^7.13.0",
     "remixicon": "^4.9.1",
     "socket.io-client": "^4.8.3",
-    "three": "^0.182.0"
+    "three": "^0.184.0"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.29.0",
