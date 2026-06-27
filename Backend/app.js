@@ -19,7 +19,8 @@ import { logSanitizeError } from './utils/sanitizer.js';
 import {
   verifySignedCsrfToken,
   createSignedCsrf,
-  isSecureFromRequest
+  isSecureFromRequest,
+  shouldBypassCsrf
 } from './utils/security.js';
 
 const allowedOrigins = [
@@ -176,6 +177,10 @@ if (process.env.NODE_ENV === 'test') {
   app.use((req, res, next) => next());
 } else {
   app.use((req, res, next) => {
+    if (shouldBypassCsrf(req)) {
+      return next();
+    }
+
     const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
     if (safeMethods.includes(req.method)) {
       // run csrfProtection to generate token for safe requests

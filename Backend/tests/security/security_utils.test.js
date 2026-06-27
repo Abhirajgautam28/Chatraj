@@ -3,7 +3,8 @@ import {
   isSecureFromRequest,
   signRawToken,
   verifySignedCsrfToken,
-  createSignedCsrf
+  createSignedCsrf,
+  shouldBypassCsrf
 } from '../../utils/security.js';
 
 describe('Security Utilities', () => {
@@ -28,5 +29,14 @@ describe('Security Utilities', () => {
         process.env.CSRF_SIGNING_SECRET = 'secret';
         const token = createSignedCsrf();
         expect(verifySignedCsrfToken(token)).toBe(true);
+    });
+
+    test('shouldBypassCsrf allows local automated registration flows', () => {
+        process.env.NODE_ENV = 'development';
+        process.env.CI = 'false';
+        process.env.ALLOW_LOCAL_CSRF_BYPASS = 'true';
+        expect(shouldBypassCsrf({ method: 'POST', path: '/api/users/register' })).toBe(true);
+        expect(shouldBypassCsrf({ method: 'POST', path: '/api/users/verify-otp' })).toBe(true);
+        expect(shouldBypassCsrf({ method: 'GET', path: '/api/users/debug/raw-otp' })).toBe(true);
     });
 });

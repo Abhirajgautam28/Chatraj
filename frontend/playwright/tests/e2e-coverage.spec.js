@@ -287,6 +287,7 @@ test.describe('ChatRaj Full Application E2E Test Suite - Continuous Flow', () =>
       await expect(chatInput).toBeVisible({ timeout: 15000 });
       await chatInput.fill('Hello from Playwright User A! This is a real-time production test.');
       await pageA.keyboard.press('Enter');
+      await expect(pageA.locator('text=Hello from Playwright User A! This is a real-time production test.')).toBeVisible({ timeout: 15000 });
     } catch (err) {
       // If capturing the immediate response failed, we'll fall back to polling `/api/projects/all` below.
     }
@@ -366,16 +367,17 @@ test.describe('ChatRaj Full Application E2E Test Suite - Continuous Flow', () =>
         // This block is safe for CI but should remain test-only. Commented
         // out for production builds. Kept as-is here but wrapped with a
         // runtime guard for clarity.
-        if (process.env.E2E_TEST === 'true') {
-          try {
-            await pageB.addInitScript((t) => {
-              try { window.localStorage.setItem('token', t); } catch (e) {}
-              try { document.cookie = `token=${encodeURIComponent(t)}; path=/; SameSite=Lax`; } catch (e) {}
-            }, token);
-          } catch (e) {}
-          // Add a non-httpOnly cookie so document.cookie can read it if needed
+        try {
+          await pageB.addInitScript((t) => {
+            try { window.localStorage.setItem('token', t); } catch (e) {}
+            try { window.__authToken = t; } catch (e) {}
+            try { document.cookie = `token=${encodeURIComponent(t)}; path=/; SameSite=Lax`; } catch (e) {}
+          }, token);
+        } catch (e) {}
+        // Add a non-httpOnly cookie so document.cookie can read it if needed
+        try {
           await contextB.addCookies([{ name: 'token', value: token, domain: 'localhost', path: '/', httpOnly: false, sameSite: 'Lax' }]);
-        }
+        } catch (e) {}
 
         await pageB.goto(`${BASE_URL}/categories`);
         await pageB.waitForURL(/.*(categories|welcome-chatraj|dashboard)/, { timeout: 15000 });
@@ -526,6 +528,9 @@ test.describe('ChatRaj Full Application E2E Test Suite - Continuous Flow', () =>
       console.log('DEBUG: socket connection check failed', e && e.message);
     }
 
+    await expect(pageB.locator('text=Live Collaboration')).toBeVisible({ timeout: 15000 });
+    await expect(pageB.locator('text=active collaborator')).toBeVisible({ timeout: 15000 });
+
     // Debug: log counts for common chat input selectors to help diagnose locator failures
     try {
       const debugSelectors = ['input', 'textarea', '[contenteditable="true"]', 'input[placeholder*="message"]', 'textarea[placeholder*="message"]'];
@@ -557,11 +562,7 @@ test.describe('ChatRaj Full Application E2E Test Suite - Continuous Flow', () =>
     // If the system does not persist pre-join messages, continue and validate
     // real-time messaging after both users are connected.
     const expectedMessageUserA = pageB.locator('text=Hello from Playwright User A! This is a real-time production test.').first();
-    try {
-      await expect(expectedMessageUserA).toBeVisible({ timeout: 30000 });
-    } catch (err) {
-      console.warn('Previous message from User A was not visible to User B after join — continuing to validate real-time messages.');
-    }
+    await expect(expectedMessageUserA).toBeVisible({ timeout: 30000 });
 
     const chatInputB = await getChatInput(pageB);
     await expect(chatInputB).toBeVisible({ timeout: 15000 });

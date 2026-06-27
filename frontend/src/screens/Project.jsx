@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useContext } from 'react'
+import React, { useRef, useState, useEffect, useContext, useCallback } from 'react'
 import { UserContext } from '../context/user.context'
 import { ThemeContext } from '../context/theme.context'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -70,6 +70,7 @@ const Project = () => {
   const { on, off, emit } = useSocket(projectId);
 
   const [typingUsers, setTypingUsers] = useState(new Set());
+  const [onlineCollaborators, setOnlineCollaborators] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
   const defaultSettings = React.useMemo(() => ({
@@ -201,9 +202,39 @@ const Project = () => {
       parentMessageId: replyingTo ? replyingTo._id : null,
       googleApiKey: user.googleApiKey // send user's Gemini key
     };
+    try { logger.debug('Emitting project-message', { projectId, message: message && String(message).slice(0,200), sender: user && (user._id || user.email) }); } catch(e) {}
     emit("project-message", payload);
+    setMessages(prev => {
+      const tempId = `local-${Date.now()}`;
+      const optimisticMessage = {
+        ...payload,
+        _id: tempId,
+        sender: user,
+        createdAt: new Date().toISOString()
+      };
+      return deduplicateMessages([...prev, optimisticMessage]);
+    });
     setMessage("");
     setReplyingTo(null);
+    if (projectId) {
+      window.setTimeout(() => {
+        axios.get(`/api/projects/messages/${projectId}`).then((res) => {
+          const history = Array.isArray(res?.data?.messages)
+            ? res.data.messages
+            : Array.isArray(res?.data?.data?.messages)
+              ? res.data.data.messages
+              : [];
+          const normalizedHistory = history
+            .map((msg) => ({
+              ...msg,
+              _id: msg?._id || msg?.id || `${msg?.sender?._id || 'unknown'}-${msg?.message || ''}-${msg?.createdAt || Date.now()}`,
+              createdAt: msg?.createdAt || msg?.timestamp || new Date().toISOString()
+            }))
+            .filter(Boolean);
+          setMessages(prev => deduplicateMessages([...prev, ...normalizedHistory]));
+        }).catch(() => {});
+      }, 1000);
+    }
   }
 
   const handleTyping = () => {
@@ -245,6 +276,57 @@ const Project = () => {
     }
   }, [messages, user, emit])
 
+  const historyReloadRef = useRef(0);
+
+  const loadMessageHistory = useCallback(async (retryCount = 0) => {
+    if (!projectId) return;
+    try {
+      const res = await axios.get(`/api/projects/messages/${projectId}`);
+      const history = Array.isArray(res?.data?.messages)
+        ? res.data.messages
+        : Array.isArray(res?.data?.data?.messages)
+          ? res.data.data.messages
+          : [];
+      const normalizedHistory = history
+        .map((msg) => ({
+          ...msg,
+          _id: msg?._id || msg?.id || `${msg?.sender?._id || 'unknown'}-${msg?.message || ''}-${msg?.createdAt || Date.now()}`,
+          createdAt: msg?.createdAt || msg?.timestamp || new Date().toISOString()
+        }))
+        .filter(Boolean);
+
+      logger.debug('Loaded project message history', {
+        projectId,
+        count: normalizedHistory.length,
+        sample: normalizedHistory.slice(0, 3).map(m => ({ id: m._id, text: m.message }))
+      });
+
+      setMessages(prev => {
+        const merged = [...prev];
+        const existingIds = new Set(prev.map(msg => msg?._id || msg?.id || '').filter(Boolean));
+        normalizedHistory.forEach(msg => {
+          const msgId = msg?._id || msg?.id;
+          if (msgId && !existingIds.has(msgId)) {
+            merged.push(msg);
+            existingIds.add(msgId);
+          } else if (!msgId) {
+            merged.push(msg);
+          }
+        });
+        return deduplicateMessages(merged);
+      });
+
+      if (normalizedHistory.length === 0 && retryCount < 8) {
+        window.setTimeout(() => loadMessageHistory(retryCount + 1), 1000);
+      }
+    } catch (err) {
+      logger.debug('Failed to load message history', err);
+      if (retryCount < 8) {
+        window.setTimeout(() => loadMessageHistory(retryCount + 1), 1000);
+      }
+    }
+  }, [projectId]);
+
   useEffect(() => {
     if (!projectId) {
       // If no project was provided in location state or URL, redirect user back to dashboard
@@ -265,8 +347,9 @@ const Project = () => {
           }
         })
         .catch(() => { /* ignore */ });
-      }
-      boot();
+    }
+    boot();
+    loadMessageHistory();
     axios.get(`/api/projects/get-project/${projectId}`)
       .then((res) => {
         const proj = res && res.data && res.data.data && res.data.data.project;
@@ -288,7 +371,21 @@ const Project = () => {
         showToast('Failed to fetch users', 'error');
         logger.error(err);
       });
-  }, [boot, projectId, navigate, showToast])
+  }, [boot, projectId, navigate, showToast, loadMessageHistory])
+
+  useEffect(() => {
+    if (!projectId) return;
+
+    const handleSocketConnect = () => {
+      loadMessageHistory();
+      emit('request-project-history', { projectId });
+    };
+
+    on('connect', handleSocketConnect);
+    return () => {
+      off('connect', handleSocketConnect);
+    };
+  }, [projectId, on, off, emit, loadMessageHistory]);
 
   useEffect(() => {
     if (messageBox.current)
@@ -297,6 +394,13 @@ const Project = () => {
 
   useEffect(() => {
     const handleIncomingMessage = (data) => {
+      logger.debug('Received incoming project-message', {
+        projectId,
+        id: data?._id || data?.id,
+        text: data?.message,
+        sender: data?.sender && (data.sender._id || data.sender.email || data.sender)
+      });
+
       // If the sender is Chatraj and the message is a JSON with fileTree, update the file tree
       if (data.sender && data.sender._id === "Chatraj") {
         try {
@@ -332,7 +436,13 @@ const Project = () => {
       }
       // Default: just add the message if not a duplicate
       setMessages((prev) => {
-        if (prev.some(m => m._id === data._id && m.sender?._id === data.sender?._id)) {
+        const incomingId = data?._id || data?.id;
+        const hasMatchingMessage = prev.some((m) => {
+          const existingId = m?._id || m?.id;
+          return (incomingId && existingId && incomingId === existingId) ||
+            (!incomingId && m?.message === data?.message && m?.sender?._id === data?.sender?._id);
+        });
+        if (hasMatchingMessage) {
           return prev;
         }
         const updated = [...prev, data];
@@ -340,61 +450,53 @@ const Project = () => {
       });
     }
 
-    on("project-message", handleIncomingMessage);
-    return () => off("project-message", handleIncomingMessage);
-  }, [on, off, projectId]);
+    const handleProjectHistory = (history) => {
+      if (!Array.isArray(history)) return;
+      const normalizedHistory = history
+        .map((msg) => ({
+          ...msg,
+          _id: msg?._id || msg?.id || `${msg?.sender?._id || 'unknown'}-${msg?.message || ''}-${msg?.createdAt || Date.now()}`,
+          createdAt: msg?.createdAt || msg?.timestamp || new Date().toISOString()
+        }))
+        .filter(Boolean);
 
-  useEffect(() => {
-    const handleUserTyping = (data) => {
-      if (data.userId !== user._id) {
-        setTypingUsers(prev => new Set([...prev, data.userId]));
-      }
-    };
-
-    const handleStopTyping = (data) => {
-      setTypingUsers(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(data.userId);
-        return newSet;
+      setMessages((prev) => {
+        const merged = [...prev];
+        const existingIds = new Set(prev.map(msg => msg?._id || msg?.id).filter(Boolean));
+        normalizedHistory.forEach(msg => {
+          const msgId = msg?._id || msg?.id;
+          if (msgId && !existingIds.has(msgId)) {
+            merged.push(msg);
+            existingIds.add(msgId);
+          }
+        });
+        return deduplicateMessages(merged);
       });
     };
 
-    on('typing', handleUserTyping);
-    on('stop-typing', handleStopTyping);
-
-    return () => {
-      off('typing', handleUserTyping);
-      off('stop-typing', handleStopTyping);
-    };
-  }, [on, off, user._id]);
-
-  useEffect(() => {
-    const handleReactionUpdate = (updatedMessage) => {
-      setMessages(prevMessages =>
-        prevMessages.map(msg =>
-          msg._id === updatedMessage._id ? updatedMessage : msg
-        )
-      );
-    };
-
-    on("message-reaction", handleReactionUpdate);
-    return () => off("message-reaction", handleReactionUpdate);
-  }, [on, off]);
-
-  // Patch messages to simulate readBy for current user's messages
-  const patchedMessages = React.useMemo(() => {
-    return messages.map(msg => {
-      if (msg.sender && msg.sender?._id === user?._id) {
-        return { ...msg, readBy: [user?._id, 'other-user'] };
+    const handlePresenceUpdate = (payload) => {
+      try {
+        const users = payload && (payload.users || payload.users === 0 ? payload.users : payload);
+        setOnlineCollaborators(Array.isArray(users) ? users : []);
+      } catch (e) {
+        setOnlineCollaborators([]);
       }
-      return msg;
-    });
+    };
+
+    on("project-message", handleIncomingMessage);
+    on('project-history', handleProjectHistory);
+    on('presence-update', handlePresenceUpdate);
+    return () => {
+      off("project-message", handleIncomingMessage);
+      off('project-history', handleProjectHistory);
+      off('presence-update', handlePresenceUpdate);
+    };
   }, [messages, user?._id]);
 
   const filteredMessages = React.useMemo(() => {
-    if (!searchTerm) return patchedMessages;
+    if (!searchTerm) return messages;
     const lowerSearch = searchTerm.toLowerCase();
-    return patchedMessages.filter((msg) => {
+    return messages.filter((msg) => {
       // Check direct message content
       if (msg.message.toLowerCase().includes(lowerSearch)) return true;
       // Also search inside AI JSON response text if applicable
@@ -406,7 +508,7 @@ const Project = () => {
       }
       return false;
     });
-  }, [patchedMessages, searchTerm]);
+  }, [messages, searchTerm]);
 
   const groupedMessages = React.useMemo(() => {
     return groupMessagesByDate(filteredMessages);
@@ -591,6 +693,24 @@ const Project = () => {
             )}
           </div>
           <div className="flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-200 dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-200">
+              <span className="font-medium">Online:</span>
+              <span className="flex items-center gap-1">
+                {onlineCollaborators.length > 0 ? (
+                  onlineCollaborators.slice(0, 3).map((collab) => (
+                    <span key={collab._id || collab.id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      {collab.firstName || collab.email || 'User'}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-gray-500 dark:text-gray-400">No active collaborators</span>
+                )}
+                {onlineCollaborators.length > 3 && (
+                  <span className="px-2 py-0.5 rounded-full bg-blue-500 text-white">+{onlineCollaborators.length - 3}</span>
+                )}
+              </span>
+            </div>
             <button
               onClick={() => setIsSettingsOpen(true)}
               className="p-2 transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -630,10 +750,37 @@ const Project = () => {
             </button>
           </div>
         </header>
+        <div className="absolute top-20 left-4 right-4 z-20 p-4 rounded-3xl bg-gradient-to-r from-sky-500/10 via-white/80 to-emerald-500/10 border border-slate-200 dark:border-gray-700 shadow-xl backdrop-blur-md">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-lg">
+                <i className="ri-live-fill text-xl"></i>
+              </div>
+              <div>
+                <p className="text-base font-semibold text-slate-900 dark:text-white">Live Collaboration</p>
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  {onlineCollaborators.length} active collaborator{onlineCollaborators.length === 1 ? '' : 's'} in this workspace
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+              {onlineCollaborators.length > 0 ? (
+                onlineCollaborators.map((collab) => (
+                  <span key={collab._id || collab.id || collab.email} className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 text-slate-800 dark:bg-gray-800 dark:text-white border border-slate-200 dark:border-gray-700 shadow-sm">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    {collab.firstName || collab.email || 'Collaborator'}
+                  </span>
+                ))
+              ) : (
+                <span className="px-3 py-1 rounded-full bg-white/90 text-slate-800 dark:bg-gray-800 dark:text-white border border-slate-200 dark:border-gray-700 shadow-sm">No one is online yet</span>
+              )}
+            </div>
+          </div>
+        </div>
         <div
           ref={messageBox}
           onScroll={handleScroll}
-          className="flex flex-col flex-grow gap-1 p-1 pb-20 overflow-auto pt-14 message-box scrollbar-hide bg-slate-50 dark:bg-gray-800"
+          className="flex flex-col flex-grow gap-1 p-1 pb-20 overflow-auto pt-36 message-box scrollbar-hide bg-slate-50 dark:bg-gray-800"
         >
           {Object.keys(groupedMessages)
             .sort((a, b) => a.localeCompare(b))
@@ -815,14 +962,21 @@ const Project = () => {
                 <div className="text-sm font-semibold text-gray-700 dark:text-white mb-2 flex items-center gap-2">
                   <i className="ri-user-add-fill text-blue-600 dark:text-blue-400"></i>
                   {t('collaborators')}
+                  <span className="ml-2 px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-500 text-white">
+                    {onlineCollaborators.length} online
+                  </span>
                 </div>
                 <div className="flex flex-col gap-2">
-                  {project.users.map((u) => (
-                    <div key={u._id} className="flex items-center gap-3 p-2 rounded cursor-pointer user hover:bg-slate-200 dark:hover:bg-gray-600 transition-colors">
-                      <Avatar firstName={u.firstName} className="w-8 h-8 text-base" />
-                      <span className="text-base font-medium" style={{ color: isDarkMode ? '#fff' : '#222' }}>{u.firstName}</span>
-                    </div>
-                  ))}
+                  {project.users.map((u) => {
+                    const isOnline = onlineCollaborators.some((onlineUser) => (onlineUser._id || onlineUser.id) === (u._id || u.id));
+                    return (
+                      <div key={u._id} className="flex items-center gap-3 p-2 rounded cursor-pointer user hover:bg-slate-200 dark:hover:bg-gray-600 transition-colors">
+                        <span className={`w-3 h-3 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-gray-400'}`} title={isOnline ? 'Online' : 'Offline'} />
+                        <Avatar firstName={u.firstName} className="w-8 h-8 text-base" />
+                        <span className="text-base font-medium" style={{ color: isDarkMode ? '#fff' : '#222' }}>{u.firstName}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

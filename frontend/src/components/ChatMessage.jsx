@@ -127,8 +127,8 @@ const ChatMessage = React.memo(({
           <Avatar firstName={msg.sender.firstName} className="w-8 h-8" />
         )}
         <div
-          className={`flex flex-col p-2 max-w-xs break-words ${bubbleRoundnessClass} ${messageFontSizeClass} ${isCurrentUser ? "" : "bg-white text-gray-800 shadow"}`}
-          style={isCurrentUser ? getUserBubbleStyle() : {}}
+          className={`flex flex-col p-3 max-w-xs break-words ${bubbleRoundnessClass} ${messageFontSizeClass} shadow-sm ${isCurrentUser ? 'bg-gradient-to-br from-blue-500 to-sky-500 text-white' : 'bg-white text-gray-800'}`}
+          style={isCurrentUser ? { color: '#fff', backgroundImage: 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)' } : {}}
         >
           {!isCurrentUser && (
             <small className={`mb-1 font-bold text-gray-700 ${messageFontSizeClass}`}>

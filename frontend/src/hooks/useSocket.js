@@ -7,15 +7,18 @@ export const useSocket = (projectId) => {
 
     useEffect(() => {
         let cancelled = false;
+        let retryTimer = null;
+
+        const initSocket = (token) => {
+            if (!projectId || cancelled) return;
+            logger.debug('initializing socket for project', projectId);
+            socketRef.current = initializeSocket(projectId, token);
+        };
 
         const tryInit = async () => {
             if (!projectId) return;
             logger.debug('initializing socket for project', projectId);
 
-            // Try to read token from localStorage or cookie. If not present,
-            // poll briefly to allow E2E tests to inject the token before the
-            // app initializes sockets. After timeout, initialize anyway so
-            // the app remains functional for anonymous projects.
             const readToken = () => {
                 let t = null;
                 try { t = typeof window !== 'undefined' ? localStorage.getItem('token') : null; } catch (e) { t = null; }
@@ -28,30 +31,55 @@ export const useSocket = (projectId) => {
                 return t;
             };
 
-            const maxWait = 5000; // ms
-            const intervalMs = 200;
+            const maxWait = 10000; // ms
+            const intervalMs = 250;
             let waited = 0;
-
-            if (readToken()) {
-                if (cancelled) return;
-                socketRef.current = initializeSocket(projectId);
-                return;
-            }
+            let token = readToken();
 
             while (waited < maxWait && !cancelled) {
+                if (token) {
+                    initSocket(token);
+                    return;
+                }
+
                 await new Promise(r => setTimeout(r, intervalMs));
                 waited += intervalMs;
-                if (readToken()) break;
+                token = readToken();
             }
 
             if (cancelled) return;
-            socketRef.current = initializeSocket(projectId);
+
+            const finalToken = readToken();
+            if (finalToken) {
+                initSocket(finalToken);
+                return;
+            }
+
+            let attempts = 0;
+            const retry = () => {
+                if (cancelled) return;
+                const nextToken = readToken();
+                if (nextToken) {
+                    initSocket(nextToken);
+                    return;
+                }
+                attempts += 1;
+                if (attempts < 8) {
+                    retryTimer = window.setTimeout(retry, 1000);
+                } else {
+                    initSocket(null);
+                }
+            };
+            retry();
         };
 
         tryInit();
 
         return () => {
             cancelled = true;
+            if (retryTimer) {
+                window.clearTimeout(retryTimer);
+            }
             disconnectSocket();
         };
     }, [projectId]);

@@ -29,12 +29,25 @@ export const normalizeFileTree = (tree) => {
 
 export const deduplicateMessages = (messages) => {
     const seen = new Set();
-    return messages.filter(msg => {
-        if (!msg._id) return true;
-        if (seen.has(msg._id)) return false;
-        seen.add(msg._id);
+    return messages.filter((msg) => {
+        if (!msg || typeof msg !== 'object') return false;
+
+        const identity = msg._id || msg.id || getMessageIdentity(msg);
+        if (!identity) return true;
+        if (seen.has(identity)) return false;
+        seen.add(identity);
         return true;
     });
+};
+
+const getMessageIdentity = (msg) => {
+    if (!msg || typeof msg !== 'object') return null;
+    const senderId = typeof msg.sender === 'object' ? msg.sender?._id : msg.sender;
+    const senderName = typeof msg.sender === 'object' ? `${msg.sender?.firstName || ''}${msg.sender?.lastName || ''}` : msg.sender;
+    const normalizedText = typeof msg.message === 'string' ? msg.message.trim() : '';
+    const createdAt = msg.createdAt || msg.timestamp || '';
+    if (!normalizedText) return null;
+    return `${senderId || senderName || 'unknown'}::${normalizedText}::${createdAt}`;
 };
 
 export const groupProjectsByCategory = (projects) => {

@@ -9,6 +9,7 @@ import {
   getAllProject,
   addUserToProject,
   getProjectById,
+  getProjectMessages,
   updateFileTree,
   getProjectSettings,
   updateProjectSettings,
@@ -67,6 +68,12 @@ router.get('/get-project/:projectId',
     projectLimiter,
     authUser,
     getProjectById
+)
+
+router.get('/messages/:projectId',
+    projectLimiter,
+    authUser,
+    getProjectMessages
 )
 
 router.put('/update-file-tree',

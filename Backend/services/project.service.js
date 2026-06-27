@@ -1,5 +1,6 @@
 import projectModel from '../models/project.model.js';
 import userModel from '../models/user.model.js';
+import Message from '../models/message.model.js';
 import mongoose from 'mongoose';
 
 // Basic recursive validation to ensure fileTree is a plain JSON-like structure
@@ -154,6 +155,24 @@ export const updateFileTree = async ({ projectId, fileTree, userId }) => {
         { $set: { fileTree: safeFileTree } },
         { new: true }
     );
+};
+
+export const getProjectMessages = async ({ projectId, userId }) => {
+    if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
+        throw new Error('Invalid projectId');
+    }
+
+    const project = await projectModel.findById(projectId);
+    if (!project) {
+        throw new Error('Project not found');
+    }
+
+    const isMember = project.users && project.users.some(u => u.toString() === userId.toString());
+    if (!isMember) {
+        throw new Error('Unauthorized access');
+    }
+
+    return await Message.find({ conversationId: new mongoose.Types.ObjectId(projectId) }).sort({ createdAt: 1 });
 };
 
 export const getCountsByCategory = async (userEmail) => {

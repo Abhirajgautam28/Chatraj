@@ -7,7 +7,9 @@ jest.mock('../../services/project.service.js');
 jest.mock('../../services/redis.service.js');
 
 import projectModel from '../../models/project.model.js';
+import Message from '../../models/message.model.js';
 jest.mock('../../models/project.model.js');
+jest.mock('../../models/message.model.js');
 
 describe('Project Controller', () => {
     process.env.JWT_SECRET = 'secret';
@@ -44,6 +46,20 @@ describe('Project Controller', () => {
 
             expect(res.status).toBe(201);
             expect(res.body.message).toBe('Project created successfully');
+        });
+    });
+
+    describe('GET /api/projects/messages/:projectId', () => {
+        test('should return project messages for members', async () => {
+            projectModel.findOne.mockResolvedValue({ _id: 'proj123', users: [{ toString: () => 'user123' }] });
+            Message.find.mockReturnValue({ sort: jest.fn().mockResolvedValue([{ _id: 'm1', message: 'Hello' }]) });
+
+            const res = await request(app)
+                .get('/api/projects/messages/proj123')
+                .set('Authorization', `Bearer ${mockToken}`);
+
+            expect(res.status).toBe(200);
+            expect(res.body.messages).toHaveLength(1);
         });
     });
 });

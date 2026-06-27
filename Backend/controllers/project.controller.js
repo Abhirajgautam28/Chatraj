@@ -1,4 +1,5 @@
 import projectModel from '../models/project.model.js';
+import Message from '../models/message.model.js';
 import * as projectService from '../services/project.service.js';
 import { validationResult } from 'express-validator';
 import { logger } from "../utils/logger.js";
@@ -162,6 +163,34 @@ export const updateFileTree = async (req, res) => {
         return response.error(res, err.message, status);
     }
 }
+
+export const getProjectMessages = async (req, res) => {
+    try {
+        const projectId = req.params.projectId;
+        const userId = req.user._id;
+
+        let messages = await projectService.getProjectMessages({ projectId, userId });
+
+        if (messages === undefined) {
+            const project = await projectModel.findOne({ _id: projectId, users: userId });
+            if (!project) {
+                return response.error(res, 'Unauthorized access', 401);
+            }
+            messages = await Message.find({ conversationId: projectId }).sort({ createdAt: 1 });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Messages fetched successfully',
+            messages,
+            data: { messages }
+        });
+    } catch (err) {
+        logger.error('getProjectMessages error:', err);
+        const status = err.message === 'Unauthorized access' ? 401 : (err.message === 'Project not found' ? 404 : 400);
+        return response.error(res, err.message, status);
+    }
+};
 
 export const getProjectSettings = async (req, res) => {
     try {

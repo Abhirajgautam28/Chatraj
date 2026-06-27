@@ -16,6 +16,7 @@ if (import.meta.env.DEV) {
 
 let socketInstance = null;
 const pendingListeners = new Map();
+const pendingEmits = [];
 
 const attachPendingListeners = () => {
     if (!socketInstance) return;
@@ -29,14 +30,24 @@ const attachPendingListeners = () => {
     pendingListeners.clear();
 };
 
-export const initializeSocket = (projectId) => {
+const flushPendingEmits = () => {
+    if (!socketInstance || !socketInstance.connected) return;
+
+    while (pendingEmits.length > 0) {
+        const { eventName, data } = pendingEmits.shift();
+        socketInstance.emit(eventName, data);
+    }
+};
+
+export const initializeSocket = (projectId, tokenOverride = null) => {
     if (socketInstance) {
         socketInstance.disconnect();
+        socketInstance = null;
     }
 
-    // Prefer token from localStorage, but fall back to cookie token (tests often set cookie)
+    // Prefer explicit token if provided, otherwise read from localStorage or cookie
     const lsToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    let token = lsToken;
+    let token = tokenOverride || lsToken;
     if (!token) {
         try {
             const m = (typeof document !== 'undefined' && document.cookie) ? document.cookie.match('(^|;)\\s*token\\s*=\\s*([^;]+)') : null;
@@ -54,6 +65,7 @@ export const initializeSocket = (projectId) => {
     });
 
     attachPendingListeners();
+    socketInstance.on('connect', flushPendingEmits);
 
     // Add debug listeners to surface connection state during E2E runs
     if (import.meta.env.DEV) {
@@ -91,6 +103,13 @@ export const receiveMessage = (eventName, cb) => {
 
     if (socketInstance) {
         socketInstance.on(eventName, cb);
+        if (eventName === 'connect' && socketInstance.connected) {
+            try {
+                cb();
+            } catch (e) {
+                console.error('Socket connect callback error:', e);
+            }
+        }
         return;
     }
 
@@ -117,16 +136,19 @@ export const removeListener = (eventName, cb) => {
 }
 
 export const sendMessage = (eventName, data) => {
-    if (socketInstance) {
+    if (socketInstance && socketInstance.connected) {
         socketInstance.emit(eventName, data);
+        return;
     }
+
+    pendingEmits.push({ eventName, data });
 }
 
 // Add these event emitters
 export const emitTyping = (data) => {
-    if (socketInstance) socketInstance.emit('typing', data);
+    if (socketInstance && socketInstance.connected) socketInstance.emit('typing', data);
 };
 
 export const emitStopTyping = (data) => {
-    if (socketInstance) socketInstance.emit('stop-typing', data);
+    if (socketInstance && socketInstance.connected) socketInstance.emit('stop-typing', data);
 };

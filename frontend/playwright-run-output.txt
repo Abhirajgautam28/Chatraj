@@ -1,0 +1,9 @@
+[2m[WebServer] [22m(node:36932) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+[2m[WebServer] [22m(Use `node --trace-deprecation ...` to show where the warning was created)
+Error: Timed out waiting 120000ms from config.webServer.
+
+
+To open last HTML report run:
+[36m[39m
+[36m  npx playwright show-report[39m
+[36m[39m

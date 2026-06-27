@@ -13,6 +13,44 @@ export const initializeSocket = (server) => {
         }
     });
 
+    const roomPresence = new Map();
+
+    const getPresenceList = (roomId) => {
+        const roomMap = roomPresence.get(roomId);
+        if (!roomMap) return [];
+        return Array.from(roomMap.values()).map(entry => entry.user);
+    };
+
+    const addPresence = (roomId, user) => {
+        if (!roomPresence.has(roomId)) {
+            roomPresence.set(roomId, new Map());
+        }
+        const roomMap = roomPresence.get(roomId);
+        const userId = user._id?.toString ? user._id.toString() : user._id;
+        const existing = roomMap.get(userId);
+        if (existing) {
+            roomMap.set(userId, { count: existing.count + 1, user: existing.user });
+        } else {
+            roomMap.set(userId, { count: 1, user });
+        }
+    };
+
+    const removePresence = (roomId, userId) => {
+        const roomMap = roomPresence.get(roomId);
+        if (!roomMap) return;
+        const id = userId?.toString ? userId.toString() : userId;
+        const existing = roomMap.get(id);
+        if (!existing) return;
+        if (existing.count <= 1) {
+            roomMap.delete(id);
+        } else {
+            roomMap.set(id, { count: existing.count - 1, user: existing.user });
+        }
+        if (roomMap.size === 0) {
+            roomPresence.delete(roomId);
+        }
+    };
+
     io.use(async (socket, next) => {
         try {
             const token =
@@ -58,9 +96,37 @@ export const initializeSocket = (server) => {
         }
     });
 
-    io.on('connection', socket => {
+    io.on('connection', async socket => {
         socket.roomId = socket.project._id.toString();
         socket.join(socket.roomId);
+        addPresence(socket.roomId, socket.user);
+        io.to(socket.roomId).emit('presence-update', {
+            projectId: socket.roomId,
+            users: getPresenceList(socket.roomId)
+        });
+        const emitProjectHistory = async () => {
+            try {
+                const conversationObjectId = mongoose.Types.ObjectId.isValid(socket.roomId)
+                    ? new mongoose.Types.ObjectId(socket.roomId)
+                    : socket.roomId;
+                const historyMessages = await Message.find({ conversationId: conversationObjectId }).sort({ createdAt: 1 }).lean();
+                try { logger.info('emitProjectHistory', { projectId: socket.roomId, conversationObjectId: conversationObjectId && conversationObjectId.toString ? conversationObjectId.toString() : conversationObjectId, count: Array.isArray(historyMessages) ? historyMessages.length : 0 }); } catch(e) {}
+                socket.emit('project-history', historyMessages);
+            } catch (historyErr) {
+                logger.error('Failed to load project history on socket connect:', historyErr);
+            }
+        };
+
+        try {
+            await emitProjectHistory();
+        } catch (historyErr) {
+            logger.error('Failed to send project history on connect:', historyErr);
+        }
+
+        socket.on('request-project-history', async () => {
+            await emitProjectHistory();
+        });
+
         logger.info('Socket connected', { socketId: socket.id, user: socket.user && (socket.user._id || socket.user.email), roomId: socket.roomId });
 
         socket.on('project-message', async data => {
@@ -178,6 +244,11 @@ export const initializeSocket = (server) => {
 
         socket.on('disconnect', () => {
             logger.info('user disconnected');
+            removePresence(socket.roomId, socket.user._id || socket.user.id);
+            io.to(socket.roomId).emit('presence-update', {
+                projectId: socket.roomId,
+                users: getPresenceList(socket.roomId)
+            });
             socket.leave(socket.roomId);
         });
     });
