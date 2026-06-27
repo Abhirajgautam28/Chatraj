@@ -32,7 +32,8 @@ const Dashboard = () => {
     })
       .then((res) => {
         showToast('Project created successfully', 'success');
-        setProjects(prev => [...prev, res.data.project]);
+        const proj = res.data.data ? res.data.data.project : res.data.project;
+        setProjects(prev => [...prev, proj]);
         setIsModalOpen(false);
         setProjectName('');
       })

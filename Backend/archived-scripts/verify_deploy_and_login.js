@@ -51,7 +51,7 @@ async function checkCsrfFlags(apiBase) {
     const cookies = extractSetCookieArray(resp);
     const bodyText = await resp.text().catch(() => '');
     let bodyJson = null;
-    try { bodyJson = JSON.parse(bodyText); } catch (e) { /* ignore */ }
+    try { bodyJson = JSON.parse(bodyText); } catch (e) { console.warn('JSON parse error (csrf-token):', e.message); }
 
     if (!resp.ok) {
       return { ok: false, status, statusText, bodyText, cookies };
@@ -80,7 +80,7 @@ async function attemptLogin(apiBase, email, password) {
     const cookies = extractSetCookieArray(resp1);
     const bodyText = await resp1.text().catch(() => '');
     let bodyJson = null;
-    try { bodyJson = JSON.parse(bodyText); } catch (e) { }
+    try { bodyJson = JSON.parse(bodyText); } catch (e) { console.warn('JSON parse error (csrf-token during login):', e.message); }
     const token = (bodyJson && bodyJson.csrfToken) ? bodyJson.csrfToken : (typeof bodyText === 'string' ? (bodyText.match(/"csrfToken"\s*:\s*"([^\"]+)"/)?.[1] || '') : '');
 
     const cookieHeader = buildCookieHeader(cookies);
@@ -97,7 +97,7 @@ async function attemptLogin(apiBase, email, password) {
 
     const text = await r2.text().catch(() => '');
     let parsed = null;
-    try { parsed = JSON.parse(text); } catch (e) { }
+    try { parsed = JSON.parse(text); } catch (e) { console.warn('JSON parse error (login response):', e.message); }
     if (!r2.ok) {
       return { ok: false, status: r2.status, statusText: r2.statusText || '', bodyText: text, bodyJson: parsed, cookies, csrfTokenSent: token };
     }

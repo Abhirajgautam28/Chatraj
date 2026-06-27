@@ -6,13 +6,13 @@ import NewsletterSubscribeForm from '../../components/NewsletterSubscribeForm';
 describe('NewsletterSubscribeForm', () => {
   it('renders input and button', () => {
     render(<NewsletterSubscribeForm />);
-    expect(screen.getByPlaceholderName(/enter your email/i)).toBeDefined();
+    expect(screen.getByPlaceholder(/enter your email/i)).toBeDefined();
     expect(screen.getByText(/subscribe/i)).toBeDefined();
   });
 
   it('updates input value on change', () => {
     render(<NewsletterSubscribeForm />);
-    const input = screen.getByPlaceholderName(/enter your email/i);
+    const input = screen.getByPlaceholder(/enter your email/i);
     fireEvent.change(input, { target: { value: 'test@example.com' } });
     expect(input.value).toBe('test@example.com');
   });

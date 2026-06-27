@@ -1,10 +1,11 @@
-import React, { memo } from 'react';
+import React, { memo, forwardRef } from 'react';
 import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 
-const ProjectCard = memo(({ project, idx, onClick }) => {
+const ProjectCard = memo(forwardRef(({ project, idx, onClick }, ref) => {
   return (
     <motion.div
+      ref={ref}
       onClick={onClick}
       className="flex flex-col gap-2 p-6 transition duration-300 transform bg-gray-700 rounded-md shadow-sm cursor-pointer group"
       initial={{ opacity: 0, y: 30, scale: 0.95 }}
@@ -23,7 +24,7 @@ const ProjectCard = memo(({ project, idx, onClick }) => {
       </div>
     </motion.div>
   );
-});
+}));
 
 ProjectCard.displayName = 'ProjectCard';
 
