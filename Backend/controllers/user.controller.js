@@ -26,7 +26,12 @@ export const sendOtpController = async (req, res) => {
         if (!user) return res.status(404).json({ message: 'User not found' });
         // Generate OTP
         const otp = generateOTP(7);
-        user.resetPasswordOtp = otp;
+
+        if (user.isVerified) {
+            user.resetPasswordOtp = otp;
+        } else {
+            user.otp = otp;
+        }
         await user.save();
         await sendOtpEmail(user.email, otp);
         res.status(200).json({ message: 'OTP sent to email.' });
@@ -232,6 +237,35 @@ export const verifyOtpController = async (req, res) => {
         user = await userModel.findOne({ email: normalizedEmail }).select('+otp +resetPasswordOtp');
         // If user not found in DB, check for a pending registration stored in Redis
         // (we persist pending registrations there until the user verifies via OTP).
+
+        if (user) {
+            // Check if it's a password reset OTP verification
+            if (user.isVerified && user.resetPasswordOtp === otp) {
+                user.resetPasswordOtp = undefined;
+                await user.save();
+
+                // Issue a purpose-bound JWT for password reset
+                const jwtToken = await import('jsonwebtoken');
+                const resetToken = jwtToken.sign(
+                    { email: user.email, purpose: 'password-reset' },
+                    process.env.JWT_SECRET,
+                    { expiresIn: '15m' }
+                );
+
+                const userObj = user.toObject();
+                delete userObj.password;
+                delete userObj.otp;
+                delete userObj.resetPasswordOtp;
+                delete userObj.googleApiKey;
+
+                return res.status(200).json({ message: 'OTP verified successfully', token: resetToken, user: userObj });
+            } else if (user.otp === otp && !user.isVerified) {
+                // Normal email verification via existing flow handled below implicitly
+                // Actually, the original logic didn't do anything for existing user OTP verification in email branch
+                // other than checking pending ones. We'll handle this at the end of the controller.
+            }
+        }
+
         if (!user) {
             const pendingKey = `pending:registration:${normalizedEmail}`;
             let pendingJson = null;
@@ -361,6 +395,14 @@ export const adminGetOtpController = async (req, res) => {
         }
         if (!user) return res.status(404).json({ message: 'User not found' });
         const otp = user.otp;
+
+        // DEV/TEST helper: when running locally and explicitly requested, return
+        // the raw OTP for deterministic E2E tests. This is gated behind a valid
+        // Admin API key and must not be enabled in production.
+        if (process.env.NODE_ENV !== 'production' && req.query.raw === 'true') {
+            return res.status(200).json({ userId: user._id, email: user.email, otp });
+        }
+
         const masked = typeof otp === 'string' && otp.length > 2 ? `${otp[0]}***${otp[otp.length - 1]}` : '<redacted>';
 
         // Audit access: log who requested this and what they requested.
@@ -391,6 +433,41 @@ export const adminGetOtpController = async (req, res) => {
         return res.status(200).json({ userId: user._id, email: user.email, maskedOtp: masked });
     } catch (err) {
         logger.error('adminGetOtpController error:', err);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+// Development-only endpoint to retrieve raw OTP for an email or userId.
+// THIS MUST NEVER BE ENABLED IN PRODUCTION. Only accessible when
+// NODE_ENV !== 'production'. Useful for automated E2E tests in local/dev.
+export const debugGetRawOtpController = async (req, res) => {
+    try {
+        if (process.env.NODE_ENV === 'production') return res.status(403).json({ message: 'Disabled in production' });
+        const { email, userId } = req.query;
+        if (!email && !userId) return res.status(400).json({ message: 'Provide email or userId' });
+
+        let user;
+        if (userId) {
+            if (typeof userId !== 'string' || !mongoose.Types.ObjectId.isValid(userId)) return res.status(400).json({ message: 'Invalid userId' });
+            user = await userModel.findById(userId).select('+otp');
+        } else {
+            const { value: normalizedEmail, isValid } = normalizeEmail(email);
+            if (!isValid) return res.status(400).json({ message: 'Valid email is required' });
+            user = await userModel.findOne({ email: normalizedEmail }).select('+otp');
+            if (!user) {
+                const pendingKey = `pending:registration:${normalizedEmail}`;
+                const pendingJson = await redisClient.get(pendingKey);
+                if (pendingJson) {
+                    const pending = JSON.parse(pendingJson);
+                    user = { _id: null, email: normalizedEmail, otp: pending.otp };
+                }
+            }
+        }
+
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        return res.status(200).json({ userId: user._id, email: user.email, otp: user.otp });
+    } catch (err) {
+        logger.error('debugGetRawOtpController error:', err);
         return res.status(500).json({ message: 'Internal server error' });
     }
 };
@@ -451,8 +528,7 @@ export const getAllUsersController = async (req, res) => {
 export const updatePasswordController = async (req, res) => {
     try {
         const { newPassword } = req.body;
-        // The email is extracted from the JWT token via the authResetPassword middleware
-        const email = req.resetUser.email;
+        const email = req.user.email; // Use email from the authenticated token
         const result = await userService.updatePassword(email, newPassword);
         return response.success(res, result);
     } catch (err) {

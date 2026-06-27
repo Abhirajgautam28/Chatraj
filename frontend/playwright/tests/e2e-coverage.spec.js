@@ -49,15 +49,39 @@ test.describe('ChatRaj Full Application E2E Test Suite - Continuous Flow', () =>
     await pageA.click('button[type="submit"]');
 
     console.log('\n======================================================');
-    console.log('🤖 PLAYWRIGHT WAITING: Please check your email for the OTP.');
-    console.log(`An OTP was sent to: ${NEW_USER_EMAIL}`);
-    console.log('Please paste it into the browser window manually.');
-    console.log('Wait is indefinite (timeout 0) so take your time.');
-    console.log('After verifying, you should be redirected to the categories or dashboard.');
+    console.log('Attempting to retrieve OTP programmatically via debug endpoint...');
+    console.log(`Requested OTP for: ${NEW_USER_EMAIL}`);
+    console.log('This will poll the backend debug endpoint for up to 30s.');
     console.log('======================================================\n');
 
-    // Wait strictly until user bypasses it and lands on the dashboard or categories page
-    await pageA.waitForURL(/.*(dashboard|login|categories|welcome-chatraj)/, { timeout: 0 });
+    // Try to fetch the OTP from the backend debug endpoint (dev-only).
+    let otpValue = null;
+    for (let attempt = 0; attempt < 30; attempt++) {
+      try {
+        const resp = await pageA.request.get(`${BACKEND_URL}/api/users/debug/raw-otp?email=${encodeURIComponent(NEW_USER_EMAIL)}`);
+        if (resp && resp.status && resp.status() === 200) {
+          const json = await resp.json();
+          if (json && json.otp) {
+            otpValue = json.otp;
+            break;
+          }
+        }
+      } catch (e) {
+        // ignore and retry
+      }
+      await pageA.waitForTimeout(1000);
+    }
+
+    if (!otpValue) {
+      console.log('Unable to retrieve OTP programmatically; falling back to manual entry.');
+      // Wait strictly until user bypasses it and lands on the dashboard or categories page
+      await pageA.waitForURL(/.*(dashboard|login|categories|welcome-chatraj)/, { timeout: 0 });
+    } else {
+      // Fill OTP modal and submit
+      await pageA.fill('input[placeholder="Enter the OTP sent to your email"]', otpValue);
+      await pageA.click('button:has-text("Verify OTP")');
+      await pageA.waitForURL(/.*(dashboard|login|categories|welcome-chatraj)/, { timeout: 15000 });
+    }
 
     // --- 2. Login Flow (User A) ---
     console.log(`\n======================================================`);
