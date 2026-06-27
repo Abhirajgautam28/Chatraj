@@ -35,7 +35,6 @@ const Register = () => {
     // disable reCAPTCHA locally (sitekey often restricted to deployed domain)
     const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
     const recaptchaEnabled = import.meta.env.VITE_DISABLE_RECAPTCHA !== 'true' && !isLocalhost;
-    // ...removed unused recaptchaToken
     const containerRef = useRef(null);
     const modalRef = useRef(null);
     const lastActiveElementRef = useRef(null);
