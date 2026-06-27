@@ -56,6 +56,7 @@ router.post('/login',
   userController.loginController
 );
 
+router.post('/reset-password', sensitiveLimiter, userController.resetPasswordController);
 router.post('/update-password', sensitiveLimiter, authMiddleware.authResetPassword, userController.updatePasswordController);
 
 router.get('/profile', authLimiter, authMiddleware.authUser, userController.profileController);
