@@ -37,6 +37,7 @@ const AppRoutes = () => {
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/project" element={<UserAuth><Project /></UserAuth>} />
+                    <Route path="/project/:id" element={<UserAuth><Project /></UserAuth>} />
                     <Route path="/logout" element={<Logout />} />
                     <Route path="/welcome-chatraj" element={<UserAuth><WelcomeChatRaj /></UserAuth>} />
                     <Route path="/chat" element={

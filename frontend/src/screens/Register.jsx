@@ -162,7 +162,10 @@ const Register = () => {
 
     function handleOtpSubmit(e) {
         e.preventDefault();
-        axios.post('/api/users/verify-otp', { userId, otp })
+        // If userId is not present (pending registration stored in Redis),
+        // include the email so backend can verify against pending data.
+        const payload = userId ? { userId, otp } : { email, otp };
+        axios.post('/api/users/verify-otp', payload)
             .then((res) => {
                 const responseData = res.data.data || res.data;
                 localStorage.setItem('token', responseData.token);

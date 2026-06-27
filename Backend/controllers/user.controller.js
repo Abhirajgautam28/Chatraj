@@ -194,12 +194,41 @@ function generateOTP(length) {
 
 // Helper: Send OTP email
 async function sendOtpEmail(email, otp) {
-    // In test environments skip sending real emails to avoid external
-    // dependencies and flaky failures when SMTP creds are not configured.
-    if (process.env.NODE_ENV === 'test') {
-        logger.info('Skipping email send in test environment');
-        return;
-    }
+        // In test environments skip sending real emails to avoid external
+        // dependencies and flaky failures when SMTP creds are not configured.
+        if (process.env.NODE_ENV === 'test') {
+                logger.info('Skipping email send in test environment');
+                return;
+        }
+
+        const ttlSeconds = parseInt(process.env.REGISTRATION_OTP_TTL_SECONDS || '900', 10);
+        const minutes = Math.ceil(ttlSeconds / 60);
+        const safeTo = typeof email === 'string' ? email.trim() : email;
+
+        const html = `
+            <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f7fafc; padding: 24px; border-radius: 12px; color: #111;">
+                <h2 style="color:#1d4ed8;">Your ChatRaj Verification Code</h2>
+                <p style="font-size:16px;">Use the following one-time code to complete your registration or password reset on ChatRaj. This code expires in <b>${minutes} minutes</b>.</p>
+                <div style="margin:18px 0; padding:16px; background:#fff; border-radius:8px; border:1px solid #e6eef8; display:inline-block;">
+                    <code style="font-size:20px; letter-spacing:2px; font-weight:700">${escapeHtml(otp)}</code>
+                </div>
+                <p style="font-size:13px; color:#555; margin-top:12px;">If you did not request this, you can safely ignore this message.</p>
+                <hr style="margin:18px 0; border:none; border-top:1px solid #eef3fb;"/>
+                <p style="font-size:12px; color:#888;">Sent by ChatRaj — Intelligent Software Engineering Assistant</p>
+            </div>
+        `;
+
+        const mailOptions = {
+                from: process.env.SMTP_FROM || 'ChatRaj <no-reply@chatraj.com>',
+                to: safeTo,
+                subject: 'Your ChatRaj verification code',
+                text: `Your ChatRaj verification code is: ${otp} (expires in ${minutes} minutes)`,
+                html,
+        };
+
+        logger.info('Sending OTP email to %s', safeTo);
+        // Bubble up any errors so callers can trigger retry logic.
+        return sendMailWithRetry(mailOptions);
 }
 
 // OTP verification for both registration (userId) and password reset (email)

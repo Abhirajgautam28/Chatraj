@@ -36,6 +36,13 @@ const Dashboard = () => {
         setProjects(prev => [...prev, proj]);
         setIsModalOpen(false);
         setProjectName('');
+        // Navigate to project page so E2E can proceed to the project workspace
+        try {
+          navigate('/project/', { state: { project: proj } });
+        } catch (err) {
+          // swallow navigation errors in case router isn't ready
+          logger.error('Navigation after project create failed:', err);
+        }
       })
       .catch((error) => {
         showToast('Failed to create project', 'error');

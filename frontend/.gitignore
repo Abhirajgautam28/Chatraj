@@ -20,6 +20,12 @@ dist-ssr
 
 # Playwright test outputs
 test-results/
+playwright-report/
+frontend/test-results/
+frontend/playwright-report/
+e2e-tests/playwright-report/
+e2e-tests/test-results/
+frontend/test-results/playwright/
 
 .vscode/*
 !.vscode/extensions.json

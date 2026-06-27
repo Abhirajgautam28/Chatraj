@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useContext } from 'react'
 import { UserContext } from '../context/user.context'
 import { ThemeContext } from '../context/theme.context'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import axios from '../config/axios'
 import Markdown from 'markdown-to-jsx'
 import { getWebContainer } from '../config/webContainer'
@@ -48,7 +48,9 @@ const Project = () => {
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState(new Set())
+  const params = useParams();
   const [project, setProject] = useState(location.state?.project || null)
+  try { console.log('PROJECT RENDER', { initialProject: !!location.state?.project, params: params }); } catch (e) {}
   const navigate = useNavigate();
   const [message, setMessage] = useState('')
   const { user } = useContext(UserContext)
@@ -64,7 +66,7 @@ const Project = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [showSearch, setShowSearch] = useState(false)
   const [showScrollBottom, setShowScrollBottom] = useState(false)
-  const projectId = project?._id;
+  const projectId = project?._id || params.id;
   const { on, off, emit } = useSocket(projectId);
 
   const [typingUsers, setTypingUsers] = useState(new Set());
@@ -245,17 +247,33 @@ const Project = () => {
 
   useEffect(() => {
     if (!projectId) {
-      // If no project was provided in location state, redirect user back to dashboard
+      // If no project was provided in location state or URL, redirect user back to dashboard
       showToast('No project selected', 'error');
       navigate('/dashboard');
       return;
     }
-    boot();
+    // If project state is missing but a URL param exists, fetch the canonical project
+    if (!project && params && params.id) {
+      axios.get(`/api/projects/get-project/${params.id}`)
+        .then((res) => {
+          const proj = res && res.data && res.data.data && res.data.data.project;
+          logger.debug('PROJECT FETCH RESP (by params):', proj && proj._id);
+          if (proj) {
+            setProject(proj);
+            logger.debug('PROJECT setProject (by params) called for', proj && proj._id);
+            setFileTree(proj.fileTree || {});
+          }
+        })
+        .catch(() => { /* ignore */ });
+      }
+      boot();
     axios.get(`/api/projects/get-project/${projectId}`)
       .then((res) => {
-        const proj = res && res.data && res.data.project;
+        const proj = res && res.data && res.data.data && res.data.data.project;
+        logger.debug('PROJECT FETCH RESP (by projectId):', proj && proj._id);
         if (proj) {
           setProject(proj);
+          logger.debug('PROJECT setProject (by projectId) called for', proj && proj._id);
           setFileTree(proj.fileTree || {});
         } else {
           setFileTree({});
@@ -478,6 +496,26 @@ const Project = () => {
     }
   }, [projectId, project, setIsDarkMode]);
 
+  // Lightweight diagnostic logging to help E2E tests diagnose missing chat input
+  useEffect(() => {
+    try {
+      logger.debug('PROJECT MOUNT EFFECT', { projectId, projectLoaded: !!project });
+      if (project) {
+        const input = document.querySelector('input[placeholder*="Enter message"], textarea[placeholder*="message"], [contenteditable="true"]');
+        logger.debug('PROJECT DEBUG: chat input present?', !!input);
+        if (input) {
+          logger.debug('PROJECT DEBUG: chat input tag=', input.tagName, 'placeholder=', input.getAttribute && input.getAttribute('placeholder'));
+        }
+        const root = document.getElementById('root');
+        if (root) {
+          logger.debug('PROJECT DEBUG: root child count=', root.children.length);
+        }
+      }
+    } catch (e) {
+      logger.debug('PROJECT DEBUG: mount logging error', e && e.message);
+    }
+  }, [project, projectId]);
+
   // Save settings to backend whenever they change
   useEffect(() => {
     if (projectId) {
@@ -527,10 +565,12 @@ const Project = () => {
     }));
   }, [vimMode]);
 
+      try { console.log('PROJECT fetching by param', params.id); } catch(e) {}
   if (!project) {
     return null;
   }
 
+            try { console.log('PROJECT fetched project', proj && proj._id); } catch(e) {}
   return (
     <main className="flex w-screen h-screen overflow-hidden bg-transparent">
       <section className="relative flex flex-col h-screen left min-w-96 bg-slate-100 dark:bg-gray-800">
