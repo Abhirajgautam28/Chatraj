@@ -109,6 +109,12 @@ Organize projects with 15+ predefined categories, grid/list views, search functi
 - **End-to-End Testing:** Comprehensive E2E tests for user flows using Cypress.
 - **Unit & Integration Testing:** Automated testing setup with Jest for both backend and frontend components.
 
+## Agent Demo and Usage
+
+ChatRaj now includes custom agents for delivery, testing, security, and release work. These agents help developers move from a feature request to an implementation plan, validation checklist, and release-ready notes.
+
+Example: ask the Delivery-Orchestrator agent to plan a feature request such as "Add a new project dashboard filter for recent activity." It can outline the UI change, backend support, test cases, security review, and rollout steps in a concise handoff.
+
 ---
 
 ## Tech Stack
