@@ -15,6 +15,7 @@ import csurf from 'csurf';
 import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
 import { logger } from './utils/logger.js';
+import { logSanitizeError } from './utils/sanitizer.js';
 import {
   verifySignedCsrfToken,
   createSignedCsrf,
@@ -85,6 +86,43 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Custom mongo-sanitize usage: call the library's `sanitize` function on
+// individual request containers rather than using the default middleware
+// which attempts to reassign `req.query`/`req.body` etc. In some runtimes
+// these properties are getter-only and assignment throws (observed with
+// certain proxies). Calling `sanitize()` mutates objects in-place and
+// avoids reassigning the parent `req` properties.
+// The middleware centralizes error logging and supports a fail-fast mode
+// controlled by `SANITIZE_FAIL_FAST=true` (defaults to non-failing/lenient).
+app.use((req, res, next) => {
+  const scopes = ['query', 'body', 'params'];
+  const failFast = process.env.SANITIZE_FAIL_FAST === 'true';
+
+  // use helper from utils/sanitizer.js to keep logging consistent
+
+  try {
+    for (const scope of scopes) {
+      const obj = req[scope];
+      if (obj && typeof obj === 'object') {
+        try {
+          mongoSanitize.sanitize(obj);
+        } catch (e) {
+          logSanitizeError(e, req, scope);
+          if (failFast) {
+            return res.status(400).json({ error: 'Invalid request payload' });
+          }
+        }
+      }
+    }
+  } catch (err) {
+    logSanitizeError(err, req, 'middleware');
+    if (failFast) {
+      return res.status(500).json({ error: 'Server error during request sanitization' });
+    }
+  }
+  next();
+});
 
 // CSRF protection middleware using cookies
 const csrfProtection = csurf({
