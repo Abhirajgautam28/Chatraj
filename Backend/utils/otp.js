@@ -7,12 +7,12 @@ import crypto from 'crypto';
  */
 export const generateOTP = (length = 7) => {
 	const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*';
-	let otp = '';
+	const otp = new Array(length);
 	for (let i = 0; i < length; i++) {
 		const index = crypto.randomInt(chars.length);
-		otp += chars[index];
+		otp[i] = chars[index];
 	}
-	return otp;
+	return otp.join('');
 };
 
 export default generateOTP;

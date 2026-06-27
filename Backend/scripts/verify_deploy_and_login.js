@@ -78,7 +78,7 @@ async function attemptLogin(api, email, password) {
 
     const text = await r2.text();
     let parsed = null;
-    try { parsed = JSON.parse(text); } catch (e) { }
+    try { parsed = JSON.parse(text); } catch (e) { console.warn('JSON parse error (login response):', e.message); }
     return { ok: r2.ok, status: r2.status, body: parsed || text };
   } catch (e) {
     return { ok: false, error: String(e && (e.message || e)) };

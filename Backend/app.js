@@ -8,10 +8,14 @@ import aiRoutes from './routes/ai.routes.js';
 import setupRoutes from './routes/setup.routes.js';
 import newsletterRoutes from './routes/newsletter.routes.js';
 import blogRoutes from './routes/blog.routes.js';
+import diagnosticRoutes from './routes/diagnostic.routes.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import csurf from 'csurf';
+import helmet from 'helmet';
+import mongoSanitize from 'express-mongo-sanitize';
 import { logger } from './utils/logger.js';
+import { logSanitizeError } from './utils/sanitizer.js';
 import {
   verifySignedCsrfToken,
   createSignedCsrf,
@@ -28,6 +32,10 @@ const allowedOrigins = [
 
 
 const app = express();
+
+// Trust the first proxy (e.g. Vercel, Render) to allow Express to correctly
+// extract the client's real IP from X-Forwarded-For and detect HTTPS.
+app.set('trust proxy', 1);
 
 // CORS debug logger
 const corsErrorLogger = (err, req, res, next) => {
@@ -71,10 +79,50 @@ app.use(cors({
 
 app.use(corsErrorLogger);
 
+app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(mongoSanitize());
+
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Custom mongo-sanitize usage: call the library's `sanitize` function on
+// individual request containers rather than using the default middleware
+// which attempts to reassign `req.query`/`req.body` etc. In some runtimes
+// these properties are getter-only and assignment throws (observed with
+// certain proxies). Calling `sanitize()` mutates objects in-place and
+// avoids reassigning the parent `req` properties.
+// The middleware centralizes error logging and supports a fail-fast mode
+// controlled by `SANITIZE_FAIL_FAST=true` (defaults to non-failing/lenient).
+app.use((req, res, next) => {
+  const scopes = ['query', 'body', 'params'];
+  const failFast = process.env.SANITIZE_FAIL_FAST === 'true';
+
+  // use helper from utils/sanitizer.js to keep logging consistent
+
+  try {
+    for (const scope of scopes) {
+      const obj = req[scope];
+      if (obj && typeof obj === 'object') {
+        try {
+          mongoSanitize.sanitize(obj);
+        } catch (e) {
+          logSanitizeError(e, req, scope);
+          if (failFast) {
+            return res.status(400).json({ error: 'Invalid request payload' });
+          }
+        }
+      }
+    }
+  } catch (err) {
+    logSanitizeError(err, req, 'middleware');
+    if (failFast) {
+      return res.status(500).json({ error: 'Server error during request sanitization' });
+    }
+  }
+  next();
+});
 
 // CSRF protection middleware using cookies
 const csrfProtection = csurf({
@@ -177,6 +225,7 @@ app.use('/api/projects', projectRoutes);
 app.use("/api/ai", aiRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/blogs', blogRoutes);
+app.use('/api/diagnostics', diagnosticRoutes);
 
 app.use((err, req, res, next) => {
   logger.error(err.stack);
@@ -185,7 +234,7 @@ app.use((err, req, res, next) => {
     logger.error('CSRF validation failed:', err.message);
     return res.status(403).json({
       error: 'Invalid CSRF token',
-      message: process.env.NODE_ENV === 'development' ? err.message : 'Forbidden'
+      message: 'Forbidden'
     });
   }
 
@@ -193,7 +242,7 @@ app.use((err, req, res, next) => {
   if (!res.headersSent) {
     res.status(status).json({
       error: 'Something broke!',
-      message: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
+      message: 'Internal Server Error'
     });
   }
 });
