@@ -80,6 +80,7 @@ app.use(cors({
 app.use(corsErrorLogger);
 
 app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(mongoSanitize());
 
 app.use(morgan('dev'));
 app.use(express.json());

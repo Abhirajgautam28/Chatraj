@@ -19,11 +19,6 @@ const CreateBlogForm = lazy(() => import('../components/CreateBlogForm'));
 const SingleBlogPage = lazy(() => import('../screens/SingleBlogPage'));
 const SystemDiagnostics = lazy(() => import('../screens/SystemDiagnostics'));
 
-const PageTracker = () => {
-    usePageTracking();
-    return null;
-};
-
 const AppRoutes = () => {
     return (
         <BrowserRouter>
