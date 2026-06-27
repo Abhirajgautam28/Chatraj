@@ -22,15 +22,19 @@ export const createProject = async (req, res) => {
 
     try {
         const { name, category, users } = req.body;
+        const safeCategory = typeof category === 'string' && category.trim()
+            ? category.trim()
+            : 'DSA';
+
         // NOTE: category validation is handled by route validator now,
         // but kept here for safety if validator fails or is bypassed.
-        if (!name || !category) {
+        if (!name || typeof name !== 'string' || !name.trim()) {
             return res.status(400).json({ error: 'Name and category are required' });
         }
         // Create new project
         const project = await projectModel.create({
-            name,
-            category,
+            name: name.trim(),
+            category: safeCategory,
             users: users ? [...users, req.user._id] : [req.user._id],
             createdBy: req.user._id
         });

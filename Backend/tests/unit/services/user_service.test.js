@@ -12,6 +12,27 @@ jest.mock('../../../utils/mailer.js', () => ({
 describe('User Service - Deepened', () => {
     afterEach(() => jest.clearAllMocks());
 
+    describe('loginUser', () => {
+        test('normalizes the submitted email before performing the lookup', async () => {
+            const mockUser = {
+                _id: 'user123',
+                email: 'test@example.com',
+                password: 'hash',
+                isVerified: true,
+                isValidPassword: jest.fn().mockResolvedValue(true),
+                generateJWT: jest.fn().mockResolvedValue('token-123'),
+                toObject: () => ({ _id: 'user123', email: 'test@example.com', firstName: 'Test', lastName: 'User' })
+            };
+            userModel.findOne.mockReturnValue({
+                select: jest.fn().mockResolvedValue(mockUser)
+            });
+
+            await userService.loginUser(' Test@Example.com ', 'Password123!');
+
+            expect(userModel.findOne).toHaveBeenCalledWith({ email: 'test@example.com' });
+        });
+    });
+
     describe('registerUser', () => {
         test('should throw error if email is already registered and verified', async () => {
             userModel.findOne.mockImplementation(() => ({

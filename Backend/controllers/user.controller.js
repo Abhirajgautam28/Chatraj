@@ -465,7 +465,25 @@ export const adminGetOtpController = async (req, res) => {
 // NODE_ENV !== 'production'. Useful for automated E2E tests in local/dev.
 export const debugGetRawOtpController = async (req, res) => {
     try {
-        if (process.env.NODE_ENV === 'production') return res.status(403).json({ message: 'Disabled in production' });
+        const isProduction = process.env.NODE_ENV === 'production';
+        const explicitlyEnabled = process.env.ALLOW_RAW_OTP_DEBUG === 'true';
+        const allowLocalDebug = !isProduction && process.env.ALLOW_RAW_OTP_DEBUG !== 'false';
+
+        if (isProduction && !explicitlyEnabled) {
+            return res.status(403).json({ message: 'Raw OTP debug endpoint is disabled' });
+        }
+
+        if (!allowLocalDebug && !explicitlyEnabled) {
+            return res.status(403).json({ message: 'Raw OTP debug endpoint is disabled' });
+        }
+
+        if (isProduction || explicitlyEnabled) {
+            const adminKey = req.get('x-admin-key');
+            if (!process.env.ADMIN_API_KEY || !adminKey || adminKey !== process.env.ADMIN_API_KEY) {
+                return res.status(403).json({ message: 'Admin access required' });
+            }
+        }
+
         const { email, userId } = req.query;
         if (!email && !userId) return res.status(400).json({ message: 'Provide email or userId' });
 
@@ -492,6 +510,23 @@ export const debugGetRawOtpController = async (req, res) => {
     } catch (err) {
         logger.error('debugGetRawOtpController error:', err);
         return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+export const resetPasswordController = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (typeof email !== 'string' || !email.trim()) {
+            return res.status(400).json({ message: 'Valid email is required' });
+        }
+
+        const result = await userService.sendOtp(email);
+        return response.success(res, result, result && result.message ? result.message : 'OTP sent to email.');
+    } catch (err) {
+        logger.error('resetPasswordController error:', err);
+        const message = err && err.message ? err.message : 'Invalid request';
+        if (message === 'User not found') return res.status(404).json({ message });
+        return res.status(400).json({ message });
     }
 };
 

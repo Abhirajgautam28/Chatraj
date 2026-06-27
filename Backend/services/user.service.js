@@ -165,7 +165,10 @@ export const adminGetOtp = async (adminKey, { email, userId }) => {
 };
 
 export const loginUser = async (email, password) => {
-    const user = await userModel.findOne({ email: email.trim() }).select('+password +googleApiKey');
+    const { value: normalizedEmail, isValid } = normalizeEmail(email);
+    if (!isValid) throw new Error('Valid email is required');
+
+    const user = await userModel.findOne({ email: normalizedEmail }).select('+password +googleApiKey');
     if (!user || !(await user.isValidPassword(password))) throw new Error('Invalid credentials');
     if (!user.isVerified) throw new Error('Account not verified');
 

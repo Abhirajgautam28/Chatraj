@@ -52,7 +52,11 @@ const validateFileTree = (value) => {
 };
 
 export const createProject = async ({ name, userId, category, users = [] }) => {
-  if (!name || !category) {
+  const safeCategory = category && typeof category === 'string' && category.trim()
+    ? category.trim()
+    : 'DSA';
+
+  if (!name || typeof name !== 'string' || !name.trim()) {
     throw new Error('Name and category are required');
   }
   if (!userId) {
@@ -61,8 +65,8 @@ export const createProject = async ({ name, userId, category, users = [] }) => {
 
   try {
     const project = await projectModel.create({
-      name,
-      category,
+      name: name.trim(),
+      category: safeCategory,
       users: [...new Set([...users, userId])],
       createdBy: userId
     });

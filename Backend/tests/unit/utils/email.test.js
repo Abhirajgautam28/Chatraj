@@ -16,9 +16,9 @@ describe('normalizeEmail', () => {
         expect(result).toEqual({ value: 'test@example.com', isValid: true });
     });
 
-    test('should preserve case of the local part', () => {
+    test('should lowercase the full email address for reliable lookups', () => {
         const result = normalizeEmail('Test@example.com');
-        expect(result).toEqual({ value: 'Test@example.com', isValid: true });
+        expect(result).toEqual({ value: 'test@example.com', isValid: true });
     });
 
     test('should return invalid for non-string inputs', () => {

@@ -9,7 +9,7 @@ export const normalizeEmail = (rawEmail) => {
         return { value: null, isValid: false };
     }
 
-    const local = parts[0];
+    const local = parts[0].toLowerCase();
     const domain = parts[1].toLowerCase();
     const value = `${local}@${domain}`;
     const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);

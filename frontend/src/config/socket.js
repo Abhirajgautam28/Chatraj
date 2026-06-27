@@ -15,7 +15,19 @@ if (import.meta.env.DEV) {
 }
 
 let socketInstance = null;
-const callbacks = {};
+const pendingListeners = new Map();
+
+const attachPendingListeners = () => {
+    if (!socketInstance) return;
+
+    pendingListeners.forEach((callbacks, eventName) => {
+        callbacks.forEach((callback) => {
+            socketInstance.on(eventName, callback);
+        });
+    });
+
+    pendingListeners.clear();
+};
 
 export const initializeSocket = (projectId) => {
     if (socketInstance) {
@@ -40,8 +52,11 @@ export const initializeSocket = (projectId) => {
             projectId
         }
     });
-        // Add debug listeners to surface connection state during E2E runs
-        if (import.meta.env.DEV) {
+
+    attachPendingListeners();
+
+    // Add debug listeners to surface connection state during E2E runs
+    if (import.meta.env.DEV) {
             try {
                 socketInstance.on('connect', () => {
                     try { console.log('SOCKET CONNECTED', socketInstance.id); } catch (e) {}
@@ -72,14 +87,32 @@ export const disconnectSocket = () => {
 }
 
 export const receiveMessage = (eventName, cb) => {
+    if (!eventName || typeof cb !== 'function') return;
+
     if (socketInstance) {
         socketInstance.on(eventName, cb);
+        return;
     }
+
+    if (!pendingListeners.has(eventName)) {
+        pendingListeners.set(eventName, []);
+    }
+    pendingListeners.get(eventName).push(cb);
 }
 
 export const removeListener = (eventName, cb) => {
+    if (!eventName || typeof cb !== 'function') return;
+
     if (socketInstance) {
         socketInstance.off(eventName, cb);
+        return;
+    }
+
+    if (pendingListeners.has(eventName)) {
+        pendingListeners.set(eventName, pendingListeners.get(eventName).filter((listener) => listener !== cb));
+        if (pendingListeners.get(eventName).length === 0) {
+            pendingListeners.delete(eventName);
+        }
     }
 }
 

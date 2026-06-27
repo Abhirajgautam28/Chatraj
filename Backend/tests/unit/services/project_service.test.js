@@ -10,9 +10,18 @@ describe('Project Service - Deepened', () => {
     afterEach(() => jest.clearAllMocks());
 
     describe('createProject', () => {
-        test('should throw error if name or category is missing', async () => {
-            await expect(projectService.createProject({ name: '' }))
+        test('should throw error if name is missing', async () => {
+            await expect(projectService.createProject({ category: 'DSA' }))
                 .rejects.toThrow('Name and category are required');
+        });
+
+        test('should default to a safe category when none is provided', async () => {
+            projectModel.create.mockResolvedValue({ _id: 'project-1', name: 'p', category: 'DSA' });
+
+            const result = await projectService.createProject({ name: 'p', userId: 'u' });
+
+            expect(projectModel.create).toHaveBeenCalledWith(expect.objectContaining({ category: 'DSA' }));
+            expect(result.category).toBe('DSA');
         });
 
         test('should handle duplicate project names', async () => {

@@ -66,7 +66,7 @@ const Project = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [showSearch, setShowSearch] = useState(false)
   const [showScrollBottom, setShowScrollBottom] = useState(false)
-  const projectId = project?._id || params.id;
+  const projectId = project?._id || params.id || location.state?.project?._id || location.state?.project?.id;
   const { on, off, emit } = useSocket(projectId);
 
   const [typingUsers, setTypingUsers] = useState(new Set());

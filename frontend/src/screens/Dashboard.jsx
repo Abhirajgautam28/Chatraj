@@ -28,7 +28,7 @@ const Dashboard = () => {
 
     axios.post('/api/projects/create', {
       name: projectName,
-      category: categoryName
+      category: categoryName || 'DSA'
     })
       .then((res) => {
         showToast('Project created successfully', 'success');
@@ -38,7 +38,12 @@ const Dashboard = () => {
         setProjectName('');
         // Navigate to project page so E2E can proceed to the project workspace
         try {
-          navigate('/project/', { state: { project: proj } });
+          const targetId = proj && (proj._id || proj.id);
+          if (targetId) {
+            navigate(`/project/${targetId}`, { state: { project: proj } });
+          } else {
+            navigate('/project', { state: { project: proj } });
+          }
         } catch (err) {
           // swallow navigation errors in case router isn't ready
           logger.error('Navigation after project create failed:', err);

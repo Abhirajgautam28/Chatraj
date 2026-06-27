@@ -43,7 +43,7 @@ router.post('/create',
     projectLimiter,
     authUser,
     body('name').isString().withMessage('Name is required'),
-    body('category').isString().withMessage('Category is required'),
+    body('category').optional({ nullable: true }).isString().withMessage('Category must be a string'),
     body('users').optional().isArray().withMessage('Users must be an array'),
     createProject
 )
