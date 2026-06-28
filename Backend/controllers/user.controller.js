@@ -1,15 +1,10 @@
-import userModel from '../models/user.model.js';
-import * as userService from '../services/user.service.js';
-import { validationResult } from 'express-validator';
-import response from '../utils/response.js';
-import { sendMailWithRetry } from '../utils/mailer.js';
-import { normalizeEmail } from '../utils/email.js';
-import redisClient from '../services/redis.service.js';
+import crypto from 'node:crypto';
 import mongoose from 'mongoose';
+import jwt from 'jsonwebtoken';
 import { validationResult } from 'express-validator';
 import userModel from '../models/user.model.js';
 import * as userService from '../services/user.service.js';
-import * as response from '../utils/response.js';
+import response from '../utils/response.js';
 import redisClient from '../services/redis.service.js';
 import { normalizeEmail } from '../utils/email.js';
 import { escapeHtml } from '../utils/strings.js';
@@ -579,3 +574,14 @@ async function sendPasswordResetSuccessEmail(email, name) {
     };
     await sendMailWithRetry(mailOptions);
 }
+
+export const resetPasswordController = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const result = await userService.sendOtp(email);
+        return response.success(res, result);
+    } catch (err) {
+        logger.error('resetPasswordController error:', err);
+        return res.status(400).json({ message: err.message });
+    }
+};
