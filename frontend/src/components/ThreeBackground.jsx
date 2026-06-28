@@ -43,10 +43,10 @@ const ThreeBackground = () => {
       return;
     }
 
-    // Particles - Using InstancedMesh for Spheres
-    const particlesCount = 700;
-    // Slightly larger spheres for better visibility
-    const geometry = new THREE.SphereGeometry(0.035, 8, 8);
+    // Particles - Using InstancedMesh for Spheres (Reduced for Performance)
+    const particlesCount = 150;
+    // Lower poly spheres for faster rendering
+    const geometry = new THREE.SphereGeometry(0.04, 4, 4);
     // Use vertex colors so each instance can be colored individually
     const material = new THREE.MeshBasicMaterial({
       transparent: true,

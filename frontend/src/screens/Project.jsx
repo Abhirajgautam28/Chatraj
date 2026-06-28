@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useContext } from 'react'
 import { UserContext } from '../context/user.context'
 import { ThemeContext } from '../context/theme.context'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import axios from '../config/axios'
 import Markdown from 'markdown-to-jsx'
 import { getWebContainer } from '../config/webContainer'
@@ -48,7 +48,8 @@ const Project = () => {
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState(new Set())
-  const [project, setProject] = useState(location.state.project)
+  const [project, setProject] = useState(location.state?.project || null)
+  const navigate = useNavigate();
   const [message, setMessage] = useState('')
   const { user } = useContext(UserContext)
   const { isDarkMode, setIsDarkMode } = useContext(ThemeContext)
@@ -63,7 +64,8 @@ const Project = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [showSearch, setShowSearch] = useState(false)
   const [showScrollBottom, setShowScrollBottom] = useState(false)
-  const { on, off, emit } = useSocket(project._id);
+  const projectId = project?._id;
+  const { on, off, emit } = useSocket(projectId);
 
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [isTyping, setIsTyping] = useState(false);
@@ -174,7 +176,7 @@ const Project = () => {
   function addCollaborators() {
     axios
       .put("/api/projects/add-user", {
-        projectId: location.state.project._id,
+        projectId: projectId,
         users: Array.from(selectedUserId)
       })
       .then((res) => {
@@ -205,7 +207,7 @@ const Project = () => {
   const handleTyping = () => {
     if (!isTyping) {
       setIsTyping(true);
-      emit('typing', { userId: user._id, projectId: project._id });
+      emit('typing', { userId: user._id, projectId });
     }
 
     if (typingTimeoutRef.current) {
@@ -214,7 +216,7 @@ const Project = () => {
 
     typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
-      emit('stop-typing', { userId: user._id, projectId: project._id });
+      emit('stop-typing', { userId: user._id, projectId });
     }, 1000);
   };
 
@@ -242,11 +244,23 @@ const Project = () => {
   }, [messages, user, emit])
 
   useEffect(() => {
+    if (!projectId) {
+      // If no project was provided in location state, redirect user back to dashboard
+      showToast('No project selected', 'error');
+      navigate('/dashboard');
+      return;
+    }
     boot();
-    axios.get(`/api/projects/get-project/${location.state.project._id}`).then((res) => {
-      setProject(res.data.project)
-      setFileTree(res.data.project.fileTree || {})
-    })
+    axios.get(`/api/projects/get-project/${projectId}`)
+      .then((res) => {
+        const proj = res && res.data && res.data.project;
+        if (proj) {
+          setProject(proj);
+          setFileTree(proj.fileTree || {});
+        } else {
+          setFileTree({});
+        }
+      })
     axios
       .get("/api/users/all")
       .then((res) => {
@@ -256,7 +270,7 @@ const Project = () => {
         showToast('Failed to fetch users', 'error');
         logger.error(err);
       });
-  }, [boot, location.state.project._id])
+  }, [boot, projectId, navigate, showToast])
 
   useEffect(() => {
     if (messageBox.current)
@@ -274,7 +288,7 @@ const Project = () => {
             setFileTree(normalizedTree);
             // Optionally, update the backend as well:
             axios.put('/api/projects/update-file-tree', {
-              projectId: project._id,
+              projectId,
               fileTree: normalizedTree
             });
           }
@@ -284,13 +298,14 @@ const Project = () => {
             if (prev.some(m => m._id === data._id && m.sender?._id === data.sender?._id)) {
               return prev;
             }
-            return [
+            const updated = [
               ...prev,
               {
                 ...data,
                 message: aiResponse.text || data.message
               }
             ];
+            return deduplicateMessages(updated);
           });
           return;
         } catch {
@@ -302,13 +317,14 @@ const Project = () => {
         if (prev.some(m => m._id === data._id && m.sender?._id === data.sender?._id)) {
           return prev;
         }
-        return [...prev, data];
+        const updated = [...prev, data];
+        return deduplicateMessages(updated);
       });
     }
 
     on("project-message", handleIncomingMessage);
     return () => off("project-message", handleIncomingMessage);
-  }, [on, off, project._id]);
+  }, [on, off, projectId]);
 
   useEffect(() => {
     const handleUserTyping = (data) => {
@@ -346,10 +362,6 @@ const Project = () => {
     on("message-reaction", handleReactionUpdate);
     return () => off("message-reaction", handleReactionUpdate);
   }, [on, off]);
-
-  useEffect(() => {
-    setMessages(prev => deduplicateMessages(prev));
-  }, [messages.length]);
 
   // Patch messages to simulate readBy for current user's messages
   const patchedMessages = React.useMemo(() => {
@@ -450,8 +462,6 @@ const Project = () => {
     return { label: 'Sent', icon: 'single' };
   }
 
-  const projectId = project?._id;
-
   useEffect(() => {
     // Load settings from backend on mount
     if (projectId) {
@@ -492,8 +502,8 @@ const Project = () => {
     setSettings(updated);
 
     // If updating sidebar, sync with backend
-    if (category === 'sidebar' && project?._id) {
-      axios.put(`/api/projects/sidebar-settings/${project._id}`,
+    if (category === 'sidebar' && projectId) {
+      axios.put(`/api/projects/sidebar-settings/${projectId}`,
         { sidebar: updated.sidebar })
         .then(res => {
           if (res.data && res.data.sidebar) {
@@ -516,6 +526,10 @@ const Project = () => {
       },
     }));
   }, [vimMode]);
+
+  if (!project) {
+    return null;
+  }
 
   return (
     <main className="flex w-screen h-screen overflow-hidden bg-transparent">
@@ -634,7 +648,7 @@ const Project = () => {
             </button>
           </div>
         )}
-        {typingUsers.size > 0 && (
+            {typingUsers.size > 0 && (
           <div
             className="absolute text-sm text-gray-500 bottom-14 left-4 dark:text-gray-400"
           >
@@ -645,7 +659,7 @@ const Project = () => {
                 <span className="delay-200 animate-bounce">.</span>
               </div>
               {Array.from(typingUsers).map(userId => {
-                const typingUser = project.users.find(u => u._id === userId);
+                const typingUser = project?.users?.find(u => u._id === userId);
                 return typingUser?.firstName || 'Unknown';
               }).join(', ')} {typingUsers.size === 1 ? 'is' : 'are'} typing...
             </div>
@@ -696,8 +710,7 @@ const Project = () => {
             </button>
           </header>
           <div className="flex flex-col gap-2 users">
-            {project.users &&
-              project.users.map((u) => (
+            {project?.users?.map((u) => (
                 <div key={u._id} className="flex items-center gap-2 p-2 cursor-pointer user hover:bg-slate-200 dark:hover:bg-gray-700">
                   <Avatar
                     firstName={u.firstName}
