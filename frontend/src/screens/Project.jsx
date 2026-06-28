@@ -251,10 +251,16 @@ const Project = () => {
       return;
     }
     boot();
-    axios.get(`/api/projects/get-project/${projectId}`).then((res) => {
-      setProject(res.data.project)
-      setFileTree(res.data.project.fileTree || {})
-    })
+    axios.get(`/api/projects/get-project/${projectId}`)
+      .then((res) => {
+        const proj = res && res.data && res.data.project;
+        if (proj) {
+          setProject(proj);
+          setFileTree(proj.fileTree || {});
+        } else {
+          setFileTree({});
+        }
+      })
     axios
       .get("/api/users/all")
       .then((res) => {

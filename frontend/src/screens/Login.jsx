@@ -27,7 +27,7 @@ const Login = () => {
     const otpTimerRef = useRef(null);
     const [resetOtp, setResetOtp] = useState('');
     const [resetOtpVerified, setResetOtpVerified] = useState(false);
-    const [resetToken, setResetToken] = useState('');
+    const [resetToken, setResetToken] = useState(null);
     const [resetNewPassword, setResetNewPassword] = useState('');
     const [resetConfirmPassword, setResetConfirmPassword] = useState('');
     const [resetSuccess, setResetSuccess] = useState(false);
@@ -169,7 +169,7 @@ const Login = () => {
         }
         try {
             const res = await axios.post('/api/users/verify-otp', { email: resetEmail, otp: resetOtp });
-            setResetToken(res.data.resetToken);
+            setResetToken(res.data.token);
             setResetOtpVerified(true);
         } catch {
             setResetError('Invalid OTP. Please check your email and try again.');
@@ -207,7 +207,7 @@ const Login = () => {
                 setResetOtp('');
                 setResetOtpSent(false);
                 setResetOtpVerified(false);
-                setResetToken('');
+                setResetToken(null);
                 setResetNewPassword('');
                 setResetConfirmPassword('');
                 setShowPassword(false);
