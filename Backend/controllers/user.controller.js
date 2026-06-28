@@ -8,8 +8,8 @@ import response from '../utils/response.js';
 import redisClient from '../services/redis.service.js';
 import { normalizeEmail } from '../utils/email.js';
 import { escapeHtml } from '../utils/strings.js';
-import { sendMailWithRetry } from '../utils/mailer.js';
 import { logger } from '../utils/logger.js';
+import { secureCompare } from '../utils/security.js';
 
 // Send OTP for password reset (used in Login.jsx)
 export const sendOtpController = async (req, res) => {
@@ -355,7 +355,7 @@ export const adminGetOtpController = async (req, res) => {
     try {
         const adminKey = req.get('x-admin-key');
         if (!process.env.ADMIN_API_KEY) return res.status(403).json({ message: 'Admin API key not configured on server' });
-        if (!adminKey || adminKey !== process.env.ADMIN_API_KEY) return res.status(403).json({ message: 'Forbidden' });
+        if (!adminKey || !secureCompare(adminKey, process.env.ADMIN_API_KEY)) return res.status(403).json({ message: 'Forbidden' });
 
         const { email, userId } = req.query;
         if (!email && !userId) return res.status(400).json({ message: 'Provide email or userId' });
