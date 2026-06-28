@@ -5,6 +5,11 @@ import { ChatRajThemeProvider } from '../context/chatraj-theme.context';
 import LoadingScreen from '../components/LoadingScreen';
 import usePageTracking from '../hooks/usePageTracking';
 
+const PageTracker = () => {
+    usePageTracking();
+    return null;
+};
+
 const Login = lazy(() => import('../screens/Login'));
 const Register = lazy(() => import('../screens/Register'));
 const Home = lazy(() => import('../screens/Home'));
