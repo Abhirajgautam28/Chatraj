@@ -1,7 +1,5 @@
-import crypto from 'node:crypto';
-import mongoose from 'mongoose';
-import jwt from 'jsonwebtoken';
 import { validationResult } from 'express-validator';
+import mongoose from 'mongoose';
 import userModel from '../models/user.model.js';
 import * as userService from '../services/user.service.js';
 import response from '../utils/response.js';

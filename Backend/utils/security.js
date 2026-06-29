@@ -66,19 +66,15 @@ export function shouldExposeOtpToClient() {
   return expose && !ci;
 }
 
+
 /**
  * Securely compares two strings in constant time to prevent timing attacks.
- * It hashes both strings to a fixed length (SHA-256) before using `timingSafeEqual`,
- * mitigating both timing discrepancies and length leakage issues.
- * @param {string} a
- * @param {string} b
- * @returns {boolean}
+ * Uses SHA-256 to normalize the length of both inputs so that length-mismatch errors
+ * do not leak the actual length of the expected secret.
  */
 export function secureCompare(a, b) {
   if (typeof a !== 'string' || typeof b !== 'string') return false;
-
   const hashA = createHash('sha256').update(a).digest();
   const hashB = createHash('sha256').update(b).digest();
-
   return timingSafeEqual(hashA, hashB);
 }
