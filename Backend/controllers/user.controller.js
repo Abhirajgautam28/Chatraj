@@ -1,20 +1,15 @@
-import userModel from '../models/user.model.js';
-import * as userService from '../services/user.service.js';
-import { validationResult } from 'express-validator';
-import response from '../utils/response.js';
-import { sendMailWithRetry } from '../utils/mailer.js';
-import { normalizeEmail } from '../utils/email.js';
-import redisClient from '../services/redis.service.js';
+import crypto from 'node:crypto';
 import mongoose from 'mongoose';
+import jwt from 'jsonwebtoken';
 import { validationResult } from 'express-validator';
 import userModel from '../models/user.model.js';
 import * as userService from '../services/user.service.js';
-import * as response from '../utils/response.js';
+import response from '../utils/response.js';
 import redisClient from '../services/redis.service.js';
 import { normalizeEmail } from '../utils/email.js';
 import { escapeHtml } from '../utils/strings.js';
-import { sendMailWithRetry } from '../utils/mailer.js';
 import { logger } from '../utils/logger.js';
+import { secureCompare } from '../utils/security.js';
 
 // Send OTP for password reset (used in Login.jsx)
 export const sendOtpController = async (req, res) => {
@@ -360,7 +355,7 @@ export const adminGetOtpController = async (req, res) => {
     try {
         const adminKey = req.get('x-admin-key');
         if (!process.env.ADMIN_API_KEY) return res.status(403).json({ message: 'Admin API key not configured on server' });
-        if (!adminKey || adminKey !== process.env.ADMIN_API_KEY) return res.status(403).json({ message: 'Forbidden' });
+        if (!adminKey || !secureCompare(adminKey, process.env.ADMIN_API_KEY)) return res.status(403).json({ message: 'Forbidden' });
 
         const { email, userId } = req.query;
         if (!email && !userId) return res.status(400).json({ message: 'Provide email or userId' });
@@ -443,6 +438,11 @@ export const adminGetOtpController = async (req, res) => {
 export const debugGetRawOtpController = async (req, res) => {
     try {
         if (process.env.NODE_ENV === 'production') return res.status(403).json({ message: 'Disabled in production' });
+
+        const adminKey = req.get('x-admin-key');
+        if (!process.env.ADMIN_API_KEY) return res.status(403).json({ message: 'Admin API key not configured on server' });
+        if (!adminKey || adminKey !== process.env.ADMIN_API_KEY) return res.status(403).json({ message: 'Forbidden' });
+
         const { email, userId } = req.query;
         if (!email && !userId) return res.status(400).json({ message: 'Provide email or userId' });
 
@@ -579,3 +579,14 @@ async function sendPasswordResetSuccessEmail(email, name) {
     };
     await sendMailWithRetry(mailOptions);
 }
+
+export const resetPasswordController = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const result = await userService.sendOtp(email);
+        return response.success(res, result);
+    } catch (err) {
+        logger.error('resetPasswordController error:', err);
+        return res.status(400).json({ message: err.message });
+    }
+};

@@ -56,9 +56,14 @@ test.describe('ChatRaj Full Application E2E Test Suite - Continuous Flow', () =>
 
     // Try to fetch the OTP from the backend debug endpoint (dev-only).
     let otpValue = null;
+    const adminKey = process.env.ADMIN_API_KEY || 'default_admin_key';
     for (let attempt = 0; attempt < 30; attempt++) {
       try {
-        const resp = await pageA.request.get(`${BACKEND_URL}/api/users/debug/raw-otp?email=${encodeURIComponent(NEW_USER_EMAIL)}`);
+        const resp = await pageA.request.get(`${BACKEND_URL}/api/users/debug/raw-otp?email=${encodeURIComponent(NEW_USER_EMAIL)}`, {
+          headers: {
+            'x-admin-key': adminKey
+          }
+        });
         if (resp && resp.status && resp.status() === 200) {
           const json = await resp.json();
           if (json && json.otp) {
