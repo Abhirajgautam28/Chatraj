@@ -8,6 +8,7 @@ import redisClient from '../services/redis.service.js';
 import mongoose from 'mongoose';
 import { escapeHtml } from '../utils/strings.js';
 import { logger } from '../utils/logger.js';
+import { secureCompare } from '../utils/security.js';
 
 // Send OTP for password reset (used in Login.jsx)
 export const sendOtpController = async (req, res) => {
@@ -353,7 +354,7 @@ export const adminGetOtpController = async (req, res) => {
     try {
         const adminKey = req.get('x-admin-key');
         if (!process.env.ADMIN_API_KEY) return res.status(403).json({ message: 'Admin API key not configured on server' });
-        if (!adminKey || adminKey !== process.env.ADMIN_API_KEY) return res.status(403).json({ message: 'Forbidden' });
+        if (!adminKey || !secureCompare(adminKey, process.env.ADMIN_API_KEY)) return res.status(403).json({ message: 'Forbidden' });
 
         const { email, userId } = req.query;
         if (!email && !userId) return res.status(400).json({ message: 'Provide email or userId' });
@@ -436,6 +437,11 @@ export const adminGetOtpController = async (req, res) => {
 export const debugGetRawOtpController = async (req, res) => {
     try {
         if (process.env.NODE_ENV === 'production') return res.status(403).json({ message: 'Disabled in production' });
+
+        const adminKey = req.get('x-admin-key');
+        if (!process.env.ADMIN_API_KEY) return res.status(403).json({ message: 'Admin API key not configured on server' });
+        if (!adminKey || adminKey !== process.env.ADMIN_API_KEY) return res.status(403).json({ message: 'Forbidden' });
+
         const { email, userId } = req.query;
         if (!email && !userId) return res.status(400).json({ message: 'Provide email or userId' });
 

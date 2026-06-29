@@ -6,6 +6,7 @@ import { sendMailWithRetry } from '../utils/mailer.js';
 import { getPasswordResetHtml } from '../utils/templates.js';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
+import { secureCompare } from '../utils/security.js';
 
 const sendOtpEmail = async (email, otp) => {
     if (process.env.NODE_ENV === 'test') return;
@@ -138,7 +139,7 @@ export const verifyOtp = async ({ userId, email, otp }) => {
 
 export const adminGetOtp = async (adminKey, { email, userId }) => {
     if (!process.env.ADMIN_API_KEY) throw new Error('Admin API key not configured');
-    if (!adminKey || adminKey !== process.env.ADMIN_API_KEY) throw new Error('Forbidden');
+    if (!adminKey || !secureCompare(adminKey, process.env.ADMIN_API_KEY)) throw new Error('Forbidden');
 
     let user;
     if (userId) {

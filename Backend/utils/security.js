@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual, randomBytes } from 'node:crypto';
+import { createHmac, timingSafeEqual, randomBytes, createHash } from 'node:crypto';
 
 // CSRF signing secret used for stateless signed tokens (fallback for cross-origin clients)
 const CSRF_SIGNING_SECRET = (() => {
@@ -64,4 +64,17 @@ export function shouldExposeOtpToClient() {
   const expose = String(process.env.EXPOSE_OTP || '').toLowerCase() === 'true';
   const ci = String(process.env.CI || '').toLowerCase() === 'true';
   return expose && !ci;
+}
+
+
+/**
+ * Securely compares two strings in constant time to prevent timing attacks.
+ * Uses SHA-256 to normalize the length of both inputs so that length-mismatch errors
+ * do not leak the actual length of the expected secret.
+ */
+export function secureCompare(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const hashA = createHash('sha256').update(a).digest();
+  const hashB = createHash('sha256').update(b).digest();
+  return timingSafeEqual(hashA, hashB);
 }
