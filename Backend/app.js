@@ -49,12 +49,12 @@ const corsErrorLogger = (err, req, res, next) => {
 
 // Improved CORS middleware for Vercel/Render/localhost
 const dynamicCors = (origin, callback) => {
-  const vercelRegex = /^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/;
+  // Restrict Vercel origins to only preview deployments for the specific chatraj project
+  const vercelRegex = /^https:\/\/chatraj(-[a-zA-Z0-9-]+)?-abhiraj-gautams-projects\.vercel\.app$/;
   if (!origin) return callback(null, true);
   if (
     allowedOrigins.includes(origin) ||
-    vercelRegex.test(origin) ||
-    origin === 'null'
+    vercelRegex.test(origin)
   ) {
     return callback(null, true);
   }
