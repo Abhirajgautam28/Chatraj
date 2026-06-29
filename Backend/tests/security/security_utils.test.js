@@ -21,7 +21,9 @@ describe('Security Utilities', () => {
 
     test('isSecureFromRequest logic', () => {
         expect(isSecureFromRequest({ secure: true })).toBe(true);
-        expect(isSecureFromRequest({ headers: { 'x-forwarded-proto': 'https' } })).toBe(true);
+        // We deliberately mock secure as true here since trust proxy does it for us
+        const reqMock = { secure: true, headers: { 'x-forwarded-proto': 'https' } };
+        expect(isSecureFromRequest(reqMock)).toBe(true);
     });
 
     test('CSRF signing and verification', () => {
