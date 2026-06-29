@@ -2,6 +2,9 @@
   "name": "chatraj-monorepo",
   "private": true,
   "version": "1.0.0",
+  "engines": {
+    "node": ">=22.18.0"
+  },
   "scripts": {
     "dev": "npx concurrently \"cd Backend && node server.js\" \"cd frontend && npm run dev\"",
     "dev:win": "npx concurrently \"cd Backend && node server.js\" \"cd frontend && npm run dev\"",
