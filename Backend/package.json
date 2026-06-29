@@ -49,6 +49,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
+    "@babel/plugin-transform-optional-chaining": "^8.0.1",
     "@babel/preset-env": "^7.29.5",
     "babel-jest": "^30.3.0",
     "jest": "^30.4.2",
