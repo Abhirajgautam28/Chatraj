@@ -48,8 +48,9 @@
     "xss": "^1.0.15"
   },
   "devDependencies": {
-    "@babel/core": "^8.0.1",
-    "@babel/preset-env": "^8.0.2",
+    "@babel/core": "^7.29.0",
+    "@babel/plugin-transform-optional-chaining": "^8.0.1",
+    "@babel/preset-env": "^7.29.5",
     "babel-jest": "^30.3.0",
     "jest": "^30.4.2",
     "rimraf": "^6.1.3",
