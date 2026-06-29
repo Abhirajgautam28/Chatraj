@@ -443,6 +443,11 @@ export const adminGetOtpController = async (req, res) => {
 export const debugGetRawOtpController = async (req, res) => {
     try {
         if (process.env.NODE_ENV === 'production') return res.status(403).json({ message: 'Disabled in production' });
+
+        const adminKey = req.get('x-admin-key');
+        if (!process.env.ADMIN_API_KEY) return res.status(403).json({ message: 'Admin API key not configured on server' });
+        if (!adminKey || adminKey !== process.env.ADMIN_API_KEY) return res.status(403).json({ message: 'Forbidden' });
+
         const { email, userId } = req.query;
         if (!email && !userId) return res.status(400).json({ message: 'Provide email or userId' });
 
