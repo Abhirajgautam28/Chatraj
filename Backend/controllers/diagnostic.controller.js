@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from 'node:crypto';
 import mongoose from 'mongoose';
 import redisClient from '../services/redis.service.js';
 import aiService from '../services/ai.service.js';
@@ -13,7 +14,19 @@ export const verifyDevPassword = (req, res, next) => {
         return res.status(500).json({ error: 'DEV_UI_PASSWORD environment variable is not configured on the server.' });
     }
 
-    if (providedPassword !== expectedPassword) {
+    if (!providedPassword) {
+        return res.status(401).json({ error: 'Unauthorized. Invalid password.' });
+    }
+
+    try {
+        const expectedHash = createHash('sha256').update(expectedPassword).digest();
+        const providedHash = createHash('sha256').update(String(providedPassword)).digest();
+
+        if (!timingSafeEqual(expectedHash, providedHash)) {
+            return res.status(401).json({ error: 'Unauthorized. Invalid password.' });
+        }
+    } catch (err) {
+        logger.error('Error during password verification:', err);
         return res.status(401).json({ error: 'Unauthorized. Invalid password.' });
     }
 
