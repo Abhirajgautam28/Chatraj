@@ -2,6 +2,9 @@
   "name": "chatraj-monorepo",
   "private": true,
   "version": "1.0.0",
+  "engines": {
+    "node": ">=22.18.0"
+  },
   "scripts": {
     "dev": "npx concurrently \"cd Backend && node server.js\" \"cd frontend && npm run dev\"",
     "dev:win": "npx concurrently \"cd Backend && node server.js\" \"cd frontend && npm run dev\"",
@@ -33,14 +36,14 @@
   "devDependencies": {
     "@playwright/test": "^1.59.1",
     "concurrently": "^8.2.2",
-    "cypress": "^13.0.0",
+    "cypress": "^15.18.0",
     "dotenv": "^17.4.2",
     "socket.io-client": "^4.8.1"
   },
   "dependencies": {
-    "cookie": "^0.7.0",
+    "cookie": "^0.7.2",
     "csurf": "^1.11.0",
-    "dompurify": "^3.4.2",
+    "dompurify": "^3.4.11",
     "mongo-sanitize": "^1.1.0"
   }
 }
