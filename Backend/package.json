@@ -28,7 +28,7 @@
     "@google/generative-ai": "0.21.0",
     "axios": "^1.18.1",
     "bcryptjs": "3.0.3",
-    "cookie": "^2.0.0",
+    "cookie": "^2.0.1",
     "cookie-parser": "1.4.7",
     "cors": "2.8.6",
     "csurf": "^1.2.2",
