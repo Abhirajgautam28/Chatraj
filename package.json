@@ -41,9 +41,9 @@
     "socket.io-client": "^4.8.1"
   },
   "dependencies": {
-    "cookie": "^1.0.0",
+    "cookie": "^1.0.1",
     "csurf": "^1.11.0",
-    "dompurify": "^3.4.11",
+    "dompurify": "^3.4.12",
     "mongo-sanitize": "^1.1.0"
   }
 }
