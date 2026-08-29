@@ -71,7 +71,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@vitejs/plugin-react": "6.1.0",
     "@vitest/ui": "^4.1.8",
-    "autoprefixer": "10.5.2",
+    "autoprefixer": "10.5.4",
     "babel-jest": "^30.4.1",
     "baseline-browser-mapping": "^2.10.40",
     "concurrently": "^10.0.4",
