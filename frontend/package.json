@@ -75,7 +75,7 @@
     "babel-jest": "^30.4.1",
     "baseline-browser-mapping": "^2.10.40",
     "concurrently": "^10.0.4",
-    "cypress": "^15.20.0",
+    "cypress": "^15.21.1",
     "eslint": "^9.39.2",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^7.1.1",
