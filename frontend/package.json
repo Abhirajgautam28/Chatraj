@@ -73,7 +73,7 @@
     "@vitest/ui": "^4.1.8",
     "autoprefixer": "10.5.4",
     "babel-jest": "^30.4.1",
-    "baseline-browser-mapping": "^2.10.40",
+    "baseline-browser-mapping": "^2.11.25",
     "concurrently": "^10.0.4",
     "cypress": "^15.21.1",
     "eslint": "^9.39.2",
