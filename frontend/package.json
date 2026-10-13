@@ -83,7 +83,7 @@
     "globals": "^17.7.0",
     "happy-dom": "^20.11.12",
     "jest": "^30.5.1",
-    "jest-environment-jsdom": "^30.4.1",
+    "jest-environment-jsdom": "^30.5.2",
     "jsdom": "^29.0.2",
     "playwright": "^1.62.1",
     "postcss": "8.5.23",
