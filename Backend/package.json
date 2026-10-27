@@ -48,7 +48,7 @@
     "path-to-regexp": "^8.4.2",
     "socket.io": "4.8.4",
     "validator": "^13.15.23",
-    "xss": "^1.0.15"
+    "xss": "^1.0.17"
   },
   "devDependencies": {
     "@babel/core": "^8.0.7",
