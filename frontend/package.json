@@ -35,7 +35,7 @@
     "@webcontainer/api": "^1.6.4",
     "animate.css": "^4.1.1",
     "animejs": "^3.2.2",
-    "antd": "^6.5.2",
+    "antd": "^6.7.0",
     "axios": "^1.20.0",
     "bootstrap": "^5.3.8",
     "dompurify": "^3.4.2",
