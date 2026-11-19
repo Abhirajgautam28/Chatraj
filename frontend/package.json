@@ -37,7 +37,7 @@
     "animejs": "^3.2.2",
     "antd": "^6.7.0",
     "axios": "^1.20.0",
-    "bootstrap": "^5.3.8",
+    "bootstrap": "^5.3.9",
     "dompurify": "^3.4.2",
     "framer-motion": "^13.4.0",
     "gsap": "^3.15.0",
